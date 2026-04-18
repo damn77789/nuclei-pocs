@@ -1,0 +1,26 @@
+id: nsfocus-uts-leak-ct-158435
+info:
+  name: NSFocus UTS Account Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects potential account information leakage in NSFocus UTS systems by inspecting JSON responses for sensitive data such as accounts and passwords.
+http:
+  - method: GET
+    path:
+      - "/webapi/v1/system/accountmanage/account"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "account"
+          - "password"

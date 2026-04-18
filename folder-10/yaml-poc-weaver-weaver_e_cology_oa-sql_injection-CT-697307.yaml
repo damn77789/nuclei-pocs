@@ -1,0 +1,27 @@
+id: weaver-e-cology-sql-injection
+info:
+  name: Weaver E-Cology OA SQL Injection
+  author: lianjian.chen
+  severity: critical
+  description: |
+    SQL Injection vulnerability in Weaver E-Cology OA system identified through specific response patterns.
+  reference:
+    - https://mp.weixin.qq.com/s/MbGaTNNYSlJlQeqQ-5_KSw
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/mobile/plugin/CheckServer.jsp?type=mobileSetting'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"error":"system error"'
+        part: body
+      - type: word
+        words:
+          - 'securityIntercept'
+        part: header
+        negative: true

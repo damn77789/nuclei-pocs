@@ -1,0 +1,23 @@
+id: poc-yaml-pageadmin-cms-identify
+info:
+  name: Discover PageAdmin CMS
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/e/js/comm.js"
+      - "{{BaseURL}}/js/comm.js"
+      - "{{BaseURL}}/"
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Powered by PageAdmin CMS"
+      - type: dsl
+        dsl:
+          - "contains(body, 'aspx/get_info.aspx') && contains(body, 'function open_calendar')"

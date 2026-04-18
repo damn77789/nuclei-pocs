@@ -1,0 +1,25 @@
+id: couchdb-unauth-access
+
+info:
+  name: CouchDB Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: access-control
+  description: |
+    Detects unauthorized access to CouchDB configuration endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/_config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "httpd_design_handlers"
+          - "external_manager"
+          - "replicator_manager"
+        part: body

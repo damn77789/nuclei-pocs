@@ -1,0 +1,26 @@
+id: wsdl-services-discovery
+info:
+  name: Discover WSDL Services
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  paths:
+    - /ws/
+    - /webservice/
+    - /services/
+    - /service/
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{paths}}"
+    matchers-condition: or
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(body, '?wsdl\"') && contains(body, 'WSDL :') && contains(body, 'Endpoint address') && contains(body, 'namespace:')"
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(title, 'CXF - Service list')"

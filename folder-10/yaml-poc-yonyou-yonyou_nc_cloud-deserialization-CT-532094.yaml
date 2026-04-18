@@ -1,0 +1,24 @@
+id: yaml-poc-yonyou-yonyou_nc_cloud-deserialization-CT-532094
+info:
+  name: Yonyou NC Cloud Deserialization Vulnerability
+  author: lianjian.chen
+  severity: critical
+  description: |
+    This template detects the presence of a vulnerable UploadServlet in the Yonyou NC Cloud that may lead to deserialization issues.
+
+http:
+  - raw:
+      - |
+        GET /servlet/~ncwebpub/nc.document.pub.fileSystem.servlet.UploadServlet HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "UploadServlet"
+          - "org.apache.catalina.core.ApplicationFilterChain"
+        part: body

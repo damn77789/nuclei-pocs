@@ -1,0 +1,43 @@
+id: poc-http-basic-weak-pass
+info:
+  name: HTTP Basic Authentication Weak Password Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password,auth
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: status
+        status:
+          - 401
+
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic {{base64(username+":"+password)}}
+
+    attack: clusterbomb
+    payloads:
+      username:
+        - admin
+        - admin123
+        - root
+      password:
+        - 123456
+        - password
+        - admin123
+        - P@ssw0rd
+        - secret
+        - root
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200

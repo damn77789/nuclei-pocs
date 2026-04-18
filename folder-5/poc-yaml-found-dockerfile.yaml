@@ -1,0 +1,22 @@
+id: poc-yaml-found-dockerfile
+info:
+  name: Dockerfile File Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: misconfiguration
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/docker/Dockerfile"
+      - "{{BaseURL}}/Dockerfile"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "!contains(body, '<a')"
+          - "!contains(body, '{\"')"
+          - "regex(body, '(FROM |RUN )')"

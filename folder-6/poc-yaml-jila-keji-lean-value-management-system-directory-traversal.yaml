@@ -1,0 +1,27 @@
+id: poc-jila-keji-lvs-directory-traversal
+info:
+  name: Jila Keji LVS Lean Value Management System Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+  metadata:
+    technology: ASP.NET
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Business/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "bin"
+          - "UploadFile"
+      - type: word
+        part: header
+        words:
+          - "text/html; charset=UTF-8"

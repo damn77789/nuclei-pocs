@@ -1,0 +1,37 @@
+id: poc-yaml-swagger-json-identify
+info:
+  name: Discover Swagger Documentation APIs
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: identify
+
+variables:
+  paths:
+    - /swagger.json
+    - /api/swagger.json
+    - /swagger/v1/swagger.json
+    - /swagger/doc.json
+    - /v2/api-docs
+    - /v3/api-docs
+    - /api/v2/api-docs
+    - /api/v2/swagger.json
+    - /docs/swagger.json
+    - /apidocs.json
+    - /swagger/v1/api-docs
+    - /swagger/v2/swagger.json
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{paths}}"
+    headers:
+      Accept: application/json
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - contains(substr(body, 0, 10), "{")
+          - contains(body, "\"paths\"")
+      - type: dsl
+        dsl:
+          - contains(body, "\"swagger\"") || contains(body, "\"openapi\"")

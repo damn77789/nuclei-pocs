@@ -1,0 +1,53 @@
+id: minio-unsafe-config-ct-158034
+info:
+  name: Minio Unsafe Configuration - Default Password
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects the use of default credentials `minioadmin:minioadmin` in Minio's login endpoint
+    which may allow unauthorized access.
+  reference:
+    - https://docs.min.io/cn/
+
+http:
+  - raw:
+      - |
+        POST /minio/webrpc HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"id":1,"jsonrpc":"2.0","params":{"username":"minioadmin","password":"minioadmin"},"method":"Web.Login"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "uiVersion"
+        part: body
+      - type: word
+        words:
+          - "token"
+        part: body
+
+  - raw:
+      - |
+        POST /minio/webrpc HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"id":1,"jsonrpc":"2.0","params":{"username":"minioadmin","password":"minioadmin"},"method":"web.Login"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "uiVersion"
+        part: body
+      - type: word
+        words:
+          - "token"
+        part: body

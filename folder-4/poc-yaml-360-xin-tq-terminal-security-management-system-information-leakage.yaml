@@ -1,0 +1,35 @@
+id: 360-xin-tq-terminal-info-leakage
+info:
+  name: 360 Xin TQ Terminal Security Management System Information Leakage
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+  description: |
+    Detects information leakage in the 360 Xin TQ Terminal Security Management System, specifically within the admin_log_conf.cache file.
+
+http:
+  - raw:
+      - |
+        GET /runtime/admin_log_conf.cache HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "s:4:\"name\";s:6:\"登录\""
+          - "s:4:\"type\";s:10:\"TYPE_LOGIN\""
+
+  - raw:
+      - |
+        GET /runtime HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: status
+        status:
+          - 301

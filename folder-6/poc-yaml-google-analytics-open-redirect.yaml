@@ -1,0 +1,24 @@
+id: google-analytics-open-redirect
+info:
+  name: Google Analytics Open Redirect Vulnerability (CVE-2024-0250)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cve-2024-0250,open-redirect
+http:
+  - raw:
+      - |
+        GET /wp-content/plugins/analytics-insights/tools/oauth2callback.php?state=https://www.baidu.com/%3f&code=x HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "Location: https://www.baidu.com/?&aiwp_access_code=x"
+      - type: word
+        part: body
+        words:
+          - ""

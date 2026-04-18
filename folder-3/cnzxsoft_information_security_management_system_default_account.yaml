@@ -1,0 +1,32 @@
+id: cnzxsoft-information-security-management-default-account
+
+info:
+  name: CNZXSoft Information Security Management System Default Account
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    CNZXSoft Golden Shield Information Security Management System has a default weak password.
+  tags: defaultaccount
+
+http:
+  - raw:
+      - |
+        POST /?q=common/login HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: check_code=ptbh
+        Content-Type: application/x-www-form-urlencoded
+
+        name=admin&password=zxsoft1234!%40%23%24&checkcode=ptbh&doLoginSubmit=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "1"
+      - type: word
+        part: header
+        words:
+          - "ZXSOFT_JDIS_USR_NAME=deleted"

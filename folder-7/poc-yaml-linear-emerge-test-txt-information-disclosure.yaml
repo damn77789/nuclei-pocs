@@ -1,0 +1,25 @@
+id: CVE-2022-31269
+info:
+  name: Linear eMerge test.txt Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2022-31269,information-disclosure
+  description: |
+    The Linear eMerge system exposes sensitive credentials in the test.txt file.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/test.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ID="
+          - "Password="
+      - type: word
+        words:
+          - "<"
+        negative: true

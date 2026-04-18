@@ -1,0 +1,25 @@
+id: weaver-eoffice-config2-unauthorized-access
+
+info:
+  name: Weaver E-Office config_2.php Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,e-office
+  description: |
+    This template detects unauthorized access to the config_2.php file in Weaver E-Office, which may expose sensitive database information including database name, password, and connection test results.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/building/backmgr/urlpage/mobileurl/config_2.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "数据库名"
+          - "sdbpassword"
+          - "连接测试"
+        part: body

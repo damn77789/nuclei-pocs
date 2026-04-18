@@ -1,0 +1,28 @@
+id: poc-yaml-jeeboot-getdictitemsbytable-sqli
+
+info:
+  name: JeecgBoot getDictItemsByTable SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,jeecg-boot
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jeecg-boot/sys/ng-alain/getDictItemsByTable/t/T1/x.js"
+      - "{{BaseURL}}/api/sys/ng-alain/getDictItemsByTable/t/T1/x.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "MySQLSyntaxErrorException: Table"
+          - "t' doesn't exist"
+        condition: and
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

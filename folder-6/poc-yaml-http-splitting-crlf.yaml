@@ -1,0 +1,19 @@
+id: poc-yaml-http-splitting-crlf
+info:
+  name: HTTP Response Splitting (CRLF) Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: crlf-injection
+http:
+  - method: GET
+    path:
+      - "/%0d%0aSet-Cookie:%20a=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie: a=1"

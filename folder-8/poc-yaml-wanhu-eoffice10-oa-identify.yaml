@@ -1,0 +1,22 @@
+id: poc-wanhu-eoffice10-oa-identify
+info:
+  name: Identify Wanhu eOffice10 OA
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "/eoffice10/client/web/login"
+      - "/client/web/login"
+      - "/mobile/login"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "localStorage.getItem('eoffice_loading_tip')"
+        part: body

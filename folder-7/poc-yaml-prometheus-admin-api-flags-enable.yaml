@@ -1,0 +1,20 @@
+id: poc-yaml-prometheus-admin-api-flags-enable
+info:
+  name: Prometheus Admin API Flags Enable Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: misconfiguration,prometheus
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/v1/status/flags"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "web.enable-admin-api:\"true\""
+        part: body
+      - type: word
+        words:
+          - "web.enable-lifecycle:\"true\""
+        part: body

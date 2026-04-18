@@ -1,0 +1,20 @@
+id: poc-yaml-clickhouse-rest-api-identify
+info:
+  name: Clickhouse REST API Discovery
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ping"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "X-ClickHouse-Summary"
+      - type: word
+        part: body
+        words:
+          - "OK"

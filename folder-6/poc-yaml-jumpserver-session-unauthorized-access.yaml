@@ -1,0 +1,24 @@
+id: jumpserver-session-unauthorized-access
+info:
+  name: JumpServer Session Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Identifies unauthorized access to JumpServer sessions API endpoint.
+  tags: unauthorized-access,jumpserver
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/v1/terminal/sessions/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "asset_id"
+          - "next"
+          - "account"
+          - "account_id"
+        part: body

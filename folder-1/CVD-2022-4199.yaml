@@ -1,0 +1,33 @@
+id: dsshop-getcartlist-command-execution
+info:
+  name: DSShop getCartList Method Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    DSShop contains a deserialization vulnerability in the cart parameter of the getCartList method in versions v1-v2. This can lead to arbitrary code execution and server compromise.
+  reference:
+    - https://www.anquanke.com/post/id/203461#h3-4
+  tags: command-execution
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 302
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "XPATH syntax error: '~"

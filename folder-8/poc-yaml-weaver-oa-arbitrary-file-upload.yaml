@@ -1,0 +1,29 @@
+id: poc-yaml-weaver-oa-arbitrary-file-upload
+info:
+  name: Weaver OA Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/weaver/weaver.common.Ctrl/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 403
+      - type: dsl
+        dsl:
+          - len(body) > 0
+  - method: GET
+    path:
+      - "{{BaseURL}}/weaver/weaver.common.Ctrl/.css"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - len(body) == 0

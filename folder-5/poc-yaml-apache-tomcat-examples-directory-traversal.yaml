@@ -1,0 +1,20 @@
+id: apache-tomcat-examples-directory-traversal
+info:
+  name: Apache Tomcat Examples Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Potential directory traversal vulnerability in Apache Tomcat examples directory.
+    This could allow attackers to access sensitive files.
+  tags: directory-traversal
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/examples/servlets/servlet/SessionExample"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<title>Sessions Example</title>"
+    matchers-condition: and

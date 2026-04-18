@@ -1,0 +1,30 @@
+id: zabbix-default-creds
+info:
+  name: Zabbix Default Credentials
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects the presence of default credentials for Zabbix (Admin/zabbix).
+  reference:
+    - https://www.zabbix.com/documentation/3.4/zh/manual/quickstart/login
+http:
+  - raw:
+      - |
+        POST /index.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        name=Admin&password=zabbix&autologin=1&enter=Sign+in
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "zabbix.php?action=dashboard.view"
+      - type: word
+        part: header
+        words:
+          - "zbx_session"

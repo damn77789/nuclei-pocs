@@ -1,0 +1,25 @@
+id: poc-nodejs-debug-mode-rce
+info:
+  name: Node.js Debug Mode Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,nodejs
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/json"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"description\": \"node.js instance\""
+          - "webSocketDebuggerUrl"
+          - "\"type\": \"node"
+      - type: regex
+        part: body
+        regex:
+          - "\"devtoolsFrontendUrl\": \"(.*?)\","

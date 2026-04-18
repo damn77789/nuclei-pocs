@@ -1,0 +1,24 @@
+id: iceflow-vpn-info-leak-cnvd-2016-10768
+info:
+  name: ICEFlow VPN Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Detects ICEFlow VPN system log information leak, which may expose sensitive data.
+  reference:
+    - http://disk.scan.cm/zlsec/zlsec_info/document/wiki/PeiQi_Wiki/Web%E5%BA%94%E7%94%A8%E6%BC%8F%E6%B4%9E/ICEFlow/ICEFlow%20VPN%20%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2%E6%BC%8F%E6%B4%9E.md?hash=zE0KEPGJ
+
+http:
+  - raw:
+      - |
+        GET /log/system.log HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\d{4}/\\d{2}/\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}\\s+ICEFLOW\\s+(.*):(.*)\\n"
+        part: body

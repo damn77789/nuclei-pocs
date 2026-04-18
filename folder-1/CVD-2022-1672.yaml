@@ -1,0 +1,33 @@
+id: apache-guacamole-default-credentials
+info:
+  name: Apache Guacamole Default Credentials
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Apache Guacamole is a clientless remote desktop gateway. This template detects the usage of default credentials (username: guacadmin, password: guacadmin) leading to potential information disclosure.
+  tags: default-password
+  reference:
+    - https://wiki.debian.org/Guacamole#:~:text=You%20can%20now%20access%20the,password%20are%20both%20%22guacadmin%22
+http:
+  - raw:
+      - |
+        POST /api/tokens HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=guacadmin&password=guacadmin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "\"username\""
+          - "\"authToken\""
+          - "\"guacadmin\""

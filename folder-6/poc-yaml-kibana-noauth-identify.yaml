@@ -1,0 +1,23 @@
+id: poc-yaml-kibana-noauth-identify
+info:
+  name: Kibana Unauthorized Access Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "/app/kibana"
+      - "/kibana/app/kibana"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Kibana"
+          - "<title>Kibana</title>"

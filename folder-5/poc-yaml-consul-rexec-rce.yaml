@@ -1,0 +1,27 @@
+id: poc-yaml-consul-rexec-rce
+info:
+  name: Consul Rexec Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: rce,consul
+  description: |
+    This template detects the presence of a Consul configuration with DisableRemoteExec set to false, which allows for potential remote code execution.
+
+http:
+  - method: GET
+    path:
+      - "/v1/agent/self"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+      - type: word
+        part: body
+        words:
+          - '"DisableRemoteExec": false'
+        condition: and

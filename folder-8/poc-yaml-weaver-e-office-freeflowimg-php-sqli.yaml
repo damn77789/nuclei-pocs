@@ -1,0 +1,32 @@
+id: weaver-e-office-freeflowimg-php-sqli
+info:
+  name: Weaver E-Office /E-mobile/flow/freeflowimg.php SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/E-mobile/flow/freeflowimg.php?RUN_ID=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "mysql_fetch_array()"
+        part: body
+        negative: true
+  - method: GET
+    path:
+      - "{{BaseURL}}/E-mobile/flow/freeflowimg.php?RUN_ID=1'"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "mysql_fetch_array()"
+        part: body

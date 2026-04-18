@@ -1,0 +1,26 @@
+id: sangfor-edr-logical-ct-158513
+info:
+  name: Sangfor EDR Logical Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects a logical vulnerability in Sangfor EDR's login endpoint that redirects to a download page if successful.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ui/login.php?user=admin"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "/download/edr_installer_"
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie"

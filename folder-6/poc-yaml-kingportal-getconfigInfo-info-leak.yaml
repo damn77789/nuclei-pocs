@@ -1,0 +1,29 @@
+id: kingportal-getconfiginfo-info-leak
+info:
+  name: Beijing KingPortal System getConfigInfo Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+  description: |
+    The Beijing KingPortal system's getConfigInfo endpoint might expose sensitive configuration information including default users, usernames, passwords, and application names.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/getConfigInfo"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"defaultUser\""
+          - "\"username\""
+          - "\"password\""
+          - "\"APPName\""
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

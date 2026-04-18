@@ -1,0 +1,25 @@
+id: kingportal-projectmanager-json-info-leak
+info:
+  name: KingPortal ProjectManager.json Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "/ProjectManager.json"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"projectGroups\""
+          - "\"version\""
+          - "\"admin001\""
+      - type: word
+        part: header
+        words:
+          - "application/json"

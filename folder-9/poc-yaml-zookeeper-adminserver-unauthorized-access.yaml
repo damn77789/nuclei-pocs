@@ -1,0 +1,25 @@
+id: zookeeper-adminserver-unauthorized-access
+info:
+  name: Zookeeper AdminServer Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,zookeeper
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/commands/environment"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"zookeeper.version\""
+          - "\"java.class.path\""
+          - "\"user.name\""
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

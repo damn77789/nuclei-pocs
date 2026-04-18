@@ -1,0 +1,25 @@
+id: poc-yaml-movie-app-api-info-leak
+info:
+  name: Short Drama Movie App API Sensitive Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"users\""
+          - "\"username\""
+          - "\"password\""
+      - type: word
+        part: header
+        words:
+          - "application/json"

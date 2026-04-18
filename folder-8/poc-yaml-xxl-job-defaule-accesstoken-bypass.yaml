@@ -1,0 +1,41 @@
+id: poc-yaml-xxl-job-defaule-accesstoken-bypass
+info:
+  name: XXL-JOB Default accessToken Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+
+variables:
+  paths:
+    - "/xxl-job-admin/api/callback"
+    - "/api/callback"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{paths}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        condition: and
+        words:
+          - "\"code\":500,\"msg"
+          - "invalid request, HttpMethod not support."
+
+  - method: POST
+    path:
+      - "{{BaseURL}}{{paths}}"
+    headers:
+      XXL-JOB-ACCESS-TOKEN: default_token
+    body: ""
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{\"code\":200,"

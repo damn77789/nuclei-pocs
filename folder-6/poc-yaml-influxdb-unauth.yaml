@@ -1,0 +1,41 @@
+id: influxdb-unauth-access
+info:
+  name: InfluxDB Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: access-control
+  description: |
+    Identifies unauthorized access vulnerabilities in InfluxDB instances.
+http:
+  - raw:
+      - |
+        GET /ping HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 204
+      - type: word
+        part: header
+        words:
+          - "x-influxdb-version"
+  - raw:
+      - |
+        GET /query?q=show%20users HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "columns"
+          - "user"

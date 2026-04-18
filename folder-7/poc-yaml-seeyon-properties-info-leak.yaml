@@ -1,0 +1,24 @@
+id: seeyon-properties-info-leak
+info:
+  name: Seeyon Properties Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "/seeyon/rest/m3/common/system/properties"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "contractentry.projectNameCode"
+          - "elearning.post.update"
+      - type: word
+        part: header
+        words:
+          - "application/json"

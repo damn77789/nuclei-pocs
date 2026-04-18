@@ -1,0 +1,36 @@
+id: dsmall-command-execution
+
+info:
+  name: DSMall viewed_info Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    DSMall v5 version contains a deserialization vulnerability in the viewed_goods parameter of the viewed_info method. An attacker can exploit this vulnerability to execute arbitrary code and gain server access.
+  reference:
+    - https://www.anquanke.com/post/id/203461#h3-4
+  tags: command-execution,deserialization
+
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 302
+
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "XPATH syntax error: '~"

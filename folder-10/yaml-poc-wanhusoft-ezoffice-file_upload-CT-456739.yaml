@@ -1,0 +1,23 @@
+id: wanhusoft-ezoffice-file-upload
+info:
+  name: Wanhusoft EZOffice File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects Wanhusoft EZOffice file upload functionality that leaks server details via a specific endpoint.
+  reference:
+    - https://www.whir.net
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/officeserverservlet"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "DBSTEP\\s+[v|V]3.0\\s+\\d+\\s+\\d+.*"
+        part: body

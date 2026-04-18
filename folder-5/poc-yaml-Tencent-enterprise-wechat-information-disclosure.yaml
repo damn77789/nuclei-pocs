@@ -1,0 +1,28 @@
+id: tencent-enterprise-wechat-info-disclosure
+info:
+  name: Tencent Enterprise WeChat Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak,data-exposure
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/gateway/agentinfo"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Secret"
+          - "corpid"
+          - "\"errcode\":0,\"errmsg\":\"ok\",\"strcorpid\":"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

@@ -1,0 +1,26 @@
+id: poc-yaml-metrics-identify
+info:
+  name: Discover Metrics Endpoint
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/metrics"
+      - "{{BaseURL}}/metrics"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "# HELP"
+          - "# TYPE"
+        part: body
+      - type: word
+        words:
+          - "</"
+        part: body
+        negative: true

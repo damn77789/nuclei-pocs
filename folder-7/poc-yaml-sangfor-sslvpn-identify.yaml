@@ -1,0 +1,17 @@
+id: poc-yaml-sangfor-sslvpn-identify
+info:
+  name: Sangfor SSLVPN Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/com/js/common.min.js"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "900150983cd24fb0d6963f7d28e17f72"
+        part: body

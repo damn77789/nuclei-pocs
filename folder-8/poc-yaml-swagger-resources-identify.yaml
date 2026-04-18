@@ -1,0 +1,32 @@
+id: swagger-resources-identify
+info:
+  name: Discover Swagger Resources
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  paths:
+    - /swagger-resources
+    - /api/swagger-resources
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/{{paths}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "["
+        part: body
+
+      - type: word
+        words:
+          - "swaggerVersion"
+        part: body
+
+      - type: dsl
+        dsl:
+          - "contains(body, '\"name\"') && contains(body, '\"url\"') && contains(body, '\"location\"')"

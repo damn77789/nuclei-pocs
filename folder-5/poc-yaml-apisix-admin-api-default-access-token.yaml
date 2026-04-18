@@ -1,0 +1,26 @@
+id: poc-apisix-admin-api-default-token
+
+info:
+  name: Apache APISIX Admin API Default Access Token Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: default-creds, apache-apisix
+  description: |
+    This template checks for the presence of a default access token in Apache APISIX Admin API.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/apisix/admin/routes"
+    headers:
+      X-API-KEY: edd1c9f034335f136f87ad84b625c8f1
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"action":"get"'
+      - type: word
+        part: body
+        words:
+          - '"node"'

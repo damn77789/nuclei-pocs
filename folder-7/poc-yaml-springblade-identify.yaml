@@ -1,0 +1,31 @@
+id: springblade-identify
+
+info:
+  name: SpringBlade Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  description: |
+    Identifies the presence of SpringBlade by checking for specific patterns in the /api/blade-auth/oauth/captcha endpoint.
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/blade-auth/oauth/captcha"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"key\":\""
+          - "\"image\":"
+          - "data:image"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

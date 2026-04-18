@@ -1,0 +1,26 @@
+id: rsync-unauthorized-access
+info:
+  name: Rsync Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects unauthorized access to an exposed Rsync service.
+  tags: unauthorized-access, rsync, tcp
+
+variables:
+  v_module: "{{rand_text_alphanumeric(8)}}"
+
+tcp:
+  - inputs:
+      - data: "@RSYNCD\n"
+      - read-size: 1024
+      - data: "{{v_module}}\n"
+      - read-size: 1024
+    host:
+      - "{{Hostname}}"
+    port: 873
+    matchers:
+      - type: regex
+        part: data
+        regex:
+          - "Unknown module '{{v_module}}'"

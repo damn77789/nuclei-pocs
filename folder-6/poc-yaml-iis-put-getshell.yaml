@@ -1,0 +1,39 @@
+id: poc-yaml-iis-put-getshell
+info:
+  name: IIS PUT Getshell
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: file-upload
+  description: |
+    Tests for IIS PUT method vulnerability that allows uploading a file to the server and verifying its existence.
+
+variables:
+  filename: '{{rand_text_alphanumeric(6)}}'
+  fileContent: '{{rand_text_alphanumeric(6)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: PUT
+    path:
+      - "/{{filename}}.txt"
+    body: "{{fileContent}}"
+    matchers:
+      - type: status
+        status:
+          - 201
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/{{filename}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{fileContent}}"

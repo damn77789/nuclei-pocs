@@ -1,0 +1,32 @@
+id: bt-uri-pma-unauth
+info:
+  name: phpMyAdmin Unauthorized Access Detection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects unauthorized access to phpMyAdmin interface by checking for specific
+    patterns in the response that indicate the presence of phpMyAdmin.
+  reference:
+    - https://mp.weixin.qq.com/s/KgAaFRKarMdycYzETyKS8A
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/pma/"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "information_schema"
+        part: body
+      - type: word
+        words:
+          - "phpMyAdmin"
+        part: body
+      - type: word
+        words:
+          - "server_sql.php"
+        part: body

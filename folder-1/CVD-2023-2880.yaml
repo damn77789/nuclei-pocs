@@ -1,0 +1,21 @@
+id: qax-secssl-vpn-permission-bypass
+info:
+  name: QAX Legendsec SecSSL VPN Permission Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The Qax Netgod Secure Access Gateway System (SecSSL VPN) contains a privilege bypass vulnerability that allows attackers to construct specific malicious request packets, obtain system administrator information, and modify system administrator passwords for malicious operations.
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"

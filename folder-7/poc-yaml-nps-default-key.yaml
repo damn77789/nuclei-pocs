@@ -1,0 +1,27 @@
+id: poc-yaml-nps-default-key
+info:
+  name: NPS Default Key
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: hardcoded-credentials
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/auth/getauthkey"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "crypt_auth_key"
+          - "5acabcf051cd55abca03d18294422e01"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

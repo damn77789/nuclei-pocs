@@ -1,0 +1,28 @@
+id: mmwiki-info-disclosure
+info:
+  name: MM-Wiki document_id Parameter Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    MM-Wiki is a lightweight enterprise knowledge sharing and team collaboration software. This template detects an information disclosure vulnerability where sensitive system information can be accessed via the `document_id` parameter in a crafted URL.
+  tags: information-disclosure
+  reference:
+    - https://github.com/phachon/MM-Wiki
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+    cvss-score: 6.5
+http:
+  - raw:
+      - |
+        GET /page/display?document_id=1 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "很抱歉，文档不存在！"
+        part: body

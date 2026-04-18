@@ -1,0 +1,35 @@
+id: thinkphp-debug-mode-log-information-leak
+info:
+  name: ThinkPHP Debug Mode Log Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-leak,thinkphp
+
+variables:
+  time: "{{date_time('%y_%m_%d')}}"
+  paths:
+    - "Application/Runtime/Logs/Home"
+    - "Application/Runtime/Logs/login"
+    - "Runtime/Logs/Home"
+    - "App/Runtime/Logs/Home"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/{{paths}}/{{time}}.log"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\[ \\d+-\\d+-\\d+[T]\\d+:\\d+:\\d+\\+\\d+:\\d+ \\]"
+      - type: word
+        words:
+          - "INFO:"
+      - type: word
+        words:
+          - "<p>"
+        negative: true

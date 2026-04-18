@@ -1,0 +1,54 @@
+id: mdt-knx-manager-default-credentials
+info:
+  name: MDT KNX Manager Panel Default Credentials
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    MDT Technologies' KNX-IP Interface/KNX-IP Object Server panel contains default passwords that malicious attackers can exploit to take over the target web system.
+  reference:
+    - http://www.mdt.de
+  tags: default-password
+  classification:
+    cwe-id: "CWE-798"
+flow: http(1) && http(2) && http(3)
+http:
+  - id: logout-check
+    raw:
+      - |
+        GET /password.cgi?changemode=Logout HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "MDT Technologies GmbH"
+  - id: login-check
+    raw:
+      - |
+        GET /password.cgi?password=admin HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Wrong Password!"
+        negative: true
+  - id: index-check
+    raw:
+      - |
+        GET /index.shtml HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Application SW version:"

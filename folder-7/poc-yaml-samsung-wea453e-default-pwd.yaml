@@ -1,0 +1,27 @@
+id: samsung-wea453e-default-pwd
+info:
+  name: Samsung Wea453e Default Password Check
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: weak-password
+  description: |
+    Checks for the presence of default credentials on Samsung Wea453e devices.
+http:
+  - raw:
+      - |
+        POST /main.ehp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        httpd;General;lang=en&login_id=root&login_pw=sweap12~
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "document.formParent2.changepasswd1.value"
+          - "passwd_change.ehp"
+        part: body

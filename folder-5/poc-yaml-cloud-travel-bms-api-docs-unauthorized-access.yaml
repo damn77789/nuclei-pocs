@@ -1,0 +1,42 @@
+id: cloud-travel-bms-api-docs-unauthorized-access
+info:
+  name: Cloud Travel BMS API Docs Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "云出行后台管理系统"
+  - raw:
+      - |
+        GET /v1/api-docs HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"description":'
+          - '"description": "Success"'
+      - type: regex
+        part: body
+        regex:
+          - '"operationId"\x3a "([0-9a-zA-Z-]+)"'
+      - type: word
+        part: header
+        words:
+          - "application/json"

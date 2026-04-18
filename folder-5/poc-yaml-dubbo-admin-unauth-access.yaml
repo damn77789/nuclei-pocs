@@ -1,0 +1,25 @@
+id: dubbo-admin-unauth-access
+info:
+  name: Dubbo-Admin Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index.html"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "dubbo"
+      - type: word
+        part: body
+        words:
+          - "<a href=\"services.html\">Services</a>"

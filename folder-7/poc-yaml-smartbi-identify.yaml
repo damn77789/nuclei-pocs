@@ -1,0 +1,22 @@
+id: poc-yaml-smartbi-identify
+info:
+  name: Discover Smartbi
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "/smartbi/vision/index.jsp"
+      - "/vision/index.jsp"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "app.showVersionInfo"
+      - type: word
+        part: body
+        words:
+          - "var loginTitle"

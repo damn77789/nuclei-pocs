@@ -1,0 +1,20 @@
+id: seeyon-initdataassess-information-leak
+info:
+  name: Seeyon A6 initDataAssess.jsp Information Leakage
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leakage
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/yyoa/assess/js/initDataAssess.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "personList"
+          - "personHash.Add"

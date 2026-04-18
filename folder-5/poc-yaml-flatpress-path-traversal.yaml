@@ -1,0 +1,24 @@
+id: flatpress-path-traversal-cve-2023-0947
+info:
+  name: FlatPress Path Traversal Vulnerability (CVE-2023-0947)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cve-2023-0947,path-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/fp-content/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Index of /fp-content"
+          - "Parent Directory"
+      - type: word
+        part: body
+        words:
+          - "Index of /fp-content"

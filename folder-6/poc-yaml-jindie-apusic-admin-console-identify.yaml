@@ -1,0 +1,31 @@
+id: poc-yaml-jindie-apusic-admin-console-identify
+info:
+  name: Identify Kingdee Apusic Web Admin Console
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+  metadata:
+    finger:
+      - "金蝶天燕"
+      - "apusic"
+
+http:
+  - method: GET
+    path:
+      - "/admin/login"
+      - "/apusic/login"
+      - "/login"
+      - "/apusic/admin/login"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "username|userpass|userkapt"
+      - type: word
+        part: body
+        words:
+          - "IDtoken"

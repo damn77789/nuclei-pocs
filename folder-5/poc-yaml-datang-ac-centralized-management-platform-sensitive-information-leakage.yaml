@@ -1,0 +1,23 @@
+id: datang-ac-centralized-management-platform-info-leak
+info:
+  name: Datang AC Centralized Management Platform Sensitive Information Leakage
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+  description: |
+    Detects sensitive information leakage in Datang AC Centralized Management Platform involving security passwords, LAN MACs, and SSIDs.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/actpt.data"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "sec_pwd"
+          - "lan_mac"
+          - "ssid"
+        part: body

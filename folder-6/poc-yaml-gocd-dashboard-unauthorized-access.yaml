@@ -1,0 +1,22 @@
+id: poc-gocd-dashboard-unauthorized-access
+info:
+  name: GoCD Dashboard Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Identifies unauthorized access to the GoCD dashboard, which allows creating pipelines without proper authentication.
+  tags: unauthorized-access
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/go/admin/pipelines/create?group=defaultGroup"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<title>Create a pipeline - Go</title>"
+        part: body

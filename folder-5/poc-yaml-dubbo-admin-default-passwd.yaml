@@ -1,0 +1,32 @@
+id: dubbo-admin-default-password
+info:
+  name: Dubbo Admin Default Password Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password, authentication
+  description: |
+    Checks for default or weak credentials on Dubbo Admin login.
+http:
+  - method: GET
+    path:
+      - "/api/dev/user/login?userName={{username}}&password={{password}}"
+    payloads:
+      username:
+        - root
+        - admin
+        - guest
+      password:
+        - root
+        - admin
+        - guest
+        - 123456
+        - admin123
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "eyJhbGciOiJIUzUxMiJ9"

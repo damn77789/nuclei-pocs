@@ -1,0 +1,34 @@
+id: poc-wayos-ac-weak-pass
+info:
+  name: Wayos AC Default Weak Password CNVD-2021-00876
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password,CNVD-2021-00876
+
+http:
+  - raw:
+      - |
+        POST /login.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        user=admin&password=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "window.open('index.htm"
+        condition: and
+      - type: regex
+        part: header
+        regex:
+          - "ac_userid=admin"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "login.html?flag=0"

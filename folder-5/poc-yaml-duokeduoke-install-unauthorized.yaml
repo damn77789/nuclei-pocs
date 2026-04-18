@@ -1,0 +1,29 @@
+id: duokeduoke-install-unauthorized
+info:
+  name: Unauthorized Access to Duokeduoke Forum Installation Wizard
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - raw:
+      - |
+        POST /index.php/install/index/check HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"hostname":"","hostport":"","database":"","username":"","password":"","charset":"","prefix":"","title":"","keywords":"","description":"","admin_title":"","admin_username":"","admin_password":""}
+      - |
+        POST /public/index.php/install/index/check HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"hostname":"","hostport":"","database":"","username":"","password":"","charset":"","prefix":"","title":"","keywords":"","description":"","admin_title":"","admin_username":"","admin_password":""}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "Access denied for user"
+          - "\"code\":1045"

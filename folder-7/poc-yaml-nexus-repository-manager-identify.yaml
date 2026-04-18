@@ -1,0 +1,21 @@
+id: poc-nexus-repository-manager-identify
+info:
+  name: Nexus Repository Manager Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+      - "{{BaseURL}}/nexus/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Nexus Repository Manager"
+      - type: word
+        part: body
+        words:
+          - "<title>Nexus Repository Manager</title>"

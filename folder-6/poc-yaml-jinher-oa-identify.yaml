@@ -1,0 +1,26 @@
+id: poc-yaml-jinher-oa-identify
+
+info:
+  name: 发现 JC6 金和协同管理平台
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+  metadata:
+    finger: Jinher
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jc6/platform/sys/login!intro.action"
+      - "{{BaseURL}}/platform/sys/login!intro.action"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "signIn.html"
+          - "JC6金和协同管理平台"
+          - "/login!changePassWord.action?account="
+        condition: or

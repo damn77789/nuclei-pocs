@@ -1,0 +1,28 @@
+id: netentsec-ns_icg-unsafe_config-CT-158139
+info:
+  name: Netentsec ICG Default Credentials
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template checks for default credentials on Netentsec ICG systems by sending a login request with known default credentials.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2016-08603
+
+http:
+  - raw:
+      - |
+        POST /user/login/checkPermit HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        usrname=ns25000&pass=ns25000
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"agreed":true'
+        part: body

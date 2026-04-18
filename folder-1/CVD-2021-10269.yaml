@@ -1,0 +1,39 @@
+id: ixcache-default-password-vulnerability
+info:
+  name: iXCache Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    iXCache, a network application layer cache acceleration engine software, has a weak password vulnerability.
+    Attackers can exploit this to obtain sensitive information and control the platform using default admin credentials.
+  tags: default-password
+http:
+  - raw:
+      - |
+        POST /login/userverify.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password=ixcache
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/cgi-bin/monitor.cgi"
+  - raw:
+      - |
+        GET /cgi-bin/monitor.cgi HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/cgi-bin/Maintain/cfg_cmd"

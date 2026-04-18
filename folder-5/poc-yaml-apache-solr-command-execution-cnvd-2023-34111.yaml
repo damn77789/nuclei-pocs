@@ -1,0 +1,27 @@
+id: apache-solr-command-execution-cnvd-2023-34111
+
+info:
+  name: Apache Solr Command Execution Vulnerability (CNVD-2023-34111)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cnvd-2023-34111
+  description: |
+    Detects Apache Solr command execution vulnerability (CNVD-2023-34111) through version parsing and validation.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/solr/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: title
+        words:
+          - "Solr Admin"
+      - type: regex
+        part: body
+        regex:
+          - "favicon\\.ico\\?_=(?P<version>[0-9.]+)"
+      - type: dsl
+        dsl:
+          - compare_versions(regex_find(body, `favicon\\.ico\\?_=(?P<version>[0-9.]+)`), "<=8.3.1")

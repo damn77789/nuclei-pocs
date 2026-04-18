@@ -1,0 +1,59 @@
+id: apache-shiro-cbc-deserialization-rce
+info:
+  name: Apache Shiro CBC Deserialization RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,java,shiro
+  description: |
+    This template detects Apache Shiro CBC deserialization remote code execution vulnerability by testing various crafted payloads.
+variables:
+  payload: "rO0ABXNyADJvcmcuYXBhY2hlLnNoaXJvLnN1YmplY3QuU2ltcGxlUHJpbmNpcGFsQ29sbGVjdGlvbqh/WCXGowhKAwABTAAPcmVhbG1QcmluY2lwYWxzdAAPTGphdmEvdXRpbC9NYXA7eHBwdwEAeA=="
+  shiroCookies: |
+    [
+      "kPH+bIxk5D2deZiIxcaaaA==",
+      "4AvVhmFLUs0KTA3Kprsdag==",
+      "Z3VucwAAAAAAAAAAAAAAAA==",
+      "fCq+/xW488hMTCD+cmJ3aQ==",
+      "0AvVhmFLUs0KTA3Kprsdag==",
+      "1AvVhdsgUs0FSA3SDFAdag==",
+      "1QWLxg+NYmxraMoxAXu/Iw==",
+      "ZmVic19zaGlyb19rZXkAAA==",
+      "25BsmdYwjnfcWmnhAciDDg=="
+    ].map(key => base64(aes_cbc(base64_decode(payload), base64_decode(key))))
+  checkCookie: "fake1234567890ab"
+flow: |
+  http(1) && http(2)
+http:
+  - id: "initial-check"
+    method: GET
+    path:
+      - "/"
+    headers:
+      Cookie: "rememberMe={{base64(aes_cbc(base64_decode(payload), checkCookie))}}"
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "rememberMe=deleteMe"
+    extractors:
+      - type: dsl
+        dsl:
+          - "status_code"
+          - "title"
+  - id: "test-payloads"
+    method: GET
+    path:
+      - "/"
+    headers:
+      Cookie: "rememberMe={{shiroCookies}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        negative: true
+        words:
+          - "rememberMe=deleteMe"
+      - type: dsl
+        dsl:
+          - "status_code == response[0].status_code"
+          - "title == response[0].title"

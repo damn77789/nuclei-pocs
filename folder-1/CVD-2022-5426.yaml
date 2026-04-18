@@ -1,0 +1,38 @@
+id: f22-clothing-info-leak
+
+info:
+  name: F22 Clothing Management Software Sensitive Info Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    F22 clothing management software system's /pos/index_login.asp endpoint leaks sensitive database credentials in the headers of the response. Attackers can potentially access sensitive information, leading to severe consequences such as full server access.
+  tags: information-disclosure
+  reference:
+    - http://www.x2erp.com/Support.aspx
+
+http:
+  - raw:
+      - |
+        GET /pos/index_login.asp HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36
+        Accept: */*
+        Accept-Encoding: gzip, deflate
+        Accept-Language: zh-CN,zh;q=0.9
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Driver"
+          - "dataBase"
+    extractors:
+      - type: regex
+        name: sensitive_header
+        part: header
+        regex:
+          - "Set-Cookie:\\s(.*?)\\;"
+        group: 1

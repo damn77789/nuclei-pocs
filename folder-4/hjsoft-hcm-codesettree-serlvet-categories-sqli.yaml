@@ -1,0 +1,40 @@
+id: hjsoft-hcm-codesettree-servlet-categories-sqli
+info:
+  name: SQL Injection in HJSoft HCM codesettree Servlet
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects possible SQL Injection vulnerability in HJSoft HCM codesettree servlet by sending crafted requests and analyzing the responses.
+  reference:
+    - https://stack.chaitin.com/techblog/detail?id=89
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/servlet/codesettree?flag=c&status=1&codesetid=1&parentid=-1&categories=~31"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "TreeNode"
+          - "title=\"root\""
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/servlet/codesettree?flag=c&status=1&codesetid=1&parentid=-1&categories=~31~27~"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "<title>ERROR"
+          - "mainbackground"

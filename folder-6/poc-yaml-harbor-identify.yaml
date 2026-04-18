@@ -1,0 +1,25 @@
+id: harbor-api-identify
+info:
+  name: Harbor API Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/systeminfo"
+      - "{{BaseURL}}/harbor/api/systeminfo"
+      - "{{BaseURL}}/api/v2.0/systeminfo"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "harbor_version\""
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

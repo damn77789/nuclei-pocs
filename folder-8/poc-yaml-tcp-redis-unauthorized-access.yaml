@@ -1,0 +1,20 @@
+id: redis-unauthorized-access
+info:
+  name: Redis Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: redis,unauthorized-access
+
+tcp:
+  - inputs:
+      - data: "INFO\r\n"
+        type: text
+      - read-size: 2048
+    host:
+      - "{{Hostname}}"
+    port: 6379
+    matchers:
+      - type: word
+        part: data
+        words:
+          - "redis_version:"

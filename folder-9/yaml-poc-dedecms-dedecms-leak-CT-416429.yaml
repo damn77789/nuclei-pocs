@@ -1,0 +1,27 @@
+id: dedecms-mysql-error-trace-leak
+
+info:
+  name: Dedecms MySQL Error Trace Leakage
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Detects the exposure of the MySQL error trace file in Dedecms installations, which can reveal sensitive database information.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/data/mysql_error_trace.inc"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<?php  exit();"
+        part: body
+      - type: word
+        words:
+          - "Error sql:"
+        part: body

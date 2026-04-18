@@ -1,0 +1,25 @@
+id: kyan-network-monitor-info-leak
+info:
+  name: Kyan Network Monitor Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/hosts"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "UserName="
+          - "Password="
+        part: body
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

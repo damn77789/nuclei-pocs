@@ -1,0 +1,32 @@
+id: seeyon-oa-identify
+
+info:
+  name: Seeyon OA Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  paths:
+    - /seeyon/index.jsp
+    - /seeyon/common/all-min.css
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{paths}}"
+
+    matchers-condition: or
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(title, '协同管理软件')"
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(title, '致远')"
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(substr(body, 0, 200), '@charset \"UTF-8\";body,html{background:none;}.radius')"
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(substr(body, 0, 200), '@charset \"UTF-8\";body,html{background:0}.radius')"

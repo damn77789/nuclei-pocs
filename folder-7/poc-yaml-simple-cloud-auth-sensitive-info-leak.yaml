@@ -1,0 +1,28 @@
+id: poc-yaml-simple-cloud-auth-sensitive-info-leak
+info:
+  name: 极简云验证系统 敏感信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    This template detects sensitive information leakage from 极简云验证 systems, specifically targeting potential MySQL database dumps.
+http:
+  - method: GET
+    path:
+      - "/%E6%95%B0%E6%8D%AE%E5%BA%93.sql"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "MySQL"
+          - "Database:"
+          - "Server version"
+        part: body
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header
+        condition: or

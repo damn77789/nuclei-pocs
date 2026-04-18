@@ -1,0 +1,22 @@
+id: poc-yaml-yongyou-nccloud-identify
+info:
+  name: Discover Yongyou NCCloud
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/nccloud/resources/platform/resource/yonyou-yyy.js"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Yonyou YYY FED Team"
+        part: body
+      - type: word
+        words:
+          - "YyyConfig"
+        part: body

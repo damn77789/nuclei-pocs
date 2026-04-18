@@ -1,0 +1,27 @@
+id: starrocks-mpp-database-unauthorized-access
+
+info:
+  name: StarRocks MPP Database Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: access-control
+  description: |
+    Detects unauthorized access to StarRocks MPP database via the /mem_tracker endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mem_tracker"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "MemTracker"
+          - "Memory"
+          - "Configs"
+          - "Memory Usage Detail"

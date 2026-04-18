@@ -1,0 +1,22 @@
+id: poc-yaml-tcp-ftp-enable-anonymous
+info:
+  name: FTP Service Allows Anonymous Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+
+tcp:
+  - host:
+      - "{{Hostname}}"
+    port: 21
+    inputs:
+      - data: "USER anonymous\r\n"
+      - data: "PASS anonymous\r\n"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "230 Login successful"
+      - type: word
+        words:
+          - "Anonymous FTP login allowed"

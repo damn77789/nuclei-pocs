@@ -1,0 +1,24 @@
+id: trs-mas-testcommandexecutor-rce
+info:
+  name: TRS-MAS testCommandExecutor.jsp Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    TRS MAS is a universal media asset management system by Beijing Tors Information Technology Co., Ltd. that has an unauthorized command execution vulnerability in versions v5 and v6. This allows arbitrary commands to be executed on the system.
+  tags: command-execution
+  reference:
+    - https://cn-sec.com/archives/966820.html
+http:
+  - raw:
+      - |
+        GET /mas/sysinfo/testCommandExecutor.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "测试命令行进程执行"
+        part: body

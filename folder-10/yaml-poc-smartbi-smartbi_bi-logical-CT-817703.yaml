@@ -1,0 +1,44 @@
+id: smartbi-logical-ct-817703
+
+info:
+  name: Smartbi Logical Vulnerability CT-817703
+  author: yuxiang.cai
+  severity: critical
+  description: |
+    Detects logical vulnerabilities in Smartbi systems related to specific API endpoints.
+  reference:
+    - https://www.smartbi.com.cn/patchinfo
+
+variables:
+  value: "smartbi/"
+
+http:
+  - id: first-check
+    method: GET
+    path:
+      - "{{BaseURL}}/{{value}}smartbix/api/monitor/token"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Request method 'GET' not supported"
+      - type: word
+        part: body
+        words:
+          - "smartbix.SmartbiXException"
+
+  - id: second-check
+    method: GET
+    path:
+      - "{{BaseURL}}/{{value}}smartbix/api/monitor/setEngineAddress"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Request method 'GET' not supported"
+      - type: word
+        part: body
+        words:
+          - "smartbix.SmartbiXException"

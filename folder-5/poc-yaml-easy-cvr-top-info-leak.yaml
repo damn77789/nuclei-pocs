@@ -1,0 +1,34 @@
+id: easycvr-info-leak
+info:
+  name: EasyCVR Video Management Platform Top Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Detects an information disclosure vulnerability in the EasyCVR video management platform by checking for sensitive data in the `/api/v1/state/top` endpoint.
+  tags: info-leak
+  metadata:
+    product: EasyCVR
+http:
+  - method: GET
+    path:
+      - "/api/v1/state/top"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "\"Name\":"
+          - "\"FreeSpace\":"
+          - "\"memData\":"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

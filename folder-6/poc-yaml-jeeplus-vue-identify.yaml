@@ -1,0 +1,29 @@
+id: poc-yaml-jeeplus-vue-identify
+info:
+  name: Discover JeePlus Vue
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  path:
+    - /erp
+    - /api
+    - /
+    - /jeeplus-vue
+    - /jeeplus-v3
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{path}}/sys/sysConfig/getConfig"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"defaultTheme\""
+          - "\"logo\""
+      - type: word
+        words:
+          - "<"
+        negative: true

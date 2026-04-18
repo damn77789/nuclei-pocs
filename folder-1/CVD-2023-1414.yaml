@@ -1,0 +1,27 @@
+id: frappe-framework-default-password
+info:
+  name: Frappe Framework Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Frappe is a low code framework. The default password Administrator: admin exists in the Frappe Framework.
+    An attacker can control the entire platform through the default password vulnerability, and operate the core functions with administrator privileges.
+  tags: default-password,admin-login
+  reference:
+    - https://github.com/frappe/frappe
+http:
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        cmd=login&usr=Administrator&pwd=admin&device=desktop
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"message\":\"Logged In\","  # Ensures the response contains a successful login message
+      - type: status
+        status:
+          - 200

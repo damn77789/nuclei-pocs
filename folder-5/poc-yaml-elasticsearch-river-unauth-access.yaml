@@ -1,0 +1,16 @@
+id: poc-elasticsearch-river-unauth-access
+info:
+  name: Elasticsearch River Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access, elasticsearch
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/_river/_search"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - contains(body, 'hits\":\[{\"_index\":\"_river')
+          - status_code == 200

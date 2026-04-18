@@ -1,0 +1,31 @@
+id: poc-yaml-glodon-test-aspx-info-leak
+info:
+  name: Glodon OA test.aspx Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "/Services/Identification/Server/test.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "token 过期时间设定"
+      - type: word
+        part: body
+        words:
+          - "用户为__"
+      - type: word
+        part: body
+        words:
+          - "过期时间为"
+      - type: word
+        part: body
+        words:
+          - "aspNetHidden"

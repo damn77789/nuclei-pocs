@@ -1,0 +1,23 @@
+id: poc-yaml-spark-webui-unauth
+info:
+  name: Spark WebUI Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control,spark
+  description: |
+    Detects unauthorized access to Apache Spark WebUI which might expose sensitive information.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>Spark"
+          - "<strong>URL:</strong> spark:"

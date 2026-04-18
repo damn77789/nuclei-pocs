@@ -1,0 +1,20 @@
+id: poc-yaml-duokeduoke-plupload-upload
+info:
+  name: 多客圈子论坛系统 upload.php 任意文件上传
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/static/newcj/js/dist/plupload-2.3.3/examples/upload.php"
+      - "{{BaseURL}}/public/static/newcj/js/dist/plupload-2.3.3/examples/upload.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"jsonrpc" : "2.0", "result" : null, "id" : "id"}'

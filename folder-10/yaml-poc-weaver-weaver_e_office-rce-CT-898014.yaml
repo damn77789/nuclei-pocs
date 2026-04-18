@@ -1,0 +1,23 @@
+id: weaver_e_office-rce-CT-898014
+info:
+  name: Weaver E-Office RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects a potential remote code execution vulnerability in Weaver E-Office through the welink-move API endpoint.
+http:
+  - raw:
+      - |
+        POST /eoffice10/server/public/api/welink/welink-move HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Content-Length: 0
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{"code":"0x000013","message":"api错误"}'
+        part: body

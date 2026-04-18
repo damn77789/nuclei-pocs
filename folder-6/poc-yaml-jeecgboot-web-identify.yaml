@@ -1,0 +1,20 @@
+id: jeecgboot-web-identify
+info:
+  name: JeecgBoot Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+
+    matchers-condition: or
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(http_body, \"window._CONFIG['domianURL'] + '/sys/common/view';\")"
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(http_body, \"'/sys/common/pdf/pdfPreviewIframe';\") && contains(http_body, 'pdfDomainURL')"

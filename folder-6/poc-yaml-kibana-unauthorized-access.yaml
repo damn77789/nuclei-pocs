@@ -1,0 +1,15 @@
+id: kibana-unauthorized-access
+info:
+  name: Kibana Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "/app/kibana"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - ".kibanaWelcomeView"

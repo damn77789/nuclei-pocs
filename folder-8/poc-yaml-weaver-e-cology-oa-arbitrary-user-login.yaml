@@ -1,0 +1,22 @@
+id: weaver-e-cology-arbitrary-user-login
+info:
+  name: Weaver e-cology Arbitrary User Login
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects the presence of a potential arbitrary user login vulnerability in Weaver e-cology systems by verifying a specific pattern in the response body.
+  tags: login,vulnerability
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mobile/plugin/VerifyQuickLogin.jsp?identifier=1&language=1&ipaddress=127.0.0.1"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"sessionkey\":"
+      - type: word
+        part: body
+        words:
+          - "\"message\":\"1\""

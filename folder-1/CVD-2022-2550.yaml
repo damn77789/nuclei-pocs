@@ -1,0 +1,28 @@
+id: prtg-unauthorized-access
+info:
+  name: PRTG Traffic Grapher Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    PRTG Paessler Grapher unauthorized access vulnerability allows an attacker to enter the background without logging in to take over system control.
+  reference:
+    - https://www.exploit-db.com/ghdb/5808
+http:
+  - raw:
+      - |
+        GET /sensorlist.htm HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "PRTG Traffic Grapher"
+        part: body
+      - type: word
+        words:
+          - "Please log in"
+        negative: true
+        part: body

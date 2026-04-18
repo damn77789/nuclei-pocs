@@ -1,0 +1,30 @@
+id: gb28181-camera-management-platform-unauthorized-access
+
+info:
+  name: GB28181 Camera Management Platform Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+  description: |
+    Detects unauthorized access to GB28181 camera management platform user API, exposing sensitive user information.
+
+http:
+  - method: GET
+    path:
+      - "/api/user/all"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"success\""
+          - "\"username\""
+          - "\"password\""
+      - type: word
+        part: header
+        words:
+          - "application/json"

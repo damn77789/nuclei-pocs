@@ -1,0 +1,45 @@
+id: poc-yaml-iceflow-vpn-log-information-leak
+info:
+  name: ICEFlow VPN Log Information Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-disclosure
+  description: |
+    Detects potential log file exposure in ICEFlow VPN servers that may reveal sensitive operational or user information.
+
+variables:
+  logs:
+    - log/system.log
+    - log/vpn.log
+    - log/warn.log
+    - log/mobile.log
+    - log/error.log
+    - log/firewall.log
+    - log1/debug.log
+    - log/access.log
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/{{logs}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "ICEFLOW"
+      - type: dsl
+        dsl:
+          - |
+            contains(body, "login successfully") && contains(body, "WEB Login - User admin remote")
+          - |
+            contains(body, "localhost VPN") && contains(body, "VPN is abnormally shutdown")
+          - |
+            contains(body, "started as root without requesting chroot()") && contains(body, "ICEFLOW thttpd")
+          - |
+            contains(body, "localhost pppd") && contains(body, "uid 0")
+          - |
+            contains(body, "ICEFLOW ipsec_setup") && contains(body, "ICEFLOW ipsec_setup")

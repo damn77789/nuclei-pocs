@@ -1,0 +1,28 @@
+id: cve-2022-25568-motioneye-config-info-disclosure
+
+info:
+  name: MotionEye Config List Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve-2022-25568,info-leak,motioneye
+  description: |
+    MotionEye configuration list endpoint is vulnerable to information disclosure, potentially exposing sensitive information like passwords.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/config/list"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "upload_password"
+          - "network_password"
+      - type: word
+        part: header
+        words:
+          - "application/json"

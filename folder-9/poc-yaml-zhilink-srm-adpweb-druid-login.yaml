@@ -1,0 +1,30 @@
+id: poc-yaml-zhilink-srm-adpweb-druid-login
+info:
+  name: SRM Zhilian Yun Cai System Weak Password
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: weak-password
+  description: |
+    Detects weak password vulnerability on SRM Zhilian Yun Cai System at /adpweb/druid/submitLogin.
+http:
+  - raw:
+      - |
+        POST /adpweb/druid/submitLogin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        loginUsername=admin&loginPassword=god
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "success"
+      - type: word
+        part: header
+        words:
+          - "zhilink.session.id="
+          - "Path=/adpweb"

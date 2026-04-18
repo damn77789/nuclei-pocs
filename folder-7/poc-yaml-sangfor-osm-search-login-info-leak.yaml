@@ -1,0 +1,35 @@
+id: sangfor-osm-search-login-info-leak
+info:
+  name: Sangfor OSM search_login Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - raw:
+      - |
+        GET /fort/login/search_login HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":"success"'
+      - type: regex
+        part: body
+        regex:
+          - '"actionToken":"([0-9A-Za-z-.]+)",'          
+          - '"accessToken":"([0-9A-Za-z-_.]+)",'      
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

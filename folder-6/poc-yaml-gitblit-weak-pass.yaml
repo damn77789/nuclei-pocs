@@ -1,0 +1,25 @@
+id: gitblit-weak-password
+
+info:
+  name: Gitblit Dashboard Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+
+http:
+  - raw:
+      - |
+        POST /?wicket:interface=:0:userPanel:loginForm::IFormSubmitListener:: HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        wicket:bookmarkablePage=:com.gitblit.wicket.pages.MyDashboardPage&id1_hf_0=&username=admin&password=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie: Gitblit="

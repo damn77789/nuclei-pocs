@@ -1,0 +1,37 @@
+id: alibaba-druid-unauthorized-access
+
+info:
+  name: Alibaba Druid Database Monitoring Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Alibaba Druid is a database monitoring tool. This template detects unauthorized access to the Druid Stat Index page, which may allow attackers to control the system.
+  reference:
+    - https://bugs.shuimugan.com/bug/view?bug_no=91433
+  tags: unauthorized-access
+
+http:
+  - raw:
+      - |
+        GET /druid/index.html HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Druid Stat Index"
+
+  - raw:
+      - |
+        GET /druid/websession.json HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"ResultCode":1'

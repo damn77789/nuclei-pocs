@@ -1,0 +1,30 @@
+id: poc-yaml-phpinfo-identify
+info:
+  name: PHP Info Disclosure Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/phpinfo.php"
+      - "{{BaseURL}}/info.php"
+      - "{{BaseURL}}/p.php"
+      - "{{BaseURL}}/php.php"
+      - "{{BaseURL}}/test.php"
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/html"
+      - type: word
+        part: body
+        words:
+          - "PHP Version"
+          - "PHP License"
+          - "phpinfo"

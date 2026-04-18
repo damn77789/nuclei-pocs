@@ -1,0 +1,29 @@
+id: poc-yaml-finereport-v10-identify
+info:
+  name: FineReport V10 Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  path:
+    - "/webroot/decision/"
+    - "/decision/"
+    - "/bi/decision/"
+    - "/BI/decision/"
+    - "/BI/"
+    - "/Bi/"
+    - "/Bi/decision/"
+    - "/"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{path}}system/info"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "frontSeed"
+          - "name"

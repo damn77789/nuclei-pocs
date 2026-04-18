@@ -1,0 +1,25 @@
+id: poc-yaml-no-such-bucket-subdomain-takeover
+info:
+  name: No Such Bucket Subdomain Takeover Potential
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: misconfiguration,subdomain-takeover
+
+http:
+  - method: GET
+    path:
+      - "/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: header
+        words:
+          - "xml"
+      - type: word
+        part: body
+        words:
+          - "<Code>NoSuchBucket</Code>"
+          - "<Message>The specified bucket does not exist</Message>"

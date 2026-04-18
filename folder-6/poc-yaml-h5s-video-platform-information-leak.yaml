@@ -1,0 +1,24 @@
+id: h5s-video-platform-info-leak
+info:
+  name: H5S Video Platform Sensitive Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/v1/GetSrc"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"strToken\""
+          - "\"strUser\""
+      - type: word
+        part: header
+        words:
+          - "application/json"

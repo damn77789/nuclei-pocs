@@ -1,0 +1,21 @@
+id: zlmediakit-directory-traversal
+info:
+  name: ZLMediaKit Directory Traversal Vulnerability (CVE-2023-31861)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve, cve2023, directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>文件索引</title>"
+          - "<h1>文件索引:/</h1>"
+          - "snap"

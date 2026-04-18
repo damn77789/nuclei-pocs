@@ -1,0 +1,24 @@
+id: apache-solr-rce-cnvd-2023-27598
+info:
+  name: Apache Solr Remote Code Execution Vulnerability (CNVD-2023-27598)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,CNVD-2023-27598
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/solr/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Solr Admin"
+      - type: regex
+        part: body
+        regex:
+          - "favicon\\.ico\\?_=(?P<version>[0-9.]+)\">"
+      - type: dsl
+        dsl:
+          - "compare_versions(regex_find(body, 'favicon\\.ico\\?_=(?P<version>[0-9.]+)\">'), '>=8.10.0, <9.2.0')"

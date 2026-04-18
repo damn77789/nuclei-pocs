@@ -1,0 +1,27 @@
+id: sap-netweaver-icm-info-leak
+info:
+  name: SAP NetWeaver ICM Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "/sap/public/info"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "RFC_SYSTEM_INFO.Response"
+      - type: regex
+        part: body
+        regex:
+          - "<RFCDEST>.*</RFCDEST>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

@@ -1,0 +1,20 @@
+id: poc-yaml-django-debug-page
+info:
+  name: Django DEBUG Page Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak,django
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/lkajz123z/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Django"
+          - "DEBUG = True"
+          - "<title>Page not found at"
+          - "lkajz123z/</title>"
+        part: body

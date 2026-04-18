@@ -1,0 +1,38 @@
+id: wccbms-operadd-aspx-unauthorized-access
+info:
+  name: 水控消费后台管理系统 OperAdd.aspx 未授权访问漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+
+http:
+  - raw:
+      - |
+        GET /Auth/Login.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "水控消费后台管理系统"
+        part: body
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /Auth/OperAdd.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "员工管理"
+          - "添加员工"
+          - "确认密码:"
+          - "角色:"
+        part: body
+      - type: status
+        status:
+          - 200

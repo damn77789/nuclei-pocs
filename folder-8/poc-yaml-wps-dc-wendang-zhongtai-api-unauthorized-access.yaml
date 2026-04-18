@@ -1,0 +1,40 @@
+id: wps-dc-wendang-zhongtai-api-unauthorized-access
+
+info:
+  name: WPS Document Center and Zhongtai API Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access, api
+  description: |
+    This template detects unauthorized access vulnerabilities in WPS Document Center and Zhongtai APIs by verifying specific API endpoints for sensitive data exposure.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/open/v6/api/etcd/operate?key=/config/storage&method=get"
+      - "{{BaseURL}}/open/api/etcd/operate?key=/config/storage&method=get"
+      - "{{BaseURL}}/mgr/api/etcd/operate?key=/config/storage&method=get"
+      - "{{BaseURL}}/mgr/api/mq/v1/receive/msg?key=/config/storage&method=get"
+      - "{{BaseURL}}/open/api/tools/v1/collect/appactivity?key=/config/storage&method=get"
+      - "{{BaseURL}}/mgr/api/tools/v1/collect/appactivity?key=/config/storage&method=get"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: regex
+        regex:
+          - '\"value\":\"([A-Za-z0-9+/]+(?:={1,2})?)\"'
+          - '\"request_id\":\"([a-z0-9]+)\"'
+
+      - type: word
+        words:
+          - "request_time"
+        part: body
+
+      - type: word
+        words:
+          - "application/json"
+        part: header

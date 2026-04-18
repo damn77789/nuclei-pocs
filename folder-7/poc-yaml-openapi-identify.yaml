@@ -1,0 +1,30 @@
+id: poc-yaml-openapi-identify
+info:
+  name: Discover OpenAPI Documentation
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  r_path:
+    - "/"
+    - "/api/"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{r_path}}openapi.json"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "\"openapi\""
+          - "\"paths\""

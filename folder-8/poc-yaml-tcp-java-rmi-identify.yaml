@@ -1,0 +1,21 @@
+id: poc-yaml-tcp-java-rmi-identify
+info:
+  name: Java RMI Service Exposure Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce,java-rmi
+
+tcp:
+  - inputs:
+      - data: "4a524d4900024b" # Equivalent to "JRMI\x00\x02K" in hex
+        type: hex
+      - read-size: 1024
+        name: response
+    host:
+      - "{{Hostname}}"
+    port: 1099
+    matchers:
+      - type: regex
+        regex:
+          - "^N..[0-9a-f:\\.]+\\x00\\x00"
+        part: response

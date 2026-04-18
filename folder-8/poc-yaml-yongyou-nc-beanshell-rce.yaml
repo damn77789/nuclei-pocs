@@ -1,0 +1,20 @@
+id: poc-yaml-yongyou-nc-beanshell-rce
+info:
+  name: YongYou NC BeanShell Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,yongyou
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/servlet/~ic/bsh.servlet.BshServlet"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "BeanShell Test Servlet"
+        part: body
+      - type: word
+        words:
+          - "bsh.servlet.captureOutErr"
+        part: body

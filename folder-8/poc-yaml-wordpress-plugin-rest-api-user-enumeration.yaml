@@ -1,0 +1,27 @@
+id: wordpress-plugin-rest-api-user-enumeration
+info:
+  name: WordPress REST API User Enumeration Vulnerability (CVE-2017-1000226)
+  author: ProjectDiscoveryAI
+  severity: low
+  tags: info-leak,cve,cve-2017-1000226
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-json/wp/v2/users/"
+      - "{{BaseURL}}/?rest_route=/wp/v2/users/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"id\":"
+          - "\"name\":"
+          - "\"avatar_urls\":"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

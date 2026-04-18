@@ -1,0 +1,25 @@
+id: dahua-smart-park-management-identify
+info:
+  name: Dahua Smart Park Management Platform Detection
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/WPMS/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "/WPMS/asset/js/login.js"
+        part: body
+      - type: word
+        words:
+          - "/WPMS/asset/lib/gridster/"
+        part: body
+      - type: word
+        words:
+          - "<title></title>"
+        part: body

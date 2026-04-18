@@ -1,0 +1,24 @@
+id: poc-cacti-sql-file-read
+
+info:
+  name: Cacti SQL File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/cacti/cacti.sql"
+      - "{{BaseURL}}/cacti.sql"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "MySQL dump"
+          - "DROP TABLE IF EXISTS"
+        part: body

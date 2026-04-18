@@ -1,0 +1,21 @@
+id: CVE-2023-6894
+info:
+  name: Hikvision IP Network Intercom Broadcasting System Information Leakage
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-6894,information-leakage
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/html/system.html"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<title id=\"title\">系统维护</title>"
+          - "系统日志"
+          - "网络诊断"
+        part: body

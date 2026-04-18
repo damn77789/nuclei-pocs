@@ -1,0 +1,24 @@
+id: coding-ci-pypi-directory-traversal
+
+info:
+  name: CODING Platform idna Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+  description: |
+    This template identifies a directory traversal vulnerability in the CODING platform at the endpoint `/ci/pypi/simple/idna/`.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ci/pypi/simple/idna/"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Index of /ci/pypi/simple/idna/"

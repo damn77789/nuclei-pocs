@@ -1,0 +1,25 @@
+id: poc-yaml-wanhu-ezoffice-oa-identify
+info:
+  name: Discover Wanhu ezOffice OA
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/login.jsp"
+      - "{{BaseURL}}/login.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "SESSIONIDOA"
+      - type: word
+        part: body
+        words:
+          - "ResetPasswordAction!ajaxgetAttribute.action"

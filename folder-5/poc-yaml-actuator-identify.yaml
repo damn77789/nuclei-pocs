@@ -1,0 +1,34 @@
+id: poc-yaml-actuator-identify
+info:
+  name: Spring Actuator Discovery
+  author: ProjectDiscoveryAI
+  severity: low
+  tags: identify,spring
+
+http:
+  - payloads:
+      path:
+        - /api/actuator
+        - /apigw/actuator
+        - /apis/actuator
+        - /actuator
+        - /actuator;.js
+        - /webjars/..;xx/actuator
+
+    raw:
+      - |
+        GET {{path}} HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "spring-boot.actuator"
+      - type: word
+        part: body
+        words:
+          - "\"self\""
+          - "\"href\""

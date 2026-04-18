@@ -1,0 +1,34 @@
+id: weaver-eoffice-sql-injection
+info:
+  name: Weaver E-Office login.wsdl.php SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver E-Office login.wsdl.php file is vulnerable to SQL Injection, allowing attackers to extract sensitive user information.
+  reference:
+    - https://www.weaver.com.cn/
+http:
+  - raw:
+      - |
+        POST /webservice-json/login/login.wsdl.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+        Accept-Encoding: gzip, deflate
+
+        <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:LoginServicewsdl">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <urn:GetCurrentInformation soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+                 <UserId xsi:type="xsd:string"></UserId>
+              </urn:GetCurrentInformation>
+           </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "GetCurrentInformationResponse"
+        part: body

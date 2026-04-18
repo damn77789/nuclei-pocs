@@ -1,0 +1,33 @@
+id: geoserver-identify
+
+info:
+  name: GeoServer Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  paths:
+    - "/geoserver/web/"
+    - "/ows?service=wcs&version=1.0.0&request=GetCapabilities"
+    - "/web/"
+    - "/geoserver/ows?service=wcs&version=1.0.0&request=GetCapabilities"
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}{{paths}}'
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "GeoServer"
+          - "<wcs:keyword>GEOSERVER</wcs:keyword>"
+        part: body
+      - type: word
+        words:
+          - "GeoServer"
+        part: header

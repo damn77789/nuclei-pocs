@@ -1,0 +1,27 @@
+id: poc-yaml-skzy-session-leak
+info:
+  name: 时空智友企业流程化管控系统session泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 信息泄露
+  description: |
+    Detects session leakage in 时空智友企业流程化管控系统, specifically checking for session information in the response body.
+
+http:
+  - method: GET
+    path:
+      - "/manage/index.jsp"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Session ID"
+      - type: word
+        part: body
+        words:
+          - "数据缓存管理"

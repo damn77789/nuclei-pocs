@@ -1,0 +1,18 @@
+id: adobe-connect-username-exposure
+info:
+  name: Adobe Connect Username Exposure Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+http:
+  - method: GET
+    path:
+      - "/system/help/support"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Administrators name:"
+      - type: word
+        words:
+          - "Support Administrators email address:"

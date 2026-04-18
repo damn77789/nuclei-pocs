@@ -1,0 +1,44 @@
+id: alibaba-nacos-jraftserver-deserialization
+
+info:
+  name: Alibaba Nacos JRaftServer Deserialization
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template checks for an insecure deserialization vulnerability in Alibaba Nacos JRaftServer.
+  tags: deserialization,rce
+
+http:
+  - raw:
+      - |
+        POST /nacos/v1/console/server/state HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"action":"test"}
+    extractors:
+      - type: regex
+        name: version
+        internal: true
+        regex:
+          - '"version":"([0-9\\.]+)"'
+      - type: regex
+        name: mode
+        internal: true
+        regex:
+          - '"standalone_mode":"([a-z]+)"'
+
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - '"version":".*"'
+      - type: regex
+        regex:
+          - '"standalone_mode":".*"'
+
+variables:
+  fixed_version1: "1.4.6"
+  fixed_version2: "2.2.3"
+  vulnerable_version_start1: "1.4.0"
+  major_vulnerable_version: "2.0.0"

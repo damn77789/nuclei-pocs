@@ -1,0 +1,19 @@
+id: nacos-identify
+
+info:
+  name: Discover Nacos
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+      - "{{BaseURL}}/nacos/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<title>Nacos</title>"

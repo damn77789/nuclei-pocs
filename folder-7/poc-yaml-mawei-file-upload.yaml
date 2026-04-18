@@ -1,0 +1,40 @@
+id: poc-yaml-mawei-file-upload
+info:
+  name: 麦维安全生产数字化管理平台 文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件上传
+
+http:
+  - name: Check Login Page
+    method: GET
+    path:
+      - "{{BaseURL}}/Login"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "安全生产数字化管理平台"
+
+  - name: Check File Upload Page
+    method: GET
+    path:
+      - "{{BaseURL}}/Content/Plugins/uploader/FileChoose.html"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>选择文件</title>"
+          - "提交"
+      - type: word
+        part: header
+        words:
+          - "Content-Type: text/html"

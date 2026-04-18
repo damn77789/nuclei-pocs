@@ -1,0 +1,26 @@
+id: poc-yaml-actuator-httptrace-unauth-access
+info:
+  name: Spring Boot Actuator httptrace Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,spring-boot
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/actuator/httptrace"
+      - "{{BaseURL}}/jeecg-boot/actuator/httptrace"
+      - "{{BaseURL}}/api/actuator/httptrace"
+      - "{{BaseURL}}/actuator/httptrace;.css"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"traces\""
+      - type: word
+        part: header
+        words:
+          - "Content-Type: application/vnd.spring-boot.actuator.v2+json"

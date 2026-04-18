@@ -1,0 +1,28 @@
+id: CVE-2021-46371
+info:
+  name: AntD Admin Sensitive users Api Information Disclosure Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    AntD Admin has a security vulnerability that stems from Antd-admin 5.5.0 being affected by an incorrect access control vulnerability.
+    Attackers can exploit this vulnerability to gain unauthorized access to some front-end interfaces, resulting in the leakage of sensitive information.
+  reference:
+    - https://github.com/zuiidea/antd-admin/issues/1127
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 7.5
+    cve-id: CVE-2021-46371
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/v1/users"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "image.zuiidea.com"
+        part: body

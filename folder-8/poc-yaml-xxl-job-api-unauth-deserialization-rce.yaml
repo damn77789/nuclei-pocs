@@ -1,0 +1,24 @@
+id: poc-xxl-job-api-unauth-deserialization-rce
+info:
+  name: XXL-JOB API Unauthorized Deserialization RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  r_paths:
+    - "/api"
+    - "/xxl-job-admin/api"
+    - "/xxljob/api"
+    - "/xxl-job/api"
+    - "/xxl/api"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{r_paths}}"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "com.xxl.rpc.util.XxlRpcException: xxl-rpc request data is empty"

@@ -1,0 +1,22 @@
+id: pandora-boot-monitor-unauth-access
+
+info:
+  name: Pandora Boot Monitor Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/pandolet"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"statusMessage\":\"success\""
+      - type: word
+        part: body
+        words:
+          - "\"responseEntities\""

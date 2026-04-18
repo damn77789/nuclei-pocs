@@ -1,0 +1,20 @@
+id: poc-yaml-leagsoft-portal-identify
+info:
+  name: Leagsoft Portal Identification Login Page
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/portal/redirect/nacc/"
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "\"straclname\":\"UACL_Valid_n_healthy\""
+        part: body
+      - type: word
+        words:
+          - "UniAppServer"
+        part: header

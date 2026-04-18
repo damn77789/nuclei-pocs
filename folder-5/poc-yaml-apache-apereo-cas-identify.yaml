@@ -1,0 +1,20 @@
+id: poc-yaml-apache-apereo-cas-identify
+info:
+  name: Apereo CAS Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "/cas/login"
+      - "/login"
+      - "/sso/login"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Apereo"
+          - "cas"
+        part: body

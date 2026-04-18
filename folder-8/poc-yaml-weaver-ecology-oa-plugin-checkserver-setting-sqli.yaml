@@ -1,0 +1,31 @@
+id: poc-yaml-weaver-ecology-oa-plugin-checkserver-setting-sqli
+info:
+  name: Weaver OA CheckServer.jsp SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mobile/plugin/CheckServer.jsp?type=mobileSetting"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "error:\"system error\""
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "securityIntercept"
+        negative: true

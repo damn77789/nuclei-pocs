@@ -1,0 +1,26 @@
+id: laravel-whoops-info-disclosure
+
+info:
+  name: Laravel Whoops Debug Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Whoops is an error trapping and debugging PHP library for PHP environments. When the developer tested the website service, they did not turn off the installed Whoops style error handler, resulting in leaking source code and various configuration information.
+  tags: information-disclosure
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Whoops\\Handler\\PrettyPageHandler"

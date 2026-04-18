@@ -1,0 +1,28 @@
+id: connectwise-screenconnect-authentication-bypass
+info:
+  name: ConnectWise ScreenConnect Authentication Bypass (CVE-2024-1709)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2024-1709
+
+variables:
+  t1: "{{rand_base(10)}}"
+
+http:
+  - method: GET
+    path:
+      - "/SetupWizard.aspx/{{t1}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "SetupWizardPage"
+          - "ContentPanel SetupWizard"
+      - type: word
+        part: header
+        words:
+          - "ScreenConnect"

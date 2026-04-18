@@ -1,0 +1,34 @@
+id: poc-yaml-laravel-improper-webdir
+info:
+  name: Laravel Improper Webdir
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-disclosure
+  description: |
+    Detects Laravel improper web directory exposure by checking for the presence of sensitive files and patterns in response.
+http:
+  - method: GET
+    path:
+      - "/storage/logs/laravel.log"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "vendor\\laravel\\framework"
+          - "vendor/laravel/framework"
+      - type: word
+        part: body
+        words:
+          - "stacktrace"
+          - "Stack trace"
+        condition: or
+      - type: word
+        part: header
+        words:
+          - "content-type: text/plain"
+          - "content-type: application/octet-stream"
+        condition: or

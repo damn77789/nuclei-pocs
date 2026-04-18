@@ -1,0 +1,25 @@
+id: apache-flink-web-dashboard-unauth-access
+info:
+  name: Apache Flink Web Dashboard Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauth-access
+  description: |
+    Apache Flink web dashboard is vulnerable to unauthorized access, allowing attackers to view sensitive information or perform other actions without authentication.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/#/overview"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Overview</a></li>"
+          - "Running Jobs</a></li>"
+          - "Completed Jobs</a></li>"
+          - "Task Managers</a></li>"
+          - "Job Manager</a></li>"
+        part: body

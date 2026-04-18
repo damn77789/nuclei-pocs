@@ -1,0 +1,25 @@
+id: poc-yaml-ollama-api-unauthorized-access
+info:
+  name: Ollama API Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,language-model
+http:
+  - method: GET
+    path:
+      - /api/tags
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"models\""
+          - "\"digest\""
+          - "\"format\""
+      - type: word
+        part: header
+        words:
+          - "application/json"

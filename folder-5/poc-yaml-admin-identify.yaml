@@ -1,0 +1,48 @@
+id: poc-yaml-admin-identify
+info:
+  name: Identify Admin Panels
+  author: ProjectDiscoveryAI
+  severity: low
+  tags: identify
+
+variables:
+  paths:
+    - /adm/dist/index.html
+    - /admin/dist/index.html
+    - /admin/
+    - /dist/index.html
+    - /web/index.html
+    - /management/
+    - /mgmt/
+    - /dashboard/
+    - /console/
+    - /manage/
+    - /admin/login.html
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "!contains(http_title, '后台')"
+          - "!contains(http_title, '管理')"
+          - "!contains(http_title, '超管')"
+          - "!contains(http_title, 'Management')"
+
+  - method: GET
+    path:
+      - "{{BaseURL}}{{paths}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "contains(http_title, '后台')"
+          - "contains(http_title, '管理')"
+          - "contains(http_title, '超管')"
+          - "contains(http_title, 'Management')"

@@ -1,0 +1,38 @@
+id: alibaba-nacos-rce-CT-1374034
+info:
+  name: Alibaba Nacos RCE
+  author: yuxiang.cai
+  severity: critical
+  description: |
+    This template detects a Remote Code Execution (RCE) vulnerability in Alibaba Nacos using a crafted multipart/form-data payload.
+
+variables:
+  r1: '{{rand_text_alpha(20)}}'
+  r2: '{{rand_text_alpha(20)}}'
+  rboundary: '{{rand_text_alpha(8)}}'
+
+http:
+  - raw:
+      - |
+        POST /nacos/v1/cs/ops/data/removal HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}
+
+        ------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="file"; filename="{{r1}}"\r\nContent-Type: application/octet-stream\r\n\r\n{{r2}}\r\n------WebKitFormBoundary{{rboundary}}--\r\n
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        words:
+          - '"data":null'
+          - '"code":500'
+        part: body
+
+      - type: word
+        words:
+          - 'Limited to embedded storage mode'
+        part: body
+        negative: true

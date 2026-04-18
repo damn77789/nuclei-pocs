@@ -1,0 +1,39 @@
+id: mesos-unauthorized-access
+
+info:
+  name: Mesos Docker Container Cluster Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Mesos docker container cluster management platform is a distributed system solution based on Apache Mesos and Docker. It contains an unauthorized access vulnerability that allows attackers to control the entire system, leading to an extremely insecure state of the system.
+  tags: unauthorized-access
+  reference:
+    - https://0x0d.im/archives/attack-container-management-platform.html
+
+http:
+  - raw:
+      - |
+        GET /version HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\w{40}"
+
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "test"

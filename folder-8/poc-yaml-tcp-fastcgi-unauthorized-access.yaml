@@ -1,0 +1,22 @@
+id: fastcgi-unauthorized-access
+info:
+  name: FastCGI Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    Detects unauthorized access to FastCGI services.
+
+tcp:
+  - inputs:
+      - data: "\x01\x01\x00\x00\x00\x08\x00\x00AUTH_TYPE\x00\x00"
+    port: 9000
+    read-size: 2048
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Unauthorized"
+      - type: regex
+        regex:
+          - "FastCGI connection succeeded"

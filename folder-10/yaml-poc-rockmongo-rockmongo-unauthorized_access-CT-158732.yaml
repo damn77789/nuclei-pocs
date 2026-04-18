@@ -1,0 +1,27 @@
+id: rockmongo-unauthorized-access
+info:
+  name: RockMongo Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects unauthorized access to RockMongo admin panel using default credentials.
+  tags: unauthorized, default-credentials, rockmongo
+http:
+  - raw:
+      - |
+        POST /index.php?action=login.index&host=0 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        more=0&host=0&username=admin&password=admin&db=&lang=zh_cn&expire=3
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "/index.php?action=admin.index&host=0"
+        name: location-header

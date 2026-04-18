@@ -1,0 +1,29 @@
+id: jdwp-unauthorized-access
+info:
+  name: JDWP Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,jdwp
+
+tcp:
+  - inputs:
+      - data: "JDWP-Handshake\r\n"
+      - read-size: 14
+        name: handshake_response
+      - data: "\x00\x00\x00\x0b\x00\x00\x00\x02\x00\x01\x01"
+      - read-size: 1024
+        name: final_response
+    host:
+      - "{{Hostname}}"
+    port: 5005
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: handshake_response
+        words:
+          - "JDWP-Handshake"
+      - type: word
+        part: final_response
+        words:
+          - "\x00\x00\x02"
+          - "version"

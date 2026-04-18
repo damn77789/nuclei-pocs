@@ -1,0 +1,34 @@
+id: apache-axis-webservice-identify
+info:
+  name: Apache Axis Webservice Identifier
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/services"
+      - "{{BaseURL}}/servlet/AxisaxiServlet"
+      - "{{BaseURL}}/servlet/AxisServlet"
+      - "{{BaseURL}}/services/listServices"
+      - "{{BaseURL}}/services/FreeMarkerService"
+      - "{{BaseURL}}/services/AdminService"
+      - "{{BaseURL}}/axis/services"
+      - "{{BaseURL}}/axis2/services"
+      - "{{BaseURL}}/axis/servlet/AxisServlet"
+      - "{{BaseURL}}/axis2/servlet/AxisServlet"
+      - "{{BaseURL}}/axis2/services/listServices"
+      - "{{BaseURL}}/axis/services/FreeMarkerService"
+      - "{{BaseURL}}/axis/services/AdminService"
+      - "{{BaseURL}}/admin/services"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Services"
+        part: body
+      - type: word
+        words:
+          - "?wsdl\"><i>"
+        part: body

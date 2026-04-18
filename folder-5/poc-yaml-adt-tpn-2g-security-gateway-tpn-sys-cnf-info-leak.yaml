@@ -1,0 +1,28 @@
+id: adt-tpn-2g-info-leak
+info:
+  name: 安达通TPN-2G安全网关 tpn_sys.cnf 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    This template detects information leakage in the 安达通TPN-2G安全网关 by accessing the tpn_sys.cnf
+    file which contains sensitive configuration details.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/back/tpn_sys.cnf"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ADT configuration file"
+          - "# user configuration"
+          - "gateway"
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

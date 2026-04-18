@@ -1,0 +1,32 @@
+id: poc-yaml-yongyou-u8crm-log-information-leak
+info:
+  name: Yongyou U8CRM Log Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    This template detects information leakage in Yongyou U8CRM through exposed logs containing sensitive information such as SQL statements and error messages.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/datacache/crmdebug.log"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/plain"
+      - type: word
+        part: body
+        words:
+          - "ErrorMessage"
+          - "SELECT"
+          - "UPDATE"
+      - type: regex
+        part: body
+        regex:
+          - "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}"

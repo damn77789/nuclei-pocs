@@ -1,0 +1,43 @@
+id: poc-yaml-finereport-remote-channel-java-deserialization
+info:
+  name: FineReport Remote Channel Java Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: deserialization,rce
+
+variables:
+  r_path:
+    - /webroot/decision/
+    - /decision/
+    - /bi/decision/
+    - /BI/decision/
+    - /BI/
+    - /Bi/
+    - /Bi/decision/
+    - /
+
+http:
+  - raw:
+      - |
+        GET {{r_path}}remote/design/channel HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - 'substr(body, 0, 3) != "\x1f\x8b\x08"'
+          - 'contains(body, "not supported")'
+
+  - raw:
+      - |
+        POST {{r_path}}remote/design/channel HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - 'substr(body, 0, 3) == "\x1f\x8b\x08"'
+          - '!contains(body, "</")'

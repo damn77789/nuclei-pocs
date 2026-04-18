@@ -1,0 +1,21 @@
+id: poc-yaml-adminer-php-identify
+info:
+  name: Identify Adminer.php
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "/admin/adminer.php"
+      - "/adminer.php"
+      - "/adminer/index.php"
+    headers:
+      Accept-Language: en-US;q=0.9,en;q=0.8
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - ">Login - Adminer<"

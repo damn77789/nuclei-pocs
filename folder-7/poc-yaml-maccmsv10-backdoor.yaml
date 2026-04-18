@@ -1,0 +1,26 @@
+id: poc-yaml-maccmsv10-backdoor
+info:
+  name: Maccmsv10 Backdoor
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Detects a backdoor in Maccmsv10 via a POST request to /extend/Qcloud/Sms/Sms.php.
+  tags: backdoor,maccmsv10
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/extend/Qcloud/Sms/Sms.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "getpwd=WorldFilledWithLove"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "扫描后门"
+          - "反弹端口"
+          - "文件管理"

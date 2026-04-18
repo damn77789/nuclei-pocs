@@ -1,0 +1,27 @@
+id: alibaba-canal-config-leak
+info:
+  name: Alibaba Canal Config Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    This template detects sensitive information leakage in Alibaba Canal's API configuration endpoint.
+    The endpoint may expose accessKey and secretKey in the response body.
+http:
+  - method: GET
+    path:
+      - "/api/v1/canal/config/1/1"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: word
+        words:
+          - "ncanal.aliyun.accessKey"
+          - "ncanal.aliyun.secretKey"
+        part: body

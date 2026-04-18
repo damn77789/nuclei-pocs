@@ -1,0 +1,18 @@
+id: dubbo-unauthorized-access
+
+info:
+  name: Dubbo Unauthorized Access Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,dubbo
+
+tcp:
+  - inputs:
+      - data: "status\n"
+    port: 20880
+    read-size: 1024
+    matchers:
+      - type: regex
+        regex:
+          - "OK\\s+dubbo>"
+    matchers-condition: and

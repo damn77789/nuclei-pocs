@@ -1,0 +1,46 @@
+id: swagger-ui-identify
+info:
+  name: Discover Swagger UI
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "/api/swagger-ui.html"
+      - "/swagger-ui.html"
+      - "/backend/swagger-ui.html"
+      - "/swagger/index.html"
+      - "/api/swagger/index.html"
+      - "/swagger-ui/index.html"
+      - "/api/swagger-ui/index.html"
+      - "/docs"
+      - "/api/docs"
+      - "/api/doc"
+      - "/api-docs/index.html"
+      - "/api.html"
+      - "/sw/swagger-ui.html"
+      - "/template/swagger-ui.html"
+      - "/spring-security-rest/api/swagger-ui.html"
+      - "/spring-security-oauth-resource/swagger-ui.html"
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "swagger-ui-bundle.js"
+          - "webjars/springfox-swagger-ui"
+          - "swagger-ui.min.js"
+      - type: word
+        part: body
+        words:
+          - "Swagger UI"
+      - type: word
+        part: header
+        words:
+          - "title: Swagger UI"
+      - type: status
+        status:
+          - 200

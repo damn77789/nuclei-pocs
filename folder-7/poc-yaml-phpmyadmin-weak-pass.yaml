@@ -1,0 +1,47 @@
+id: phpmyadmin-weak-pass
+info:
+  name: PhpMyAdmin Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+variables:
+  usernames:
+    - root
+  passwords:
+    - root
+    - admin
+    - 123456
+    - password
+  paths:
+    - phpmyadmin/index.php
+    - index.php
+    - phpMyAdmin/index.php
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/{{paths}}"
+    matchers:
+      - type: word
+        words:
+          - "name=\"login_form\""
+        part: body
+  - method: POST
+    path:
+      - "{{BaseURL}}/{{paths}}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "pma_username={{usernames}}&pma_password={{passwords}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "phpMyAdmin"
+        part: body
+      - type: word
+        words:
+          - "name=\"login_form\""
+        part: body
+        negative: true

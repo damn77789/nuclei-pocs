@@ -1,0 +1,28 @@
+id: CVE-2023-21839
+info:
+  name: Weblogic ForeignOpaqueReference Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WebLogic Server has a remote code execution vulnerability, allowing an unauthenticated attacker to exploit the server via the IIOP protocol network. Exploiting the vulnerability can result in the server being taken over by the attacker.
+  tags: code-execution,weblogic,rce
+  reference:
+    - https://www.oracle.com/security-alerts/cpujan2023.html
+    - https://www.oracle.com/
+
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (compatible; Nuclei)
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"

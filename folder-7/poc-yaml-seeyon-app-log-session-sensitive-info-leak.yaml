@@ -1,0 +1,25 @@
+id: poc-yaml-seeyon-app-log-session-sensitive-info-leak
+info:
+  name: Seeyon OA Mobile Portal Session Sensitive Info Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak,seeyon
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mobile_portal/logs/app.log"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "com.seeyon.portal"
+          - "java.lang.RuntimeException"
+          - "Failed to parse stringified userOverrides"
+      - type: word
+        part: header
+        words:
+          - "text/plain"

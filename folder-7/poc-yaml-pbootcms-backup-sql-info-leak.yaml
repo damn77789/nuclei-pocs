@@ -1,0 +1,35 @@
+id: poc-yaml-pbootcms-backup-sql-info-leak
+
+info:
+  name: PbootCMS pbootcms_v310.sql Info Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    Detects the presence of PbootCMS backup SQL file which may lead to sensitive information disclosure.
+
+http:
+  - method: GET
+    path:
+      - "/static/backup/sql/pbootcms_v310.sql"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Online Database Management"
+          - "INSERT INTO"
+          - "CREATE TABLE"
+          - "表的结构"
+      - type: word
+        part: body
+        words:
+          - "<html"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "text/x-sql"

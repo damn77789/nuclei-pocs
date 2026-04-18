@@ -1,0 +1,21 @@
+id: cve-2023-34039
+info:
+  name: VMWare Aria Operations Static SSH Key Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: cve-2023-34039,authentication-bypass,misconfiguration
+  description: |
+    Detects the presence of static SSH keys in VMWare Aria Operations, which could allow unauthorized access.
+
+tcp:
+  - inputs:
+      - data: "\x00" # Placeholder data for handshake initiation
+    port: 22
+    read-size: 1024
+    matchers:
+      - type: word
+        part: data
+        words:
+          - "VMware"
+          - "Aria Operations"
+        condition: or

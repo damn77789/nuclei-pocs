@@ -1,0 +1,74 @@
+id: ingress-nginx-controller-admission-api-unauthorized-access
+info:
+  name: ingress-nginx-controller-admission Unauthorized API Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  metadata:
+    finger: ingress-nginx
+
+http:
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "apiVersion": "admission.k8s.io/v1",
+          "kind": "AdmissionReview",
+          "request": {
+            "uid": "test-uid",
+            "kind": {"group":"networking.k8s.io","version":"v1","kind":"Ingress"},
+            "resource": {"group":"networking.k8s.io","version":"v1","resource":"ingresses"},
+            "name": "test-ingress",
+            "namespace": "default",
+            "operation": "CREATE",
+            "object": {
+              "apiVersion": "networking.k8s.io/v1",
+              "kind": "Ingress",
+              "metadata": {
+                "name": "test-ingress",
+                "namespace": "default"
+              },
+              "spec": {
+                "rules": [
+                  {
+                    "host": "example.com",
+                    "http": {
+                      "paths": [
+                        {
+                          "path": "/",
+                          "pathType": "Prefix",
+                          "backend": {
+                            "service": {
+                              "name": "test-service",
+                              "port": {"number": 80}
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"response\":"
+          - "\"uid\": \"test-uid\""
+          - "\"allowed\": true"
+        negative: false
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

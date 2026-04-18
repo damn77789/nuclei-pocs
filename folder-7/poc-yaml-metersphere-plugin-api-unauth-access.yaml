@@ -1,0 +1,25 @@
+id: poc-yaml-metersphere-plugin-api-unauth-access
+info:
+  name: MeterSphere Plugin API Unauthenticated Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauth-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/login"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "MeterSphere"
+  - method: GET
+    path:
+      - "{{BaseURL}}/plugin/list"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{\"success\":true,\"message\":null,\"data\""

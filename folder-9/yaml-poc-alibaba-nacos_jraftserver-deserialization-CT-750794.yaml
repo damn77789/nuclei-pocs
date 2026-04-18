@@ -1,0 +1,43 @@
+id: nacos-jraftserver-deserialization
+info:
+  name: Alibaba Nacos JRaftServer Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Alibaba Nacos JRaftServer deserialization vulnerability allows unauthorized attackers to exploit the server under specific vulnerable configurations.
+    The vulnerability affects certain versions of Nacos when running in specific modes. This template detects the vulnerability by analyzing the version and mode information in the server response.
+  reference:
+    - https://github.com/alibaba/nacos/releases/tag/2.2.3
+    - https://github.com/alibaba/nacos/releases/tag/1.4.6
+http:
+  - method: GET
+    path:
+      - "/nacos/v1/console/server/state"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '"version":"(?P<version>[0-9\\.]+)"'
+      - type: dsl
+        dsl:
+          - |
+            contains(body, '"version":"2') && compare_versions(extract_regex('"version":"(?P<version>[0-9\\.]+)"', body), '<2.2.3')
+          - |
+            contains(body, '"version":"1') && compare_versions(extract_regex('"version":"(?P<version>[0-9\\.]+)"', body), '<1.4.6') && compare_versions(extract_regex('"version":"(?P<version>[0-9\\.]+)"', body), '>1.3.2')
+      - type: dsl
+        dsl:
+          - |
+            extract_regex('"standalone_mode":"(?P<mode>[a-zA-Z]+)"', body) == 'cluster' || (extract_regex('"standalone_mode":"(?P<mode>[a-zA-Z]+)"', body) == 'standalone' && (compare_versions(extract_regex('"version":"(?P<version>[0-9\\.]+)"', body), '>2') || extract_regex('"version":"(?P<version>[0-9\\.]+)"', body) == '1.4.0'))
+    extractors:
+      - type: regex
+        regex:
+          - '"version":"(?P<version>[0-9\\.]+)"'
+        group: 1
+      - type: regex
+        regex:
+          - '"standalone_mode":"(?P<mode>[a-zA-Z]+)"'
+        group: 1
+    stop-at-first-match: true

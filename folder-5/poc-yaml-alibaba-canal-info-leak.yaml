@@ -1,0 +1,29 @@
+id: alibaba-canal-info-leak
+
+info:
+  name: Alibaba Canal Information Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-leak
+  description: |
+    Detects information leakage in Alibaba Canal, exposing sensitive keys.
+
+http:
+  - method: GET
+    path:
+      - "/api/v1/canal/config/1/1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "ncanal.aliyun.accessKey"
+          - "ncanal.aliyun.secretKey"

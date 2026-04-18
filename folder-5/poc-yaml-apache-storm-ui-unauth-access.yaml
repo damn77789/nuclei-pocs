@@ -1,0 +1,25 @@
+id: apache-storm-ui-unauth-access
+info:
+  name: Apache Storm UI Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauth-access
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index.html"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<h2>Nimbus Configuration</h2>"
+          - "Storm UI"
+          - "<h2>Cluster Summary</h2>"
+          - "<h2>Nimbus Summary</h2>"
+          - "<h2>Topology Summary</h2>"
+        condition: and
+        part: body

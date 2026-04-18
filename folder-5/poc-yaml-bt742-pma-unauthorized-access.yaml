@@ -1,0 +1,24 @@
+id: poc-yaml-bt742-pma-unauthorized-access
+info:
+  name: Bt742 PhpMyAdmin Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects unauthorized access to Bt742 PhpMyAdmin with potential SQL information leakage.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/pma/"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "information_schema"
+          - "phpMyAdmin"
+          - "server_sql.php"

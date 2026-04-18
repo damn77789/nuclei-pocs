@@ -1,0 +1,31 @@
+id: shenyu-plugin-unauth-access
+info:
+  name: Apache ShenYu Admin Plugin Unauthorized Access (CVE-2022-23944)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,cve,cve-2022-23944
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/plugin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "200"
+      - type: word
+        part: body
+        words:
+          - "query success"
+      - type: word
+        part: body
+        words:
+          - "page"
+      - type: word
+        part: body
+        words:
+          - "dataList"

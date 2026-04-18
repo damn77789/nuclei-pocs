@@ -1,0 +1,32 @@
+id: apache-apisix-dashboard-weak-pass
+info:
+  name: Apache APISIX Dashboard Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+  description: |
+    This template checks for weak credentials on Apache APISIX Dashboard by attempting to log in with common passwords.
+variables:
+  r_password:
+    - "123456"
+    - "admin"
+    - "admin123"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/apisix/admin/user/login"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: '{"username":"admin","password":"{{r_password}}"}'
+    payloads:
+      r_password:
+        - "123456"
+        - "admin"
+        - "admin123"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{\"code\":0,\"message\":\"\",\"data\":{\"token\":\""

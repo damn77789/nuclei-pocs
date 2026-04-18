@@ -1,0 +1,54 @@
+id: sinovision-cloud-cdn-live-default-passwd
+info:
+  name: "华视私云-CDN直播加速服务器默认弱口令漏洞"
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: weak-password
+
+variables:
+  username: "admin"
+  password: "admin"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: "initial-check"
+    method: GET
+    path:
+      - "{{BaseURL}}/newlive/manager/login.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "PHPSESSID"
+    extractors:
+      - type: regex
+        name: "cookie"
+        internal: true
+        part: header
+        group: 1
+        regex:
+          - "PHPSESSID=(.*?);"
+
+  - id: "login-attempt"
+    method: POST
+    path:
+      - "{{BaseURL}}/newlive/manager/login.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "PHPSESSID={{cookie}}"
+    body: "Name={{username}}&Pass={{password}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "home.php"

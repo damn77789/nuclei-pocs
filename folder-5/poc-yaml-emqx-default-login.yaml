@@ -1,0 +1,28 @@
+id: poc-yaml-emqx-default-login
+info:
+  name: EMQX Default Credentials Check
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password,emqx
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/v4/auth"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"username":"admin","password":"public"}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '{"code":0}'
+      - type: regex
+        part: body
+        regex:
+          - "<[^>]*" # Ensures '<' is not present in the response
+      - type: word
+        part: header
+        words:
+          - "json"

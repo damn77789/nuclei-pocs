@@ -1,0 +1,23 @@
+id: yonyou_nc-deserialization
+info:
+  name: Yonyou NC Message Servlet Deserialization
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects the presence of Yonyou NC Message Servlet deserialization vulnerability which can lead to potential exploitation.
+  reference:
+    - https://security.yonyou.com/#/noticeInfo?id=293
+http:
+  - method: GET
+    path:
+      - "/servlet/~baseapp/nc.message.bs.NCMessageServlet"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "NCMessageServlet"
+          - "org.apache.catalina.core.ApplicationFilterChain"
+        part: body

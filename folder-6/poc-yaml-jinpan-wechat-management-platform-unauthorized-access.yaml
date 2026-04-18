@@ -1,0 +1,31 @@
+id: jinpan-wechat-management-platform-unauthorized-access
+info:
+  name: Jinpan WeChat Management Platform Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    Detects unauthorized access to Jinpan WeChat Management Platform by verifying sensitive information exposure in the response.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin/weichatcfg/getsysteminfo"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "username"
+          - "password"
+          - "\"machinecode\""
+          - "\"appsecret\""
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

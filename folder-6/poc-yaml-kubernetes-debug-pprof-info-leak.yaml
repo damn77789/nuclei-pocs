@@ -1,0 +1,30 @@
+id: kubernetes-pprof-info-leak
+info:
+  name: Kubernetes PPROF Memory Leak Vulnerability (CVE-2019-11248)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak,CVE-2019-11248
+http:
+  - method: GET
+    path:
+      - "/debug/pprof/goroutine?debug=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "oroutine profile: total"
+        part: body
+      - type: regex
+        regex:
+          - "\\#\\s*0x"
+          - "\\.go:\\d+"
+          - "/\\w+\\.go:"
+        part: body
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

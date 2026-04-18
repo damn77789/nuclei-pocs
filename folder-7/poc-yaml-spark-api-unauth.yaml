@@ -1,0 +1,24 @@
+id: spark-api-unauth
+
+info:
+  name: Spark API Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: access-control
+  description: |
+    Detects unauthorized access vulnerability in Spark API.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/v1/submissions"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        words:
+          - "Missing an action"
+          - "serverSparkVersion"
+        part: body

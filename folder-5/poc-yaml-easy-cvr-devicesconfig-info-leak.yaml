@@ -1,0 +1,30 @@
+id: easycvr-devicesconfig-info-leak
+info:
+  name: EasyCVR Video Management Platform devicesconfig Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    EasyCVR video management platform devicesconfig endpoint leaks sensitive information.
+http:
+  - method: GET
+    path:
+      - "/api/v1/devicesconfig"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 
+          - 200
+      - type: word
+        words:
+          - '"EasyDarwin":'
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: regex
+        regex:
+          - '"DeviceUserName"\s*:\s*"[0-9a-zA-Z]+"'
+          - '"DeviceUserPW"\s*:\s*"[0-9a-zA-Z]+"'
+        part: body

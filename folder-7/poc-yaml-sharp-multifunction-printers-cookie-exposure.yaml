@@ -1,0 +1,32 @@
+id: sharp-multifunction-printers-cookie-exposure
+
+info:
+  name: Sharp Multifunction Printers Cookie Exposure (CVE-2024-33610)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: CVE-2024-33610,info-leak
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/sessionlist.html"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "No."
+          - "User"
+          - "Session List"
+          - "Language ID"
+          - "Last login"
+          - "Last access"
+          - "Cookie"
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie: MFPSESSIONID="

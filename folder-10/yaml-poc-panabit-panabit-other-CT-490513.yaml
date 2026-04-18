@@ -1,0 +1,29 @@
+id: panabit-sy-addmount-info-leak
+
+info:
+  name: Panabit Add Mount Information Leak
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects an information leak vulnerability in Panabit's sy_addmount endpoint by leveraging
+    predictable integer operations in the URL parameters and verifying the response.
+
+variables:
+  r1: "{{rand_int(800000000, 1000000000)}}"
+  r2: "{{rand_int(800000000, 1000000000)}}"
+
+http:
+  - raw:
+      - |
+        GET /account/sy_addmount.php?username={{r1}}{{r2}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{to_number(r1) + to_number(r2)}}"
+        part: body

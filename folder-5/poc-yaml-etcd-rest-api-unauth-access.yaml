@@ -1,0 +1,26 @@
+id: etcd-rest-api-unauth-access
+info:
+  name: ETCD REST API Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    Detects unauthorized access to ETCD REST APIs that expose sensitive data or allow unauthorized actions.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/v2/keys/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Content-Type: application/json"
+          - "X-Etcd-Index"
+      - type: word
+        part: body
+        words:
+          - "{\"action\":\"get\""

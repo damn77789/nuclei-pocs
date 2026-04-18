@@ -1,0 +1,23 @@
+id: yongyou-u8plus-crm-directory-traversal
+
+info:
+  name: Yongyou U8+ CRM Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/login/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "changepswd.php"
+          - "Index of /login"
+          - "login.php"

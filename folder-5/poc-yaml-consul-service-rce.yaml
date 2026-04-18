@@ -1,0 +1,31 @@
+id: poc-yaml-consul-service-rce
+info:
+  name: Consul Service Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+  description: |
+    This template checks for the presence of remote code execution vulnerability in Consul Service by verifying specific configurations.
+
+http:
+  - method: GET
+    path:
+      - "/v1/agent/self"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+      - type: word
+        part: header
+        words:
+          - "json"
+      - type: regex
+        regex:
+          - "\\\"EnableScriptChecks\\\": true"
+          - "\\\"EnableRemoteScriptChecks\\\": true"
+        part: body

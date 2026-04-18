@@ -1,0 +1,19 @@
+id: gitlab-api-user-info-leak
+info:
+  name: Gitlab User Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/v4/users/1"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"username\""
+          - "\"avatar_url\""
+          - "\"web_url\""

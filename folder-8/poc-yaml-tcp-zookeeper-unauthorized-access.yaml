@@ -1,0 +1,19 @@
+id: zookeeper-unauthorized-access
+
+info:
+  name: Zookeeper Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,zookeeper
+
+tcp:
+  - inputs:
+      - data: "srvr\n"
+    host:
+      - "{{Hostname}}"
+    port: 2181
+    read-size: 1024
+    matchers:
+      - type: regex
+        regex:
+          - "(?i)^zookeeper version:"

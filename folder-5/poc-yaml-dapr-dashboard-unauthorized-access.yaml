@@ -1,0 +1,41 @@
+id: cve-2022-38817
+info:
+  name: Dapr Dashboard Unauthorized Access (CVE-2022-38817)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve, cve2022, unauthorized-access, dapr-dashboard
+  description: |
+    Checks for unauthorized access to Dapr Dashboard endpoints that can lead to information disclosure.
+
+http:
+  - raw:
+      - |
+        GET /components/pubsub HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Dapr Dashboard"
+
+  - raw:
+      - |
+        GET /api/components/All HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"name\":\"redisHost\""
+          - "apiVersion"
+          - "pubsub.redis"

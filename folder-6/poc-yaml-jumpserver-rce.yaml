@@ -1,0 +1,42 @@
+id: poc-yaml-jumpserver-rce
+info:
+  name: JumpServer Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "JumpServer"
+        part: body
+  - method: GET
+    path:
+      - "{{BaseURL}}/ws/ops/tasks/log/"
+    headers:
+      Upgrade: websocket
+      Sec-WebSocket-Version: 13
+      Sec-WebSocket-Key: "5D+MzL4FS9zUdHxjfmp14Q=="
+    matchers:
+      - type: status
+        status:
+          - 101
+  - method: GET
+    path:
+      - "{{BaseURL}}/ws/ops/tasks/log1222/"
+    headers:
+      Upgrade: websocket
+      Sec-WebSocket-Version: 13
+      Sec-WebSocket-Key: "5D+MzL4FS9zUdHxjfmp14Q=="
+    matchers:
+      - type: status
+        status:
+          - 101
+        negative: true

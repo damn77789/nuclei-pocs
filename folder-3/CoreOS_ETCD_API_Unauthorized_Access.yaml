@@ -1,0 +1,31 @@
+id: coreos-etcd-api-unauthorized-access
+
+info:
+  name: CoreOS ETCD API Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ETCD is a distributed and consistent KV storage system for shared configuration and service discovery. This vulnerability may reveal a large amount of sensitive information, including AWS keys, API keys, and other service credentials, posing significant risks.
+  reference:
+    - https://elweb.co/the-security-footgun-in-etcd/
+  tags:
+    - sensitive-info
+    - etcd
+    - unauthorized-access
+
+http:
+  - raw:
+      - |
+        GET /v2/keys/?recursive=true HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"node"'
+          - '"key"'
+        part: body

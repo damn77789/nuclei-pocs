@@ -1,0 +1,25 @@
+id: poc-yaml-aceteamwork-identify
+info:
+  name: AceTeamwork Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/css/common.css"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/css"
+      - type: word
+        part: body
+        words:
+          - "html,body,div"
+          - ".fullsize-container.fullsize-container-no-header"

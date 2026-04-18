@@ -1,0 +1,56 @@
+id: laravel-env-leakage
+info:
+  name: Laravel Environment Configuration Leakage
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects the presence of Laravel's environment configuration files which could lead to sensitive information disclosure.
+  classification:
+    cve-id: CVE-2018-15133
+  tags: info-disclosure,laravel
+http:
+  - raw:
+      - |
+        GET /.env HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /.env.dev.local HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /.env.development.local HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /.env.prod.local HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /.env.production.local HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /.env.local HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /.env.stage HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /.env.live HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /.env_1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "APP_ENV="
+          - "APP_KEY="
+          - "DB_USERNAME="
+          - "DB_PASSWORD="
+      - type: regex
+        regex:
+          - "(?m)(APP_ENV=|APP_KEY=|DB_USERNAME=|DB_PASSWORD=)"
+    extractors:
+      - type: regex
+        name: env_variables
+        part: body
+        regex:
+          - "(?m)((APP_ENV|APP_KEY|DB_USERNAME|DB_PASSWORD)=.*)"

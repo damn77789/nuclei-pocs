@@ -1,0 +1,31 @@
+id: supershell-default-password
+info:
+  name: SuperShell Default Password
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Supershell is a C2 remote control platform accessed through WEB services. There is a default password vulnerability in SuperShell, allowing login via tdragon6:tdragon6 to obtain system privileges.
+  reference:
+    - https://github.com/tdragon6/Supershell
+  classification:
+    cvss-score: 10
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+  tags: default-password
+http:
+  - raw:
+      - |
+        POST /supershell/login/auth HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"username":"tdragon6","password":"tdragon6"}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "success"
+        part: body
+      - type: word
+        words:
+          - "Set-Cookie"
+        part: header

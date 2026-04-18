@@ -1,0 +1,27 @@
+id: poc-yaml-aem-dashboard-weak-pass
+info:
+  name: Adobe Experience Manager (AEM) Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password, aem
+
+http:
+  - raw:
+      - |
+        POST /libs/granite/core/content/login.html/j_security_check HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        _charset_=utf-8&j_username=admin&j_password=admin&j_validate=true
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie"
+          - "login-token="
+          - "crx.default"

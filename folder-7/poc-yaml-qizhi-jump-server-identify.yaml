@@ -1,0 +1,23 @@
+id: qizhi-jump-server-identify
+info:
+  name: Qizhi Jump Server Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "DLLRegistered(\"XECtrl13.XFPAuthenExportX\")"
+      - type: word
+        part: body
+        words:
+          - "xfpverify.php"

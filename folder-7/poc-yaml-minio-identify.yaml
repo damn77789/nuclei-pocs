@@ -1,0 +1,19 @@
+id: minio-browser-identify
+info:
+  name: Minio Browser Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/minio/login"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Minio Browser"
+      - type: status
+        status:
+          - 200

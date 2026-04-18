@@ -1,0 +1,23 @@
+id: apache-shenyu-dashboard-weak-pass
+info:
+  name: Apache ShenYu Dashboard Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+  description: |
+    This template detects a weak password vulnerability in the Apache ShenYu Dashboard by analyzing the login response.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/platform/login"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{\"code\":200,\"message\":\"login dashboard user"
+      - type: word
+        part: body
+        words:
+          - "id"

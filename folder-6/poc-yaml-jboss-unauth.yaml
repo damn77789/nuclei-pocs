@@ -1,0 +1,22 @@
+id: poc-yaml-jboss-unauth
+info:
+  name: Jboss Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: access-control
+  description: |
+    Detects unauthorized access to JMX Console in Jboss application servers.
+http:
+  - method: GET
+    path:
+      - "/jmx-console/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "jboss.management.local"
+          - "jboss.web"
+        part: body

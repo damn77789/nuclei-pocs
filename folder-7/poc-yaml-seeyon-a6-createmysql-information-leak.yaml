@@ -1,0 +1,24 @@
+id: seeyon-a6-createmysql-information-leak
+info:
+  name: Seeyon OA A6 createMysql.jsp Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/yyoa/createMysql.jsp"
+      - "{{BaseURL}}/yyoa/ext/createMysql.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root</br>"
+      - type: regex
+        part: body
+        regex:
+          - "[*][0-zA-Z]{40}</br>"

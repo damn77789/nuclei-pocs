@@ -1,0 +1,20 @@
+id: poc-yaml-weaver-emobile-identify
+info:
+  name: Identify Weaver E-Mobile Platform
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "/error/styles/error.css"
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - "\\.error-image-container\\{flex:0"
+      - type: word
+        part: header
+        words:
+          - "css"

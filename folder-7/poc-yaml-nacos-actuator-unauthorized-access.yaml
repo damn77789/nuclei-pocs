@@ -1,0 +1,40 @@
+id: nacos-actuator-unauthorized-access
+info:
+  name: Nacos Actuator Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,nacos
+http:
+  - raw:
+      - |
+        GET /nacos/ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Nacos"
+        part: body
+  - raw:
+      - |
+        GET /nacos/actuator/ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"_links\":"
+          - "\"self\":"
+          - "\"href\":"
+          - "\"templated\":"
+        part: body
+      - type: word
+        words:
+          - "application/vnd.spring-boot.actuator.v3+json"
+        part: header

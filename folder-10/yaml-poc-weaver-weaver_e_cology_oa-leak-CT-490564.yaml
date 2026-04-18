@@ -1,0 +1,27 @@
+id: weaver_e_cology_oa_leak
+info:
+  name: Weaver e-cology OA Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects a potential information leak in Weaver e-cology OA via mobile/dbconfigreader.jsp endpoint.
+  reference:
+    - https://mp.weixin.qq.com/s/zTEUan_BtDDzuHzmd9pxYg
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mobile/dbconfigreader.jsp"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/html"
+      - type: binary
+        part: body
+        binary:
+          - "8ad2f1d4987e7005536e"

@@ -1,0 +1,40 @@
+id: elasticsearch-unauthorized-access
+info:
+  name: ElasticSearch Unauthorized Access Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects unauthorized access to ElasticSearch by checking for accessible endpoints and specific response indicators.
+
+http:
+  - id: "1"
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "You Know, for Search"
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}/_count"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "\"count\":\\d+"

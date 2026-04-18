@@ -1,0 +1,28 @@
+id: phpweb-arbitrary-file-upload
+info:
+  name: PHPWEB Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/base/post.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "act=appcode"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "k="
+          - "&t="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

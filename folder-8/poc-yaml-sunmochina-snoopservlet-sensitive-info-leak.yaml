@@ -1,0 +1,52 @@
+id: sunmochina-snoopservlet-sensitive-info-leak
+info:
+  name: 神州讯盟企业管理系统 SnoopServlet 敏感信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+
+variables:
+  jsessionid: ''
+
+http:
+  - id: extract-cookie
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: cookie
+        group: 1
+        internal: true
+        part: header
+        regex:
+          - "JSESSIONID=(.*?);"
+
+  - id: snoopservlet-info-leak
+    method: GET
+    path:
+      - "{{BaseURL}}/servlet/SnoopServlet"
+    headers:
+      Cookie: "JSESSIONID={{jsessionid}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Snoop Servlet"
+          - "Context attributes:"
+          - "WEB-INF"
+          - "Server Name:"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

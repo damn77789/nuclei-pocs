@@ -1,0 +1,55 @@
+id: playsms-default-password
+
+info:
+  name: playSMS Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    playSMS is a free and open source SMS management software, which is a web interface for SMS gateway and bulk SMS service.
+    playSMS has a default password of admin/admin. An attacker can control the entire platform through the default password vulnerability and use administrator privileges to operate core functions.
+  tags: default-password
+  reference:
+    - https://playsms.org/
+
+variables:
+  csrf_regex: '<input.+?name="X-CSRF-Token"\s+value="(.+?)">'
+
+http:
+  - raw:
+      - |
+        GET /index.php?app=main&inc=core_auth&route=login HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '{{csrf_regex}}'
+
+    extractors:
+      - type: regex
+        name: csrf_token
+        internal: true
+        group: 1
+        regex:
+          - '{{csrf_regex}}'
+
+  - raw:
+      - |
+        POST /index.php?app=main&inc=core_auth&route=login&op=login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: {{cookie}}
+
+        X-CSRF-Token={{csrf_token}}&username=admin&password=admin
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Logged in as admin"
+      - type: status
+        status:
+          - 200

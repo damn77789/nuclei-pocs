@@ -1,0 +1,25 @@
+id: eoffice-building-config-information-leak
+info:
+  name: 泛微 E-Office building_config信息泄露
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak,e-office
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/building/config/config.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[building]"
+          - "[im]"
+        condition: and
+      - type: word
+        words:
+          - "<"
+        negative: true
+        condition: and

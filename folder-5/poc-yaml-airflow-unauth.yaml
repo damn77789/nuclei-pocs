@@ -1,0 +1,24 @@
+id: airflow-unauth-access
+info:
+  name: Airflow Unauthenticated Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    Detects unauthenticated access to the Airflow admin panel which can expose sensitive information.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin/"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<title>Airflow - DAGs</title>"
+          - "<h2>DAGs</h2>"
+        part: body

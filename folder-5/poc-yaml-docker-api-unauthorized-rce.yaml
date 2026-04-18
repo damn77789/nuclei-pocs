@@ -1,0 +1,28 @@
+id: docker-api-unauthorized-rce
+info:
+  name: Docker API Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: docker,unauthorized-access
+  description: |
+    Detects unauthorized access to Docker API, which may expose sensitive information, including kernel version and registry configuration.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/info"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "KernelVersion"
+          - "RegistryConfig"
+          - "DockerRootDir"

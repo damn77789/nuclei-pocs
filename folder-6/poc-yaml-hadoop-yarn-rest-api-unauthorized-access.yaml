@@ -1,0 +1,23 @@
+id: hadoop-yarn-rest-api-unauthorized-access
+info:
+  name: Hadoop Yarn REST API Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    The Hadoop Yarn REST API may allow unauthorized access to sensitive information or operations via its endpoints, potentially leading to data exposure or misuse.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/ws/v1/cluster/apps/new-application"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "application-id"
+      - type: word
+        part: body
+        words:
+          - "maximum-resource-capability"

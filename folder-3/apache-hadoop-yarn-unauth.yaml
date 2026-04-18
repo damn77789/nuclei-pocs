@@ -1,0 +1,28 @@
+id: apache-hadoop-yarn-unauthorized-access
+info:
+  name: Apache Hadoop YARN Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects unauthorized access to the Apache Hadoop YARN ResourceManager API.
+  reference:
+    - https://xz.aliyun.com/t/6103
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ws/v1/cluster/info"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "clusterInfo"
+        part: body
+      - type: word
+        words:
+          - "resourceManagerVersion"
+        part: body
+      - type: word
+        words:
+          - "hadoopBuildVersion"
+        part: body

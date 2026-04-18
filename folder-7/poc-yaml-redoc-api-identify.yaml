@@ -1,0 +1,25 @@
+id: redoc-api-identify
+info:
+  name: Discover Redoc API Documentation
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: identify
+
+variables:
+  path: "redoc"
+
+http:
+  - method: GET
+    path:
+      - "/{{path}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "static/redoc.standalone.js"
+      - type: word
+        part: body
+        words:
+          - "/openapi.json"

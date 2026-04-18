@@ -1,0 +1,24 @@
+id: oracle-ebs-jtfwrepo-xml-info-leak
+info:
+  name: Oracle E-Business Suite jtfwrepo.xml Sensitive Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/OA_HTML/jtfwrepo.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "password="
+          - "<PUSR_LIST>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

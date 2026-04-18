@@ -1,0 +1,21 @@
+id: poc-yaml-g-sky-log-info-leak
+info:
+  name: 通天星CMS V6车载定位监控平台 LoggerManagement/logIndex.html存在未授权访问漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/808gps/LoggerManagement/logIndex.html"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "设备号配置"
+          - "服务器日志管理"
+          - "WEB日志管理"
+        part: body

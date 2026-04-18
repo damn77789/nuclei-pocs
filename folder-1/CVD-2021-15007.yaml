@@ -1,0 +1,29 @@
+id: clickhouse-unauthorized-access
+info:
+  name: ClickHouse Query Parameter Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ClickHouse has an unauthorized access vulnerability. Attackers can use unauthorized interfaces to execute arbitrary SQL statements to obtain data.
+  reference:
+    - https://mp.weixin.qq.com/s/xIc3Ic7N104iTogZul1LJA
+  tags: unauthorized-access
+
+variables:
+  payload: "SELECT CONCAT('539042dea49107', 'eed406dc0b20046e4e')"
+
+http:
+  - raw:
+      - |
+        GET /?query={{payload}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "539042dea49107eed406dc0b20046e4e"
+      - type: status
+        status:
+          - 200

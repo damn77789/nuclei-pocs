@@ -1,0 +1,29 @@
+id: clash-restful-api-unauthorized-access
+info:
+  name: Identify Clash Restful API Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: identify
+  description: |
+    This template checks for unauthorized access to Clash Restful API by examining the response for specific configuration keys.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/configs"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "port\""
+          - "\"allow-lan\""
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

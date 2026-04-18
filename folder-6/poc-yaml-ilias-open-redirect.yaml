@@ -1,0 +1,26 @@
+id: cve-2022-45917-ilias-open-redirect
+info:
+  name: Ilias Open Redirect Vulnerability (CVE-2022-45917)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: CVE-2022-45917,open-redirect
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /shib_logout.php?action=logout&return=https://{{reverse}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: regex
+        part: header
+        regex:
+          - "(?i)Location:\\s?https://{{reverse}}"
+    stop-at-first-match: true

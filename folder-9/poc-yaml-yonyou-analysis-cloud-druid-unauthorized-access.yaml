@@ -1,0 +1,21 @@
+id: yonyou-analysis-cloud-druid-unauthorized-access
+info:
+  name: Yonyou Analysis Cloud Druid Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/console/druid/index.html"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Druid Stat Index"
+          - "View JSON API"
+          - "JavaVersion"
+        part: body

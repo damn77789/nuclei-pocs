@@ -1,0 +1,20 @@
+id: seeyon-session-leak
+info:
+  name: Seeyon Session Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/yyoa/ext/https/getSessionList.jsp?cmd=getAll"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<SessionList>\r\n<Session>\r\n<usrID>"
+        part: body

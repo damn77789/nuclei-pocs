@@ -1,0 +1,44 @@
+id: ruijie-rg_uac-leak-cnvd-2021-14536
+info:
+  name: Ruijie RG-UAC Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects an information leak vulnerability in Ruijie RG-UAC login and dkey endpoints.
+
+http:
+  - id: login-page-detection
+    method: GET
+    path:
+      - "{{BaseURL}}/login.php"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>RG-UAC登录页面</title>"
+          - "get_dkey_passwd"
+      - type: regex
+        part: body
+        regex:
+          - "\"password\":\"[a-f0-9]{32}\""
+
+  - id: dkey-endpoint-detection
+    method: GET
+    path:
+      - "{{BaseURL}}/get_dkey.php"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "(\"DKey\"|\"dkey_password\")\\s*:\\s*(.*),?"
+          - "^\\[(.*)\\]$"

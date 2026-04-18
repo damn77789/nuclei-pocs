@@ -1,0 +1,24 @@
+id: cve-2024-21644-flask-config-access
+
+info:
+  name: pyLoad Unauthorized Flask Configuration Leak (CVE-2024-21644)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2024-21644,info-leak
+  description: |
+    This template detects unauthorized access to Flask configuration in pyLoad, revealing sensitive data such as 'SECRET_KEY' and session details.
+
+http:
+  - method: GET
+    path:
+      - "/render/info.html"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "'SECRET_KEY':"
+          - "'pyload_session'"

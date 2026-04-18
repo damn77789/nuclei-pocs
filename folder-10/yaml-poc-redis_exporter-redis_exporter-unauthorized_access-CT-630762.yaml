@@ -1,0 +1,27 @@
+id: redis_exporter-unauthorized-access
+info:
+  name: Redis Exporter Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects unauthorized access to Redis Exporter metrics endpoint.
+  tags: redis,expoiter,unauthorized
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/metrics"
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "redis_exporter"
+        part: body
+      - type: word
+        words:
+          - "HELP go_gc_duration_seconds"
+        part: body
+      - type: word
+        words:
+          - "TYPE go_gc_duration_seconds"
+        part: body

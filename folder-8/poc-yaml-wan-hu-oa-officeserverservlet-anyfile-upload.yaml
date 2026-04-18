@@ -1,0 +1,22 @@
+id: poc-yaml-wan-hu-oa-officeserverservlet-anyfile-upload
+info:
+  name: Wanhu OA OfficeServerServlet Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: arbitrary-file-upload
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/defaultroot/officeserverservlet"
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "              0               客户端发送数据包错误"
+        part: body
+      - type: word
+        words:
+          - "              0               客户端发送数据包错误!"
+        part: body

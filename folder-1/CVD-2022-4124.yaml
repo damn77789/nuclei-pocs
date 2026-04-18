@@ -1,0 +1,73 @@
+id: gitlab-github-import-rce-cve-2022-2992
+info:
+  name: Gitlab GitHub Import API RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A vulnerability exists in all versions of GitLab from 15.3 to 15.3.2, from 15.2 to 15.2.4, and from 11.10 to 15.1.6 that allows an authenticated user to achieve remote code execution by importing from the GitHub API endpoint. Attackers can use this vulnerability to execute arbitrary code on the server side.
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.9
+    cve-id: CVE-2022-2992
+  tags: command-execution,rce,gitlab
+  reference:
+    - https://about.gitlab.com/releases/2022/08/30/critical-security-release-gitlab-15-3-2-released
+
+variables:
+  username: "X{{rand_base(8)}}"
+  useremail: "{{rand_base(8)}}@exam.org"
+
+http:
+  - id: fetch-csrf-token
+    raw:
+      - |
+        GET /users/sign_in HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/103.0.0.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+
+    extractors:
+      - type: regex
+        name: csrf_token
+        internal: true
+        group: 1
+        regex:
+          - '<meta name="csrf-token" content="(.*?)"'
+
+  - id: register-user
+    raw:
+      - |
+        POST /users HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/103.0.0.0
+        Content-Type: application/x-www-form-urlencoded
+        Accept-Language: zh-CN,zh;q=0.9
+        Accept-Encoding: gzip, deflate
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Referer: http://{{Hostname}}/users/sign_in
+        Connection: close
+
+        utf8=%E2%9C%93&authenticity_token={{csrf_token}}&new_user%5Bname%5D={{username}}&new_user%5Busername%5D={{username}}&new_user%5Bemail%5D={{useremail}}&new_user%5Bpassword%5D={{username}}
+
+  - id: check-version
+    raw:
+      - |
+        GET /api/v4/version HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/103.0.0.0
+        Content-Type: application/x-www-form-urlencoded
+        Accept-Language: zh-CN,zh;q=0.9
+        Accept-Encoding: gzip, deflate
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+        Referer: http://{{Hostname}}/users/sign_up/welcome
+        Connection: close
+
+    matchers:
+      - type: regex
+        regex:
+          - '"version":"(11\.1[0-6]|15\.(1\.[0-5]|2\.[0-3]|3\.[0-1]))"'
+        part: body
+      - type: status
+        status:
+          - 200
+    matchers-condition: and

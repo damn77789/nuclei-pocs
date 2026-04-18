@@ -1,0 +1,25 @@
+id: lanwon-clinical-system-info-leak
+info:
+  name: Lanwon Clinical Browsing System Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/config/config%20bak.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "DBUserName="
+          - "DBPassword="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

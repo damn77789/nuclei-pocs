@@ -1,0 +1,20 @@
+id: seeyon-a6-sql-injection
+info:
+  name: Seeyon A6 SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects a SQL Injection vulnerability in the Seeyon A6 application. It checks for the presence of specific XML content in the response body when accessing the vulnerable endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/yyoa/ext/https/getSessionList.jsp?cmd=getAll"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<SessionList>\r\n<Session>\r\n<usrID>"
+        part: body

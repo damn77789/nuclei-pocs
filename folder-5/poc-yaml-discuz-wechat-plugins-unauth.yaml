@@ -1,0 +1,34 @@
+id: poc-yaml-discuz-wechat-plugins-unauth
+info:
+  name: Discuz Wechat Plugins Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: access-control
+  description: |
+    Detects unauthorized access vulnerability in the Discuz Wechat Plugins where sensitive headers are exposed upon accessing a specific endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/plugin.php?id=wechat:wechat&ac=wxregister"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "set-cookie"
+      - type: word
+        part: header
+        words:
+          - "auth"
+      - type: word
+        part: header
+        words:
+          - "location"
+      - type: word
+        part: header
+        words:
+          - "wsq.discuz.com"

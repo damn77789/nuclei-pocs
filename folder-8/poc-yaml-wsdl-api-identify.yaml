@@ -1,0 +1,22 @@
+id: wsdl-api-identify
+info:
+  name: Discover WSDL Services
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify,webservice
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?wsdl"
+      - "{{BaseURL}}/api/?wsdl"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "wsdl:definitions"
+      - type: word
+        part: body
+        words:
+          - "</title>"
+        negative: true

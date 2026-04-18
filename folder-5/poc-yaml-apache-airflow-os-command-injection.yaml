@@ -1,0 +1,23 @@
+id: apache-airflow-os-command-injection
+info:
+  name: Apache Airflow OS Command Injection Vulnerability (CVE-2022-24288)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2022-24288,command-injection
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin/airflow/code?root=&dag_id=example_passing_params_via_test_command"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "foo was passed in via Airflow CLI Test command with value {{ params.foo }}"
+      - type: word
+        part: body
+        words:
+          - "Airflow - DAGs"

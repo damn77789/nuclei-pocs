@@ -1,0 +1,36 @@
+id: poc-yaml-graphql-identify
+info:
+  name: Discover GraphQL Endpoints
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify,graphql
+
+http:
+  - payloads:
+      path:
+        - "/graphql"
+        - "/api/graphql"
+        - "/v2/graphql"
+        - "/v1/graphql"
+        - "/api/v1/graphql"
+    raw:
+      - |
+        POST {{BaseURL}}{{path}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "operationName": "IntrospectionQuery",
+          "variables": {},
+          "query": "query IntrospectionQuery { __schema { queryType { name } mutationType { name } subscriptionType { name } types { name } } }"
+        }
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "__schema"
+          - "queryType"
+      - type: status
+        status:
+          - 200

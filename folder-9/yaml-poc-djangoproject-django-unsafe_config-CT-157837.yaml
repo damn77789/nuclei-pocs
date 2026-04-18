@@ -1,0 +1,25 @@
+id: django-unsafe-config-debug
+
+info:
+  name: Django Unsafe Configuration Debug Mode
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Detects unsafe Django configuration with DEBUG set to True.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin/iYH6Zjxq7GlLA"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "seeing this error because you have <code>DEBUG = True</code"
+        part: body
+
+      - type: word
+        words:
+          - "your Django settings file"
+        part: body

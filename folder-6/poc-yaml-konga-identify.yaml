@@ -1,0 +1,21 @@
+id: poc-yaml-konga-identify
+info:
+  name: Konga Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Konga"
+      - type: status
+        status:
+          - 200

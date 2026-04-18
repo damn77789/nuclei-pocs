@@ -1,0 +1,26 @@
+id: apache-nifi-api-unauthorized-access
+info:
+  name: Apache Nifi API Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    Apache Nifi API unauthorized access vulnerability that allows identifying anonymous access.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/nifi-api/flow/current-user"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "\"identity\":\"anonymous\",\"anonymous\":true"

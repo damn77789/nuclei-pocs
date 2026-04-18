@@ -1,0 +1,25 @@
+id: airshield-nas-info-leak
+
+info:
+  name: Air Shield NAS Information Leakage
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Air Shield NAS electronic document security management system has an information leakage vulnerability where sensitive information such as system account passwords can be obtained.
+  tags: information-disclosure
+
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"

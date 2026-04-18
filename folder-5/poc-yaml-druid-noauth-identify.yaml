@@ -1,0 +1,20 @@
+id: druid-noauth-identify
+info:
+  name: Alibaba Druid Unauthorized Access Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: identify
+  description: |
+    Detects unauthorized access to Alibaba Druid administration interface by checking for specific keywords in the response body.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/druid/index.html"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Druid Stat Index"
+          - "DruidVersion"
+          - "DruidDrivers"

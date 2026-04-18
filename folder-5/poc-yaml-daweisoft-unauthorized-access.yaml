@@ -1,0 +1,23 @@
+id: daweisoft-unauthorized-access
+info:
+  name: Daweisoft Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+  description: |
+    Detection of unauthorized access vulnerability in Daweisoft Intellectual Property Collaborative Innovation Management System.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/resetPwd.html?guid=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "重置密码"
+          - "新密码"
+          - "两次密码必须一致"

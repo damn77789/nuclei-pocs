@@ -1,0 +1,24 @@
+id: ueditor-cnvd-2017-20077-file-upload
+info:
+  name: Ueditor File Upload (CNVD-2017-20077)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cnvd-2017-20077,ueditor,file-upload
+  description: |
+    This template detects a potential file upload vulnerability in UEditor based on CNVD-2017-20077.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ueditor/net/controller.ashx?action=catchimage&encode=utf-8"
+    headers:
+      Accept-Encoding: deflate
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "没有指定抓取源"
+        part: body

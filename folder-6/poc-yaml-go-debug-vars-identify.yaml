@@ -1,0 +1,26 @@
+id: poc-yaml-go-debug-vars-identify
+info:
+  name: Golang /debug/vars Endpoint Detection
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify, golang
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/debug/vars"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"cmdline\""
+      - type: word
+        part: body
+        words:
+          - "\"system\""
+      - type: word
+        part: body
+        words:
+          - "\"memstats\""

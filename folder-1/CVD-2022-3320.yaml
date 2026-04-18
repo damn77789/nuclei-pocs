@@ -1,0 +1,27 @@
+id: yonyou-nc-xxe
+info:
+  name: Yonyou NC uapws WSDL XML External Entity Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Yonyou NC system uapws has a WSDL interface that can be exploited via XML External Entity (XXE) injection. This allows attackers to read server files or execute arbitrary commands.
+  tags: xxe,injection
+http:
+  - raw:
+      - |
+        GET /uapws/service/nc.uap.oba.update.IUpdateService?wsdl HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Content-Type: text/xml;"
+      - type: word
+        part: body
+        words:
+          - "<?xml version='1.0' encoding='UTF-8'?>"
+          - "?xsd="

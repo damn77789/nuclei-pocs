@@ -1,0 +1,17 @@
+id: apache-axis2-identify
+info:
+  name: Discover Apache Axis2
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/axis2/"
+      - "{{BaseURL}}/axis2/axis2-admin/"
+      - "{{BaseURL}}/axis2-admin/"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "css/axis-style.css"

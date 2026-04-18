@@ -1,0 +1,20 @@
+id: glowroot-anonymous-user-unauth-access
+info:
+  name: Glowroot Anonymous User Unauth Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauth-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/backend/admin/users?username=anonymous"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"username\":\"anonymous\""
+          - "\"newPassword\":\"\""
+        part: body

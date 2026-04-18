@@ -1,0 +1,26 @@
+id: apache-mod-proxy-ssrf-cve-2021-40438
+
+info:
+  name: Apache <= 2.4.48 Mod_Proxy SSRF
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Apache HTTP Server <= 2.4.48 is vulnerable to SSRF via crafted URI paths, allowing attackers to forward requests to arbitrary origin servers.
+  reference:
+    - https://github.com/projectdiscovery/nuclei-templates/blob/master/cves/2021/CVE-2021-40438.yaml
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-40438
+
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"

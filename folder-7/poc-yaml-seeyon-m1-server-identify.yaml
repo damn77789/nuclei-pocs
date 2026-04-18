@@ -1,0 +1,19 @@
+id: poc-yaml-seeyon-m1-server-identify
+info:
+  name: Seeyon M1-Server Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "M1-Server has been started"
+          - "M1-Server 已启动"
+        part: body

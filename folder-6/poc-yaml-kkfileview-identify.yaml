@@ -1,0 +1,17 @@
+id: poc-kkfileview-identify
+info:
+  name: KKFileView Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "/js/lazyload.js"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "// var mustRun = 500"
+          - "isInSight(el)"

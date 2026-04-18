@@ -1,0 +1,22 @@
+id: poc-yaml-tongda-expired-info-leak
+info:
+  name: TongdaOA expired.php Version Information Leak
+  author: ProjectDiscoveryAI
+  severity: low
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/inc/expired.php"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "内部版本号"
+          - "版权所有"
+          - "OA用户数"
+          - "安装时间"
+      - type: dsl
+        dsl:
+          - "status_code == 200"

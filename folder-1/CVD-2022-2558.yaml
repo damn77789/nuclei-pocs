@@ -1,0 +1,24 @@
+id: mongo-express-unauthorized-access
+info:
+  name: Mongo Express Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Mongo Express is an open-source MongoDB web management interface based on Node.js and express. Mongo Express has an unauthorized access vulnerability that could allow attackers to obtain user information or modify system data.
+    
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "system.users"
+          - "Collection Stats"

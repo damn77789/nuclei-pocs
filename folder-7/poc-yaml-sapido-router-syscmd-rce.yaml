@@ -1,0 +1,23 @@
+id: sapido-router-syscmd-rce
+info:
+  name: Sapido Router syscmd.htm Unauthenticated Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/syscmd.htm"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "System Command"
+      - type: word
+        part: body
+        words:
+          - "This page can be used to run target system command"

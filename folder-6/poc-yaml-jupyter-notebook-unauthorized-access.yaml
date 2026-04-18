@@ -1,0 +1,26 @@
+id: jupyter-notebook-unauthorized-access
+info:
+  name: Jupyter Notebook Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    Detects unauthorized access to Jupyter Notebook by checking for terminal websocket endpoints.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/terminals/3"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "terminals/websocket"
+      - type: word
+        part: body
+        words:
+          - "Password:"
+        negative: true

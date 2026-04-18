@@ -1,0 +1,30 @@
+id: telrad-wltms-110-default-password
+
+info:
+  name: Telrad-WLTMS-110 Default Password
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    The Telrad-WLTMS-110 series of devices have a default password admin/admin, which attackers can leverage to gain unauthorized access and perform sensitive operations.
+  reference:
+    - https://telrad.com
+  tags: default-password
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/sysconf.cgi?page=login.asp&action=login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        user_name=admin&user_passwd=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie: sid"
+          - "Set-Cookie: userlevel"

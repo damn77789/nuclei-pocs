@@ -1,0 +1,21 @@
+id: apache-flink-unauthorized-access
+info:
+  name: Apache Flink Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects unauthorized access to the Apache Flink Web Dashboard.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Apache Flink Web Dashboard"
+        part: body

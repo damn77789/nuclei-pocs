@@ -1,0 +1,24 @@
+id: poc-yaml-ruoyi-identify
+info:
+  name: Discover Ruoyi
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "/ruoyi/css/ry-ui.css"
+      - "/css/ry-ui.css"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/** 基础通用 **/"
+          - "ruoyi"
+          - "padding-top: 5px;"
+        part: body

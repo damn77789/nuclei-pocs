@@ -1,0 +1,29 @@
+id: poc-yaml-weaver-e-office10-schema-mysql-sql-sensitive-info-leak
+info:
+  name: Weaver E-Office10 Schema MySQL SQL Sensitive Info Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/eoffice10/empty_scene/db/schema_mysql.sql"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "CREATE TABLE"
+          - "mysql,sqlsrv,oracle"
+        part: body
+      - type: regex
+        regex:
+          - "application/x-sql"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

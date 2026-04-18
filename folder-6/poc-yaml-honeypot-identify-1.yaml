@@ -1,0 +1,20 @@
+id: poc-yaml-honeypot-identify-1
+info:
+  name: Honeypot Detection
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify, honeypot
+
+http:
+  - method: GET
+    path:
+      - "/x.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: body
+        words:
+          - "async src=\"/public/common/zzextt/jquery.min.js\""

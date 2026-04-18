@@ -1,0 +1,23 @@
+id: bt-panel-unauthorized-access-cnvd-2021-14826
+info:
+  name: BT Panel Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects unauthorized access to the BT Panel by checking for the presence of phpMyAdmin resources, which could indicate an exposed instance.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/pma/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "information_schema"
+          - "phpMyAdmin"
+          - "server_sql.php"
+        part: body
+        condition: and

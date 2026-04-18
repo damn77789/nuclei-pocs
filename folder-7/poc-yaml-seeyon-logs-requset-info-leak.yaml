@@ -1,0 +1,40 @@
+id: seeyon-logs-request-info-leak
+info:
+  name: Seeyon OA Mobile Portal /mobile_portal/logs/requset.log Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  metadata:
+    fingerprint: Seeyon OA Mobile Portal
+    fofa-query: title="M3-Server"
+
+variables:
+  time: '{{date_time("2006-01-02")}}'
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mobile_portal/logs/requset.log"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "#INFO"
+          - "[ OPEN]"
+          - "REQ.open"
+          - "[H-"
+          - "{{time}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "text/plain"

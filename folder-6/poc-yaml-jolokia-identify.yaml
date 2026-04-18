@@ -1,0 +1,27 @@
+id: jolokia-identify
+info:
+  name: Jolokia Component Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "/api/jolokia/list"
+      - "/jolokia/list"
+      - "/jolokia/list;.js"
+      - "/api/jolokia/list;.js"
+    headers:
+      Authorization: "Basic YWRtaW46YWRtaW4="
+      Origin: "{{BaseURL}}"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{\"request\":{\"type\":\"list\"}"
+          - "jolokia"

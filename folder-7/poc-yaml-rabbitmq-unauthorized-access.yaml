@@ -1,0 +1,27 @@
+id: rabbitmq-unauthorized-access
+
+info:
+  name: RabbitMQ Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    Detects unauthorized access vulnerability in RabbitMQ's API endpoint `/api/whoami`.
+
+http:
+  - raw:
+      - |
+        GET /api/whoami HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: auth=Z3Vlc3Q6Z3Vlc3Q%3D
+        Authorization: Basic Z3Vlc3Q6Z3Vlc3Q=
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "name\":\"guest\",\"tags\":\"administrator"

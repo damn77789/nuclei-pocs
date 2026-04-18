@@ -1,0 +1,22 @@
+id: qianxin-vpn-identify
+info:
+  name: Qianxin VPN Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/welcome.php"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "请使用手机奇安信ID扫码登录"
+        part: body
+      - type: word
+        words:
+          - "vpn"
+        part: body

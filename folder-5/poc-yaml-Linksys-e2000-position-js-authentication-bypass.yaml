@@ -1,0 +1,25 @@
+id: CVE-2024-27497
+info:
+  name: Linksys E2000 position.js Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2024-27497,auth-bypass
+  description: |
+    This template detects an authentication bypass vulnerability in Linksys E2000 devices where the position.js file leaks sensitive session information.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/position.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "session_key = \"[0-9a-zA-Z]+\""
+      - type: word
+        part: body
+        words:
+          - "close_session"

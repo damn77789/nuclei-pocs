@@ -1,0 +1,32 @@
+id: ourphp-file-manager-json-unauthorized-access
+info:
+  name: OURPHP File Manager JSON Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+  description: |
+    Detects unauthorized access to the file_manager_json.php endpoint in OURPHP, which returns sensitive JSON data about the file system.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/function/editor/php/file_manager_json.php?path=/&order=NAME&dir=file"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"file_list":'
+          - '"is_dir":true'
+          - '"filename":'
+      - type: regex
+        part: header
+        regex:
+          - "(?i)application/json"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

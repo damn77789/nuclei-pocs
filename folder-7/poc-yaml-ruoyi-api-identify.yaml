@@ -1,0 +1,34 @@
+id: poc-yaml-ruoyi-api-identify
+
+info:
+  name: Ruoyi API Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  paths:
+    - "/"
+    - "/dev-api"
+    - "/prod-api"
+    - "/api"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{paths}}/captchaImage"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"code":200'
+          - '"img"'
+          - '"captchaEnabled"'
+        condition: or
+      - type: word
+        words:
+          - "<"
+        negative: true

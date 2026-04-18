@@ -1,0 +1,25 @@
+id: kingportal-projectdatasourceaccess-unauthorized-access
+
+info:
+  name: 北京亚控科技 KingPortal ProjectDataSourceAccess Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    KingPortal ProjectDataSourceAccess page allows unauthorized access, leading to potential information disclosure.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/views/ProjectDataSourceAccess.html?token=2ccdf191078bd4e8e85b526ec44f7dd31ad7cf81&refreshToken=null"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "onClick:OnCommond_NodeSelect"
+          - "当前工程节点"
+          - "ProjectDataSourceAccess.js"
+        part: body

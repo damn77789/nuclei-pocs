@@ -1,0 +1,28 @@
+id: atlassian-jira-identify
+
+info:
+  name: Atlassian JIRA Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  paths:
+    - "/"
+    - "/jira/"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{paths}}issues/"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "atlassian.xsrf.token"
+      - type: word
+        part: body
+        words:
+          - "\"jira"

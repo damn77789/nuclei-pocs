@@ -1,0 +1,24 @@
+id: jielink-plus-parkchargerecord-info-leak
+info:
+  name: JieLink+ Intelligent Terminal Platform ParkChargeRecord Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/report/ParkChargeRecord/GetDataList"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"CashierName\""
+          - "\"OperatorName\""
+          - "\"超级管理员\""
+      - type: word
+        words:
+          - "<"
+        negative: true

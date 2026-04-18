@@ -1,0 +1,18 @@
+id: poc-yaml-gitea-open-registration
+info:
+  name: Gitea Open Registration Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: open-registration,gitea
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<a class=\"item\" href=\"/user/sign_up\">"
+          - "<i class=\"octicon octicon-person\"></i>"
+          - "Gitea - Git with a cup of tea"
+        part: body

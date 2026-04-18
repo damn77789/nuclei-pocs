@@ -1,0 +1,10 @@
+id: poc-yaml-kibana-identify
+info:
+  name: Kibana Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+tcp:
+  - inputs:
+      - data: "GET /login HTTP/1.1\nHost: {{BaseURL}}\nAccept: */*\n"

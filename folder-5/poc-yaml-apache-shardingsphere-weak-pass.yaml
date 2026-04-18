@@ -1,0 +1,24 @@
+id: apache-shardingsphere-weak-pass
+
+info:
+  name: Apache ShardingSphere Weak Password
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password,apache,shardingsphere
+
+http:
+  - raw:
+      - |
+        POST /api/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=UTF-8
+
+        {"username": "admin", "password": "admin"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{"success":true,"errorCode":0,"model":{"accessToken":'

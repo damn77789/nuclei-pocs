@@ -1,0 +1,23 @@
+id: poc-yaml-sendinfo-cps-directory-traversal
+info:
+  name: 深大智能科技有限公司管控平台服务端 目录遍历漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "API.asmx"
+          - "<dir>"
+          - "HREF=\"/bin/\""
+          - "HREF=\"/Areas/\""
+          - "HREF=\"/Web.config\""
+        part: body

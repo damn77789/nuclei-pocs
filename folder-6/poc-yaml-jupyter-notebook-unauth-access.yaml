@@ -1,0 +1,20 @@
+id: jupyter-notebook-unauth-access
+info:
+  name: Jupyter Notebook Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: jupyter,unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/tree?#notebooks"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<a href=\"#notebooks\" data-toggle=\"tab\">Files</a></li>"
+          - "Jupyter"
+        part: body

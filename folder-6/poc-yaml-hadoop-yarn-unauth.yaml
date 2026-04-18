@@ -1,0 +1,29 @@
+id: hadoop-yarn-unauth-access
+info:
+  name: Hadoop Yarn Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: access-control,unauthorized
+  description: |
+    Identifies unauthorized access vulnerability in Hadoop Yarn by checking for accessible cluster information.
+http:
+  - method: GET
+    path:
+      - "/ws/v1/cluster/info"
+    headers:
+      Content-Type: application/json
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "resourceManagerVersionBuiltOn"
+          - "hadoopVersion"

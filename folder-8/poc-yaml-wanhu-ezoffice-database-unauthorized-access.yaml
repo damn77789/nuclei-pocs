@@ -1,0 +1,17 @@
+id: wanhu-ezoffice-database-unauthorized-access
+info:
+  name: Wanhu ezOFFICE Database User Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/evoInterfaceServlet?paramType=user"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{result:'success', data:{\"userLis"
+          - "userLis"

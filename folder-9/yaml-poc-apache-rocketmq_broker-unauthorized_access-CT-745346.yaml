@@ -1,0 +1,26 @@
+id: apache-rocketmq-broker-unauthorized-access
+info:
+  name: Apache RocketMQ Broker Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects unauthorized access to Apache RocketMQ broker via a crafted payload.
+
+tcp:
+  - inputs:
+      - data: |
+          {{base64_decode('AAAAyQAAALF7ImNvZGUiOjI1LCJleHRGaWVsZHMiOnsiQWNjZXNzS2V5Ijoicm9ja2V0bXEyIiwiU2lnbmF0dXJlIjoiK3pkUmRVdWF6aVNRa0hVVXFkcnR3ZzFGOGprPSJ9LCJmbGFnIjowLCJsYW5ndWFnZSI6IkpBVkEiLCJvcGFxdWUiOjAsInNlcmlhbGl6ZVR5cGVDdXJyZW50UlBDIjoiSlNPTiIsInZlcnNpb24iOjQzM310ZXN0X2tleT10ZXN0X3ZhbHVlCg==')}}
+    host:
+      - "{{Hostname}}"
+    port: 9876
+    read-size: 1024
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - '"code"\s*:\s*0'
+        part: body
+      - type: regex
+        regex:
+          - 'serializeTypeCurrentRPC'
+        part: body

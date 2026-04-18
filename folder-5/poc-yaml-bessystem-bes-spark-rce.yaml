@@ -1,0 +1,39 @@
+id: poc-bessystem-bes-spark-rce
+info:
+  name: BESS Application Server Spark Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce, middleware
+  description: |
+    Detects a remote code execution vulnerability in the BESS Application Server Spark endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/BesEJB/spark"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Spark expects a POST containing an RPC call"
+      - type: word
+        words:
+          - "<"
+        negative: true
+  - method: POST
+    path:
+      - "{{BaseURL}}/BesEJB/spark"
+    body: "{}" # Example empty JSON body, adjust as needed
+    headers:
+      Content-Type: application/json
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "com.bes.ejb.spark.EjbSparkUtil.readRequestPackage"
+          - "<"

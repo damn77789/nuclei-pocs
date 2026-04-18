@@ -1,0 +1,31 @@
+id: liveqing-unauthorized-access
+
+info:
+  name: Liveqing Video Management Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    liveqing video management system is a platform providing user management and Web visual page video management.
+    It supports local, intranet, private cloud deployment with features like distributed deployment, and more. This
+    template checks for unauthorized access to critical endpoints.
+  tags: unauthorized-access
+
+http:
+  - raw:
+      - |
+        GET /api/v1/device/channeltree?serial=&pcode HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "["
+      - type: word
+        part: body
+        words:
+          - "\"customName\": \"\""
+      - type: status
+        status:
+          - 200

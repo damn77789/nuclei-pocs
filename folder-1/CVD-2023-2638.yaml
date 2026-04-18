@@ -1,0 +1,22 @@
+id: vnc-weak-password
+info:
+  name: VNC Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    VNC is a screen sharing and remote operation software using the RFB protocol. This vulnerability allows attackers to use a weak password (123456) to gain access to the system, view system information, and modify configurations.
+  tags: weak-password
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "test"
+        part: body

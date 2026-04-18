@@ -1,0 +1,31 @@
+id: apache-cxf-xss
+info:
+  name: Apache CXF Cross-Site Scripting Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: xss
+
+variables:
+  paths:
+    - /ws/
+    - /webservice/
+    - /services/
+    - /service/
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}{{paths}}"><h1>8762</h1>/services'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"><h1>8762</h1>/services'
+      - type: word
+        part: header
+        words:
+          - "html"

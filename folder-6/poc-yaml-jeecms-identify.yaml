@@ -1,0 +1,23 @@
+id: poc-yaml-jeecms-identify
+info:
+  name: JEECMS Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "/cnf/r/cms/front.js"
+      - "/r/cms/front.js"
+      - "/cms/front.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "$.getJSON(base + \"/content_view.jspx\""
+          - "Cms.viewCount"

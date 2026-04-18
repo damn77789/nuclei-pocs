@@ -1,0 +1,25 @@
+id: jboss-jmx-console-unauth-access
+
+info:
+  name: JBoss JMX Management Console Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    This template checks for unauthorized access to the JBoss JMX Management Console, which may lead to sensitive information disclosure or further exploitation.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jmx-console/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "jboss.deployment"
+
+      - type: word
+        part: body
+        words:
+          - "<title>JBoss JMX Management Console</title>"

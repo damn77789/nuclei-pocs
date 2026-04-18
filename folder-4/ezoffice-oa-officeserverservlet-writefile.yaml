@@ -1,0 +1,24 @@
+id: ezoffice-oa-officeserverservlet-writefile
+info:
+  name: Whir ezOFFICE File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Whir ezOFFICE OA has a file upload vulnerability that allows direct control of the server.
+  reference:
+    - https://github.com/onMey/WH/blob/main/poc.py
+  tags: file-upload
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/officeserverservlet"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "DBSTEP\\s+[v|V]3.0\\s+\\d+\\s+\\d+(.*)"
+        part: body

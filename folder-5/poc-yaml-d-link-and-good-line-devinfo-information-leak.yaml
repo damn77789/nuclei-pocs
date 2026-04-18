@@ -1,0 +1,29 @@
+id: cve-2024-0717-devinfo-info-leak
+info:
+  name: D-Link and Good Line devinfo Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: cve-2024-0717,info-leak
+  description: |
+    D-Link and Good Line devices have a vulnerability in the devinfo endpoint
+    allowing for potential information leakage, such as model name and ID.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/devinfo?area=notice"
+      - "{{BaseURL}}/devinfo?area=net"
+      - "{{BaseURL}}/devinfo?area=version"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"modelName\""
+          - "\"modelId\""
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

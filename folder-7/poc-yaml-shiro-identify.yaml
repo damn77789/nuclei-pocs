@@ -1,0 +1,19 @@
+id: apache-shiro-identify
+info:
+  name: Apache Shiro Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+      - "{{BaseURL}}/api/login"
+    headers:
+      Cookie: rememberMe=abc
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "rememberMe=deleteMe"

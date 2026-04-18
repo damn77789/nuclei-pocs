@@ -1,0 +1,20 @@
+id: rpc-nfs-unauthorized-access
+info:
+  name: NFS Unauthorized Access Detection (rpc.nfs)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,rpc,nfs
+
+tcp:
+  - inputs:
+      - data: "\x80\x00\x00\x00\x00\x00\x00\x02" # RPC Call to check NFS
+    host:
+      - "{{Hostname}}"
+    port: 111
+    read-size: 2048
+    matchers:
+      - type: regex
+        regex:
+          - "AUTH_ERROR"
+          - "program not registered"
+        condition: or

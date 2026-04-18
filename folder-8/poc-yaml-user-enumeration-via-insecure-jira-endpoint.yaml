@@ -1,0 +1,25 @@
+id: jira-user-enumeration
+
+info:
+  name: User Enumeration via Insecure Jira Endpoint
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: CVE-2020-14181,jira
+  description: |
+    This template checks for user enumeration vulnerability via an insecure Jira endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/secure/ViewUserHover.jspa"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "user-hover-details"
+        part: body
+      - type: word
+        words:
+          - "content=\"JIRA\""
+        part: body

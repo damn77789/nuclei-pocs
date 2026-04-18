@@ -1,0 +1,51 @@
+id: h2-database-web-console-unauthorized-access
+
+info:
+  name: H2 Database Web Console Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects unauthorized access to the H2 Database Web Console.
+  tags: access-control
+
+variables:
+  token: ""
+
+flow: http(1) && http(2)
+
+http:
+  - id: "1"
+    method: GET
+    path:
+      - "{{BaseURL}}/h2-console"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Welcome to H2"
+    extractors:
+      - type: regex
+        part: body
+        name: token
+        internal: true
+        group: 1
+        regex:
+          - "location.href = '(?P<token>.+?)'"
+
+  - id: "2"
+    method: GET
+    path:
+      - "{{BaseURL}}/h2-console/{{token}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Generic H2"

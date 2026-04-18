@@ -1,0 +1,29 @@
+id: poc-yaml-jumpserver-identify
+info:
+  name: Jumpserver Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  paths:
+    - "/"
+    - "/Jumpserver/"
+    - "/Jump/"
+    - "/jump/"
+    - "/jumpserver/"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{paths}}static/css/jumpserver.css"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "text/css"
+      - type: word
+        part: body
+        words:
+          - ".form-group.required .control-label:after {"

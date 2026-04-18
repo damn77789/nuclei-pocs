@@ -1,0 +1,27 @@
+id: sap-solution-manager-open-redirect
+
+info:
+  name: SAP Solution Manager Open Redirect Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: open-redirect
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/sap/public/bc/icf/logoff?redirecturl=https://www.baidu.com"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+          - 301
+          - 307
+      - type: regex
+        part: header
+        regex:
+          - "(?i)^Sap-Server: true"
+      - type: regex
+        part: header
+        regex:
+          - "(?i)^Location: https://www\\.baidu\\.com"

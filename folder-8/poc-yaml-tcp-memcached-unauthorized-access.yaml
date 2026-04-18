@@ -1,0 +1,19 @@
+id: tcp-memcached-unauthorized-access
+info:
+  name: Memcached Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access, memcached
+
+tcp:
+  - inputs:
+      - data: "stats\r\n"
+    host:
+      - "{{Hostname}}"
+    port: 11211
+    read-size: 1024
+    matchers:
+      - type: regex
+        regex:
+          - "(?i)^STAT pid \\d+"
+        part: data

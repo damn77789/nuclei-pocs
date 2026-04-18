@@ -1,0 +1,25 @@
+id: salia-plcc-check-php-unauthorized-access
+info:
+  name: Salia PLCC Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/check.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Network check"
+          - "get local IP"
+          - "DNS"
+      - type: word
+        part: title
+        words:
+          - "Values"

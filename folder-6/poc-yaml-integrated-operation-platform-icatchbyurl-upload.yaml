@@ -1,0 +1,25 @@
+id: poc-yaml-integrated-operation-platform-icatchbyurl-upload
+info:
+  name: 北京中科聚网一体化运营平台catchByUrl接口存在文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/resources/files/ue/catchByUrl?url=https://www.baidu.com"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"url":"/files/headimg/'
+          - '"original":"www.baidu.com"'
+        condition: and
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body

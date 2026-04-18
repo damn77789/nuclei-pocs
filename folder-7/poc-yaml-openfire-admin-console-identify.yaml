@@ -1,0 +1,24 @@
+id: openfire-admin-console-identify
+info:
+  name: Identify Openfire Admin Console
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/login.jsp"
+      - "{{BaseURL}}/openfire/login.jsp"
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Openfire Admin Console"
+          - "Openfire 管理界面"
+      - type: word
+        part: body
+        words:
+          - "function updateFields(el)"
+          - "document.loginForm.username.value"
+        condition: and

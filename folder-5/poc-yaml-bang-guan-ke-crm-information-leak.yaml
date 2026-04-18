@@ -1,0 +1,25 @@
+id: bang-guan-ke-crm-information-leak
+info:
+  name: Bang Guan Ke CRM Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak,crm
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index.php/chat/init"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "\"username\""
+          - "\"userpwd\""
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

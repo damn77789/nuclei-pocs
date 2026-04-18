@@ -1,0 +1,23 @@
+id: kafka-manager-unauth
+info:
+  name: Kafka Manager Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: access-control
+  description: |
+    Detects unauthorized access to Kafka Manager, which may expose sensitive information or allow administrative actions.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Kafka Manager</a>"
+          - "<title>Kafka Manager</title>"
+          - "Add Cluster"
+        part: body

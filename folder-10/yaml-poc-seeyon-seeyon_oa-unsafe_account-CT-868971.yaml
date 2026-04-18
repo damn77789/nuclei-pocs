@@ -1,0 +1,37 @@
+id: seeyon-unsafe-account-reset
+
+info:
+  name: Seeyon OA Unsafe Account Reset
+  author: lianjian.chen
+  severity: high
+  description: |
+    The Seeyon OA application contains an endpoint that accepts arbitrary login names for resetting passwords. This template checks for a specific response behavior that indicates the vulnerability.
+
+variables:
+  random_login_name: "{{rand_text_alpha(8)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/seeyon/rest/phoneLogin/phoneCode/resetPassword"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "loginName": "{{random_login_name}}"
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - '"success" : false,'
+          - '"message" : null'
+      - type: word
+        part: body
+        words:
+          - '非法操作'
+        negative: true

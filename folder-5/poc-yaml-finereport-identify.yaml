@@ -1,0 +1,36 @@
+id: poc-yaml-finereport-identify
+info:
+  name: FineReport Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  path:
+    - "/webroot/"
+    - "/WebReport/"
+    - "/seeyonreport/"
+    - "/"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{path}}ReportServer?op=resource&resource=/com/fr/web/jquery.js"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "jQuery="
+      - type: word
+        words:
+          - "<title>"
+        negative: true
+        part: body
+    stop-at-first-match: true
+    extractors:
+      - type: regex
+        regex:
+          - "jQuery=\\d+\\.\\d+\\.\\d+" # Extract jQuery version if present
+        part: body
+        internal: true
+        group: 0

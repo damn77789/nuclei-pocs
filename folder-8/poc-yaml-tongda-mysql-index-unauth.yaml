@@ -1,0 +1,27 @@
+id: poc-yaml-tongda-mysql-index-unauth
+info:
+  name: TongdaOA /mysql/index.php Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mysql/index.php"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "phpMyAdmin="
+      - type: word
+        part: body
+        words:
+          - "var token ="
+      - type: word
+        part: body
+        words:
+          - "phpMyAdmin"
+      - type: status
+        status:
+          - 200

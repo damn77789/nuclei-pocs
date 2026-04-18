@@ -1,0 +1,30 @@
+id: webdyn-mtx-router-titan-default-password
+
+info:
+  name: Webdyn MTX-Router-Titan Default Password
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    The MTX-Router-Titan router web management interface has a default password of admin/admin. Attackers can use the default credentials to log in to the system and perform unauthorized sensitive operations.
+  reference:
+    - https://www.webdyn.com/product/mtx-router-titan/
+  tags: default-password
+
+http:
+  - raw:
+      - |
+        POST /index.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        USERNAME=admin&PASSWORD=admin&LOGIN=LOGIN
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "Location: /wan-status.php"
+          - "Set-Cookie: PHPSESSID"

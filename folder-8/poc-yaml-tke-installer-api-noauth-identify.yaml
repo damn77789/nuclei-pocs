@@ -1,0 +1,20 @@
+id: poc-yaml-tke-installer-api-noauth-identify
+info:
+  name: TKE Installer Sensitive Information Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "/api/cluster/global"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"apiVersion": "platform.tkestack.io"'
+      - type: word
+        part: body
+        words:
+          - '"machines"'

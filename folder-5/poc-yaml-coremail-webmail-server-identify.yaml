@@ -1,0 +1,35 @@
+id: coremail-webmail-server-identify
+info:
+  name: Coremail Webmail Server Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+variables:
+  paths:
+    - /coremail/
+    - /
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}{{paths}}s/json?func=verify'
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"S_OK"'
+          - 'coremail'
+          - '"version"'
+
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - '</'
+        negative: true

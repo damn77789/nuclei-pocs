@@ -1,0 +1,25 @@
+id: poc-yaml-debug-pprof-identify
+info:
+  name: pprof Debug Endpoint Exposure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: identify
+  description: |
+    Identifies exposed debugging endpoints for pprof which can
+    lead to sensitive information leakage.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/debug/pprof/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "/debug/pprof/"
+          - "cmdline"
+          - "goroutine?debug"
+      - type: status
+        status:
+          - 200

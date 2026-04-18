@@ -1,0 +1,24 @@
+id: poc-yaml-oray-sunlogin-identify
+info:
+  name: Oray Sunlogin RPC Interface Detection
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "json"
+      - type: word
+        part: body
+        words:
+          - "{\"success\":false,\"msg\":\"Verification failure\"}"

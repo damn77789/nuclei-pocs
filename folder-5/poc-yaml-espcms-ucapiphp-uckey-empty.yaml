@@ -1,0 +1,40 @@
+id: poc-yaml-espcms-ucapiphp-uckey-empty
+info:
+  name: ESPCMS api/uc.php UC_KEY Empty
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: hardcoded-credentials
+  description: |
+    Detects the condition where the UC_KEY in ESPCMS's api/uc.php is empty, leading to potential vulnerabilities.
+http:
+  - raw:
+      - |
+        GET /api/uc.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Invalid Request"
+        part: body
+
+  - raw:
+      - |
+        GET /api/uc.php?code=60c8lxsJcpFnTJEDHYGFTrcF/Pip/9o8P2M7JiCEJ7iaWHq8GUKY9PPlg0191xUASpiX4eI3VMs HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "1"
+        part: body
+      - type: word
+        words:
+          - "Invalid Request"
+        negative: true
+        part: body
+      - type: word
+        words:
+          - "</html>"
+        negative: true
+        part: body

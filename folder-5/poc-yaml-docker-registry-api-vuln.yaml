@@ -1,0 +1,31 @@
+id: docker-registry-api-unauthorized-access
+
+info:
+  name: Docker Registry API Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,docker
+  description: |
+    Detects unauthorized access to Docker Registry API by checking for the availability of the /v2/_catalog endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/v2/_catalog"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "{\"repositories\":"
+
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

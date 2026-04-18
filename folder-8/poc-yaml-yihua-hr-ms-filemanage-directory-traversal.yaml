@@ -1,0 +1,28 @@
+id: poc-yaml-yihua-hr-ms-filemanage-directory-traversal
+info:
+  name: Yihua HR Management System filemanage Directory Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+  description: |
+    Detects a directory traversal vulnerability in the filemanage module of the Yihua HR Management System.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/filemanage/file/default.aspx"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "上传文件"
+          - "新建目录"
+          - "新建文件"
+      - type: word
+        part: body
+        words:
+          - "EHR -- 文件管理"
+      - type: status
+        status:
+          - 200

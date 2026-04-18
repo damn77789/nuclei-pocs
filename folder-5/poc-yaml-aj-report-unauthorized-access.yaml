@@ -1,0 +1,27 @@
+id: aj-report-unauthorized-access
+info:
+  name: AJ-Report Unauthorized Access Data Source Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: misconfiguration
+  description: |
+    AJ-Report interface allows unauthorized access, leading to potential data source information disclosure including sensitive configurations.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/swagger-ui/dataSource/pageList?showMoreSearch=false&pageNumber=1&pageSize=10"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"sourceName\""
+          - "\"sourceConfig\""
+          - "\"accessKey\""
+      - type: word
+        part: header
+        words:
+          - "application/json"

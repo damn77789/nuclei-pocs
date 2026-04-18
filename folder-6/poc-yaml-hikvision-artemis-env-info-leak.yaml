@@ -1,0 +1,35 @@
+id: hikvision-artemis-env-info-leak
+info:
+  name: HIKVISION Artemis Environment Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    This template detects information leakage in the HIKVISION Artemis platform via the /artemis-portal/artemis/env endpoint, revealing sensitive configuration and runtime information.
+  tags: info-leak
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/artemis-portal/artemis/env"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "prod"
+      - type: word
+        part: body
+        words:
+          - "java.runtime.name"
+      - type: word
+        part: body
+        words:
+          - "java.class.path"
+      - type: word
+        part: body
+        words:
+          - "spring.datasource.username"

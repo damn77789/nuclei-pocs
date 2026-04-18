@@ -1,0 +1,27 @@
+id: druid-identifier
+
+info:
+  name: Alibaba Druid Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify,application
+
+variables:
+  paths:
+    - "/"
+    - "/dev-api/"
+    - "/prod-api/"
+    - "/api/"
+
+http:
+  - raw:
+      - |
+        GET {{BaseURL}}{{paths}}druid/login.html HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - ".keypress(druid.login.unamecr)"
+          - "keypress(druid.login.upasscr)"

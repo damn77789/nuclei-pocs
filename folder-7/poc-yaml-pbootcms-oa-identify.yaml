@@ -1,0 +1,26 @@
+id: poc-yaml-pbootcms-oa-identify
+info:
+  name: PbootCMS Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "/?search.html"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>搜索结果"
+          - ">搜索结果<"
+          - "\"/?"
+      - type: word
+        part: body
+        words:
+          - "PbootCMS"
+        condition: or

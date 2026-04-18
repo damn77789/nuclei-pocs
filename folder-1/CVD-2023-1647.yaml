@@ -1,0 +1,28 @@
+id: draytek-vigor-ap910c-default-password
+
+info:
+  name: DrayTek Vigor AP910C Router Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: default-password
+  description: |
+    DrayTek Vigor AP910C is a wireless router product with firewall function launched by DrayTek. Attackers can control the entire platform through the default password admin:admin and use administrator privileges to operate core functions.
+  reference:
+    - https://www.draytek.com/en/products/products-a-z/wireless-ap.all/vigorap-910c/
+
+http:
+  - raw:
+      - |
+        GET /home.asp HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic YWRtaW46YWRtaW4=
+        Referer: {{BaseURL}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "AP910C"

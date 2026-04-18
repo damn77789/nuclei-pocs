@@ -1,0 +1,50 @@
+id: cnvd-2021-23579
+info:
+  name: Hangzhou New Zhongda NetcallServer Default Password
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Hangzhou New Zhongda NetcallServer Management console is an instant messaging software of Hangzhou New Zhongda Technology Co., LTD. There is a default password in the NetcallServer management console of Hangzhou New CUHK, which can be exploited by attackers to obtain sensitive information.
+  tags: default-password
+  classification:
+    cvss-score: 7.5
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: "1"
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+    extractors:
+      - type: regex
+        name: JSESSIONID
+        internal: true
+        part: header
+        group: 1
+        regex:
+          - "Set-Cookie: (.*?);"
+
+  - id: "2"
+    method: POST
+    path:
+      - "{{BaseURL}}/login.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Connection: close
+      Cookie: "{{JSESSIONID}}"
+    body: "url=%2Findex.jsp&login=true&username=admin&password=admin"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "system-clustering.jsp"
+          - "server-properties.jsp"

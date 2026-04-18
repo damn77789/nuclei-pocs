@@ -1,0 +1,25 @@
+id: landray-oa-identify
+info:
+  name: Landray OA Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "/resource/js/common.js"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: header
+        words:
+          - "javascript"
+      - type: word
+        part: body
+        words:
+          - "function Com_IncludeFile("
+          - "Com_IncludeJSFiles"

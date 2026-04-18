@@ -1,0 +1,65 @@
+id: crushftp-anonymous-login
+
+info:
+  name: CrushFTP Anonymous Login Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: auth-bypass
+  description: |
+    Detects an anonymous login vulnerability in CrushFTP allowing unauthorized access.
+
+variables:
+  random_value: "0.4186510822713485"
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/WebInterface/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: header
+        words:
+          - "CrushFTP HTTP Server"
+    extractors:
+      - type: regex
+        internal: true
+        name: cookie
+        part: header
+        group: 1
+        regex:
+          - "CrushAuth=(.*?); path="
+      - type: regex
+        internal: true
+        name: token
+        part: header
+        group: 1
+        regex:
+          - "currentAuth=(.*?); path="
+
+  - id: validate-login
+    method: POST
+    path:
+      - "{{BaseURL}}/WebInterface/function/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "CrushAuth={{cookie}}"
+    body: "command=getUsername&random={{random_value}}&c2f={{token}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<response>success</response>"
+          - "<username>anonymous</username>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

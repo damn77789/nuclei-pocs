@@ -1,0 +1,55 @@
+id: poc-yaml-found-dot-env
+info:
+  name: .env File Leakage Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: misconfiguration
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/.env"
+      - "{{BaseURL}}/.env.example"
+      - "{{BaseURL}}/.env.production"
+      - "{{BaseURL}}/.env.prod"
+      - "{{BaseURL}}/docker/.env"
+      - "{{BaseURL}}/docker/.env.example"
+      - "{{BaseURL}}/docker/.env.production"
+      - "{{BaseURL}}/docker/.env.prod"
+      - "{{BaseURL}}/api/.env"
+      - "{{BaseURL}}/api/.env.example"
+      - "{{BaseURL}}/api/.env.production"
+      - "{{BaseURL}}/api/.env.prod"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "(?i)(APP_KEY|SECRET|PASSWORD|USERNAME|API_KEY|TOKEN|AUTH_KEY|DB_NAME)"
+      - type: regex
+        regex:
+          - "(?i)(QCLOUD|SECRET|LTAI|AKID|BUCKET)"
+      - type: word
+        words:
+          - "<a"
+        negative: true
+      - type: word
+        words:
+          - "<script"
+        negative: true
+      - type: regex
+        regex:
+          - "\\{\\\""
+        negative: true
+      - type: word
+        words:
+          - "json"
+        part: header
+        negative: true
+      - type: word
+        words:
+          - "html"
+        part: header
+        negative: true

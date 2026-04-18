@@ -1,0 +1,31 @@
+id: emerge-e3-series-info-leak
+info:
+  name: eMerge E3 Series Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  metadata:
+    finger: linear_emerge_e3_access_control_firmware
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/test.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ID="
+          - "Password="
+      - type: regex
+        part: body
+        regex:
+          - "ID='(.*)',Password='(.*)'"
+      - type: word
+        part: header
+        words:
+          - "html"
+        negative: true

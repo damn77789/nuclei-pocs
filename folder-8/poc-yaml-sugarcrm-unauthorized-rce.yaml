@@ -1,0 +1,25 @@
+id: poc-yaml-sugarcrm-unauthorized-rce
+info:
+  name: SugarCRM Remote Code Execution Vulnerability (CVE-2023-22952)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve,CVE-2023-22952
+
+http:
+  - raw:
+      - |
+        POST /index.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: PHPSESSID=c09b717d-9ff8-42ec-a2fb-1ad3edfab4c5
+
+        module=Users&action=Authenticate&user_name=brenda&user_password=DbLiL98a
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "You must specify a valid username and password"
+        part: body

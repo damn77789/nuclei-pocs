@@ -1,0 +1,19 @@
+id: poc-yaml-weaver-ecology-identify-2
+info:
+  name: Discover Weaver Ecology
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+  metadata:
+    finger: e-cology
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/js/weaver_encrypt/weaver_encrypt.js"
+
+    matchers:
+      - type: word
+        words:
+          - "--weaversecurity--"
+        part: body

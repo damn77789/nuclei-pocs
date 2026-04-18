@@ -1,0 +1,22 @@
+id: sentinel-dashboard-weak-pass
+info:
+  name: Sentinel Dashboard Weak Password
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+  description: |
+    Detects weak password implementation in Sentinel dashboard authentication endpoint.
+http:
+  - raw:
+      - |
+        POST /auth/login?password=sentinel&username=sentinel HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: JSESSIONID=8AD6F1A87C13A3C881C04063658DCECF
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '{"success":true,"code"'
+          - '"msg":"success"'
+          - 'nickName'

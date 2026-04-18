@@ -1,0 +1,21 @@
+id: poc-yaml-tke-installer-identify
+info:
+  name: TKE Installer Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "TKE Installer"
+        part: body
+      - type: regex
+        regex:
+          - "<title>.*?TKE Installer.*?</title>"
+        part: body

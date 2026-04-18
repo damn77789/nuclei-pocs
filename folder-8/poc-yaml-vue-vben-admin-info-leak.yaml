@@ -1,0 +1,44 @@
+id: vue-vben-admin-info-leak
+info:
+  name: Vue Vben Admin Information Leak Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "/assets/index.*?\\.js"
+    extractors:
+      - type: regex
+        part: body
+        name: api
+        internal: true
+        group: 1
+        regex:
+          - "/assets/index(.*?).js"
+  - raw:
+      - |
+        GET /assets/index{{api}}.js HTTP/1.1
+        Host: {{Hostname}}
+        Range: bytes=1100000-1280000
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 206
+      - type: regex
+        part: body
+        regex:
+          - "username:\\\".*?\\\""
+          - "password:\\\".*?\\\""
+          - "token:\\\".*?\\\""

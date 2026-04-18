@@ -1,0 +1,31 @@
+id: minio-default-password
+
+info:
+  name: MinIO Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    MinIO has a default password vulnerability that allows attackers to gain full control of the platform using the default credentials. Exploiting this issue grants administrator privileges to operate core functions.
+  tags: default-password
+
+http:
+  - raw:
+      - |
+        POST /minio/webrpc HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"id":1,"jsonrpc":"2.0","params":{"username":"minioadmin","password":"minioadmin"},"method":"Web.Login"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "uiVersion"
+        part: body
+      - type: word
+        words:
+          - "token"
+        part: body

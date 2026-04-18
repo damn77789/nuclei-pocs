@@ -1,0 +1,22 @@
+id: adiscon-loganalyzer-unauth-access
+info:
+  name: Adiscon LogAnalyzer Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    Detects unauthorized access to Adiscon LogAnalyzer by checking for specific indicators in the response body.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Adiscon LogAnalyzer"
+        part: body
+      - type: word
+        words:
+          - "<b>Search (filter):</b>"
+        part: body

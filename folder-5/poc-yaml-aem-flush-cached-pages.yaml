@@ -1,0 +1,23 @@
+id: aem-flush-cached-pages
+info:
+  name: Adobe Experience Manager Flush Cached Pages
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak,aem
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/dispatcher/invalidate.cache"
+    headers:
+      CQ-Handle: /content
+      CQ-Path: /content
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "<H1>OK</H1>"
+      - type: regex
+        part: body
+        regex:
+          - "(?i)<H1>OK</H1>"

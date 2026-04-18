@@ -1,0 +1,68 @@
+id: mirth-connect-default-password
+info:
+  name: Mirth Connect Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Mirth Connect is an interface engine system. There is a default password for this application. An attacker can control the entire platform through the default password (admin/admin) and operate the core functions with administrator privileges.
+  tags: default-password
+  reference:
+    - https://www.nextgentechinc.com/
+
+variables:
+  credentials: "admin:admin"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: initial-check
+    method: GET
+    path:
+      - "{{BaseURL}}/webadmin/Index.action"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Mirth"
+
+  - id: login
+    method: POST
+    path:
+      - "{{BaseURL}}/webadmin/Login.action"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "op=login&version=0.0.0&username=admin&password=admin"
+    extractors:
+      - type: kval
+        kval:
+          - Set-Cookie
+        internal: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "DashboardStatistics.action"
+
+  - id: dashboard-check
+    method: GET
+    path:
+      - "{{BaseURL}}/webadmin/DashboardStatistics.action"
+    headers:
+      Cookie: "{{Set-Cookie}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "Current Statistics"
+          - "Lifetime Statistics"
+      - type: status
+        status:
+          - 200

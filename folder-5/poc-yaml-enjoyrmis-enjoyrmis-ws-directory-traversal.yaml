@@ -1,0 +1,22 @@
+id: enjoyrmis-directory-traversal
+info:
+  name: EnjoyRMIS EnjoyRMIS_WS Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "/EnjoyRMIS_WS/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "WS"
+          - "[To Parent Directory]"
+          - "&lt;dir&gt;"
+          - "<A HREF="

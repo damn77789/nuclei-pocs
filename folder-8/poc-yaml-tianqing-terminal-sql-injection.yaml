@@ -1,0 +1,26 @@
+id: tianqing-terminal-sql-injection
+
+info:
+  name: Tianqing Terminal Security Management System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: Tianqing Terminal Security Management System
+    osprey-id: vb_2021_0019
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/dp/rptsvcsyncpoint?ccid=1"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"reason\":\"success\""
+          - "antiadwa"
+        part: body

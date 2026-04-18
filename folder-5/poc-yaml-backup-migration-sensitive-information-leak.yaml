@@ -1,0 +1,51 @@
+id: poc-yaml-backup-migration-sensitive-information-leak
+info:
+  name: Backup Migration Sensitive Information Leak (CVE-2023-6271)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2023-6271,info-leak
+
+variables:
+  version: ""
+
+http:
+  - raw:
+      - |
+        GET /wp-content/plugins/backup-backup/readme.txt HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "backup-backup"
+      - type: regex
+        part: body
+        regex:
+          - "(?mi)Stable tag\x3a ([0-9.]+)"
+
+    extractors:
+      - type: regex
+        name: version
+        part: body
+        regex:
+          - "Stable tag\x3a (?P<version>[0-9.]+)"
+        internal: true
+
+  - raw:
+      - |
+        GET /wp-content/plugins/backup-backup/readme.txt HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - compare_versions(version, "<1.3.5")

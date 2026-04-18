@@ -1,0 +1,27 @@
+id: ruijie-uac-cnvd-2021-14536
+info:
+  name: Ruijie UAC Login Page Identification (CNVD-2021-14536)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cnvd-2021-14536
+  description: |
+    Detects the presence of Ruijie UAC login page associated with CNVD-2021-14536.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/login.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>RG-UAC登录页面</title>"
+          - "get_dkey_passwd"
+      - type: regex
+        part: body
+        regex:
+          - "\"password\":\"[a-f0-9]{32}\""

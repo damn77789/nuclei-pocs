@@ -1,0 +1,20 @@
+id: poc-yaml-yapi-open-registration
+info:
+  name: Yapi Open Registration Detection
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: open-registration
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/user/status"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"errcode\":40011,\"errmsg\":\"请登录...\""
+          - "\"canRegister\":true"

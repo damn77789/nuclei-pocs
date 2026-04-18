@@ -1,0 +1,27 @@
+id: wordpress-plugin-core-username-enumeration
+info:
+  name: WordPress Core Username Enumeration Vulnerability (CVE-2017-5487)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure,CVE-2017-5487
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-json/wp/v2/users/"
+      - "{{BaseURL}}/?rest_route=/wp/v2/users/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"id":'
+          - '"name":'
+          - '"avatar_urls":'
+      - type: word
+        part: header
+        words:
+          - "application/json"

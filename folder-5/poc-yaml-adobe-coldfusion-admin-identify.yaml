@@ -1,0 +1,21 @@
+id: adobe-coldfusion-admin-identify
+
+info:
+  name: Discover Adobe ColdFusion Admin Console
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify,adobe,coldfusion
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/CFIDE/administrator/index.cfm"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "CFIDE/administrator/favicon.ico"

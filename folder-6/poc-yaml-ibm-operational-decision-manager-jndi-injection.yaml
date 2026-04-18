@@ -1,0 +1,30 @@
+id: ibm-odm-jndi-injection
+info:
+  name: IBM Operational Decision Manager JNDI Injection (CVE-2024-22319)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2024-22319,ldap-injection
+  description: |
+    IBM Operational Decision Manager JNDI Injection vulnerability, allowing potential exploitation via malicious LDAP datasource.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/decisioncenter-api/v1/about?datasource=ldap://127.0.0.1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: regex
+        part: body
+        regex:
+          - "\"version\":\"8\\.10\\.3\""
+          - "\"version\":\"8\\.10\\.4\""
+          - "\"version\":\"8\\.10\\.5\\.1\""
+          - "\"version\":\"8\\.11\\.0\\.1\""
+          - "\"version\":\"8\\.12\\.0\\.1\""

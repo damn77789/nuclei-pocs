@@ -1,0 +1,29 @@
+id: cve-2022-26148
+info:
+  name: Grafana Zabbix login Api Information Leakage Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Grafana versions 7.3.4 and earlier, when integrated with Zabbix, expose sensitive credentials of the Zabbix integration in the `api_jsonrpc.php` HTML source code. This allows attackers to retrieve Zabbix account passwords and the URL address.
+  reference:
+    - https://grafana.com
+    - https://github.com/adampielak/nuclei-templates/blob/6aa6f7755bb30029398232855277dcd6b07f217a/cve-2022-26148-6730.yaml#L2
+  classification:
+    cvss-metrics: 9.8
+    cve-id: CVE-2022-26148
+    cwe-id: CWE-200
+  tags: information-disclosure,grafana,zabbix
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "api_jsonrpc\\.php.*password"

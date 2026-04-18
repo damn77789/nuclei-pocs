@@ -1,0 +1,25 @@
+id: seeyon-session-leak
+
+info:
+  name: Seeyon Session Leak Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects session leakage vulnerability in Seeyon OA systems by checking for session details in the response body.
+  reference:
+    - https://vulners.com/seebug/SSV:93312
+    - https://moshou.org.cn/index.php/archives/1690/
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/yyoa/ext/https/getSessionList.jsp?cmd=getAll"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<SessionList>\r\n<Session>\r\n<usrID>"
+        part: body

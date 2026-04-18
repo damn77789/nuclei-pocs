@@ -1,0 +1,28 @@
+id: jeecgboot-default-password
+
+info:
+  name: JeecgBoot Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    JeecgBoot is a low-code development platform based on code generator.
+    JeecgBoot has a default password of admin/123456.
+  tags: default-password
+  reference:
+    - http://www.jeecg.com/
+
+http:
+  - raw:
+      - |
+        POST /jeecgboot/sys/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"username":"admin","password":"123456"}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "登录成功"
+          - "\"success\":true"

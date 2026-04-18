@@ -1,0 +1,20 @@
+id: adobe-coldfusion-identify
+info:
+  name: Discover Adobe ColdFusion
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/CFIDE/scripts/ajax/package/cfmenu.js"
+      - "{{BaseURL}}/cf_scripts/scripts/ajax/package/cfmenu.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ColdFusion.Menu.menuItemMouseOver="
+        part: body

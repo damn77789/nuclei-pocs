@@ -1,0 +1,27 @@
+id: poc-yaml-tcexam-sensitive-information-exposure
+info:
+  name: TCExam Sensitive Information Exposure (CVE-2021-20114)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information_disclosure,cve,cve-2021-20114
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/cache/backup/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Index of /cache/backup"
+      - type: word
+        part: body
+        words:
+          - "Parent Directory"
+      - type: word
+        part: body
+        words:
+          - ".sql.gz"

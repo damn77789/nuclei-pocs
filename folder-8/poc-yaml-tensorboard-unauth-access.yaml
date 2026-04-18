@@ -1,0 +1,21 @@
+id: tensorboard-unauth-access
+info:
+  name: TensorBoard Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/data/plugins_listing"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "scalars"
+          - "loading_mechanism"
+          - "custom_scalars"

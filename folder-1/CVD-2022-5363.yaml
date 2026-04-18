@@ -1,0 +1,31 @@
+id: dovado-router-default-password
+
+info:
+  name: Dovado Router Default Password
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Dovado routers have a default password of admin/password. Attackers can use the default password to log in to the system backend, perform other sensitive operations, and access sensitive data.
+  tags:
+    - default-password
+  reference:
+    - http://www.commsoft.ie/
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/login.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        LOGINUNAME=admin&LOGINPASSWD=password
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "umrsession"
+          - "getcfg.cgi?home"

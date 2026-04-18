@@ -1,0 +1,21 @@
+id: apache-tomcat-example-directory-open
+info:
+  name: Apache Tomcat Example Directory Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak,tomcat
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/examples/servlets/servlet/SessionExample"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<title>Sessions Example</title>"
+          - "Session ID"
+          - "Value of Session Attribute:"

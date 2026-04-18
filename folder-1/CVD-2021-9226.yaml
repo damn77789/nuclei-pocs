@@ -1,0 +1,42 @@
+id: lanling-oa-command-execution
+
+info:
+  name: Lan Ling OA custom.jsp Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Lan Ling OA is an OA office tool for instant office communication. There exists a command execution vulnerability that allows an attacker to execute arbitrary commands, potentially leading to unauthorized server access and control.
+  reference:
+    - https://www.cnblogs.com/0day-li/p/14637653.html
+  tags:
+    - command-execution
+    - critical
+
+http:
+  - id: check-loginx
+    method: POST
+    path:
+      - '{{BaseURL}}/loginx.jsp'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "0c5b0f467a90e2484373b813ecf35a9d"
+
+  - id: verify-custom-js
+    method: GET
+    path:
+      - '{{BaseURL}}/sys/ui/extend/varkind/custom.js'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "test"

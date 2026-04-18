@@ -1,0 +1,24 @@
+id: apache-spark-unauthorized-access
+info:
+  name: Apache Spark Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects unauthorized access to Apache Spark by checking for a specific error message and server version disclosure in the response.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/v1/submissions"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        part: body
+        words:
+          - "Missing an action"
+      - type: word
+        part: body
+        words:
+          - "serverSparkVersion"

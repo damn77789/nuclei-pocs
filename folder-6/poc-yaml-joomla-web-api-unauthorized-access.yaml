@@ -1,0 +1,24 @@
+id: joomla-web-api-unauthorized-access
+info:
+  name: Joomla Web API Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: CVE-2023-23752,joomla
+
+http:
+  - method: GET
+    path:
+      - "/api/index.php/v1/config/application?public=true"
+      - "/api/v1/config/application?public=true"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "links"
+          - "\"attributes\":"
+          - "user"
+          - "\"dbsslcert\""

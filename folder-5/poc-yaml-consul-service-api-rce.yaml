@@ -1,0 +1,16 @@
+id: poc-yaml-consul-service-api-rce
+info:
+  name: Consul Service API Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,consul
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/v1/agent/self"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "EnableRemoteScriptChecks\":true"

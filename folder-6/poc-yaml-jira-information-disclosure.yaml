@@ -1,0 +1,20 @@
+id: jira-information-disclosure
+info:
+  name: Atlassian Jira Unauthenticated Issue Access
+  author: ProjectDiscoveryAI
+  severity: low
+  tags: unauthorized-access
+  description: |
+    This template detects an information disclosure vulnerability in Atlassian Jira, where unauthenticated users can access the issue list.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/issues/?filter=-4"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<ol class=\"issue-list\"><li"
+      - type: word
+        words:
+          - "jira"

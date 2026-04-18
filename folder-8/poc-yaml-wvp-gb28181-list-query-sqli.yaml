@@ -1,0 +1,26 @@
+id: poc-yaml-wvp-gb28181-list-query-sqli
+info:
+  name: WVP Video Platform API SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects a SQL injection vulnerability in the WVP Video Platform (GB28181) API at the /api/push/list endpoint.
+  metadata:
+    finger: WVP视频平台
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/push/list?page=1&count=15&query=1'&pushing=&mediaServerId="
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "java.sql.SQLSyntaxErrorException"
+          - "LIKE '%1'%' OR"
+        part: body

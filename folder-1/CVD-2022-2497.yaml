@@ -1,0 +1,24 @@
+id: air-shield-nas-backdoor
+
+info:
+  name: Air Shield NAS Root Privilege Backdoor
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The Air Shield NAS electronic document security management system contains a root privilege backdoor. Attackers can exploit this to gain root shell privileges by accessing specific web pages.
+  tags: backdoor
+
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"

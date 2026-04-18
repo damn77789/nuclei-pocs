@@ -1,0 +1,19 @@
+id: weaver-ebridge-identify
+
+info:
+  name: Identify Weaver E-Bridge
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/login"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: header
+        words:
+          - "EBRIDGE_JSESSIONID"

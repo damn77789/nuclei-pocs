@@ -1,0 +1,21 @@
+id: fortigate-sslvpn-backdoor
+info:
+  name: Fortigate SSL VPN Magic Backdoor Modify Password
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    This template detects the Fortigate SSL VPN Magic Backdoor vulnerability by checking for the presence of a specific magic parameter in the login.js file.
+  tags: backdoor,fortigate
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/sslvpn/js/login.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "&magic=4tinet2095866&"
+        part: body

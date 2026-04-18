@@ -1,0 +1,19 @@
+id: f22-apparel-management-info-leak
+info:
+  name: F22 Apparel Management System Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/pos/index_login.asp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        part: header
+        regex:
+          - "Set-Cookie: cn2=.*; path=/"

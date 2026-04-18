@@ -1,0 +1,32 @@
+id: x2modbus-getconfig-info-leak
+info:
+  name: X2Modbus Gateway GetConfig Information Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+  metadata:
+    fingerprint: X2Modbus
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/soap/GetConfig"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "MySQL"
+          - "X2Web"
+      - type: regex
+        part: body
+        regex:
+          - "DBPort=\"([0-9]{1,5})\""
+          - "DBName=\"([0-9a-zA-Z]+)\""
+      - type: word
+        part: header
+        words:
+          - "text/xml"

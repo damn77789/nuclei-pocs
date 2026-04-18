@@ -1,0 +1,23 @@
+id: phpmyadmin-identifier
+info:
+  name: Identify phpMyAdmin
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/pma/index.php"
+      - "{{BaseURL}}/phpmyadmin/index.php"
+      - "{{BaseURL}}/phpMyAdmin/index.php"
+      - "{{BaseURL}}/PMA/index.php"
+      - "{{BaseURL}}/_phpmyadmin/index.php"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "phpMyAdmin"
+      - type: status
+        status:
+          - 200

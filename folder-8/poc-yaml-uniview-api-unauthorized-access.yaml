@@ -1,0 +1,20 @@
+id: uniview-api-unauthorized-access
+info:
+  name: Uniview IPCamera API Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access,api,uniview
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/LAPI/V1.0/Channel/0/System/Users"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"StatusString": "Succeed"'
+        part: body
+      - type: word
+        words:
+          - "Users"
+        part: body

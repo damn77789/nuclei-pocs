@@ -1,0 +1,25 @@
+id: poc-yaml-knife4j-doc-identify
+info:
+  name: Knife4j API Documentation Detection
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: identify
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/doc.html"
+      - "{{BaseURL}}/api/doc.html"
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "接口文档"
+          - "knife4j"
+          - "Swagger"
+      - type: word
+        part: body
+        words:
+          - "We're sorry but knife4j-vue doesn't work"

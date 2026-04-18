@@ -1,0 +1,32 @@
+id: cve-2023-21931
+info:
+  name: Weblogic LinkRef Deserialization Remote Code Execution Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    WebLogic Server is one of the application server components for cloud and traditional environments.
+    There is a remote code execution vulnerability in WebLogic, which allows an unauthenticated attacker
+    to access and damage the vulnerable WebLogic Server through the IIOP protocol network. Successful
+    exploitation of the vulnerability can lead to WebLogic Server being taken over by the attacker,
+    resulting in remote code execution.
+  reference:
+    - https://www.oracle.com/
+  classification:
+    cve-id: CVE-2023-21931
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 7.5
+  tags: code-execution
+http:
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"

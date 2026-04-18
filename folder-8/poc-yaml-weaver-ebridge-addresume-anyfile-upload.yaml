@@ -1,0 +1,23 @@
+id: poc-yaml-weaver-ebridge-addresume-anyfile-upload
+info:
+  name: 泛微云桥ebridge addResume 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wxclient/app/recruit/resume/addResume"
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "\"status\":\"success\""
+          - "\"msg\":\"提交成功\""
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "<"
+        negative: true

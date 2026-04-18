@@ -1,0 +1,26 @@
+id: kingportal-externalconfig-json-info-leak
+info:
+  name: KingPortal externalConfig.json Information Disclosure
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    Detects the presence of an exposed externalConfig.json file in KingPortal systems, which may leak sensitive configurations such as defaultUser and expose settings.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/config/externalConfig.json"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"defaultUser\""
+          - "\"expose\""
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

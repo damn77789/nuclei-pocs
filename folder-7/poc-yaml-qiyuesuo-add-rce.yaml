@@ -1,0 +1,42 @@
+id: qiyuesuo-add-rce
+info:
+  name: Remote Code Execution in Qiyuesuo Electronic Signature Platform
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+
+http:
+  - raw:
+      - |
+        POST /captcha/%2e%2e/template/html/add HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "\u672A\u586B\u5199\u53C2\u6570\uFF1Afile\""
+  - raw:
+      - |
+        POST /captcha/%2e%2e11/template/html/add HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+        negative: true
+      - type: word
+        part: body
+        words:
+          - "\u672A\u586B\u5199\u53C2\u6570\uFF1A"
+        negative: true

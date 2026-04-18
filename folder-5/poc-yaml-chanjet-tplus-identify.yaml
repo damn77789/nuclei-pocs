@@ -1,0 +1,27 @@
+id: chanjet-tplus-identify
+info:
+  name: Chanjet Tplus Identification
+  author: ProjectDiscoveryAI
+  severity: info
+  tags: identify
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/tplus/view/login.html"
+      - "{{BaseURL}}/tplus/"
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "畅捷通"
+          - "TPlusBrowser.exe"
+          - "管理员账号"
+          - "密码"
+        condition: and
+        part: body
+      - type: word
+        words:
+          - "欢迎页"
+          - "若要登录产品，请点击右侧进入登录界面按钮"
+        condition: and
+        part: body

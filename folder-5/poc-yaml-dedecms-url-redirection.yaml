@@ -1,0 +1,23 @@
+id: dedecms-url-redirection
+info:
+  name: Dedecms URL Redirection Vulnerability
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: url-redirection
+  description: |
+    Dedecms URL redirection vulnerability allows arbitrary redirection to attacker-controlled domains.
+http:
+  - method: GET
+    path:
+      - "/plus/download.php?open=1&link=aHR0cHM6Ly93d3cuZHUxeDNyMTIuY29t"
+    redirects: false
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 302
+      - type: word
+        part: header
+        words:
+          - "location"
+          - "https://www.du1x3r12.com"

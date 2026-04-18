@@ -1,0 +1,26 @@
+id: poc-yaml-yongyou-grp-u8-log-info-leak
+
+info:
+  name: Yongyou GRP-U8 Log Information Leak
+  author: ProjectDiscoveryAI
+  severity: medium
+  tags: info-leak
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/logs/info.log"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        words:
+          - "[ INFO ]"
+          - "SET NOCOUNT OFF"
+          - "http-apr"
+          - "[DataSetProviderData]"
+        condition: and
+        part: body
